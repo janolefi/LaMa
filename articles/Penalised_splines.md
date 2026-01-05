@@ -172,7 +172,7 @@ There are some rules to follow when using
 4.  By default,
     [`qreml()`](https://janoleko.github.io/reference/qreml.md) assumes
     that the penalisation hyperparameter in the `dat` object is called
-    `lambda`. You can use a different name for `dat` (of course than
+    `lambda`. You can use a different name for `dat` (of course then
     changing it in your `pnll` as well), but if you want to use a
     different name for the penalisation hyperparameter, you have to
     specify it as a character string in the
@@ -201,7 +201,7 @@ system.time(
 #> Converged
 #> Final model fit with lambda: 0.308 0.112
 #>    user  system elapsed 
-#>   8.083   3.793   7.609
+#>   8.153   3.780   7.658
 ```
 
 The `mod` object is now a list that contains everything that is reported
@@ -419,7 +419,7 @@ system.time(
 #> Converged
 #> Final model fit with lambda: 1.033 1.01 1.744
 #>    user  system elapsed 
-#>  16.359   4.426  15.681
+#>  16.294   4.436  15.592
 ```
 
 After fitting the model, we can easily visualise the smooth densities
@@ -567,7 +567,7 @@ system.time(
 #> Converged
 #> Final model fit with lambda: 22.588 7.212 8.278 4.169
 #>    user  system elapsed 
-#>   15.15    5.70   14.28
+#>  15.181   5.710  14.316
 ```
 
 Having fitted the model, we can visualise the results. We first decode

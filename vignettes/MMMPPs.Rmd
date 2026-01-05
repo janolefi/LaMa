@@ -24,9 +24,9 @@ knitr::opts_chunk$set(
 
 > Before diving into this vignette, we recommend reading the vignettes [**Introduction to LaMa**](https://janoleko.github.io/LaMa/articles/Intro_to_LaMa.html) and [**Continuous-time HMMs**](https://janoleko.github.io/LaMa/articles/Continuous_time_HMMs.html).
 
-`LaMa` can also be used to fit so-called **Markov-modulated Poisson processes**. These are doubly stochastic Poisson point processes where the intensity is directed by an underlying continuous-time Markov chain. Such processes are useful for modelling **arrival times**, for example of calls in a call center, or patients in the hospital. The main difference compared to continuous-time HMMs is the arrival or observation **times** themselves **carry information** on the **latent state process**. To capture this information, we need to model them explicitely as random-variables.
+`LaMa` can also be used to fit so-called **Markov-modulated Poisson processes**. These are doubly stochastic Poisson point processes where the intensity is directed by an underlying continuous-time Markov chain. Such processes are useful for modelling **arrival times**, for example of calls in a call center, or patients in the hospital. The main difference compared to continuous-time HMMs is the arrival or observation **times** themselves **carry information** on the **latent state process**. To capture this information, we need to model them explicitly as random-variables.
 
-A homogeneous Poisson process is mainly characterised by the fact that the **number of arrivals** within a fixed time interval is **Poisson distributed** with a mean that is proporional to the length of the interval. The **waiting times** between arrivals are **exponentially distributed**. While the latter is not true for non-homogeneous Poisson processes in general, we can interpret a Markov modulated Poisson process as **alternating** between homogeneous Poisson processes, i.e. when the unobserved continuous-time Markov chain stays in a particular state for some interval, the associated Poisson rate in that interval is homogeneous and state-specific. To learn more about Poisson processes, see @dobrow2016introduction.
+A homogeneous Poisson process is mainly characterised by the fact that the **number of arrivals** within a fixed time interval is **Poisson distributed** with a mean that is proportional to the length of the interval. The **waiting times** between arrivals are **exponentially distributed**. While the latter is not true for non-homogeneous Poisson processes in general, we can interpret a Markov modulated Poisson process as **alternating** between homogeneous Poisson processes, i.e. when the unobserved continuous-time Markov chain stays in a particular state for some interval, the associated Poisson rate in that interval is homogeneous and state-specific. To learn more about Poisson processes, see @dobrow2016introduction.
 
 ## Example 1: Markov-modulated Poisson processes
 
@@ -53,7 +53,7 @@ set.seed(123)
 
 k = 200 # number of state switches
 trans_times = s = rep(NA, k) # time points where the chain transitions
-s[1] = sample(1:2, 1) # initial distribuion c(0.5, 0.5)
+s[1] = sample(1:2, 1) # initial distribution c(0.5, 0.5)
 # exponentially distributed waiting times
 trans_times[1] = rexp(1, -Q[s[1],s[1]])
 # in a fixed interval, the number of arrivals is Pois(lambda * interval_length)
@@ -61,7 +61,7 @@ n_arrivals = rpois(1, lambda[s[1]]*trans_times[1])
 # arrival times within fixed interval are uniformly distributed
 arrival_times = runif(n_arrivals, 0, trans_times[1])
 for(t in 2:k){
-  s[t] = c(1,2)[-s[t-1]] # for 2-states, always a state swith when transitioning
+  s[t] = c(1,2)[-s[t-1]] # for 2-states, always a state switch when transitioning
   # exponentially distributed waiting times
   trans_times[t] = trans_times[t-1] + rexp(1, -Q[s[t], s[t]])
   # in a fixed interval, the number of arrivals is Pois(lambda * interval_length)
@@ -141,7 +141,7 @@ lambda = c(1, 5, 20)
 Q = matrix(c(-0.5, 0.3, 0.2,
              0.7, -1, 0.3,
              1, 1, -2), nrow = 3, byrow = TRUE)
-# parmeters for distributions of state-dependent marks
+# parameters for distributions of state-dependent marks
 # (here normally distributed)
 mu = c(-5, 0, 5)
 sigma = c(2, 1, 2)
@@ -161,7 +161,7 @@ We now show how to simulate an MMMPP and additionally how to generalise to more 
 set.seed(123)
 k = 200 # number of state switches
 trans_times = s = rep(NA, k) # time points where the chain transitions
-s[1] = sample(1:3, 1) # initial distribuion uniformly
+s[1] = sample(1:3, 1) # initial distribution uniformly
 # exponentially distributed waiting times
 trans_times[1] = rexp(1, -Q[s[1],s[1]])
 # in a fixed interval, the number of arrivals is Pois(lambda * interval_length)
@@ -173,7 +173,7 @@ marks = rnorm(n_arrivals, mu[s[1]], sigma[s[1]])
 
 for(t in 2:k){
   # off-diagonal elements of the s[t-1] row of Q divided by the diagonal element
-  # give the probabilites of the next state
+  # give the probabilities of the next state
   s[t] = sample(c(1:3)[-s[t-1]], 1, prob = Q[s[t-1],-s[t-1]]/-Q[s[t-1],s[t-1]])
   # exponentially distributed waiting times
   trans_times[t] = trans_times[t-1] + rexp(1, -Q[s[t],s[t]])
@@ -207,7 +207,7 @@ The likelihood of a stationary MM**M**PP for waiting times $x_1, \dots, x_n$ bet
 $$
 L(\theta) = \pi P(y_0) \Bigl(\prod_{i=1}^n \exp\bigl((Q-\Lambda) x_i\bigr)\Lambda P(y_i) \Bigr)1,
 $$
-where $Q$, $\Lambda$ and $\pi$ are as above and $P(y_i)$ is a diagonal matrix with state-dependent densites for the observation at time $t_i$. We can again easily calculate the log of the above expression using the standard implementation of the general forward algorithm `forward_g()` when first calculating the `allprobs` matrix with state-dependent densities for the marks (as usual for HMMs) and then multiplying each row except the first one element-wise with the state-dependent rates.
+where $Q$, $\Lambda$ and $\pi$ are as above and $P(y_i)$ is a diagonal matrix with state-dependent densities for the observation at time $t_i$. We can again easily calculate the log of the above expression using the standard implementation of the general forward algorithm `forward_g()` when first calculating the `allprobs` matrix with state-dependent densities for the marks (as usual for HMMs) and then multiplying each row except the first one element-wise with the state-dependent rates.
 
 ```{r, mllk2}
 nllMark = function(par, y, timediff, N){

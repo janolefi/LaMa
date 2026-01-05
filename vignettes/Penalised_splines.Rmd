@@ -34,11 +34,11 @@ if(!require("scales")){
 
 > Before diving into this vignette, we recommend reading the vignettes **Introduction to LaMa**, **Inhomogeneous HMMs**, **Periodic HMMs** and **LaMa and RTMB**.
 
-This vignette explores how `LaMa` can be used to fit models involving nonparameteric components, represented by **penalised splines**. The main idea here is that it may be useful to represent some relationships in our model by smooth functions for which the functional form is not pre-specified, but flexibly estimated from the data. For HMM-like models, this is particularly valuable, as the latent nature of the state process makes modelling choices more difficult. For example, choosing an appropriate parametric family for the state-dependent distributions may be difficult as we cannot do state-specific EDA before fitting the model. Also very difficult is the dependence of transition probabilities on covariates as the transitions are not directly observed. Hence, the obvious alternative is to model these kind of relationships flexibly using splines but imposing a penalty on the smoothness of the estimated functions. This leads us to **penalised splines**.
+This vignette explores how `LaMa` can be used to fit models involving nonparametric components, represented by **penalised splines**. The main idea here is that it may be useful to represent some relationships in our model by smooth functions for which the functional form is not pre-specified, but flexibly estimated from the data. For HMM-like models, this is particularly valuable, as the latent nature of the state process makes modelling choices more difficult. For example, choosing an appropriate parametric family for the state-dependent distributions may be difficult as we cannot do state-specific EDA before fitting the model. Also very difficult is the dependence of transition probabilities on covariates as the transitions are not directly observed. Hence, the obvious alternative is to model these kind of relationships flexibly using splines but imposing a penalty on the smoothness of the estimated functions. This leads us to **penalised splines**.
 
 `LaMa` contains helper functions that build **design** and **penalty matrices** for given formulas (using `mgcv` under the hood) and also functions to estimate models involving penalised splines in a random effects framework. For the latter to work, the **penalised negative log-likelihood** needs to be compatible with the R package `RTMB` to allow for **automatic differentiation (AD)**. For more information on `RTMB`, see the vignette *LaMa and RTMB* or check out its [documentation](https://CRAN.R-project.org/package=RTMB). For more information on penalised splines, we recommend @wood2017generalized.
 
-### Smooth transition probabilites
+### Smooth transition probabilities
 
 We will start by investigating a 2-state HMM for the `trex` data set, containing hourly step lengths and turning angles of a Tyrannosaurus rex living 66 million years ago. The transition probabilities are modelled as smooth functions of the time of day using **cyclic P-Splines**. The relationship can be summarised as
 
@@ -155,7 +155,7 @@ axis(1, at = seq(0,24,by=4), labels = seq(0,24,by=4))
 ### Smooth density estimation
 
 To demonstrate nonparametric estimation of the state-dependent densities, we will consider the `nessi` data set. It contains acceleration data of the Loch Ness Monster, specifically the **overall dynamic body acceleration (ODBA)**. 
-ODBA is strictily positive with some very extreme values, making direct analysis difficult. Hence, for our analysis we consider the logarithm of ODBA as our observed process.
+ODBA is strictly positive with some very extreme values, making direct analysis difficult. Hence, for our analysis we consider the logarithm of ODBA as our observed process.
 
 ```{r shark_data, fig.width = 9, fig.height = 5}
 head(nessi)
@@ -236,7 +236,7 @@ xseq = modmat$xseq$logODBA # prediction sequence of logODBA values
 Then, we can specify the penalised negative log-likelihood function. The six lines in the middle are needed for P-Spline-based density estimation. 
 The coefficient matrix `beta` provided by `buildSmoothDens()` has one column less than the number of basis functions, which is also printed when calling `buildSmoothDens()`. This is because the last column, i.e. the last coefficient for each state, needs to be fixed to zero for **identifiability** which we do by using `cbind(beta, 0)`. 
 Then, we transform the unconstrained parameter matrix to non-negative weights that sum to one (called `alpha`) for each state using the inverse multinomial logistic link (softmax). 
-The columnns of the `allprobs` matrix are then computed as linear combinations of the columns of `Z` and the weights `alpha`. Lastly, we penalise the unconstrained coefficients `beta` (not the constrained `alpha`'s) using the `penalty()` function.
+The columns of the `allprobs` matrix are then computed as linear combinations of the columns of `Z` and the weights `alpha`. Lastly, we penalise the unconstrained coefficients `beta` (not the constrained `alpha`'s) using the `penalty()` function.
 
 ```{r pnll2}
 pnll = function(par){
@@ -273,7 +273,7 @@ system.time(
 )
 ```
 
-After fitting the model, we can easily visualise the smooth densities using the prepared prediction objects. We already have access to all reported quanitites because `qreml()` automatically runs the reporting after model fitting.
+After fitting the model, we can easily visualise the smooth densities using the prepared prediction objects. We already have access to all reported quantities because `qreml()` automatically runs the reporting after model fitting.
 
 ```{r shark_smooth_results, fig.width = 9, fig.height = 5}
 sDens = Z_p %*% t(mod2$alpha) # all three state-dependent densities on a grid
@@ -283,7 +283,7 @@ for(j in 1:3) lines(xseq, mod2$delta[j] * sDens[,j], col = color[j], lwd = 2)
 lines(xseq, colSums(mod2$delta * t(sDens)), col = "black", lwd = 2, lty = 2)
 ```
 
-The P-Spline model results in a very good fit to the empirical distribution. This is beause the first state has a skewed distribution, the second state has a high kurtosis and the third state has a funny right tail. The P-Spline model can capture all of these features where the parametric model failed to do so.
+The P-Spline model results in a very good fit to the empirical distribution. This is because the first state has a skewed distribution, the second state has a high kurtosis and the third state has a funny right tail. The P-Spline model can capture all of these features where the parametric model failed to do so.
 
 
 ### Markov-switching GAMLSS
@@ -339,7 +339,7 @@ pnll = function(par) {
 }
 ```
 
-From this point on, the model fit is now basically identical to the previous two examples. We specify initial parameters and include an inital penalty strength parameter in the `dat` list.
+From this point on, the model fit is now basically identical to the previous two examples. We specify initial parameters and include an intial penalty strength parameter in the `dat` list.
 
 ```{r energy_fit}
 # initial parameter list
@@ -407,9 +407,9 @@ RTMB::TapeConfig(old) # restoring old config
 
 <!-- Lastly, we could have achieved a similar fit as above using the slightly more accurate full Laplace approximation method, which can be used to fit models via marginal maximum likelihood estimation by integrating out the random effects. This is natively supported by `RTMB` -- and actually one of its core selling points -- and the standard way we can now deal with all kinds of random effects.  -->
 
-<!-- Indeed, the **qREML** algorithm above treats the spline coefficients as Gaussian random effects but exploits their relatively simple structure yiedling a more efficient fitting method. The full Laplace method is much more general, allowing for very flexible random effects, but here, estimation slower because it does not exploit the simple structure of splines treated as random effects. -->
+<!-- Indeed, the **qREML** algorithm above treats the spline coefficients as Gaussian random effects but exploits their relatively simple structure yielding a more efficient fitting method. The full Laplace method is much more general, allowing for very flexible random effects, but here, estimation slower because it does not exploit the simple structure of splines treated as random effects. -->
 
-<!-- We have to alter our likelihood function slightly, because for the Laplace method, we need to implement the joint likelihood of the data and the random effect, the latter having a multivariate normal distribution. Specifically, if $b$ is our random effect for a spline, $b \sim N(0, \lambda^{-1} S^-)$. The likelihood of the data given $b$ (just our regular likelihoot that treats $b$ as a parameter) is $f(x \mid b)$ and the density of $b$ is $f_{\lambda}(b)$. Hence the joint likelihood can be computed as -->
+<!-- We have to alter our likelihood function slightly, because for the Laplace method, we need to implement the joint likelihood of the data and the random effect, the latter having a multivariate normal distribution. Specifically, if $b$ is our random effect for a spline, $b \sim N(0, \lambda^{-1} S^-)$. The likelihood of the data given $b$ (just our regular likelihood that treats $b$ as a parameter) is $f(x \mid b)$ and the density of $b$ is $f_{\lambda}(b)$. Hence the joint likelihood can be computed as -->
 <!-- $$ -->
 <!-- f(x, b) = f(x \mid b) f_{\lambda}(b) -->
 <!-- $$ -->

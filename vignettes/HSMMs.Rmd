@@ -92,7 +92,7 @@ legend("topright", col = color, pch = 20,
 
 We now write the negative log-likelihood function for an approximating HMM. As a semi-Markov chain is specified in terms of state-specific dwell-time distributions and conditional transition probabilities given that the current state is left, we have to compute both (here called `dm` and `omega`). For the latter, we can use the function `tpm_emb()` that constructs a transition probability matrix via the inverse multinomial logit link (softmax), where the diagonal entries are forced to equal zero. 
 
-The transition probability matrix of the approxmiating HMM can then be computed by the function `tpm_hsmm()` where the exact procedure is detailed by @langrock2011hidden. We need the extra argument `agsizes` to specify the aggregate sizes that should be used to approximate the dwell-time distributions. These should be chosen such that most of the support of the state-specific dwell-time distributions is covered.
+The transition probability matrix of the approximating HMM can then be computed by the function `tpm_hsmm()` where the exact procedure is detailed by @langrock2011hidden. We need the extra argument `agsizes` to specify the aggregate sizes that should be used to approximate the dwell-time distributions. These should be chosen such that most of the support of the state-specific dwell-time distributions is covered.
 
 ```{r, mllk}
 nll = function(par, x, N, agsizes){
@@ -114,10 +114,10 @@ nll = function(par, x, N, agsizes){
 ```
 
 
-### Fitting an HSMM (as an approxiating HMM) to the data
+### Fitting an HSMM (as an approximating HMM) to the data
 
 ```{r, model}
-# intial values
+# initial values
 par = c(10, 40, 100, log(c(5, 20, 50)), # state-dependent
                log(c(7,4,4)), # dwell time means
                rep(0, 3)) # omega
@@ -142,14 +142,14 @@ N = 3
 ```
 ## Real-data application
 
-We now want to briefly show the analysis of a real data set using hidden semi-Markov models. For this purpose we use the movement track of an Arctic muskox contained in the `R` package `PHSMM`. Originally these data where collected by @beumer2020application and have already been analysed by @pohle2022flexible.
+We now want to briefly show the analysis of a real data set using hidden semi-Markov models. For this purpose we use the movement track of an Arctic muskox contained in the `R` package `PHSMM`. Originally these data were collected by @beumer2020application and have already been analysed by @pohle2022flexible.
 
 ```{r, muskox_data}
 library(PHSMM)
 data = muskox[1:1000, ] # only using first 1000 observations for speed
 head(data)
 ```
-As these data have already been preprossed, we can immediately write the negative log-likelihood function. When modeling the dwell-time distribution of real processes, it is typically advisable to use a more flexible distribution than the shifted Poisson distribution, as the latter cannot account for overdispersion. Here, we will employ the shifted negative binomial distribution that yields the Poisson distribution as a special case for the dispersion parameter equal to zero. The state-dependent step lengths are modelled by gamma distributions, where we reparametrise the gamma distribution in terms of its mean and standard deviation as opposed to shape and scale for better interpretability using `dgamma2()`.
+As these data have already been preprocessed, we can immediately write the negative log-likelihood function. When modeling the dwell-time distribution of real processes, it is typically advisable to use a more flexible distribution than the shifted Poisson distribution, as the latter cannot account for overdispersion. Here, we will employ the shifted negative binomial distribution that yields the Poisson distribution as a special case for the dispersion parameter equal to zero. The state-dependent step lengths are modelled by gamma distributions, where we reparametrise the gamma distribution in terms of its mean and standard deviation as opposed to shape and scale for better interpretability using `dgamma2()`.
 
 ```{r, muskox_likelihood}
 nll_muskox = function(par, step, N, agsizes){
@@ -172,7 +172,7 @@ nll_muskox = function(par, step, N, agsizes){
 }
 ```
 
-### Fitting an HSMM (as an approxiating HMM) to the muskox data
+### Fitting an HSMM (as an approximating HMM) to the muskox data
 
 ```{r, model_muskox, warning = FALSE, cache = TRUE}
 # intial values

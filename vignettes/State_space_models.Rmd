@@ -24,9 +24,9 @@ knitr::opts_chunk$set(
 
 > Before diving into this vignette, we recommend reading the vignette [**Introduction to LaMa**](https://janoleko.github.io/LaMa/articles/Intro_to_LaMa.html).
 
-This vignette shows how to fit state-space models which can be interpreted as generalisation of HMMs to continuous state spaces. Several approaches exist to fitting such models, but @langrock2011some showed that very **general state-space models** can be fitted via approximate maximum likelihood estimation, when the continous state space is **finely discretised**. This is equivalent to numerical integration over the state process using midpoint quadrature.
+This vignette shows how to fit state-space models which can be interpreted as generalisation of HMMs to continuous state spaces. Several approaches exist to fitting such models, but @langrock2011some showed that very **general state-space models** can be fitted via approximate maximum likelihood estimation, when the continuous state space is **finely discretised**. This is equivalent to numerical integration over the state process using midpoint quadrature.
 
-Here, we will showcase this approach for a basic **stochastic volatily model** which, while being very simple, captures most of the stylised facts of financial time series. In this model the unobserved marked volatility is described by an AR(1) process:
+Here, we will showcase this approach for a basic **stochastic volatility model** which, while being very simple, captures most of the stylised facts of financial time series. In this model the unobserved marked volatility is described by an AR(1) process:
 
 $$
 g_t = \phi g_{t-1} + \sigma \eta_t, \qquad \eta_t \sim N(0,1),
@@ -133,7 +133,7 @@ states = viterbi(delta, Gamma, allprobs) # global/ hard decoding
 
 oldpar = par(mar = c(5,4,3,4.5)+0.1)
 plot(y, type = "l", bty = "n", ylim = c(-50,20), yaxt = "n")
-# when there are so many states it is not too sensable to only plot the most probable state,
+# when there are so many states it is not too sensible to only plot the most probable state,
 # as its probability might still be very small. Generally, we are approximating continuous 
 # distributions, thus it makes sense to plot the entire conditional distribution.
 maxprobs = apply(probs, 1, max)
@@ -152,7 +152,7 @@ par(oldpar)
 ```
 <!-- Lastly, we can check if this model is adequate by computing pseudo-residuals using the `pseudo_res()` function. We just have to pass the observations, the decoded state probabilities, the distribution to use and the state-dependent parameters. In this case, the state-dependent mean is fixed at zero while the standard deviation is $\beta \exp(g_t / 2)$. If the model is correctly specified, these residuals should be standard normally distributed. -->
 
-<!-- ```{r resiudals} -->
+<!-- ```{r residuals} -->
 <!-- pres = pseudo_res(y, probs, "norm", -->
 <!--                   list(mean = 0, sd = beta * exp(bstar / 2))) -->
 

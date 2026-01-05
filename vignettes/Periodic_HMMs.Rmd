@@ -39,7 +39,7 @@ library(LaMa)
 
 ### Setting parameters for simulation
 
-We simulate a 2-state HMM with Gaussian state-dependent distributions. For the periodic inhomogeneity, we choose a bimodal activity pattern. All $L$ transition probability matrices can conveniently be calculated using `tpm_p()`. Under the hood, this performs a basis expansion using `trigBasisExp()` into sine and cosine terms and uses linear predictos of the form
+We simulate a 2-state HMM with Gaussian state-dependent distributions. For the periodic inhomogeneity, we choose a bimodal activity pattern. All $L$ transition probability matrices can conveniently be calculated using `tpm_p()`. Under the hood, this performs a basis expansion using `trigBasisExp()` into sine and cosine terms and uses linear predictors of the form
 $$
 \eta^{(t)}_{ij} = \beta_0^{(ij)} + \sum_{k=1}^K \bigl( \beta_{1k}^{(ij)} \sin(\frac{2 \pi k t}{L}) + \beta_{2k}^{(ij)} \cos(\frac{2 \pi k t}{L}) \bigr)
 $$
@@ -88,7 +88,7 @@ boxplot(x ~ tod, xlab = "time of day")
 par(oldpar)
 ```
 
-## Trigonometric modeling of the transition probalities
+## Trigonometric modeling of the transition probabilities
 
 ### Writing the negative log-likelihood function
 
@@ -122,7 +122,7 @@ system.time(
 
 ### Visualising results
 
-Again, we use `tpm_p()` and `stationary_p()` to tranform the parameters.
+Again, we use `tpm_p()` and `stationary_p()` to transform the parameters.
 ```{r visualization}
 # transform parameters to working
 beta_hat = matrix(mod$estimate[1:10], nrow = 2)
@@ -150,7 +150,7 @@ plot(Delta_hat[,1], type = "b", lwd = 2, pch = 16, col = color[1], bty = "n",
 par(oldpar)
 ```
 
-## Efficieny and convenience
+## Efficiency and convenience
 
 While it is convenient to use `tpm_p()`, it performs the basis expansion into sine and cosine terms each time it is evaluated.
 This is wasteful in model estimation as these terms stay fixed. A better alternative is to first build the corresponding design matrix. This can be done conveniently using the `cosinor()` function, either by itself or in a formula passed to `make_matrices()`. First let's call `cosinor()` by itself:
@@ -187,7 +187,7 @@ Gamma = tpm_g(Z, beta) # but first arguments in tpm_g
 
 
 
-<!-- ## Nonparametric modeling of the transition probalities -->
+<!-- ## Nonparametric modeling of the transition probabilities -->
 
 <!-- `Lcpp` also makes non-parametric modeling trivially easy. Here we model the transition probabilities using cyclic P-splines similar to @feldmann2023. We do so in first calculating the design matrix using `mgcv` which we can easily be handled by `tpm_p()`. -->
 
@@ -246,7 +246,7 @@ Gamma = tpm_g(Z, beta) # but first arguments in tpm_g
 
 <!-- ### Visualizing results -->
 
-<!-- Again, we use `tpm_p()` and `stationary_p()` to tranform the unconstraint parameters to working parameters. -->
+<!-- Again, we use `tpm_p()` and `stationary_p()` to transform the unconstrained parameters to working parameters. -->
 
 <!-- ```{r visualization2} -->
 <!-- # transform parameters to working -->

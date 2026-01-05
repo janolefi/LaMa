@@ -24,7 +24,7 @@ knitr::opts_chunk$set(
 
 > Before diving into this vignette, we recommend reading the vignette [**Introduction to LaMa**](https://janoleko.github.io/LaMa/articles/Intro_to_LaMa.html).
 
-The regular HMM formulation needs a key assumption to be applicable, namely the data need to be observed at regular, equidistant time-points such that the transition probabilties can be interpreted meaningfully w.r.t. a specific time unit. If this is not the case, the model used should acocunt for this by building on a mathematical formulation in continuous time. The obvious choice here is to retain most of the HMM model formulation, but replace the unobserved **discrete-time** Markov chain with a **continuous-time** Markov chain. However, here it is important to note that the so-called **snapshot property** needs to be fulfilled, i.e. the observed process at time $t$ can only depend on the state at that time instant and not on the interval since the previous observation. For more details see @glennie2023hidden.
+The regular HMM formulation needs a key assumption to be applicable, namely the data need to be observed at regular, equidistant time-points such that the transition probabilities can be interpreted meaningfully w.r.t. a specific time unit. If this is not the case, the model used should account for this by building on a mathematical formulation in continuous time. The obvious choice here is to retain most of the HMM model formulation, but replace the unobserved **discrete-time** Markov chain with a **continuous-time** Markov chain. However, here it is important to note that the so-called **snapshot property** needs to be fulfilled, i.e. the observed process at time $t$ can only depend on the state at that time instant and not on the interval since the previous observation. For more details see @glennie2023hidden.
 
 A continuous-time Markov chain is characterised by a so-called **(infinitesimal) generator matrix** 
 $$
@@ -39,7 +39,7 @@ where the diagonal entries are $q_{ii} = - \sum_{j \neq i} q_{ij}$, $q_{ij} \geq
 $$
 \Gamma(t_1, t_2) = \exp(Q (t_2 - t_1)),
 $$
-where $\exp()$ is the matrix expoential. This follows from the so-called **Kolmogorov forward equations**, but for more details see @dobrow2016introduction.
+where $\exp()$ is the matrix exponential. This follows from the so-called **Kolmogorov forward equations**, but for more details see @dobrow2016introduction.
 
 ## Example 1: two states
 
@@ -70,14 +70,14 @@ set.seed(123)
 
 k = 200 # number of state switches
 trans_times = s = rep(NA, k) # time points where the chain transitions
-s[1] = sample(1:2, 1) # initial distribuion c(0.5, 0.5)
+s[1] = sample(1:2, 1) # initial distribution c(0.5, 0.5)
 # exponentially distributed waiting times
 trans_times[1] = rexp(1, -Q[s[1],s[1]])
 n_arrivals = rpois(1, trans_times[1])
 obs_times = sort(runif(n_arrivals, 0, trans_times[1]))
 x = rnorm(n_arrivals, mu[s[1]], sigma[s[1]])
 for(t in 2:k){
-  s[t] = c(1,2)[-s[t-1]] # for 2-states, always a state swith when transitioning
+  s[t] = c(1,2)[-s[t-1]] # for 2-states, always a state switch when transitioning
   # exponentially distributed waiting times
   trans_times[t] = trans_times[t-1] + rexp(1, -Q[s[t], s[t]])
   n_arrivals = rpois(1, trans_times[t]-trans_times[t-1])
@@ -102,7 +102,7 @@ legend("topright", lwd = 2, col = color,
 
 ### Writing the negative log-likelihood function
 
-The likelhood of a continuous-time HMM for observations $x_{t_1}, \dots, x_{t_T}$ at irregular time points $t_1, \dots, t_T$ has the exact same structure as the regular HMM likelihood:
+The likelihood of a continuous-time HMM for observations $x_{t_1}, \dots, x_{t_T}$ at irregular time points $t_1, \dots, t_T$ has the exact same structure as the regular HMM likelihood:
 $$
 L(\theta) = \delta^{(1)} \Gamma(t_1, t_2) P(x_{t_2}) \Gamma(t_2, t_3) P(x_{t_3}) \dots \Gamma(t_{T-1}, t_T) P(x_{t_T}) 1^t,
 $$
@@ -173,7 +173,7 @@ set.seed(123)
 
 k = 200 # number of state switches
 trans_times = s = rep(NA, k) # time points where the chain transitions
-s[1] = sample(1:3, 1) # uniform initial distribuion
+s[1] = sample(1:3, 1) # uniform initial distribution
 # exponentially distributed waiting times
 trans_times[1] = rexp(1, -Q[s[1],s[1]])
 n_arrivals = rpois(1, trans_times[1])
@@ -181,7 +181,7 @@ obs_times = sort(runif(n_arrivals, 0, trans_times[1]))
 x = rnorm(n_arrivals, mu[s[1]], sigma[s[1]])
 for(t in 2:k){
   # off-diagonal elements of the s[t-1] row of Q divided by the diagonal element
-  # give the probabilites of the next state
+  # give the probabilities of the next state
   s[t] = sample(c(1:3)[-s[t-1]], 1, prob = Q[s[t-1],-s[t-1]]/-Q[s[t-1],s[t-1]])
   # exponentially distributed waiting times
   trans_times[t] = trans_times[t-1] + rexp(1, -Q[s[t], s[t]])

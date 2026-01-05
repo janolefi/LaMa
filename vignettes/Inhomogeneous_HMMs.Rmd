@@ -68,7 +68,7 @@ beta = matrix(c(-2, -2,       # intercepts
 n = 1000 # number of observations
 set.seed(123)
 z = rnorm(n) # in practice there will be n covariate values.
-# However, we only have n-1 transitions, thererfore we only need n-1 values:
+# However, we only have n-1 transitions, therefore we only need n-1 values:
 Z = cbind(z, z^2) # quadratic effect of z
 Gamma = tpm_g(Z = Z[-1,], beta) # of dimension c(2, 2, n-1)
 delta = c(0.5, 0.5) # non-stationary initial distribution
@@ -101,7 +101,7 @@ plot(x[1:200], bty = "n", pch = 20, ylab = "x",
      col = c(color[1], color[2])[s[1:200]])
 ```
 
-We now model the transition probabilities parametrically, where we have a paramter for the intercept, the linear effect and the quadratic effect for each off-diagonal element of the t.p.m.
+We now model the transition probabilities parametrically, where we have a parameter for the intercept, the linear effect and the quadratic effect for each off-diagonal element of the t.p.m.
 
 ### Writing the negative log-likelihood function
 
@@ -139,7 +139,7 @@ Really fast!
 
 ### Visualising results
 
-Again, we use `tpm_g()` and `stationary()` to tranform the parameters.
+Again, we use `tpm_g()` and `stationary()` to transform the parameters.
 
 ```{r visualization}
 # transform parameters to working
@@ -179,7 +179,7 @@ plot(zseq, Prob[,1], type = "l", lwd = 3, bty = "n", ylim = c(0,1), xlab = "z",
 par(oldpar)
 ```
 
-<!-- ### Non-parametric modelling of the transition probalities -->
+<!-- ### Non-parametric modelling of the transition probabilities -->
 
 <!-- In practice, of course we do not know the exact form of the relationship between z and the transition probabilities. Therefore, `LaMa` also makes non-parametric modeling trivially easy. Here we model the transition probabilities using P-splines. We do so in first calculating the design matrix using the `splines` package which we can easily be handled by `tpm_g()`. -->
 
@@ -238,7 +238,7 @@ par(oldpar)
 
 <!-- ### Visualizing results -->
 
-<!-- Again, we use `tpm_g()` and `stationary()` to tranform the unconstraint parameters to working parameters. -->
+<!-- Again, we use `tpm_g()` and `stationary()` to transform the unconstrained parameters to working parameters. -->
 
 <!-- ```{r visualization2} -->
 <!-- # transform parameters to working -->
@@ -294,7 +294,7 @@ delta = stationary(Gamma) # stationary Markov chain
 
 ### Simulation
 
-In the simulation code, the state-dependent mean now is not fixed anymore, but changes accoring to the covariate values in `Z`.
+In the simulation code, the state-dependent mean now is not fixed anymore, but changes according to the covariate values in `Z`.
 
 ```{r data2}
 s = x = rep(NA, n)
@@ -369,7 +369,7 @@ curve(beta_hat_reg[2,1] + beta_hat_reg[2,2]*x + beta_hat_reg[2,3]*x^2,
 
 <!-- ### Non-parametric modeling of the state-dependent regressions -->
 
-<!-- This is now a trivial task, just combininig the previous two examples. -->
+<!-- This is now a trivial task, just combining the previous two examples. -->
 
 <!-- ### Again building the B-spline design matrix -->
 

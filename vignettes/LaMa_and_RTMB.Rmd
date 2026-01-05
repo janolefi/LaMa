@@ -30,7 +30,7 @@ Here we demonstrate how to use `LaMa` and `RTMB` to fit hidden Markov models and
 library(LaMa)
 ```
 
-For the purpose of this vignette, we will analyse the `trex` data set contained in the package. It contains hourly step lengths of a Tyrannosaurus rex, living 66 million years ago, and we aim to understand its behavoural process using HMMs.
+For the purpose of this vignette, we will analyse the `trex` data set contained in the package. It contains hourly step lengths of a Tyrannosaurus rex, living 66 million years ago, and we aim to understand its behavioural process using HMMs.
 ```{r data}
 head(trex, 5)
 ```
@@ -98,10 +98,10 @@ but a few points should be made here:
 -   Parameter transformations are of course still necessary, i.e. all parameters in `par` should be unconstrained.
 -   You might wonder how on earth `RTMB` can calculate the gradient of parameters in distributions like the gamma or von Mises distribution. The answer is: It can't but provides its own version of all standard distributions like `dnorm()`, `dbinom()`, etc. In this case both `dgamma2()` and `dvm()` come from `LaMa` as these are non-standard, but under the hood build on `RTMB` functions (`dgamma2()` is actually just a convenience function that reparametrises the gamma distribution in terms of mean and standard deviation).
 - Actually, most of the standard functions (e.g. `sum()`), operators (e.g. `%*%`) and methods (e.g. `matrix`) are "overwritten" when called inside `MakeADFun()` but you typically don't notice that and should not care.
--   the `REPORT()` function offered by `RTMB` is really convenient as any quantities calculated in the likelihood function (for which you have written the code anyway), if reported, will be available after optimisation, while the report statements are ignored during optimisation. So no annoying backtransformations anymore, wohoo!
+-   the `REPORT()` function offered by `RTMB` is really convenient as any quantities calculated in the likelihood function (for which you have written the code anyway), if reported, will be available after optimisation, while the report statements are ignored during optimisation. So no annoying backtransformations anymore, woohoo!
 - for simple parameter transformations, `ADREPORT()` is also great, because it calculates standard deviations for `ADREPORT()`ed quantities, based on the delta method. Just note that the delta method is not advisable for complex non-linear and multivariate transformations.
 
-Having defined the negative log-likelihood, we can now create the autmatically differentiable objective function and fit the model. This needs a little explanation: At this point, `RTMB` takes the negative log-likelihood function and generates its own (very fast) version of it, including a gradient. `MakeADFun()` now also grabs whatever is saved as `dat` in the global environment and *bakes* it into the objective function. Therefore, changes to `dat` after this point will have no effect on the optimisation result. We set `silent = TRUE` to suppress printing of the optimisation process.
+Having defined the negative log-likelihood, we can now create the automatically differentiable objective function and fit the model. This needs a little explanation: At this point, `RTMB` takes the negative log-likelihood function and generates its own (very fast) version of it, including a gradient. `MakeADFun()` now also grabs whatever is saved as `dat` in the global environment and *bakes* it into the objective function. Therefore, changes to `dat` after this point will have no effect on the optimisation result. We set `silent = TRUE` to suppress printing of the optimisation process.
 
 ```{r TapeConfig, include=FALSE}
 old <- RTMB::TapeConfig()
@@ -116,7 +116,7 @@ Let's check out `obj`:
 ```{r tmbobject}
 names(obj)
 ```
-It contains the initial parameter `par` (now tranformed to a named vector), the objective function `fn` (which in this case just evaluates `nll` but faster), its gradient `gr` and Hessian `he`.
+It contains the initial parameter `par` (now transformed to a named vector), the objective function `fn` (which in this case just evaluates `nll` but faster), its gradient `gr` and Hessian `he`.
 
 If we now call these functions without any argument, we get the corresponding values at the initial parameter vector.
 ```{r tmbobject2}
@@ -248,7 +248,7 @@ dat$Z = Z # adding design matrix to dat
 dat$tod = trex$tod # adding time of day to dat for indexing
 ```
 
-We also need to change the parameter list `par` to include the regression parameters for the time of day. The regression parameters for the state process will typically have the form of a $N (N-1) \times p+1$ matrix, where $N$ is the number of states and $p$ is the number of regressors -- this format is also expected by `tpm_g()` which computes the array of transition matrices based on the design and parameter matrix. Another lovely convenience that `RTMB` allows for is that, in our parameter list, we can have matrices, making reshaping of vectors to matrices inside the likelihood function unnessesary.
+We also need to change the parameter list `par` to include the regression parameters for the time of day. The regression parameters for the state process will typically have the form of a $N (N-1) \times p+1$ matrix, where $N$ is the number of states and $p$ is the number of regressors -- this format is also expected by `tpm_g()` which computes the array of transition matrices based on the design and parameter matrix. Another lovely convenience that `RTMB` allows for is that, in our parameter list, we can have matrices, making reshaping of vectors to matrices inside the likelihood function unnecessary.
 
 ```{r todpar}
 par = list(logmu = log(c(0.3, 1)), 
@@ -259,7 +259,7 @@ par = list(logmu = log(c(0.3, 1)),
 # replacing eta with regression parameter matrix, initializing slopes at zero
 ```
 
-We can now define a more general likelihood function with the main difference being the use of `tpm_g()` instead of `tpm()` and the inclusion of the time of day in the transition matrix calculation. This leads to us using `stationary_p()` instead of `stationary()` to calculate the initial distribuion and `forward_g()` instead of `forward()` to calculate the log-likelihood.
+We can now define a more general likelihood function with the main difference being the use of `tpm_g()` instead of `tpm()` and the inclusion of the time of day in the transition matrix calculation. This leads to us using `stationary_p()` instead of `stationary()` to calculate the initial distribution and `forward_g()` instead of `forward()` to calculate the log-likelihood.
 
 ```{r mllk2}
 nll2 = function(par) {
@@ -426,9 +426,9 @@ RTMB::TapeConfig(old) # restoring old config
 
 <!-- Lastly, we could have achieved a similar fit as above using the slightly more accurate full Laplace approximation method, which can be used to fit models via marginal maximum likelihood estimation by integrating out the random effects. This is natively supported by `RTMB` -- and actually one of its core selling points -- and the standard way we can now deal with all kinds of random effects.  -->
 
-<!-- Indeed, the **qREML** algorithm above treats the spline coefficients as Gaussian random effects but exploits their relatively simple structure yiedling a more efficient fitting method. The full Laplace method is much more general, allowing for very flexible random effects, but here, estimation slower because it does not exploit the simple structure of splines treated as random effects. -->
+<!-- Indeed, the **qREML** algorithm above treats the spline coefficients as Gaussian random effects but exploits their relatively simple structure yielding a more efficient fitting method. The full Laplace method is much more general, allowing for very flexible random effects, but here, estimation slower because it does not exploit the simple structure of splines treated as random effects. -->
 
-<!-- We have to alter our likelihood function slightly, because for the Laplace method, we need to implement the joint likelihood of the data and the random effect, the latter having a multivariate normal distribution. Specifically, if $b$ is our random effect for a spline, $b \sim N(0, \lambda^{-1} S^-)$. The likelihood of the data given $b$ (just our regular likelihoot that treats $b$ as a parameter) is $f(x \mid b)$ and the density of $b$ is $f_{\lambda}(b)$. Hence the joint likelihood can be computed as -->
+<!-- We have to alter our likelihood function slightly, because for the Laplace method, we need to implement the joint likelihood of the data and the random effect, the latter having a multivariate normal distribution. Specifically, if $b$ is our random effect for a spline, $b \sim N(0, \lambda^{-1} S^-)$. The likelihood of the data given $b$ (just our regular likelihood that treats $b$ as a parameter) is $f(x \mid b)$ and the density of $b$ is $f_{\lambda}(b)$. Hence the joint likelihood can be computed as -->
 <!-- $$ -->
 <!-- f(x, b) = f(x \mid b) f_{\lambda}(b) -->
 <!-- $$ -->

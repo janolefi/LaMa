@@ -124,7 +124,7 @@ There are some rules to follow when using `qreml()`:
 
 <!-- 5. When we summarise multiple spline coefficients in a matrix in our parameter list -- which is very useful when these are of same lengths and have the same penalty matrix -- this matrix must be arranged **by row**, i.e. each row is one spline coefficient vector. If it is arranged by column, `qreml()` will fail. -->
 
-4. By default, `qreml()` assumes that the penalisation hyperparameter in the `dat` object is called `lambda`. You can use a different name for `dat` (of course than changing it in your `pnll` as well), but if you want to use a different name for the penalisation hyperparameter, you have to specify it as a character string in the `qreml()` call using the `psname` argument.
+4. By default, `qreml()` assumes that the penalisation hyperparameter in the `dat` object is called `lambda`. You can use a different name for `dat` (of course then changing it in your `pnll` as well), but if you want to use a different name for the penalisation hyperparameter, you have to specify it as a character string in the `qreml()` call using the `psname` argument.
 
 ```{r trex_fit, message = FALSE}
 system.time(

@@ -338,6 +338,12 @@ forward <- function(delta,
     if(!is.null(trackID)) REPORT(trackID)
     type <- "homogeneous"
     REPORT(type)
+    
+    # if (length(.obs_info$calls) > 0) {
+    #   obs_info <- .obs_info$calls
+    #   REPORT(obs_info)
+    #   rm(list = ls(.obs_info), envir = .obs_info)
+    # }
   }
   
   # if ad is not explicitly provided, check via RTMB:::ad_context()
@@ -999,8 +1005,19 @@ forward_g <- function(delta,
     REPORT(Gamma)
     REPORT(allprobs)
     if(!is.null(trackID)) REPORT(trackID)
-    type <- "homogeneous"
+    # if(!is.null(attributes(Gamma)$time) && attributes(Gamma)$time == "continuous") {
+    #   type <- "continuous_time"
+    # } else {
+    #   type <- "inhomogeneous"
+    # }
+    type <- "inhomogeneous"
     REPORT(type)
+    
+    # if (length(.obs_info$calls) > 0) {
+    #   obs_info <- .obs_info$calls
+    #   REPORT(obs_info)
+    #   rm(list = ls(.obs_info), envir = .obs_info)
+    # }
   }
   
   # if ad is not explicitly provided, check via RTMB:::ad_context()

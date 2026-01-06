@@ -96,7 +96,7 @@ opt = nlminb(obj$par, obj$fn, obj$gr)
 #> outer mgc:  0.06904775 
 #> outer mgc:  0.1037367 
 #> outer mgc:  0.01007877 
-#> outer mgc:  0.002057908 
+#> outer mgc:  0.002057907 
 #> outer mgc:  0.0002424967 
 
 mod = obj$report()

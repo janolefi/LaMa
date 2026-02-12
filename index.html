@@ -81,7 +81,7 @@
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"LaMa"</span><span class="op">)</span></span></code></pre></div>
 <p>or the development version from Github:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"janoleko/LaMa"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"janolefi/LaMa"</span><span class="op">)</span></span></code></pre></div>
 <!-- (To install from Github, you need a functional <a href="https://teuder.github.io/rcpp4everyone_en/020_install.html" target="_blank">C++ compiler</a>.) -->
 </div>
 <div class="section level2">
@@ -90,19 +90,19 @@
 <p>To aid in building fully custom likelihood functions, this package contains several vignettes that demonstrate how to simulate data from and estimate a wide range of models using the functions included in this package.</p>
 <p>HMMs, from simple to complex:</p>
 <ul>
-<li><a href="https://janoleko.github.io/LaMa/articles/Intro_to_LaMa.html">Introduction to LaMa</a></li>
-<li><a href="https://janoleko.github.io/LaMa/articles/Inhomogeneous_HMMs.html">Inhomogeneous HMMs with covariate effects</a></li>
-<li><a href="https://janoleko.github.io/LaMa/articles/Longitudinal_data.html">Longitudinal data</a></li>
-<li><a href="https://janoleko.github.io/LaMa/articles/Periodic_HMM.html">Periodic HMMs</a></li>
-<li><a href="https://janoleko.github.io/LaMa/articles/LaMa_and_RTMB.html">LaMa and RTMB</a></li>
-<li><a href="https://janoleko.github.io/LaMa/articles/Penalised_splines.html">Penalised splines</a></li>
+<li><a href="https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html" class="external-link">Introduction to LaMa</a></li>
+<li><a href="https://janolefi.github.io/LaMa/articles/Inhomogeneous_HMMs.html" class="external-link">Inhomogeneous HMMs with covariate effects</a></li>
+<li><a href="https://janolefi.github.io/LaMa/articles/Longitudinal_data.html" class="external-link">Longitudinal data</a></li>
+<li><a href="https://janolefi.github.io/LaMa/articles/Periodic_HMM.html" class="external-link">Periodic HMMs</a></li>
+<li><a href="https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html" class="external-link">LaMa and RTMB</a></li>
+<li><a href="https://janolefi.github.io/LaMa/articles/Penalised_splines.html" class="external-link">Penalised splines</a></li>
 </ul>
 <p>Other latent Markov model classes:</p>
 <ul>
-<li><a href="https://janoleko.github.io/LaMa/articles/State_space_models.html">State-space models</a></li>
-<li><a href="https://janoleko.github.io/LaMa/articles/Continuous_time_HMMs.html">Continuous-time HMMs</a></li>
-<li><a href="https://janoleko.github.io/LaMa/articles/HSMMs.html">Hidden semi-Markov models</a></li>
-<li><a href="https://janoleko.github.io/LaMa/articles/MMMPPs.html">Markov-modulated (marked) Poisson processes</a></li>
+<li><a href="https://janolefi.github.io/LaMa/articles/State_space_models.html" class="external-link">State-space models</a></li>
+<li><a href="https://janolefi.github.io/LaMa/articles/Continuous_time_HMMs.html" class="external-link">Continuous-time HMMs</a></li>
+<li><a href="https://janolefi.github.io/LaMa/articles/HSMMs.html" class="external-link">Hidden semi-Markov models</a></li>
+<li><a href="https://janolefi.github.io/LaMa/articles/MMMPPs.html" class="external-link">Markov-modulated (marked) Poisson processes</a></li>
 </ul>
 <!-- ## Citation --><!-- When using LaMa, please cite the package as follows: --><!-- ```{r citation} --><!-- citation(package = "LaMa") --><!-- ``` -->
 </div>
@@ -144,7 +144,7 @@
 <span>  <span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm</a></span><span class="op">(</span><span class="va">nll</span>, <span class="va">par</span>, step <span class="op">=</span> <span class="va">trex</span><span class="op">$</span><span class="va">step</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.364   0.012   0.379</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.415   0.019   0.471</span></span></code></pre></div>
 <p>Really fast for 10.000 data points!</p>
 <p>After tranforming the working (unconstrained) parameters to natural parameters using <code><a href="reference/tpm.html">tpm()</a></code> and <code><a href="reference/stationary.html">stationary()</a></code>, we can visualise the results:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
@@ -157,7 +157,7 @@
 <span><span class="co">#&gt;       S1       S2 </span></span>
 <span><span class="co">#&gt; 0.481733 0.518267</span></span>
 <span><span class="op">(</span><span class="va">mu</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">mod</span><span class="op">$</span><span class="va">estimate</span><span class="op">[</span><span class="fl">3</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.3034926 2.5057053</span></span>
+<span><span class="co">#&gt; [1] 0.3034926 2.5057054</span></span>
 <span><span class="op">(</span><span class="va">sigma</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">mod</span><span class="op">$</span><span class="va">estimate</span><span class="op">[</span><span class="fl">5</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 0.2015258 1.4908153</span></span>
 <span></span>

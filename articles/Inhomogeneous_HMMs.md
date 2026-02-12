@@ -2,7 +2,7 @@
 
 > Before diving into this vignette, we recommend reading the vignette
 > [**Introduction to
-> LaMa**](https://janoleko.github.io/LaMa/articles/Intro_to_LaMa.html).
+> LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html).
 
 This vignette explains how to fit inhomogeneous HMMs, i.e. models that
 depend on external covariates with `LaMa`. Such inhomogeneity in HMMs
@@ -160,7 +160,7 @@ system.time(
 
 )
 #>    user  system elapsed 
-#>   0.802   0.011   0.813
+#>   0.743   0.018   0.761
 ```
 
 Really fast!
@@ -322,7 +322,7 @@ system.time(
   mod_reg <- nlm(nllMSR, par, x = x, Z = Z)
 )
 #>    user  system elapsed 
-#>   0.289   0.023   0.312
+#>   0.319   0.022   0.342
 ```
 
 ### Visualising results
@@ -349,8 +349,8 @@ curve(beta_hat_reg[2,1] + beta_hat_reg[2,2]*x + beta_hat_reg[2,3]*x^2,
 ![](Inhomogeneous_HMMs_files/figure-html/visualization3-1.png)
 
 > Continue reading with [**Periodic
-> HMMs**](https://janoleko.github.io/LaMa/articles/Periodic_HMMs.html),
+> HMMs**](https://janolefi.github.io/LaMa/articles/Periodic_HMMs.html),
 > [**LaMa and
-> RTMB**](https://janoleko.github.io/LaMa/articles/LaMa_and_RTMB.html),
+> RTMB**](https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html),
 > or [**Penalised
-> splines**](https://janoleko.github.io/LaMa/articles/Penalised_splines.html).
+> splines**](https://janolefi.github.io/LaMa/articles/Penalised_splines.html).

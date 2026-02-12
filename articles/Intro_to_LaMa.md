@@ -203,7 +203,7 @@ system.time(
   mod <- nlm(nll, par, x = x)
 )
 #>    user  system elapsed 
-#>   0.104   0.012   0.115
+#>   0.124   0.010   0.134
 ```
 
 We see that implementation of the forward algorithm in C++ leads to
@@ -278,19 +278,19 @@ In this case, our model looks really good – as it should because we
 simulated from the exact same model.
 
 > Continue reading with [**LaMa and
-> RTMB**](https://janoleko.github.io/LaMa/articles/LaMa_and_RTMB.html),
+> RTMB**](https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html),
 > [**Inhomogeneous
-> HMMs**](https://janoleko.github.io/LaMa/articles/Inhomogeneous_HMMs.html),
+> HMMs**](https://janolefi.github.io/LaMa/articles/Inhomogeneous_HMMs.html),
 > [**Periodic
-> HMMs**](https://janoleko.github.io/LaMa/articles/Periodic_HMMs.html),
+> HMMs**](https://janolefi.github.io/LaMa/articles/Periodic_HMMs.html),
 > [**Longitudinal
-> data**](https://janoleko.github.io/LaMa/articles/Longitudinal_data.html),
+> data**](https://janolefi.github.io/LaMa/articles/Longitudinal_data.html),
 > [**State-space
-> models**](https://janoleko.github.io/LaMa/articles/State_space_models.html),
+> models**](https://janolefi.github.io/LaMa/articles/State_space_models.html),
 > [**Hidden semi-Markov
-> models**](https://janoleko.github.io/LaMa/articles/HSMMs.html), or
+> models**](https://janolefi.github.io/LaMa/articles/HSMMs.html), or
 > [**Continuous-time
-> HMMs**](https://janoleko.github.io/LaMa/articles/Continuous_time_HMMs.html).
+> HMMs**](https://janolefi.github.io/LaMa/articles/Continuous_time_HMMs.html).
 
 ## References
 

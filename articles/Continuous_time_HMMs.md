@@ -2,7 +2,7 @@
 
 > Before diving into this vignette, we recommend reading the vignette
 > [**Introduction to
-> LaMa**](https://janoleko.github.io/LaMa/articles/Intro_to_LaMa.html).
+> LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html).
 
 The regular HMM formulation needs a key assumption to be applicable,
 namely the data need to be observed at regular, equidistant time-points
@@ -156,7 +156,7 @@ system.time(
   mod <- nlm(nll, par, timediff = timediff, x = x, N = 2)
 )
 #>    user  system elapsed 
-#>   0.345   0.229   0.292
+#>   0.294   0.278   0.293
 ```
 
 ### Results
@@ -233,7 +233,7 @@ system.time(
   mod2 <- nlm(nll, par, timediff = timediff, x = x, N = 3, stepmax = 10)
 )
 #>    user  system elapsed 
-#>   1.827   2.016   1.283
+#>   2.258   3.186   1.815
 # without restricting stepmax, we run into numerical problems
 ```
 
@@ -256,7 +256,7 @@ round(Q, 3)
 ```
 
 > Continue reading with [**Markov-modulated Poisson
-> processes**](https://janoleko.github.io/LaMa/articles/MMMPPs.html).
+> processes**](https://janolefi.github.io/LaMa/articles/MMMPPs.html).
 
 ## References
 

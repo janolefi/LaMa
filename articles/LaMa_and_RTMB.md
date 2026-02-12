@@ -2,11 +2,11 @@
 
 > Before diving into this vignette, we recommend reading the vignettes
 > [**Introduction to
-> LaMa**](https://janoleko.github.io/LaMa/articles/Intro_to_LaMa.html),
+> LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html),
 > [**Inhomogeneous
-> HMMs**](https://janoleko.github.io/LaMa/articles/Inhomogeneous_HMMs.html)
+> HMMs**](https://janolefi.github.io/LaMa/articles/Inhomogeneous_HMMs.html)
 > and [**Periodic
-> HMMs**](https://janoleko.github.io/LaMa/articles/Periodic_HMMs.html).
+> HMMs**](https://janolefi.github.io/LaMa/articles/Periodic_HMMs.html).
 
 The recently introduced `R` package `RTMB` conveniently allows for
 automatic differentiation for non-standard statistical models written in
@@ -335,7 +335,7 @@ summary(sdr)
 #> logmu     0.9182131 0.008875692
 #> logsigma -1.5995349 0.016232361
 #> logsigma  0.3999258 0.013272894
-#> logkappa -2.2872716 0.207126330
+#> logkappa -2.2872716 0.207126331
 #> logkappa  0.4019563 0.019299344
 #> eta      -1.6621910 0.041754277
 #> eta      -1.5735921 0.040795512
@@ -545,7 +545,7 @@ This changes how `RTMB` internally represents matrix multiplications and
 can speed up the forward algorithm considerably.
 
 If you want to use non-standard probability distributions, check-out the
-`R` package [`RTMBdist`](https://janoleko.github.io/RTMBdist/) which
+`R` package [`RTMBdist`](https://janolefi.github.io/RTMBdist/) which
 provides a library of `AD`-compatible distributions that can be used
 inside likelihood functions.
 
@@ -669,4 +669,4 @@ For more information on `RTMB`, check out its
 users Google group](https://groups.google.com/g/tmb-users).
 
 > Continue reading with [**Penalised
-> splines**](https://janoleko.github.io/LaMa/articles/Penalised_splines.html).
+> splines**](https://janolefi.github.io/LaMa/articles/Penalised_splines.html).

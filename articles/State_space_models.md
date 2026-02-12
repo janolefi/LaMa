@@ -2,7 +2,7 @@
 
 > Before diving into this vignette, we recommend reading the vignette
 > [**Introduction to
-> LaMa**](https://janoleko.github.io/LaMa/articles/Intro_to_LaMa.html).
+> LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html).
 
 This vignette shows how to fit state-space models which can be
 interpreted as generalisation of HMMs to continuous state spaces.
@@ -106,7 +106,7 @@ system.time(
   mod <- nlm(nll, par, y = y, bm = bm, m = m)
 )
 #>    user  system elapsed 
-#>   1.600   2.423   1.029
+#>   1.363   2.443   0.974
 ```
 
 ### Results

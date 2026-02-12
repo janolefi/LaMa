@@ -2,9 +2,9 @@
 
 > Before diving into this vignette, we recommend reading the vignettes
 > [**Introduction to
-> LaMa**](https://janoleko.github.io/LaMa/articles/Intro_to_LaMa.html)
+> LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html)
 > and [**Inhomogeneous
-> HMMs**](https://janoleko.github.io/LaMa/articles/Inhomogeneous_HMMs.html).
+> HMMs**](https://janolefi.github.io/LaMa/articles/Inhomogeneous_HMMs.html).
 
 This vignette shows how to fit HMMs where the state process is a
 periodically inhomogeneous Markov chain. Formally, this means that for
@@ -131,7 +131,7 @@ system.time(
   mod <- nlm(nll, par, x = x, tod = tod)
 )
 #>    user  system elapsed 
-#>   0.957   0.010   0.967
+#>   0.886   0.016   0.902
 ```
 
 ### Visualising results
@@ -239,9 +239,9 @@ Gamma = tpm_g(Z, beta) # but first arguments in tpm_g
 ```
 
 > Continue reading with [**LaMa and
-> RTMB**](https://janoleko.github.io/LaMa/articles/LaMa_and_RTMB.html)
+> RTMB**](https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html)
 > or [**Penalised
-> splines**](https://janoleko.github.io/LaMa/articles/Penalised_splines.html).
+> splines**](https://janolefi.github.io/LaMa/articles/Penalised_splines.html).
 
 ## References
 

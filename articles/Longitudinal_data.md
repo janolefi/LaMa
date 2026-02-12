@@ -2,9 +2,9 @@
 
 > Before diving into this vignette, we recommend reading the vignettes
 > [**Introduction to
-> LaMa**](https://janoleko.github.io/LaMa/articles/Intro_to_LaMa.html)
+> LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html)
 > and [**Inhomogeneous
-> HMMs**](https://janoleko.github.io/LaMa/articles/Inhomogeneous_HMMs.html).
+> HMMs**](https://janolefi.github.io/LaMa/articles/Inhomogeneous_HMMs.html).
 
 In real-data applications, one will often be faced by a data set
 consisting of several measurement tracks, that can reasonably be assumed
@@ -129,14 +129,14 @@ system.time(
   mod <- nlm(nll_pool, par, x = x, trackID = trackID)
 )
 #>    user  system elapsed 
-#>   0.392   0.012   0.404
+#>   0.410   0.011   0.422
 
 # slow version
 system.time(
   mod <- nlm(nll_pool_slow, par, x = x, K = K)
 )
 #>    user  system elapsed 
-#>   2.966   0.027   2.993
+#>   3.447   0.036   3.483
 ```
 
 In this example, looping over individuals in `R` already leads to five
@@ -228,5 +228,5 @@ system.time(
   mod_partial <- nlm(nll_partial, par, x = x, z = z, trackID = trackID)
 )
 #>    user  system elapsed 
-#>   0.393   0.000   0.393
+#>   0.420   0.002   0.421
 ```

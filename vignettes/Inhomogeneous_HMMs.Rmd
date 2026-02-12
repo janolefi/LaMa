@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-> Before diving into this vignette, we recommend reading the vignette [**Introduction to LaMa**](https://janoleko.github.io/LaMa/articles/Intro_to_LaMa.html).
+> Before diving into this vignette, we recommend reading the vignette [**Introduction to LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html).
 
 This vignette explains how to fit inhomogeneous HMMs, i.e. models that depend on external covariates with `LaMa`. Such inhomogeneity in HMMs can result from covariates affecting the transition probabilities of the underlying Markov chain, or covariates affecting the state-dependent distributions, which would then be called Markov-switching regression. We will begin with effects in the state process
 
@@ -365,7 +365,7 @@ curve(beta_hat_reg[2,1] + beta_hat_reg[2,2]*x + beta_hat_reg[2,3]*x^2,
       add = TRUE, lwd = 4, col = color[1])
 ```
 
-> Continue reading with [**Periodic HMMs**](https://janoleko.github.io/LaMa/articles/Periodic_HMMs.html), [**LaMa and RTMB**](https://janoleko.github.io/LaMa/articles/LaMa_and_RTMB.html), or [**Penalised splines**](https://janoleko.github.io/LaMa/articles/Penalised_splines.html).
+> Continue reading with [**Periodic HMMs**](https://janolefi.github.io/LaMa/articles/Periodic_HMMs.html), [**LaMa and RTMB**](https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html), or [**Penalised splines**](https://janolefi.github.io/LaMa/articles/Penalised_splines.html).
 
 <!-- ### Non-parametric modeling of the state-dependent regressions -->
 

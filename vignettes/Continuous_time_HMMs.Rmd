@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-> Before diving into this vignette, we recommend reading the vignette [**Introduction to LaMa**](https://janoleko.github.io/LaMa/articles/Intro_to_LaMa.html).
+> Before diving into this vignette, we recommend reading the vignette [**Introduction to LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html).
 
 The regular HMM formulation needs a key assumption to be applicable, namely the data need to be observed at regular, equidistant time-points such that the transition probabilities can be interpreted meaningfully w.r.t. a specific time unit. If this is not the case, the model used should account for this by building on a mathematical formulation in continuous time. The obvious choice here is to retain most of the HMM model formulation, but replace the unobserved **discrete-time** Markov chain with a **continuous-time** Markov chain. However, here it is important to note that the so-called **snapshot property** needs to be fulfilled, i.e. the observed process at time $t$ can only depend on the state at that time instant and not on the interval since the previous observation. For more details see @glennie2023hidden.
 
@@ -218,6 +218,6 @@ Q = generator(mod2$estimate[2*N+1:(N*(N-1))])
 round(Q, 3)
 ```
 
-> Continue reading with [**Markov-modulated Poisson processes**](https://janoleko.github.io/LaMa/articles/MMMPPs.html).
+> Continue reading with [**Markov-modulated Poisson processes**](https://janolefi.github.io/LaMa/articles/MMMPPs.html).
 
 ## References

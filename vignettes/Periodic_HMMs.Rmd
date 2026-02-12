@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-> Before diving into this vignette, we recommend reading the vignettes [**Introduction to LaMa**](https://janoleko.github.io/LaMa/articles/Intro_to_LaMa.html) and [**Inhomogeneous HMMs**](https://janoleko.github.io/LaMa/articles/Inhomogeneous_HMMs.html).
+> Before diving into this vignette, we recommend reading the vignettes [**Introduction to LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html) and [**Inhomogeneous HMMs**](https://janolefi.github.io/LaMa/articles/Inhomogeneous_HMMs.html).
 
 This vignette shows how to fit HMMs where the state process is a periodically inhomogeneous Markov chain. Formally, this means that for all $t$
 
@@ -183,7 +183,7 @@ Gamma = tpm_p(Z = Z, beta = beta) # not first arguments in tpm_p
 Gamma = tpm_g(Z, beta) # but first arguments in tpm_g
 ```
 
-> Continue reading with [**LaMa and RTMB**](https://janoleko.github.io/LaMa/articles/LaMa_and_RTMB.html) or [**Penalised splines**](https://janoleko.github.io/LaMa/articles/Penalised_splines.html).
+> Continue reading with [**LaMa and RTMB**](https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html) or [**Penalised splines**](https://janolefi.github.io/LaMa/articles/Penalised_splines.html).
 
 
 

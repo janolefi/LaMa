@@ -28,7 +28,7 @@ if(!require("PHSMM")){
 }
 ```
 
-> Before diving into this vignette, we recommend reading the vignette [**Introduction to LaMa**](https://janoleko.github.io/LaMa/articles/Intro_to_LaMa.html).
+> Before diving into this vignette, we recommend reading the vignette [**Introduction to LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html).
 
 So-called hidden semi-Markov models (HSMMs) are a flexible generalisation of HMMs to a semi-Markovian state process which is motivated by the fact that for homogeneous HMMs, the time spent in a hidden state, also called the state dwell time or sojourn time is necessarily geometrically distributed as a consequence of the Markov assumption. HSMMs are designed to mitigate this often unrealistic assumption by allowing for arbitrary distributions on the positive integers to be estimated for the state dwell time. Inference in such models becomes more involved, but @langrock2011hidden showed that HSMMs can be estimated conveniently via approximating them by HMMs with an extended state space. Each state of the HSMMs is represented by a state aggregate of several states and the transition probabilities within each aggregate are designed carefully to represent the chosen dwell-time distribution. For more details see @langrock2011hidden or @zucchini. Due to this approximate inference procedure, such models can again be fitted by numerically maximising the (approximate) likelihood which can be evaluated using the forward algorithm.
 

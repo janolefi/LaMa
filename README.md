@@ -61,7 +61,7 @@ install.packages("LaMa")
 or the development version from Github:
 
 ``` r
-remotes::install_github("janoleko/LaMa")
+remotes::install_github("janolefi/LaMa")
 ```
 
 <!-- (To install from Github, you need a functional <a href="https://teuder.github.io/rcpp4everyone_en/020_install.html" target="_blank">C++ compiler</a>.) -->
@@ -76,28 +76,28 @@ package.
 HMMs, from simple to complex:
 
 - [Introduction to
-  LaMa](https://janoleko.github.io/LaMa/articles/Intro_to_LaMa.html)
+  LaMa](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html)
 - [Inhomogeneous HMMs with covariate
-  effects](https://janoleko.github.io/LaMa/articles/Inhomogeneous_HMMs.html)
+  effects](https://janolefi.github.io/LaMa/articles/Inhomogeneous_HMMs.html)
 - [Longitudinal
-  data](https://janoleko.github.io/LaMa/articles/Longitudinal_data.html)
+  data](https://janolefi.github.io/LaMa/articles/Longitudinal_data.html)
 - [Periodic
-  HMMs](https://janoleko.github.io/LaMa/articles/Periodic_HMM.html)
+  HMMs](https://janolefi.github.io/LaMa/articles/Periodic_HMM.html)
 - [LaMa and
-  RTMB](https://janoleko.github.io/LaMa/articles/LaMa_and_RTMB.html)
+  RTMB](https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html)
 - [Penalised
-  splines](https://janoleko.github.io/LaMa/articles/Penalised_splines.html)
+  splines](https://janolefi.github.io/LaMa/articles/Penalised_splines.html)
 
 Other latent Markov model classes:
 
 - [State-space
-  models](https://janoleko.github.io/LaMa/articles/State_space_models.html)
+  models](https://janolefi.github.io/LaMa/articles/State_space_models.html)
 - [Continuous-time
-  HMMs](https://janoleko.github.io/LaMa/articles/Continuous_time_HMMs.html)
+  HMMs](https://janolefi.github.io/LaMa/articles/Continuous_time_HMMs.html)
 - [Hidden semi-Markov
-  models](https://janoleko.github.io/LaMa/articles/HSMMs.html)
+  models](https://janolefi.github.io/LaMa/articles/HSMMs.html)
 - [Markov-modulated (marked) Poisson
-  processes](https://janoleko.github.io/LaMa/articles/MMMPPs.html)
+  processes](https://janolefi.github.io/LaMa/articles/MMMPPs.html)
 
 <!-- ## Citation -->
 
@@ -161,7 +161,7 @@ system.time(
   mod <- nlm(nll, par, step = trex$step)
 )
 #>    user  system elapsed 
-#>   0.364   0.012   0.379
+#>   0.415   0.019   0.471
 ```
 
 Really fast for 10.000 data points!
@@ -180,7 +180,7 @@ results:
 #>       S1       S2 
 #> 0.481733 0.518267
 (mu = exp(mod$estimate[3:4]))
-#> [1] 0.3034926 2.5057053
+#> [1] 0.3034926 2.5057054
 (sigma = exp(mod$estimate[5:6]))
 #> [1] 0.2015258 1.4908153
 

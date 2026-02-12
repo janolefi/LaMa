@@ -52,7 +52,7 @@ install.packages("LaMa")
 
 or the development version from Github:
 ```{r installation_github, eval = FALSE, warning=FALSE, message = FALSE}
-remotes::install_github("janoleko/LaMa")
+remotes::install_github("janolefi/LaMa")
 ```
 <!-- (To install from Github, you need a functional <a href="https://teuder.github.io/rcpp4everyone_en/020_install.html" target="_blank">C++ compiler</a>.) -->
 
@@ -62,19 +62,19 @@ To aid in building fully custom likelihood functions, this package contains seve
 
 HMMs, from simple to complex:
 
-* [Introduction to LaMa](https://janoleko.github.io/LaMa/articles/Intro_to_LaMa.html)
-* [Inhomogeneous HMMs with covariate effects](https://janoleko.github.io/LaMa/articles/Inhomogeneous_HMMs.html)
-* [Longitudinal data](https://janoleko.github.io/LaMa/articles/Longitudinal_data.html)
-* [Periodic HMMs](https://janoleko.github.io/LaMa/articles/Periodic_HMM.html)
-* [LaMa and RTMB](https://janoleko.github.io/LaMa/articles/LaMa_and_RTMB.html)
-* [Penalised splines](https://janoleko.github.io/LaMa/articles/Penalised_splines.html)
+* [Introduction to LaMa](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html)
+* [Inhomogeneous HMMs with covariate effects](https://janolefi.github.io/LaMa/articles/Inhomogeneous_HMMs.html)
+* [Longitudinal data](https://janolefi.github.io/LaMa/articles/Longitudinal_data.html)
+* [Periodic HMMs](https://janolefi.github.io/LaMa/articles/Periodic_HMM.html)
+* [LaMa and RTMB](https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html)
+* [Penalised splines](https://janolefi.github.io/LaMa/articles/Penalised_splines.html)
 
 Other latent Markov model classes:
 
-* [State-space models](https://janoleko.github.io/LaMa/articles/State_space_models.html)
-* [Continuous-time HMMs](https://janoleko.github.io/LaMa/articles/Continuous_time_HMMs.html)
-* [Hidden semi-Markov models](https://janoleko.github.io/LaMa/articles/HSMMs.html)
-* [Markov-modulated (marked) Poisson processes](https://janoleko.github.io/LaMa/articles/MMMPPs.html)
+* [State-space models](https://janolefi.github.io/LaMa/articles/State_space_models.html)
+* [Continuous-time HMMs](https://janolefi.github.io/LaMa/articles/Continuous_time_HMMs.html)
+* [Hidden semi-Markov models](https://janolefi.github.io/LaMa/articles/HSMMs.html)
+* [Markov-modulated (marked) Poisson processes](https://janolefi.github.io/LaMa/articles/MMMPPs.html)
 
 
 <!-- ## Citation -->

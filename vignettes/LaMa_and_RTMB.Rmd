@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-> Before diving into this vignette, we recommend reading the vignettes [**Introduction to LaMa**](https://janoleko.github.io/LaMa/articles/Intro_to_LaMa.html), [**Inhomogeneous HMMs**](https://janoleko.github.io/LaMa/articles/Inhomogeneous_HMMs.html) and [**Periodic HMMs**](https://janoleko.github.io/LaMa/articles/Periodic_HMMs.html).
+> Before diving into this vignette, we recommend reading the vignettes [**Introduction to LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html), [**Inhomogeneous HMMs**](https://janolefi.github.io/LaMa/articles/Inhomogeneous_HMMs.html) and [**Periodic HMMs**](https://janolefi.github.io/LaMa/articles/Periodic_HMMs.html).
 
 The recently introduced `R` package `RTMB` conveniently allows for automatic differentiation for non-standard statistical models written in plain `R` code. This enables the estimation of very complicated models, potentially with complex random effect structures. The process feels like magic because you have access to analytic gradients -- *drastically* increasing accuracy and speed -- without doing any calculations!
 
@@ -500,7 +500,7 @@ RTMB::TapeConfig(matmul = "plain")
 ```
 This changes how `RTMB` internally represents matrix multiplications and can speed up the forward algorithm considerably.
 
-If you want to use non-standard probability distributions, check-out the `R` package [`RTMBdist`](https://janoleko.github.io/RTMBdist/) which provides a library of `AD`-compatible distributions that can be used inside likelihood functions. 
+If you want to use non-standard probability distributions, check-out the `R` package [`RTMBdist`](https://janolefi.github.io/RTMBdist/) which provides a library of `AD`-compatible distributions that can be used inside likelihood functions. 
 
 
 #### Common issues
@@ -567,4 +567,4 @@ Some more minor things:
 
 For more information on `RTMB`, check out its [documentation](https://CRAN.R-project.org/package=RTMB) or the [TMB users Google group](https://groups.google.com/g/tmb-users).
 
-> Continue reading with [**Penalised splines**](https://janoleko.github.io/LaMa/articles/Penalised_splines.html).
+> Continue reading with [**Penalised splines**](https://janolefi.github.io/LaMa/articles/Penalised_splines.html).

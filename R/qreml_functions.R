@@ -151,6 +151,12 @@ penalty = function(re_coef, S, lambda) {
   # Get the number of similar random effects for each distinct random effect
   re_lengths = sapply(re_coef, nrow)  # All elements are matrices now
   
+  # check if lambda has the correct length
+  n_lambdas <- sum(re_lengths)
+  if(length(lambda) != n_lambdas){
+    stop(paste0("The length of lambda (", length(lambda), ") does not match the total number of random effects (", n_lambdas, ")."))
+  }
+  
   # Precompute start and end indices for lambda
   end = cumsum(re_lengths)
   start = c(1, end[-length(end)] + 1)
@@ -870,7 +876,7 @@ qreml_old = function(pnll, # penalized negative log-likelihood function
 #'   ind = which(!is.na(step)) # only for non-NA obs.
 #'   for(j in 1:N) allprobs[ind,j] = dgamma2(step[ind],mu[j],sigma[j])
 #'   -forward_g(delta, Gamma[,,tod], allprobs) +
-#'       penalty(betaspline, S, lambda) # this does all the penalization work
+#'       penalty(betaspline, S, lambda) # this does all the penalisation work
 #' }
 #'
 #' # model fitting
@@ -907,7 +913,7 @@ penalty2 = function(re_coef, # coefficient vector/ matrix or list of coefficient
   ## Get the number of similar random effects for each distinct random effect
   re_lengths = sapply(re_coef, nrow)  # All elements are matrices now
   
-  ## find how many penalty strength pars are needed for ecah random effect
+  ## find how many penalty strength pars are needed for each random effect
   # 1: univariate smooth
   # >1: tensorproduct
   n_penalties = sapply(S, function(x){

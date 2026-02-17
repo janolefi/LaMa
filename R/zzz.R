@@ -16,7 +16,7 @@ report <- function(obj) {
   } 
   
   # assign log-likelihood, number of parameters, and number of observations to the model object
-  mod$ll <- obj$fn()
+  mod$ll <- -obj$fn()
   mod$df <- length(obj$par)
   mod$nobs <- tryCatch(
     nrow(mod$allprobs),

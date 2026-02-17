@@ -97,6 +97,9 @@
 - [`` `%sp%` ``](https://janoleko.github.io/reference/grapes-sp-grapes.md)
   : Sparsity-retaining matrix multiplication
 
+- [`logLik(`*`<LaMaModel>`*`)`](https://janoleko.github.io/reference/logLik.LaMaModel.md)
+  : Extract log-likelihood from LaMaModel object
+
 - [`logLik(`*`<qremlModel>`*`)`](https://janoleko.github.io/reference/logLik.qremlModel.md)
   : Extract log-likelihood from qremlModel object
 
@@ -165,6 +168,9 @@
 - [`qreml_old()`](https://janoleko.github.io/reference/qreml_old.md) :
   Quasi restricted maximum likelihood (qREML) algorithm for models with
   penalised splines or simple i.i.d. random effects
+
+- [`report()`](https://janoleko.github.io/reference/report.md) : Get
+  reported quantities from and RTMB object and return a LaMaModel
 
 - [`sdreportMC()`](https://janoleko.github.io/reference/sdreportMC.md) :
 

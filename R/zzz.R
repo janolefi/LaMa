@@ -1,3 +1,50 @@
+#' Get reported quantities from and RTMB object and return a LaMaModel
+#'
+#' @param obj 
+#'
+#' @returns A model object of class "LaMaModel" containing the reported quantities from the RTMB object, along with log-likelihood, number of parameters, and number of observations.
+#' @export
+#'
+#' @examples
+report <- function(obj) {
+  mod <- tryCatch(
+    obj$report(),
+    error = function(e) NULL
+  )
+  if(is.null(mod)) {
+    stop("Does not seem to be an RTMB object.")
+  } 
+  
+  # assign log-likelihood, number of parameters, and number of observations to the model object
+  mod$ll <- obj$fn()
+  mod$df <- length(obj$par)
+  mod$nobs <- tryCatch(
+    nrow(mod$allprobs),
+    error = function(e) NULL
+    )
+  
+  class(mod) <- "LaMaModel"
+  return(mod)
+}
+
+#' Extract log-likelihood from LaMaModel object
+#' @param object A model fitted using RTMB and obtained via \code{report(obj)} of class "LaMaModel"
+#' @param ... Additional arguments (not used)
+#' @return An object of class "logLik"
+#' @export
+logLik.LaMaModel <- function(object, ...) {
+  ll <- object$ll  # your stored log-likelihood
+  df <- object$df # number of free parameters
+  nobs <- object$nobs  # number of observations
+  
+  val <- as.numeric(ll)
+  attr(val, "df") <- df
+  attr(val, "nobs") <- nobs
+  class(val) <- "logLik"
+  val
+}
+
+
 # create environment to store information of distributions and parameters used in allprobs calculations
 # forward() and forward_g() then access this environment and REPORT() the contents 
 # this way we can capture all the parameters used in the observation distributions

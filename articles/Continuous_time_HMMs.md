@@ -156,7 +156,7 @@ system.time(
   mod <- nlm(nll, par, timediff = timediff, x = x, N = 2)
 )
 #>    user  system elapsed 
-#>   0.385   0.244   0.322
+#>   0.388   0.223   0.312
 ```
 
 ### Results
@@ -233,7 +233,7 @@ system.time(
   mod2 <- nlm(nll, par, timediff = timediff, x = x, N = 3, stepmax = 10)
 )
 #>    user  system elapsed 
-#>   3.139   2.534   1.894
+#>   3.285   2.643   1.977
 # without restricting stepmax, we run into numerical problems
 ```
 

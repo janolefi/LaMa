@@ -89,7 +89,7 @@ pnll = function(par) {
   ind = which(!is.na(step)) # only for non-NA obs.
   for(j in 1:N) allprobs[ind,j] = dgamma2(step[ind],mu[j],sigma[j])
   -forward_g(delta, Gamma[,,tod], allprobs) +
-      penalty(betaspline, S, lambda) # this does all the penalization work
+      penalty(betaspline, S, lambda) # this does all the penalisation work
 }
 
 # model fitting

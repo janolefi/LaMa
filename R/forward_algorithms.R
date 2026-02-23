@@ -1172,7 +1172,8 @@ forward_g <- function(delta,
         # If banded, run this banded version below for remaining blocks
         if(!is.null(bw) & (k < length(ind))) {
           # State distribution needs to be computed to initialise blocks
-          stateDist <- stateDist_banded(delta_i, Gamma_i, bw = bw)
+          # stateDist <- stateDist_banded(delta_i, Gamma_i, bw = bw)
+          stateDist <- rep(1, nStates) / nStates
           
           startInd <- k + 1
           endInd <- 2 * k
@@ -1180,7 +1181,8 @@ forward_g <- function(delta,
           
           for(b in seq_len(nBlocks)) {
             # updating forward variable to get good approximation
-            foo <- stateDist[startInd-k, , drop = FALSE] * allprobs_i[startInd-k, , drop = FALSE]
+            # foo <- stateDist[startInd-k, , drop = FALSE] * allprobs_i[startInd-k, , drop = FALSE]
+            foo <- stateDist * allprobs_i[startInd-k, , drop = FALSE]
             foo <- foo / sum(foo)
             for(t in (startInd-k+1):(startInd - 1)) { 
               foo <- (foo %*% Gamma_i[, , t]) * allprobs_i[t, , drop = FALSE]
@@ -1241,7 +1243,8 @@ forward_g <- function(delta,
         # If banded, run this baned version below for remaining blocks
         if(!is.null(bw) & (k < length(ind))) {
           # state distribution needs to be computed to initialise blocks
-          stateDist <- stateDist_banded(exp(logdelta_i), Gamma_i, bw = bw)
+          # stateDist <- stateDist_banded(exp(logdelta_i), Gamma_i, bw = bw)
+          stateDist <- rep(1, nStates) / nStates
           
           startInd <- k + 1
           endInd <- 2 * k
@@ -1249,7 +1252,8 @@ forward_g <- function(delta,
           # Compute likelihood contribution of each block, independent from all other blocks
           for(b in seq_len(nBlocks)) {
             # updating forward variable to get good approximation
-            logfoo <- log(stateDist[startInd-k, , drop = FALSE]) + logallprobs_i[startInd-k, , drop = FALSE]
+            # logfoo <- log(stateDist[startInd-k, , drop = FALSE]) + logallprobs_i[startInd-k, , drop = FALSE]
+            logfoo <- log(stateDist) + logallprobs_i[startInd-k, , drop = FALSE]
             logsumfoo <- logspace_add(logfoo)
             logfoo <- logfoo - logsumfoo
             for(t in (startInd-k+1):(startInd - 1)) { 

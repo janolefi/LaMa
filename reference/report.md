@@ -12,6 +12,8 @@ report(obj)
 
 - obj:
 
+  Object returned by `RTMB::MakeADFun()`
+
 ## Value
 
 A model object of class "`LaMaModel`" containing the reported quantities

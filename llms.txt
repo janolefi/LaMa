@@ -347,8 +347,9 @@ Chapman & Hall/CRC.
   Quasi restricted maximum likelihood (qREML) algorithm for models with
   penalised splines or simple i.i.d. random effects
 
-- [`report()`](https://janoleko.github.io/reference/report.md) : Get
-  reported quantities from and RTMB object and return a LaMaModel
+- [`report()`](https://janoleko.github.io/reference/report.md) :
+
+  Get reported quantities from and `RTMB` object and return a LaMaModel
 
 - [`sdreportMC()`](https://janoleko.github.io/reference/sdreportMC.md) :
 

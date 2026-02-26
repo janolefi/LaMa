@@ -203,7 +203,7 @@ system.time(
   mod <- nlm(nll, par, x = x)
 )
 #>    user  system elapsed 
-#>   0.124   0.014   0.138
+#>   0.129   0.009   0.139
 ```
 
 We see that implementation of the forward algorithm in C++ leads to

@@ -7,7 +7,7 @@
 report(obj)
 }
 \arguments{
-\item{obj}{}
+\item{obj}{Object returned by \code{RTMB::MakeADFun()}}
 }
 \value{
 A model object of class "\code{LaMaModel}" containing the reported quantities from the \code{RTMB} object, along with log-likelihood, number of parameters, and number of observations.

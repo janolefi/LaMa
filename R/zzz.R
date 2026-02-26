@@ -1,6 +1,6 @@
 #' Get reported quantities from and \code{RTMB} object and return a LaMaModel
 #'
-#' @param obj 
+#' @param obj Object returned by \code{RTMB::MakeADFun()}
 #'
 #' @returns A model object of class "\code{LaMaModel}" containing the reported quantities from the \code{RTMB} object, along with log-likelihood, number of parameters, and number of observations.
 #' @export 

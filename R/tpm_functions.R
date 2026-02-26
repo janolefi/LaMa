@@ -1,6 +1,4 @@
-
 # Functions for HMMs ------------------------------------------------------
-
 
 #' Build the transition probability matrix from unconstrained parameter vector
 #'

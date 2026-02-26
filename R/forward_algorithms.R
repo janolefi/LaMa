@@ -435,6 +435,11 @@ forward <- function(delta,
     if(cfg$matmul != "plain" & nStates <= 5) {
       cat("Performance tip: Consider running `TapeConfig(matmul = 'plain')` before `MakeADFun()` to speed up the forward algorithm.\n")
     }
+    if(cfg$matmul == "plain" & nStates > 50) {
+      msg <- paste0("Your model has a lot of states (", nStates, "). ",
+                    "Run `TapeConfig(matmul = 'atomic')` or `TapeConfig(matmul = 'compact')` before `MakeADFun()` to speed up the forward algorithm.\n")
+    cat(msg)
+    }
     
     # AD overloading to avoid trouble 
     "[<-" <- ADoverload("[<-")
@@ -1113,6 +1118,11 @@ forward_g <- function(delta,
     cfg <- RTMB::TapeConfig()
     if(cfg$matmul != "plain" & nStates <= 5) {
       cat("Performance tip: Consider running `TapeConfig(matmul = 'plain')` before `MakeADFun()` to speed up the forward algorithm.\n")
+    }
+    if(cfg$matmul == "plain" & nStates > 50) {
+      msg <- paste0("Your model has a lot of states (", nStates, "). ",
+                    "Run `TapeConfig(matmul = 'atomic')` or `TapeConfig(matmul = 'compact')` before `MakeADFun()` to speed up the forward algorithm.\n")
+      cat(msg)
     }
     
     # AD overloading to avoid trouble 

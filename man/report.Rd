@@ -2,7 +2,7 @@
 % Please edit documentation in R/zzz.R
 \name{report}
 \alias{report}
-\title{Get reported quantities from and RTMB object and return a LaMaModel}
+\title{Get reported quantities from and \code{RTMB} object and return a LaMaModel}
 \usage{
 report(obj)
 }
@@ -10,8 +10,11 @@ report(obj)
 \item{obj}{}
 }
 \value{
-A model object of class "LaMaModel" containing the reported quantities from the RTMB object, along with log-likelihood, number of parameters, and number of observations.
+A model object of class "\code{LaMaModel}" containing the reported quantities from the \code{RTMB} object, along with log-likelihood, number of parameters, and number of observations.
 }
 \description{
-Get reported quantities from and RTMB object and return a LaMaModel
+Get reported quantities from and \code{RTMB} object and return a LaMaModel
+}
+\examples{
+# no example yet
 }

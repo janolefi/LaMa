@@ -1,11 +1,11 @@
-#' Get reported quantities from and RTMB object and return a LaMaModel
+#' Get reported quantities from and \code{RTMB} object and return a LaMaModel
 #'
 #' @param obj 
 #'
-#' @returns A model object of class "LaMaModel" containing the reported quantities from the RTMB object, along with log-likelihood, number of parameters, and number of observations.
-#' @export
+#' @returns A model object of class "\code{LaMaModel}" containing the reported quantities from the \code{RTMB} object, along with log-likelihood, number of parameters, and number of observations.
+#' @export 
 #'
-#' @examples
+#' @examples # no example yet
 report <- function(obj) {
   mod <- tryCatch(
     obj$report(),

@@ -36,7 +36,7 @@ periodically stationary distributions.
 N = 2 # number of states
 L = 24 # cycle length
 # time-varying mean dwell times
-Z = trigBasisExp(1:L) # trigonometric basis functions design matrix
+Z = cosinor(1:L, period = L) # trigonometric basis functions design matrix
 beta = matrix(c(2, 2, 0.1, -0.1, -0.2, 0.2), nrow = 2)
 Lambda = exp(cbind(1, Z) %*% t(beta))
 sizes = c(20, 20) # approximating chain with 40 states

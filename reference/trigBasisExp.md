@@ -41,18 +41,5 @@ cos2, ...
 ## Examples
 
 ``` r
-## hourly data
-tod = rep(1:24, 10)
-Z = trigBasisExp(tod, L = 24, degree = 2)
-
-## half-hourly data
-tod = rep(1:48/2, 10) # in [0,24] -> L = 24
-Z1 = trigBasisExp(tod, L = 24, degree = 3)
-
-tod = rep(1:48, 10) # in [1,48] -> L = 48
-Z2 = trigBasisExp(tod, L = 48, degree = 3)
-
-all(Z1 == Z2)
-#> [1] TRUE
-# The latter two are equivalent specifications!
+# no examples
 ```

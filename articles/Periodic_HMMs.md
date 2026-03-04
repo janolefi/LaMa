@@ -31,16 +31,15 @@ For the periodic inhomogeneity, we choose a bimodal activity pattern.
 All L transition probability matrices can conveniently be calculated
 using [`tpm_p()`](https://janoleko.github.io/reference/tpm_p.md). Under
 the hood, this performs a basis expansion using
-[`trigBasisExp()`](https://janoleko.github.io/reference/trigBasisExp.md)
-into sine and cosine terms and uses linear predictors of the form
-\eta^{(t)}\_{ij} = \beta_0^{(ij)} + \sum\_{k=1}^K \bigl(
-\beta\_{1k}^{(ij)} \sin(\frac{2 \pi k t}{L}) + \beta\_{2k}^{(ij)}
-\cos(\frac{2 \pi k t}{L}) \bigr) for the off-diagonal entries of the
-transition probability matrix. The special case of periodically
-inhomogeneous Markov chains also allows the derivation of a so-called
-**periodically stationary distribution** ([Koslik et al.
-2023](#ref-koslik2023inference)) which we can compute this distribution
-using
+[`cosinor()`](https://janoleko.github.io/reference/cosinor.md) into sine
+and cosine terms and uses linear predictors of the form \eta^{(t)}\_{ij}
+= \beta_0^{(ij)} + \sum\_{k=1}^K \bigl( \beta\_{1k}^{(ij)} \sin(\frac{2
+\pi k t}{L}) + \beta\_{2k}^{(ij)} \cos(\frac{2 \pi k t}{L}) \bigr) for
+the off-diagonal entries of the transition probability matrix. The
+special case of periodically inhomogeneous Markov chains also allows the
+derivation of a so-called **periodically stationary distribution**
+([Koslik et al. 2023](#ref-koslik2023inference)) which we can compute
+this distribution using
 [`stationary_p()`](https://janoleko.github.io/reference/stationary_p.md).
 
 ``` r
@@ -131,7 +130,7 @@ system.time(
   mod <- nlm(nll, par, x = x, tod = tod)
 )
 #>    user  system elapsed 
-#>   0.912   0.017   0.929
+#>   0.912   0.022   0.934
 ```
 
 ### Visualising results

@@ -505,31 +505,38 @@ Deltasd = as.list(sdr, "Std", report = TRUE)$Delta
 
 tod_seq = seq(0, 24, length = 200) # sequence for plotting
 Z_pred = trigBasisExp(tod_seq, degree = 2) # design matrix for prediction
+#> Error in `trigBasisExp()`:
+#> ! could not find function "trigBasisExp"
 
 Gamma_plot = tpm_g(Z_pred, mod2$beta) # interpolating transition probs
+#> Error:
+#> ! object 'Z_pred' not found
 
 plot(tod_seq, Gamma_plot[1,2,], type = "l", lwd = 2, ylim = c(0,1),
      xlab = "time of day", ylab = "transition probability", bty = "n")
+#> Error:
+#> ! object 'Gamma_plot' not found
 segments(x0 = 1:24, y0 = Gamma[1,2,]-1.96*Gammasd[1,2,], 
          y1 = Gamma[1,2,]+1.96*Gammasd[1,2,])
+#> Error in `segments()`:
+#> ! plot.new has not been called yet
 segments(x0 = 1:24, y0 = Gamma[2,1,]-1.96*Gammasd[2,1,], 
          y1 = Gamma[2,1,]+1.96*Gammasd[2,1,])
+#> Error in `segments()`:
+#> ! plot.new has not been called yet
 lines(tod_seq, Gamma_plot[2,1,], lwd = 2, lty = 3)
+#> Error:
+#> ! object 'Gamma_plot' not found
 legend("topleft", lwd = 2, lty = c(1,3), bty = "n",
        legend = c(expression(gamma[12]^(t)), expression(gamma[21]^(t))))
-```
-
-![](LaMa_and_RTMB_files/figure-html/MLE2-1.png)
-
-``` r
+#> Error:
+#> ! plot.new has not been called yet
 plot(Delta[,2], type = "b", lwd = 2, xlab = "time of day", ylab = "Pr(active)", 
      col = "deepskyblue", bty = "n", xaxt = "n")
 segments(x0 = 1:24, y0 = Delta[,2]-1.96*Deltasd[,2], lwd = 2,
          y1 = Delta[,2]+1.96*Deltasd[,2], col = "deepskyblue")
 axis(1, at = seq(0,24,by=4), labels = seq(0,24,by=4))
 ```
-
-![](LaMa_and_RTMB_files/figure-html/MLE2-2.png)
 
 ### `RTMB` tips and issues
 

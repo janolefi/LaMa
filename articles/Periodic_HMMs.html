@@ -106,8 +106,8 @@ distributions. For the periodic inhomogeneity, we choose a bimodal
 activity pattern. All <span class="math inline">L</span> transition
 probability matrices can conveniently be calculated using
 <code><a href="../reference/tpm_p.html">tpm_p()</a></code>. Under the hood, this performs a basis expansion
-using <code><a href="../reference/trigBasisExp.html">trigBasisExp()</a></code> into sine and cosine terms and uses
-linear predictors of the form <span class="math display">
+using <code><a href="../reference/cosinor.html">cosinor()</a></code> into sine and cosine terms and uses linear
+predictors of the form <span class="math display">
 \eta^{(t)}_{ij} = \beta_0^{(ij)} + \sum_{k=1}^K \bigl( \beta_{1k}^{(ij)}
 \sin(\frac{2 \pi k t}{L}) + \beta_{2k}^{(ij)} \cos(\frac{2 \pi k t}{L})
 \bigr)
@@ -197,7 +197,7 @@ that specifies which time point to compute.</p>
 <span>  <span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm</a></span><span class="op">(</span><span class="va">nll</span>, <span class="va">par</span>, x <span class="op">=</span> <span class="va">x</span>, tod <span class="op">=</span> <span class="va">tod</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.912   0.017   0.929</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.912   0.022   0.934</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="visualising-results">Visualising results<a class="anchor" aria-label="anchor" href="#visualising-results"></a>

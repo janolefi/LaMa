@@ -219,7 +219,7 @@ forward_s = function(delta, Gamma, allprobs, sizes){
 #' mu = c(0, 6)
 #' beta = matrix(c(log(4),log(6),-0.2,0.2,-0.1,0.4), nrow=2)
 #' # time varying mean dwell time
-#' Lambda = exp(cbind(1, trigBasisExp(1:24, 24, 1))%*%t(beta))
+#' Lambda = exp(cbind(1, cosinor(1:24))%*%t(beta))
 #' omega = matrix(c(0,1,1,0), nrow = 2, byrow = TRUE)
 #' # simulation
 #' # for a 2-state HSMM the embedded chain always alternates between 1 and 2
@@ -243,7 +243,7 @@ forward_s = function(delta, Gamma, allprobs, sizes){
 #'   sigma = exp(theta.star[3:4])
 #'   beta = matrix(theta.star[5:10], nrow=2)
 #'   # time varying mean dwell time
-#'   Lambda = exp(cbind(1, trigBasisExp(1:24, 24, 1))%*%t(beta))
+#'   Lambda = exp(cbind(1, cosinor(1:24))%*%t(beta))
 #'   dm = list()
 #'   for(j in 1:2){
 #'     dm[[j]] = sapply(1:sizes[j]-1, dpois, lambda = Lambda[,j])

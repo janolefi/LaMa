@@ -39,7 +39,7 @@ library(LaMa)
 
 ### Setting parameters for simulation
 
-We simulate a 2-state HMM with Gaussian state-dependent distributions. For the periodic inhomogeneity, we choose a bimodal activity pattern. All $L$ transition probability matrices can conveniently be calculated using `tpm_p()`. Under the hood, this performs a basis expansion using `trigBasisExp()` into sine and cosine terms and uses linear predictors of the form
+We simulate a 2-state HMM with Gaussian state-dependent distributions. For the periodic inhomogeneity, we choose a bimodal activity pattern. All $L$ transition probability matrices can conveniently be calculated using `tpm_p()`. Under the hood, this performs a basis expansion using `cosinor()` into sine and cosine terms and uses linear predictors of the form
 $$
 \eta^{(t)}_{ij} = \beta_0^{(ij)} + \sum_{k=1}^K \bigl( \beta_{1k}^{(ij)} \sin(\frac{2 \pi k t}{L}) + \beta_{2k}^{(ij)} \cos(\frac{2 \pi k t}{L}) \bigr)
 $$

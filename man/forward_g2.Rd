@@ -83,7 +83,7 @@ par = c(-1.5,-1.5,        # initial tpm intercepts (logit-scale)
         rep(0, 4),        # initial tpm slopes
         log(c(0.3, 2.5)), # initial means for step length (log-transformed)
         log(c(0.2, 1.5))) # initial sds for step length (log-transformed)
-mod = nlm(nll, par, step = trex$step[1:500], Z = trigBasisExp(trex$tod[1:500]))
+mod = nlm(nll, par, step = trex$step[1:500], Z = cosinor(trex$tod[1:500]))
 }
 }
 \seealso{

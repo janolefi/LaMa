@@ -33,21 +33,28 @@ stationary = function(Gamma){
   N <- Gamma_dim[1]
   statenames <- paste0("S", 1:N)
   
+  stat <- function(G) {
+    if(!ad_context()){
+      if(all(abs(rowSums(G)) < 1e-10)) {
+        stop("Gamma seems to be a generator matrix - use stationary_cont()")
+      }
+    } 
+    delta <- RTMB::solve(t(diag(N) - G + 1), rep(1, N))
+    names(delta) <- statenames
+    return(delta)
+  }
+  
   ## check if Gamma is matrix or array
   if(length(Gamma_dim) == 2){ # matrix
-    delta <- RTMB::solve(t(diag(N) - Gamma + 1), rep(1,N))
-    names(delta) <- statenames
+    delta <- stat(Gamma)
   } else if(length(Gamma_dim) == 3){ # array
-    delta <- t(sapply(1:Gamma_dim[3], function(t){
-      RTMB::solve(t(diag(N) - Gamma[,,t] + 1), rep(1,N))
-    }))
-    colnames(delta) <- statenames
+    delta <- t(sapply(1:Gamma_dim[3], function(t) stat(Gamma[,,t])))
     rownames(delta) <- 1:Gamma_dim[3]
   } else{
     stop("'Gamma' either needs to be a matrix or an array")
   }
   
-  delta
+  return(delta)
 }
 
 
@@ -272,7 +279,7 @@ stationary_sparse = function(Gamma)
 #' N = 2 # number of states
 #' L = 24 # cycle length
 #' # time-varying mean dwell times
-#' Z = trigBasisExp(1:L) # trigonometric basis functions design matrix
+#' Z = cosinor(1:L, period = L) # trigonometric basis functions design matrix
 #' beta = matrix(c(2, 2, 0.1, -0.1, -0.2, 0.2), nrow = 2)
 #' Lambda = exp(cbind(1, Z) %*% t(beta))
 #' sizes = c(20, 20) # approximating chain with 40 states

@@ -43,7 +43,6 @@ dat <- list(
 # likelihood function
 nll <- function(par) {
   getAll(par, dat)
-  REPORT(step)
   Gamma <- tpm(eta)
   delta <- stationary(Gamma)
   mu <- exp(log_mu); REPORT(mu)

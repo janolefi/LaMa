@@ -8,13 +8,13 @@
 ## Citation
 
 Koslik J (2026). *LaMa: Fast Numerical Maximum Likelihood Estimation for
-Latent Markov Models*. R package version 2.0.6,
+Latent Markov Models*. R package version 2.1.0,
 <https://janoleko.github.io/LaMa/>.
 
     @Manual{,
       title = {LaMa: Fast Numerical Maximum Likelihood Estimation for Latent Markov Models},
       author = {Jan-Ole Koslik},
       year = {2026},
-      note = {R package version 2.0.6},
+      note = {R package version 2.1.0},
       url = {https://janoleko.github.io/LaMa/},
     }

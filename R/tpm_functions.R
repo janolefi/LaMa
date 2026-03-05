@@ -171,7 +171,7 @@ tpm_g = function(Z, beta,
         diag(names) <- NA
         rownames(beta) <- na.omit(if (byrow) c(t(names)) else c(names))
       }
-      RTMB::REPORT(beta)
+      REPORT(beta)
     }
   }
 

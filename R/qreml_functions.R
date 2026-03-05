@@ -47,6 +47,7 @@
 #' penalty(re, S, lambda)
 #' 
 #' # Full model-fitting example
+#' \donttest{
 #' data = trex[1:1000,] # subset
 #'
 #' # initial parameter list
@@ -85,6 +86,7 @@
 #'
 #' # model fitting
 #' mod = qreml(pnll, par, dat, random = "betaspline")
+#' }
 penalty = function(re_coef, S, lambda) {
   # Capture the argument name used in the call to `penalty`
   # current_name <- as.character(substitute(lambda))
@@ -261,6 +263,7 @@ penalty = function(re_coef, S, lambda) {
 #' @import RTMB
 #'
 #' @examples
+#' \dontrun{
 #' data = trex[1:1000,] # subset
 #'
 #' # initial parameter list
@@ -299,6 +302,7 @@ penalty = function(re_coef, S, lambda) {
 #'
 #' # model fitting
 #' mod = qreml_old(pnll, par, dat, random = "betaspline")
+#' }
 qreml_old = function(pnll, # penalized negative log-likelihood function
                  par, # initial parameter list
                  dat, # initial dat object, currently needs to be called dat!
@@ -843,6 +847,7 @@ qreml_old = function(pnll, # penalized negative log-likelihood function
 #' penalty(re, S, lambda)
 #' 
 #' # Full model-fitting example
+#' \donttest{
 #' data = trex[1:1000,] # subset
 #'
 #' # initial parameter list
@@ -881,6 +886,7 @@ qreml_old = function(pnll, # penalized negative log-likelihood function
 #'
 #' # model fitting
 #' mod = qreml(pnll, par, dat, random = "betaspline")
+#' }
 penalty2 = function(re_coef, # coefficient vector/ matrix or list of coefficient vectors/ matrices
                     S, # always needs to be a list: matrix entries for smooths with one penalty matrix, list (length 2) entries for 2D tensorproducts
                     lambda)

@@ -50,6 +50,7 @@ lambda = c(1,1,2) # length = total number of random effects
 penalty(re, S, lambda)
 
 # Full model-fitting example
+\donttest{
 data = trex[1:1000,] # subset
 
 # initial parameter list
@@ -88,6 +89,7 @@ pnll = function(par) {
 
 # model fitting
 mod = qreml(pnll, par, dat, random = "betaspline")
+}
 }
 \references{
 Koslik, J. O. (2024). Efficient smoothness selection for nonparametric Markov-switching models via quasi restricted maximum likelihood. arXiv preprint arXiv:2411.11498.

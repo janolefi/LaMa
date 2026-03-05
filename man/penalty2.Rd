@@ -56,6 +56,7 @@ lambda = c(1,1,2) # length = total number of random effects
 penalty(re, S, lambda)
 
 # Full model-fitting example
+\donttest{
 data = trex[1:1000,] # subset
 
 # initial parameter list
@@ -94,6 +95,7 @@ pnll = function(par) {
 
 # model fitting
 mod = qreml(pnll, par, dat, random = "betaspline")
+}
 }
 \seealso{
 \code{\link{qreml}} for the \strong{qREML} algorithm

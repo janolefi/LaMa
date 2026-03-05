@@ -50,8 +50,10 @@ opt = nlminb(obj$par, obj$fn, obj$gr)
 
 mod = obj$report()
 
-pres = pseudo_res(step, "gamma2", list(mean = mod$mu, sd = mod$sigma),
-                  mod = mod)
+pres = pseudo_res(step,      # observations
+                  "gamma2",  # family that is used
+                  list(mean = mod$mu, sd = mod$sigma), # the family's parameters
+                  mod = mod) # model object
                   
 plot(pres)
 }

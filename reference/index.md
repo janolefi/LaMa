@@ -171,7 +171,8 @@
 
 - [`report()`](https://janoleko.github.io/reference/report.md) :
 
-  Get reported quantities from and `RTMB` object and return a LaMaModel
+  Get reported quantities from and `RTMB` object and return a
+  `LaMaModel`
 
 - [`sdreportMC()`](https://janoleko.github.io/reference/sdreportMC.md) :
 

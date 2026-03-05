@@ -263,7 +263,7 @@ penalty = function(re_coef, S, lambda) {
 #' @import RTMB
 #'
 #' @examples
-#' no example
+#' # no example
 qreml_old = function(pnll, # penalized negative log-likelihood function
                  par, # initial parameter list
                  dat, # initial dat object, currently needs to be called dat!

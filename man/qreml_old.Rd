@@ -96,7 +96,7 @@ Under the hood, \code{qreml} uses the R package \code{RTMB} for automatic differ
 The user has to specify the \strong{penalised negative log-likelihood function} \code{pnll} structured as dictated by \code{RTMB} and use the \code{\link{penalty}} function to compute the quadratic-form penalty inside the likelihood.
 }
 \examples{
-no example
+# no example
 }
 \references{
 Koslik, J. O. (2024). Efficient smoothness selection for nonparametric Markov-switching models via quasi restricted maximum likelihood. arXiv preprint arXiv:2411.11498.

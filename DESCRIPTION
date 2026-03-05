@@ -15,7 +15,7 @@ Description:
   We address these issues by providing easy-to-use functions (written in 'C++' for speed) for common tasks like the forward algorithm. 
   These functions can be combined into custom models in a Lego-type approach, offering up to 10-20 times faster estimation via standard numerical optimisers. 
   To aid in building fully custom likelihood functions, several vignettes are included that show how to simulate data from and estimate all the above model classes.
-URL: https://janoleko.github.io/LaMa/
+URL: https://janolefi.github.io/LaMa/
 License: MIT + file LICENSE
 Encoding: UTF-8
 Imports: 

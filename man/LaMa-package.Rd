@@ -11,7 +11,7 @@ A variety of latent Markov models, including hidden Markov models, hidden semi-M
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://janoleko.github.io/LaMa/}
+  \item \url{https://janolefi.github.io/LaMa/}
 }
 
 }

@@ -3,8 +3,8 @@ Type: Package
 Title: Fast Numerical Maximum Likelihood Estimation for Latent Markov Models 
 Version: 2.1.0
 Authors@R: c(
-    person(given = "Jan-Ole", family = "Koslik", 
-          email = "jan-ole.koslik@uni-bielefeld.de",
+    person(given = "Jan-Ole", family = "Fischer", 
+          email = "jan-ole.fischer@mailbox.org",
           role = c("aut", "cre"),
           comment = c(ORCID = "0009-0004-1556-9053")))
 Description: 

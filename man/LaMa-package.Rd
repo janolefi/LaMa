@@ -16,7 +16,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Jan-Ole Koslik \email{jan-ole.koslik@uni-bielefeld.de} (\href{https://orcid.org/0009-0004-1556-9053}{ORCID})
+\strong{Maintainer}: Jan-Ole Fischer \email{jan-ole.fischer@mailbox.org} (\href{https://orcid.org/0009-0004-1556-9053}{ORCID})
 
 }
 \keyword{internal}

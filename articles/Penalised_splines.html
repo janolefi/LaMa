@@ -255,11 +255,12 @@ call using the <code>psname</code> argument.</li>
 <span><span class="co">#&gt; outer 9 - lambda: 0.312 0.129 </span></span>
 <span><span class="co">#&gt; outer 10 - lambda: 0.309 0.119 </span></span>
 <span><span class="co">#&gt; outer 11 - lambda: 0.308 0.114 </span></span>
-<span><span class="co">#&gt; outer 12 - lambda: 0.308 0.113 </span></span>
+<span><span class="co">#&gt; outer 12 - lambda: 0.308 0.112 </span></span>
+<span><span class="co">#&gt; outer 13 - lambda: 0.308 0.112 </span></span>
 <span><span class="co">#&gt; Converged</span></span>
-<span><span class="co">#&gt; Final model fit with lambda: 0.308 0.113</span></span>
+<span><span class="co">#&gt; Final model fit with lambda: 0.308 0.112</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   6.171   2.898   5.612</span></span></code></pre></div>
+<span><span class="co">#&gt;   9.945   2.735   8.405</span></span></code></pre></div>
 <p>The <code>mod</code> object is now a list that contains everything
 that is reported by the likelihood function, but also the
 <code>RTMB</code> object created in the process. After fitting the
@@ -456,7 +457,7 @@ the design matrix <code>Z</code>.</p>
 <span><span class="co">#&gt; Converged</span></span>
 <span><span class="co">#&gt; Final model fit with lambda: 1.033 1.01 1.744</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   8.558   3.433   7.866</span></span></code></pre></div>
+<span><span class="co">#&gt;  18.537   3.098  16.498</span></span></code></pre></div>
 <p>After fitting the model, we can easily visualise the smooth densities
 using the prepared prediction objects. We already have access to all
 reported quantities because <code><a href="../reference/qreml.html">qreml()</a></code> automatically runs the
@@ -585,11 +586,11 @@ intial penalty strength parameter in the <code>dat</code> list.</p>
 <span><span class="co">#&gt; outer 16 - lambda: 22.618 7.213 8.305 4.17 </span></span>
 <span><span class="co">#&gt; outer 17 - lambda: 22.598 7.213 8.286 4.169 </span></span>
 <span><span class="co">#&gt; outer 18 - lambda: 22.589 7.212 8.279 4.169 </span></span>
-<span><span class="co">#&gt; outer 19 - lambda: 22.588 7.212 8.277 4.169 </span></span>
+<span><span class="co">#&gt; outer 19 - lambda: 22.588 7.212 8.278 4.169 </span></span>
 <span><span class="co">#&gt; Converged</span></span>
-<span><span class="co">#&gt; Final model fit with lambda: 22.588 7.212 8.277 4.169</span></span>
+<span><span class="co">#&gt; Final model fit with lambda: 22.588 7.212 8.278 4.169</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   8.060   4.769   7.068</span></span></code></pre></div>
+<span><span class="co">#&gt;  18.209   3.922  15.586</span></span></code></pre></div>
 <p>Having fitted the model, we can visualise the results. We first
 decode the most probable state sequence and then plot the estimated
 state-dependent densities as a function of the oil price, as well as the

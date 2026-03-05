@@ -149,7 +149,7 @@ system.time(
   mod <- nlm(nll, par, x = x, N = 3, agsizes = agsizes, stepmax = 2)
 )
 #>    user  system elapsed 
-#>   0.872   0.051   0.923
+#>   0.960   0.058   1.018
 ```
 
 Fitting HSMMs is rather slow (even using C++) as we translate the
@@ -169,8 +169,8 @@ N = 3
 (omega = tpm_emb(mod$estimate[3*N+1:(N*(N-2))]))
 #>           S1        S2        S3
 #> S1 0.0000000 0.5541031 0.4458969
-#> S2 0.5040938 0.0000000 0.4959062
-#> S3 0.6654703 0.3345297 0.0000000
+#> S2 0.5040939 0.0000000 0.4959061
+#> S3 0.6654702 0.3345298 0.0000000
 ```
 
 ## Real-data application
@@ -245,7 +245,7 @@ system.time(
                     agsizes = agsizes, iterlim = 500)
 )
 #>    user  system elapsed 
-#>   3.787   0.005   3.792
+#>   3.934   0.016   3.951
 ```
 
 ### Results
@@ -255,18 +255,18 @@ We retransform the parameters for interpretation
 ``` r
 par = mod_muskox$estimate; N = 3
 (mu = exp(par[1:N])) # step mean
-#> [1]   4.408109  55.515914 306.505074
+#> [1]   4.408141  55.517263 306.514625
 (sigma = exp(par[N+1:N])) # step standard deviation
-#> [1]   3.148127  50.337537 331.539241
+#> [1]   3.148158  50.339378 331.549209
 (mu_dwell = exp(par[2*N+1:N])) # dwell time mean
-#> [1] 2.544976 2.660328 5.541739
+#> [1] 2.544983 2.660373 5.541762
 (phi = exp(par[3*N+1:N])) # dwell time dispersion
-#> [1] 4.250213e-05 3.750903e-02 2.720856e-09
+#> [1] 6.502320e-06 3.754676e-02 2.221946e-11
 (omega = tpm_emb(par[4*N+1:(N*(N-2))])) # embedded t.p.m.
 #>           S1        S2           S3
-#> S1 0.0000000 0.6865909 3.134091e-01
-#> S2 1.0000000 0.0000000 3.792589e-08
-#> S3 0.8210713 0.1789287 0.000000e+00
+#> S1 0.0000000 0.6865994 3.134006e-01
+#> S2 1.0000000 0.0000000 1.827658e-09
+#> S3 0.8210754 0.1789246 0.000000e+00
 ```
 
 In this case the Poisson distribution would have been sufficiently

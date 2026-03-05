@@ -335,7 +335,7 @@ summary(sdr)
 #> logmu     0.9182131 0.008875692
 #> logsigma -1.5995349 0.016232361
 #> logsigma  0.3999258 0.013272894
-#> logkappa -2.2872716 0.207126330
+#> logkappa -2.2872716 0.207126331
 #> logkappa  0.4019563 0.019299344
 #> eta      -1.6621910 0.041754277
 #> eta      -1.5735921 0.040795512
@@ -476,7 +476,8 @@ nll2 = function(par) {
   allprobs = matrix(1, nrow = length(step), ncol = N)
   ind = which(!is.na(step) & !is.na(angle)) # only for non-NA obs.
   for(j in 1:N){
-    allprobs[ind,j] = dgamma2(step[ind],mu[j],sigma[j])*dvm(angle[ind],0,kappa[j])
+    allprobs[ind,j] = dgamma2(step[ind],mu[j],sigma[j]) *
+      dvm(angle[ind],0,kappa[j])
   }
   -forward_g(delta, Gamma[,,tod], allprobs) # indexing 24 unique tpms by tod in data
 }
@@ -494,7 +495,7 @@ get standard errors for `Gamma` with the delta method while, in general,
 this is not advisable.
 
 ``` r
-mod2 = obj2$report()
+mod2 = report(obj2)
 
 sdr = sdreport(obj2)
 Gamma = as.list(sdr, "Estimate", report = TRUE)$Gamma
@@ -504,39 +505,32 @@ Delta = as.list(sdr, "Estimate", report = TRUE)$Delta
 Deltasd = as.list(sdr, "Std", report = TRUE)$Delta
 
 tod_seq = seq(0, 24, length = 200) # sequence for plotting
-Z_pred = trigBasisExp(tod_seq, degree = 2) # design matrix for prediction
-#> Error in `trigBasisExp()`:
-#> ! could not find function "trigBasisExp"
+Z_pred = predict(modmat, newdata = data.frame(tod = tod_seq))
 
 Gamma_plot = tpm_g(Z_pred, mod2$beta) # interpolating transition probs
-#> Error:
-#> ! object 'Z_pred' not found
 
 plot(tod_seq, Gamma_plot[1,2,], type = "l", lwd = 2, ylim = c(0,1),
      xlab = "time of day", ylab = "transition probability", bty = "n")
-#> Error:
-#> ! object 'Gamma_plot' not found
 segments(x0 = 1:24, y0 = Gamma[1,2,]-1.96*Gammasd[1,2,], 
          y1 = Gamma[1,2,]+1.96*Gammasd[1,2,])
-#> Error in `segments()`:
-#> ! plot.new has not been called yet
 segments(x0 = 1:24, y0 = Gamma[2,1,]-1.96*Gammasd[2,1,], 
          y1 = Gamma[2,1,]+1.96*Gammasd[2,1,])
-#> Error in `segments()`:
-#> ! plot.new has not been called yet
 lines(tod_seq, Gamma_plot[2,1,], lwd = 2, lty = 3)
-#> Error:
-#> ! object 'Gamma_plot' not found
 legend("topleft", lwd = 2, lty = c(1,3), bty = "n",
        legend = c(expression(gamma[12]^(t)), expression(gamma[21]^(t))))
-#> Error:
-#> ! plot.new has not been called yet
+```
+
+![](LaMa_and_RTMB_files/figure-html/MLE2-1.png)
+
+``` r
 plot(Delta[,2], type = "b", lwd = 2, xlab = "time of day", ylab = "Pr(active)", 
      col = "deepskyblue", bty = "n", xaxt = "n")
 segments(x0 = 1:24, y0 = Delta[,2]-1.96*Deltasd[,2], lwd = 2,
          y1 = Delta[,2]+1.96*Deltasd[,2], col = "deepskyblue")
 axis(1, at = seq(0,24,by=4), labels = seq(0,24,by=4))
 ```
+
+![](LaMa_and_RTMB_files/figure-html/MLE2-2.png)
 
 ### `RTMB` tips and issues
 

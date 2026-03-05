@@ -80,6 +80,8 @@ report <- function(obj) {
     error = function(e) NULL
     )
   
+  mod$obs <- obj$env$obs
+  
   class(mod) <- "LaMaModel"
   return(mod)
 }

@@ -44,7 +44,7 @@ which are typically summarised in the so-called **transition probability matrix*
 $$\Gamma = (\gamma_{ij})_{i,j = 1, \dots, N}$$
 where row $i$ is the conditional one-step ahead distribution of the state process given that the current state is $i$. Such a matrix is most-conveniently parameterised by an unconstrained parameter vector for the $N (N-1)$ off-diagonal elements. Each row can then be computed via the inverse multinomial logistic link (also known as softmax). This can be done using the function `tpm()`:
 ```{r tpm}
-(Gamma = tpm(c(-2, -3))) # 2 states -> 2*(1-2) = 2 off-diagonal entries
+(Gamma = tpm(c(-2, -3))) # 2 states -> 2*(2-1) = 2 off-diagonal entries
 ```
 
 For HMMs with such homogeneous transition probabilities, we often assume **stationarity** of the underlying Markov chain, as well-behaved Markov chains converge to a unique stationary distribution. When we e.g. observe an animal and model its behavioral states by a Markov chain, it is reasonable to assume that the chain has been running for a long time prior to our observation and thus already converged to its stationary distribution. This distribution (which we call $\delta$) can be computed by solving the system of equations

@@ -51,7 +51,7 @@ vector of pseudo residuals of class \code{LaMaResiduals} or list containing \cod
 \description{
 For HMMs, pseudo-residuals are used to assess the overall goodness-of-fit of the model. 
 These are based on the cumulative distribution function (CDF)
-\deqn{F_{X_t}(x_t) = F(x_t \mid x_1, \dots, x_{t-1}, x_{t+1}, \dots, x_T)}
+\deqn{F_{X_t}(x_t) = F(x_t \mid x_1, \dots, x_{t-1})}
 and can be used to quantify whether an observation is extreme relative to its model-implied distribution.
 
 This function calculates such residuals via the probability integral transform, based on the local state probabilities obtained by \code{\link{stateprobs}} or \code{\link{stateprobs_g}} and the respective parametric family.

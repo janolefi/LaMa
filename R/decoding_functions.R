@@ -299,7 +299,8 @@ viterbi_p = function(delta, Gamma, allprobs, tod, trackID = NULL,
 #' 
 #' If you are using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
 #' Hence, you can pass the model object obtained from running \code{RTMB::report()} or from \code{\link{qreml}} directly to this function.
-#'
+#' @param forecast logical, indicating if forecast probabilities \eqn{\Pr(S_t = j \mid X_1, ..., X_t)} should be calculated instead.
+#' 
 #' @return matrix of conditional state probabilities of dimension c(n,N)
 #' @export
 #'
@@ -310,7 +311,7 @@ viterbi_p = function(delta, Gamma, allprobs, tod, trackID = NULL,
 #' 
 #' probs = stateprobs(delta, Gamma, allprobs)
 stateprobs = function(delta, Gamma, allprobs, trackID = NULL,
-                      mod = NULL) {
+                      mod = NULL, forecast = FALSE) {
   
   # check if a model with delta, Gamma and allprobs is provided
   if(!is.null(mod)){
@@ -354,7 +355,7 @@ stateprobs = function(delta, Gamma, allprobs, trackID = NULL,
     }
   }
   
-  stateprobs_g(delta, Gammanew, allprobs, trackID)
+  stateprobs_g(delta, Gammanew, allprobs, trackID, forecast = forecast)
 }
 
 
@@ -378,6 +379,7 @@ stateprobs = function(delta, Gamma, allprobs, trackID = NULL,
 #' 
 #' If you are using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward_g}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
 #' Hence, you can pass the model object obtained from running \code{RTMB::report()} or from \code{\link{qreml}} directly to this function.
+#' @param forecast logical, indicating if forecast probabilities \eqn{\Pr(S_t = j \mid X_1, ..., X_t)} should be calculated instead.
 #'
 #' @return matrix of conditional state probabilities of dimension c(n,N)
 #' @export
@@ -389,7 +391,7 @@ stateprobs = function(delta, Gamma, allprobs, trackID = NULL,
 #' 
 #' probs = stateprobs_g(delta, Gamma[,,-1], allprobs)
 stateprobs_g = function(delta, Gamma, allprobs, trackID = NULL,
-                        mod = NULL) {
+                        mod = NULL, forecast = FALSE) {
   
   # check if a model with delta, Gamma and allprobs is provided
   if(!is.null(mod)){
@@ -414,6 +416,9 @@ stateprobs_g = function(delta, Gamma, allprobs, trackID = NULL,
   n = nrow(allprobs)
   N = ncol(allprobs)
   
+  # initialising state vector
+  stateprobs = matrix(NA, nrow = n, ncol = N)
+  
   # If ID is provided, several tracks need to be decoded separately
   if(!is.null(trackID)){
     uID = unique(trackID) # unique IDs
@@ -432,9 +437,6 @@ stateprobs_g = function(delta, Gamma, allprobs, trackID = NULL,
     }
     
     if(dim(delta)[2] != N) stop("Initial distribution(s) do not match the number of states implied by allprobs.")
-    
-    # initialising state vector
-    stateprobs = matrix(NA, nrow = n, ncol = N)
     
     # loop over individual tracks
     for(i in seq_len(length(uID))){
@@ -461,25 +463,40 @@ stateprobs_g = function(delta, Gamma, allprobs, trackID = NULL,
         foo = foo / sum(foo)
         lalpha[2,] = log(foo) + l
         
-        # computing backward variables on log scale
-        foo = rep(1, N)
-        lbeta[2,] = rep(0, N)
-        foo = Gamma_i %*% diag(allprobs_i[2, ]) %*% foo
-        lbeta[1,] = log(foo)
-        
-        c = max(lalpha[2, ])
-        llk = c + log(sum(exp(lalpha[2, ] - c)))
-        stateprobs[id_i, ] = exp(lalpha + lbeta - llk)
-        
+        if(!forecast) {
+          # computing backward variables on log scale
+          foo = rep(1, N)
+          lbeta[2,] = rep(0, N)
+          foo = Gamma_i %*% diag(allprobs_i[2, ]) %*% foo
+          lbeta[1,] = log(foo)
+          
+          c = max(lalpha[2, ])
+          llk = c + log(sum(exp(lalpha[2, ] - c)))
+          stateprobs[id_i, ] = exp(lalpha + lbeta - llk)
+        } else {
+          phi1 <- exp(lalpha[1,])
+          phi2 <- as.vector(phi1 %*% Gamma_i)
+          stateprobs[id_i, ] <- rbind(phi1, phi2)
+        }
+   
       } else{
         # regurlar local decoding
         lalpha = logalpha_cpp(allprobs_i, delta[i,], Gamma[,,id_i[-1]])
-        lbeta = logbeta_cpp(allprobs_i, Gamma[,,id_i[-1]])
         
-        c = max(lalpha[nrow(lalpha), ])
-        llk = c + log(sum(exp(lalpha[nrow(lalpha), ] - c)))
-        
-        stateprobs[id_i, ] = exp(lalpha + lbeta - llk)
+        if(!forecast) {
+          lbeta = logbeta_cpp(allprobs_i, Gamma[,,id_i[-1]])
+          c = max(lalpha[nrow(lalpha), ])
+          llk = c + log(sum(exp(lalpha[nrow(lalpha), ] - c)))
+          stateprobs[id_i, ] = exp(lalpha + lbeta - llk)
+        } else {
+          rowmax <- apply(lalpha, 1, max)
+          Alpha <- exp(lalpha - rowmax)
+          Phi <- Alpha / rowSums(Alpha)
+          stateprobs[id_i[1], ] <- Phi[1, ]
+          for(t in seq_along(id_i)[-1]) {
+            stateprobs[id_i[t], ] <- Phi[t-1, ] %*% Gamma[,,id_i[t-1]]
+          }
+        }
       }
     }
     
@@ -495,12 +512,23 @@ stateprobs_g = function(delta, Gamma, allprobs, trackID = NULL,
     }
     
     lalpha = logalpha_cpp(allprobs, delta, Gamma)
-    lbeta = logbeta_cpp(allprobs, Gamma)
     
-    c = max(lalpha[nrow(lalpha),])
-    llk = c + log(sum(exp(lalpha[nrow(lalpha),] - c)))
-    
-    stateprobs = exp(lalpha + lbeta - llk)
+    if(!forecast) {
+      lbeta = logbeta_cpp(allprobs, Gamma)
+      
+      c = max(lalpha[nrow(lalpha),])
+      llk = c + log(sum(exp(lalpha[nrow(lalpha),] - c)))
+      
+      stateprobs = exp(lalpha + lbeta - llk)
+    } else{
+      rowmax <- apply(lalpha, 1, max)
+      Alpha <- exp(lalpha - rowmax)
+      Phi <- Alpha / rowSums(Alpha)
+      stateprobs[1, ] <- Phi[1, ]
+      for(t in 2:n) {
+        stateprobs[t, ] <- Phi[t-1, ] %*% Gamma[,,t-1]
+      }
+    }
   }
   
   # rowSums should already be one, but just to be safe
@@ -531,7 +559,8 @@ stateprobs_g = function(delta, Gamma, allprobs, trackID = NULL,
 #' 
 #' If you are using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward_p}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
 #' Hence, you can pass the model object obtained from running \code{RTMB::report()} or from \code{\link{qreml}} directly to this function.
-#' 
+#' @param forecast logical, indicating if forecast probabilities \eqn{\Pr(S_t = j \mid X_1, ..., X_t)} should be calculated instead.
+#'
 #' @return matrix of conditional state probabilities of dimension c(n,N)
 #' @export
 #'
@@ -546,7 +575,7 @@ stateprobs_g = function(delta, Gamma, allprobs, trackID = NULL,
 #' probs = stateprobs_p(delta, Gamma, allprobs, tod)
 
 stateprobs_p = function(delta, Gamma, allprobs, tod, trackID = NULL,
-                        mod = NULL) {
+                        mod = NULL, forecast = FALSE) {
   
   # check if a model with delta, Gamma and allprobs is provided
   if(!is.null(mod)){
@@ -580,6 +609,6 @@ stateprobs_p = function(delta, Gamma, allprobs, tod, trackID = NULL,
     Gammanew = Gammanew[,,-1]
   }
   
-  stateprobs_g(delta, Gammanew, allprobs, trackID)
+  stateprobs_g(delta, Gammanew, allprobs, trackID, forecast = forecast)
 }
 

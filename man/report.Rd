@@ -17,7 +17,7 @@ Having fitted a latent Markov model using automatic differentiation via \code{RT
 This then yields estimated parameters on their natural scale, allows for convenient calculation of \code{AIC} and \code{BIC}, state-decoding, and residual calculation.
 }
 \examples{
-data <- trex[1:500,]
+data <- trex[1:200,]
 
 # initial parameters and observations
 par <- list(
@@ -47,7 +47,7 @@ nll <- function(par) {
 }
 
 # automatic differentiation and optimisation
-obj <- MakeADFun(nll, par)
+obj <- MakeADFun(nll, par, silent = TRUE)
 opt <- nlminb(obj$par, obj$fn, obj$gr)
 
 ### reporting ###
@@ -69,6 +69,6 @@ probs <- stateprobs(mod = mod) # local decoding
 # residual calculation
 pres <- pseudo_res(data$step, # observation sequence
                    "gamma2",  # distribution family
-                   list(mean = mu, sd = sigma), # parameters for that family
+                   list(mean = mod$mu, sd = mod$sigma), # parameters for that family
                    mod = mod) # model object
 }

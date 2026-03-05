@@ -278,7 +278,8 @@ nll2 = function(par) {
   allprobs = matrix(1, nrow = length(step), ncol = N)
   ind = which(!is.na(step) & !is.na(angle)) # only for non-NA obs.
   for(j in 1:N){
-    allprobs[ind,j] = dgamma2(step[ind],mu[j],sigma[j])*dvm(angle[ind],0,kappa[j])
+    allprobs[ind,j] = dgamma2(step[ind],mu[j],sigma[j]) *
+      dvm(angle[ind],0,kappa[j])
   }
   -forward_g(delta, Gamma[,,tod], allprobs) # indexing 24 unique tpms by tod in data
 }
@@ -294,7 +295,7 @@ opt2 = nlminb(obj2$par, obj2$fn, obj2$gr) # optimisation
 and we can look at the reported results. In this case, for simplicity I get standard errors for `Gamma` with the delta method while, in general, this is not advisable.
 
 ```{r MLE2, fig.width = 8, fig.height = 5}
-mod2 = obj2$report()
+mod2 = report(obj2)
 
 sdr = sdreport(obj2)
 Gamma = as.list(sdr, "Estimate", report = TRUE)$Gamma
@@ -304,7 +305,7 @@ Delta = as.list(sdr, "Estimate", report = TRUE)$Delta
 Deltasd = as.list(sdr, "Std", report = TRUE)$Delta
 
 tod_seq = seq(0, 24, length = 200) # sequence for plotting
-Z_pred = trigBasisExp(tod_seq, degree = 2) # design matrix for prediction
+Z_pred = predict(modmat, newdata = data.frame(tod = tod_seq))
 
 Gamma_plot = tpm_g(Z_pred, mod2$beta) # interpolating transition probs
 

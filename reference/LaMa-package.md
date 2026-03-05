@@ -23,5 +23,5 @@ Useful links:
 
 ## Author
 
-**Maintainer**: Jan-Ole Koslik <jan-ole.koslik@uni-bielefeld.de>
+**Maintainer**: Jan-Ole Fischer <jan-ole.fischer@mailbox.org>
 ([ORCID](https://orcid.org/0009-0004-1556-9053))

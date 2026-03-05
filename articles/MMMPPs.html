@@ -204,7 +204,7 @@ state-dependent density matrices to be <span class="math inline">\Lambda</span>.
 <span>  <span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm</a></span><span class="op">(</span><span class="va">nll</span>, <span class="va">par</span>, timediff <span class="op">=</span> <span class="va">timediff</span>, N <span class="op">=</span> <span class="fl">2</span>, stepmax <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.358   0.255   0.312</span></span>
+<span><span class="co">#&gt;   0.369   0.233   0.306</span></span>
 <span><span class="co"># we often need the stepmax, as the matrix exponential can be numerically unstable</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -215,8 +215,8 @@ state-dependent density matrices to be <span class="math inline">\Lambda</span>.
 <span><span class="co">#&gt; [1]  1.949689 15.083121</span></span>
 <span><span class="op">(</span><span class="va">Q</span> <span class="op">=</span> <span class="fu"><a href="../reference/generator.html">generator</a></span><span class="op">(</span><span class="va">mod</span><span class="op">$</span><span class="va">estimate</span><span class="op">[</span><span class="fl">3</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;            S1         S2</span></span>
-<span><span class="co">#&gt; S1 -0.4003955  0.4003955</span></span>
-<span><span class="co">#&gt; S2  1.8998848 -1.8998848</span></span>
+<span><span class="co">#&gt; S1 -0.4003954  0.4003954</span></span>
+<span><span class="co">#&gt; S2  1.8998847 -1.8998847</span></span>
 <span><span class="op">(</span><span class="va">Pi</span> <span class="op">=</span> <span class="fu"><a href="../reference/stationary_cont.html">stationary_cont</a></span><span class="op">(</span><span class="va">Q</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;        S1        S2 </span></span>
 <span><span class="co">#&gt; 0.8259362 0.1740638</span></span></code></pre></div>
@@ -343,7 +343,7 @@ one element-wise with the state-dependent rates.</p>
 <span>  <span class="va">mod2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm</a></span><span class="op">(</span><span class="va">nllMark</span>, <span class="va">par</span>, y <span class="op">=</span> <span class="va">marks</span>, timediff <span class="op">=</span> <span class="va">timediff</span>, N <span class="op">=</span> <span class="fl">3</span>, stepmax <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   5.489   4.586   3.371</span></span></code></pre></div>
+<span><span class="co">#&gt;   4.996   5.417   3.480</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="results-1">Results<a class="anchor" aria-label="anchor" href="#results-1"></a>
@@ -351,16 +351,16 @@ one element-wise with the state-dependent rates.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">N</span> <span class="op">=</span> <span class="fl">3</span></span>
 <span><span class="op">(</span><span class="va">lambda</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">mod2</span><span class="op">$</span><span class="va">estimate</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1]  0.9646715  4.8640550 19.5008965</span></span>
+<span><span class="co">#&gt; [1]  0.9646715  4.8640549 19.5008965</span></span>
 <span><span class="op">(</span><span class="va">mu</span> <span class="op">=</span> <span class="va">mod2</span><span class="op">$</span><span class="va">estimate</span><span class="op">[</span><span class="va">N</span><span class="op">+</span><span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] -5.18540508 -0.09097055  4.80538783</span></span>
+<span><span class="co">#&gt; [1] -5.18540508 -0.09097056  4.80538783</span></span>
 <span><span class="op">(</span><span class="va">sigma</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">mod2</span><span class="op">$</span><span class="va">estimate</span><span class="op">[</span><span class="fl">2</span><span class="op">*</span><span class="va">N</span><span class="op">+</span><span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 1.7931062 0.9644485 2.0093266</span></span>
+<span><span class="co">#&gt; [1] 1.7931062 0.9644486 2.0093266</span></span>
 <span><span class="op">(</span><span class="va">Q</span> <span class="op">=</span> <span class="fu"><a href="../reference/generator.html">generator</a></span><span class="op">(</span><span class="va">mod2</span><span class="op">$</span><span class="va">estimate</span><span class="op">[</span><span class="fl">3</span><span class="op">*</span><span class="va">N</span><span class="op">+</span><span class="fl">1</span><span class="op">:</span><span class="op">(</span><span class="va">N</span><span class="op">*</span><span class="op">(</span><span class="va">N</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;            S1         S2         S3</span></span>
 <span><span class="co">#&gt; S1 -0.5909290  0.2788642  0.3120648</span></span>
-<span><span class="co">#&gt; S2  0.9258939 -1.1798377  0.2539439</span></span>
-<span><span class="co">#&gt; S3  1.1933693  1.2097188 -2.4030882</span></span>
+<span><span class="co">#&gt; S2  0.9258937 -1.1798376  0.2539439</span></span>
+<span><span class="co">#&gt; S3  1.1933696  1.2097185 -2.4030882</span></span>
 <span><span class="op">(</span><span class="va">Pi</span> <span class="op">=</span> <span class="fu"><a href="../reference/stationary_cont.html">stationary_cont</a></span><span class="op">(</span><span class="va">Q</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;        S1        S2        S3 </span></span>
 <span><span class="co">#&gt; 0.6296990 0.2609524 0.1093485</span></span></code></pre></div>
@@ -406,7 +406,7 @@ Medicine</em>.
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Jan-Ole Koslik.</p>
+  <p>Developed by Jan-Ole Fischer.</p>
 </div>
 
 <div class="pkgdown-footer-right">

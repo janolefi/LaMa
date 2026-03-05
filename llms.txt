@@ -336,9 +336,6 @@ Chapman & Hall/CRC.
 - [`pseudo_res()`](https://janoleko.github.io/reference/pseudo_res.md) :
   Calculate pseudo-residuals
 
-- [`pseudo_res_discrete()`](https://janoleko.github.io/reference/pseudo_res_discrete.md)
-  : Calculate pseudo-residuals for discrete-valued observations
-
 - [`qreml()`](https://janoleko.github.io/reference/qreml.md) : Quasi
   restricted maximum likelihood (qREML) algorithm for models with
   penalised splines or simple i.i.d. random effects

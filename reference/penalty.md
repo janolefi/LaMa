@@ -92,6 +92,7 @@ penalty(re, S, lambda)
 #> [1] 0
 
 # Full model-fitting example
+# \donttest{
 data = trex[1:1000,] # subset
 
 # initial parameter list
@@ -173,4 +174,5 @@ mod = qreml(pnll, par, dat, random = "betaspline")
 #> outer 38 - lambda: 0.49 0.093 
 #> Converged
 #> Final model fit with lambda: 0.49 0.093 
+# }
 ```

@@ -208,7 +208,8 @@ For example, if the model has four penalty strength parameters, <code>map[[psnam
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">data</span> <span class="op">=</span> <span class="va">trex</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">1000</span>,<span class="op">]</span> <span class="co"># subset</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+<span class="r-in"><span><span class="va">data</span> <span class="op">=</span> <span class="va">trex</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">1000</span>,<span class="op">]</span> <span class="co"># subset</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># initial parameter list</span></span></span>
 <span class="r-in"><span><span class="va">par</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>logmu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.3</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span>, <span class="co"># step mean</span></span></span>
@@ -246,53 +247,7 @@ For example, if the model has four penalty strength parameters, <code>map[[psnam
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># model fitting</span></span></span>
 <span class="r-in"><span><span class="va">mod</span> <span class="op">=</span> <span class="fu">qreml_old</span><span class="op">(</span><span class="va">pnll</span>, <span class="va">par</span>, <span class="va">dat</span>, random <span class="op">=</span> <span class="st">"betaspline"</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Creating AD function</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Performance tip: Consider running `TapeConfig(matmul = 'plain')` before `MakeADFun()` to speed up the forward algorithm.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Initialising with lambda: 100 100 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 1 - lambda: 35.133 31.57 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 2 - lambda: 15.325 11.598 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 3 - lambda: 7.633 5.172 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 4 - lambda: 4.151 2.912 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 5 - lambda: 2.443 1.975 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 6 - lambda: 1.555 1.493 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 7 - lambda: 1.074 1.197 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 8 - lambda: 0.806 0.993 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 9 - lambda: 0.655 0.841 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 10 - lambda: 0.569 0.72 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 11 - lambda: 0.52 0.621 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 12 - lambda: 0.492 0.537 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 13 - lambda: 0.477 0.464 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 14 - lambda: 0.47 0.402 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 15 - lambda: 0.467 0.349 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 16 - lambda: 0.466 0.303 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 17 - lambda: 0.467 0.264 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 18 - lambda: 0.468 0.231 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 19 - lambda: 0.47 0.204 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 20 - lambda: 0.473 0.182 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 21 - lambda: 0.475 0.163 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 22 - lambda: 0.477 0.149 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 23 - lambda: 0.479 0.137 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 24 - lambda: 0.481 0.127 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 25 - lambda: 0.483 0.12 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 26 - lambda: 0.484 0.114 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 27 - lambda: 0.485 0.109 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 28 - lambda: 0.486 0.105 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 29 - lambda: 0.487 0.102 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 30 - lambda: 0.488 0.1 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 31 - lambda: 0.488 0.098 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 32 - lambda: 0.489 0.097 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 33 - lambda: 0.489 0.096 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 34 - lambda: 0.49 0.095 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 35 - lambda: 0.49 0.094 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 36 - lambda: 0.49 0.093 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 37 - lambda: 0.49 0.093 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 38 - lambda: 0.49 0.093 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 39 - lambda: 0.49 0.092 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 40 - lambda: 0.49 0.092 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 41 - lambda: 0.49 0.092 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Converged</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Final model fit with lambda: 0.49 0.092 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Performance tip: Consider running `TapeConfig(matmul = 'plain')` before `MakeADFun()` to speed up the forward algorithm.</span>
+<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

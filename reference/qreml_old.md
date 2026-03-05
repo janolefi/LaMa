@@ -228,6 +228,7 @@ the penalty inside the likelihood function
 ## Examples
 
 ``` r
+if (FALSE) { # \dontrun{
 data = trex[1:1000,] # subset
 
 # initial parameter list
@@ -266,51 +267,5 @@ pnll = function(par) {
 
 # model fitting
 mod = qreml_old(pnll, par, dat, random = "betaspline")
-#> Creating AD function
-#> Performance tip: Consider running `TapeConfig(matmul = 'plain')` before `MakeADFun()` to speed up the forward algorithm.
-#> Initialising with lambda: 100 100 
-#> outer 1 - lambda: 35.133 31.57 
-#> outer 2 - lambda: 15.325 11.598 
-#> outer 3 - lambda: 7.633 5.172 
-#> outer 4 - lambda: 4.151 2.912 
-#> outer 5 - lambda: 2.443 1.975 
-#> outer 6 - lambda: 1.555 1.493 
-#> outer 7 - lambda: 1.074 1.197 
-#> outer 8 - lambda: 0.806 0.993 
-#> outer 9 - lambda: 0.655 0.841 
-#> outer 10 - lambda: 0.569 0.72 
-#> outer 11 - lambda: 0.52 0.621 
-#> outer 12 - lambda: 0.492 0.537 
-#> outer 13 - lambda: 0.477 0.464 
-#> outer 14 - lambda: 0.47 0.402 
-#> outer 15 - lambda: 0.467 0.349 
-#> outer 16 - lambda: 0.466 0.303 
-#> outer 17 - lambda: 0.467 0.264 
-#> outer 18 - lambda: 0.468 0.231 
-#> outer 19 - lambda: 0.47 0.204 
-#> outer 20 - lambda: 0.473 0.182 
-#> outer 21 - lambda: 0.475 0.163 
-#> outer 22 - lambda: 0.477 0.149 
-#> outer 23 - lambda: 0.479 0.137 
-#> outer 24 - lambda: 0.481 0.127 
-#> outer 25 - lambda: 0.483 0.12 
-#> outer 26 - lambda: 0.484 0.114 
-#> outer 27 - lambda: 0.485 0.109 
-#> outer 28 - lambda: 0.486 0.105 
-#> outer 29 - lambda: 0.487 0.102 
-#> outer 30 - lambda: 0.488 0.1 
-#> outer 31 - lambda: 0.488 0.098 
-#> outer 32 - lambda: 0.489 0.097 
-#> outer 33 - lambda: 0.489 0.096 
-#> outer 34 - lambda: 0.49 0.095 
-#> outer 35 - lambda: 0.49 0.094 
-#> outer 36 - lambda: 0.49 0.093 
-#> outer 37 - lambda: 0.49 0.093 
-#> outer 38 - lambda: 0.49 0.093 
-#> outer 39 - lambda: 0.49 0.092 
-#> outer 40 - lambda: 0.49 0.092 
-#> outer 41 - lambda: 0.49 0.092 
-#> Converged
-#> Final model fit with lambda: 0.49 0.092 
-#> Performance tip: Consider running `TapeConfig(matmul = 'plain')` before `MakeADFun()` to speed up the forward algorithm.
+} # }
 ```

@@ -27,7 +27,7 @@ number of parameters, and number of observations.
 ## Examples
 
 ``` r
-data <- trex[1:500,]
+data <- trex[1:200,]
 
 # initial parameters and observations
 par <- list(
@@ -57,62 +57,28 @@ nll <- function(par) {
 }
 
 # automatic differentiation and optimisation
-obj <- MakeADFun(nll, par)
+obj <- MakeADFun(nll, par, silent = TRUE)
 #> Performance tip: Consider running `TapeConfig(matmul = 'plain')` before `MakeADFun()` to speed up the forward algorithm.
 opt <- nlminb(obj$par, obj$fn, obj$gr)
-#> outer mgc:  557.295 
-#> outer mgc:  351.0983 
-#> outer mgc:  287.616 
-#> outer mgc:  47.5427 
-#> outer mgc:  14.6837 
-#> outer mgc:  27.66109 
-#> outer mgc:  9.562208 
-#> outer mgc:  9.821129 
-#> outer mgc:  13.44982 
-#> outer mgc:  19.303 
-#> outer mgc:  35.85799 
-#> outer mgc:  7.582501 
-#> outer mgc:  4.230678 
-#> outer mgc:  4.698342 
-#> outer mgc:  5.808632 
-#> outer mgc:  3.698382 
-#> outer mgc:  4.58231 
-#> outer mgc:  7.42501 
-#> outer mgc:  10.8721 
-#> outer mgc:  1.829161 
-#> outer mgc:  4.166831 
-#> outer mgc:  1.591044 
-#> outer mgc:  2.216416 
-#> outer mgc:  1.953366 
-#> outer mgc:  0.4959815 
-#> outer mgc:  1.196605 
-#> outer mgc:  0.3334328 
-#> outer mgc:  0.3744078 
-#> outer mgc:  0.3096951 
-#> outer mgc:  0.4332586 
-#> outer mgc:  0.08363097 
-#> outer mgc:  0.007251231 
-#> outer mgc:  0.0002769499 
-#> outer mgc:  1.449259e-05 
 
 ### reporting ###
 mod <- report(obj)
 
 # estimated quantities on natural scale
 mod$mu
-#> [1] 0.3288388 2.4972538
+#> [1] 0.3136312 2.5678297
 mod$sigma
-#> [1] 0.2275702 1.3900984
+#> [1] 0.2033994 1.5138886
 mod$Gamma
 #>           S1        S2
-#> S1 0.8284923 0.1715077
-#> S2 0.1789212 0.8210788
+#> S1 0.8085298 0.1914702
+#> S2 0.2255601 0.7744399
 
 # information criteria
 AIC(mod)
-#> [1] 1084.425
+#> [1] 432.5328
 BIC(mod)
-#> [1] 1109.713
+#> [1] 452.3227
 
 # state decoding
 states <- viterbi(mod = mod)   # global decoding
@@ -121,7 +87,6 @@ probs <- stateprobs(mod = mod) # local decoding
 # residual calculation
 pres <- pseudo_res(data$step, # observation sequence
                    "gamma2",  # distribution family
-                   list(mean = mu, sd = sigma), # parameters for that family
+                   list(mean = mod$mu, sd = mod$sigma), # parameters for that family
                    mod = mod) # model object
-#> Error: object 'mu' not found
 ```

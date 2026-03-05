@@ -6,7 +6,15 @@ inhomogeneous HMMs
 ## Usage
 
 ``` r
-stateprobs_p(delta, Gamma, allprobs, tod, trackID = NULL, mod = NULL)
+stateprobs_p(
+  delta,
+  Gamma,
+  allprobs,
+  tod,
+  trackID = NULL,
+  mod = NULL,
+  forecast = FALSE
+)
 ```
 
 ## Arguments
@@ -57,6 +65,11 @@ stateprobs_p(delta, Gamma, allprobs, tod, trackID = NULL, mod = NULL)
   model object obtained from running `RTMB::report()` or from
   [`qreml`](https://janoleko.github.io/reference/qreml.md) directly to
   this function.
+
+- forecast:
+
+  logical, indicating if forecast probabilities \\\Pr(S_t = j \mid X_1,
+  ..., X_t)\\ should be calculated instead.
 
 ## Value
 

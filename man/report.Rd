@@ -2,7 +2,7 @@
 % Please edit documentation in R/zzz.R
 \name{report}
 \alias{report}
-\title{Get reported quantities from and \code{RTMB} object and return a LaMaModel}
+\title{Get reported quantities from and \code{RTMB} object and return a \code{LaMaModel}}
 \usage{
 report(obj)
 }
@@ -10,11 +10,65 @@ report(obj)
 \item{obj}{Object returned by \code{RTMB::MakeADFun()}}
 }
 \value{
-A model object of class "\code{LaMaModel}" containing the reported quantities from the \code{RTMB} object, along with log-likelihood, number of parameters, and number of observations.
+A model object of class "\code{LaMaModel}" containing a list with the reported quantities from the \code{RTMB} object, along with log-likelihood, number of parameters, and number of observations.
 }
 \description{
-Get reported quantities from and \code{RTMB} object and return a LaMaModel
+Having fitted a latent Markov model using automatic differentiation via \code{RTMB}, this function calls \code{RTMB}'s \code{obj$report()} and does some additional processing.
+This then yields estimated parameters on their natural scale, allows for convenient calculation of \code{AIC} and \code{BIC}, state-decoding, and residual calculation.
 }
 \examples{
-# no example yet
+data <- trex[1:500,]
+
+# initial parameters and observations
+par <- list(
+  log_mu = log(c(0.3, 1)),      # initial means for step length (log-transformed)
+  log_sigma = log(c(0.2, 0.7)), # initial sds for step length (log-transformed)
+  eta = rep(-2, 2)              # initial t.p.m. parameters (on logit scale)
+)    
+dat <- list(
+  step = data$step,             # hourly step lengths
+  nStates = 2                   # number of hidden states
+)
+
+# likelihood function
+nll <- function(par) {
+  getAll(par, dat)
+  REPORT(step)
+  Gamma <- tpm(eta)
+  delta <- stationary(Gamma)
+  mu <- exp(log_mu); REPORT(mu)
+  sigma <- exp(log_sigma); REPORT(sigma)
+  allprobs <- matrix(1, length(step), nStates)
+  ind <- which(!is.na(step))
+  for(j in 1:nStates) {
+    allprobs[ind,j] <- dgamma2(step[ind], mu[j], sigma[j]) 
+  } 
+  -forward(delta, Gamma, allprobs)
+}
+
+# automatic differentiation and optimisation
+obj <- MakeADFun(nll, par)
+opt <- nlminb(obj$par, obj$fn, obj$gr)
+
+### reporting ###
+mod <- report(obj)
+
+# estimated quantities on natural scale
+mod$mu
+mod$sigma
+mod$Gamma
+
+# information criteria
+AIC(mod)
+BIC(mod)
+
+# state decoding
+states <- viterbi(mod = mod)   # global decoding
+probs <- stateprobs(mod = mod) # local decoding
+
+# residual calculation
+pres <- pseudo_res(data$step, # observation sequence
+                   "gamma2",  # distribution family
+                   list(mean = mu, sd = sigma), # parameters for that family
+                   mod = mod) # model object
 }

@@ -45,7 +45,7 @@ logistic link (also known as softmax). This can be done using the
 function [`tpm()`](https://janoleko.github.io/reference/tpm.md):
 
 ``` r
-(Gamma = tpm(c(-2, -3))) # 2 states -> 2*(1-2) = 2 off-diagonal entries
+(Gamma = tpm(c(-2, -3))) # 2 states -> 2*(2-1) = 2 off-diagonal entries
 #>           S1         S2
 #> S1 0.9525741 0.04742587
 #> S2 0.1192029 0.88079708
@@ -203,7 +203,7 @@ system.time(
   mod <- nlm(nll, par, x = x)
 )
 #>    user  system elapsed 
-#>   0.132   0.013   0.146
+#>   0.134   0.009   0.143
 ```
 
 We see that implementation of the forward algorithm in C++ leads to

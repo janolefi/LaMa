@@ -126,7 +126,7 @@ parameterised by an unconstrained parameter vector for the <span class="math inl
 then be computed via the inverse multinomial logistic link (also known
 as softmax). This can be done using the function <code><a href="../reference/tpm.html">tpm()</a></code>:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="op">(</span><span class="va">Gamma</span> <span class="op">=</span> <span class="fu"><a href="../reference/tpm.html">tpm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span>, <span class="op">-</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="co"># 2 states -&gt; 2*(1-2) = 2 off-diagonal entries</span></span>
+<code class="sourceCode R"><span><span class="op">(</span><span class="va">Gamma</span> <span class="op">=</span> <span class="fu"><a href="../reference/tpm.html">tpm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span>, <span class="op">-</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="co"># 2 states -&gt; 2*(2-1) = 2 off-diagonal entries</span></span>
 <span><span class="co">#&gt;           S1         S2</span></span>
 <span><span class="co">#&gt; S1 0.9525741 0.04742587</span></span>
 <span><span class="co">#&gt; S2 0.1192029 0.88079708</span></span></code></pre></div>
@@ -270,7 +270,7 @@ e.g. <code><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm
 <span>  <span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm</a></span><span class="op">(</span><span class="va">nll</span>, <span class="va">par</span>, x <span class="op">=</span> <span class="va">x</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.132   0.013   0.146</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.134   0.009   0.143</span></span></code></pre></div>
 <p>We see that implementation of the forward algorithm in C++ leads to
 really fast estimation speeds.</p>
 </div>

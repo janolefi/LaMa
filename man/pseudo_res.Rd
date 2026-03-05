@@ -12,27 +12,26 @@ pseudo_res(
   mod = NULL,
   normal = TRUE,
   discrete = NULL,
-  randomise = TRUE,
-  seed = NULL
+  randomise = TRUE
 )
 }
 \arguments{
-\item{obs}{vector of continuous-valued observations (of length n)}
+\item{obs}{vector of continuous-valued observations (of length \code{nObs})}
 
 \item{dist}{character string specifying which parametric CDF to use (e.g., \code{"norm"} for normal or \code{"pois"} for Poisson) or CDF function to evaluate directly.
-If a discrete CDF is passed, the \code{discrete} argument needs to be set to \code{TRUE} because this cannot determined automatically.}
+If a discrete CDF function is passed, the \code{discrete} argument needs to be set to \code{TRUE} because this cannot determined automatically.}
 
 \item{par}{named parameter list for the parametric CDF
 
 Names need to correspond to the parameter names in the specified distribution (e.g. \code{list(mean = c(1,2), sd = c(1,1))} for a normal distribution and 2 states).
 This argument is as flexible as the parametric distribution allows. For example you can have a matrix of parameters with one row for each observation and one column for each state.}
 
-\item{stateprobs}{matrix of local state probabilities for each observation (of dimension c(n,N), where N is the number of states) as computed by \code{\link{stateprobs}}, \code{\link{stateprobs_g}} or \code{\link{stateprobs_p}}}
+\item{stateprobs}{matrix of local state probabilities for each observation (of dimension c(nObs, nStates)) as computed by \code{\link{stateprobs}}, \code{\link{stateprobs_g}} or \code{\link{stateprobs_p}}}
 
-\item{mod}{optional model object containing initial distribution \code{delta}, transition probability matrix \code{Gamma}, matrix of state-dependent probabilities \code{allprobs}, and potentially a \code{trackID} variable
+\item{mod}{optional model object containing required quantities
 
-If you are using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward}}, \code{\link{forward_g}} or \code{\link{forward_p}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
-Hence, you can pass the model object obtained from running \code{RTMB::report()} or from \code{\link{qreml}} directly to this function and avoid calculating local state proabilities manually.
+When using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward}}, \code{\link{forward_g}} or \code{\link{forward_p}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
+Hence, you can pass the model object obtained from running \code{report()} or from \code{\link{qreml}} directly to this function and avoid calculating local state proabilities manually.
 In this case, a call should look like \code{pseudo_res(obs, "norm", par, mod = mod)}.}
 
 \item{normal}{logical, if \code{TRUE}, returns Gaussian pseudo residuals
@@ -42,25 +41,34 @@ These will be approximately standard normally distributed if the model is correc
 \item{discrete}{logical, if \code{TRUE}, computes discrete pseudo residuals (which slightly differ in their definition)
 
 By default, will be determined using \code{dist} argument, but only works for standard discrete distributions.
-When used with a special discrete distribution, set to \code{TRUE} manually. See \code{\link{pseudo_res_discrete}} for details.}
+When used with a special discrete distribution, set to \code{TRUE} manually.}
 
 \item{randomise}{for discrete pseudo residuals only. Logical, if \code{TRUE}, return randomised pseudo residuals. Recommended for discrete observations.}
-
-\item{seed}{for discrete pseudo residuals only. Integer, seed for random number generation}
 }
 \value{
-vector of pseudo residuals
+vector of pseudo residuals of class \code{LaMaResiduals} or list containing \code{lower}, \code{upper}, and \code{mean} if discrete residuals are not randomised.
 }
 \description{
-For HMMs, pseudo-residuals are used to assess the goodness-of-fit of the model. 
+For HMMs, pseudo-residuals are used to assess the overall goodness-of-fit of the model. 
 These are based on the cumulative distribution function (CDF)
 \deqn{F_{X_t}(x_t) = F(x_t \mid x_1, \dots, x_{t-1}, x_{t+1}, \dots, x_T)}
 and can be used to quantify whether an observation is extreme relative to its model-implied distribution.
 
-This function calculates such residuals via probability integral transform, based on the local state probabilities obtained by \code{\link{stateprobs}} or \code{\link{stateprobs_g}} and the respective parametric family.
+This function calculates such residuals via the probability integral transform, based on the local state probabilities obtained by \code{\link{stateprobs}} or \code{\link{stateprobs_g}} and the respective parametric family.
 }
 \details{
-When used for discrete pseudo-residuals, this function is just a wrapper for \code{\link{pseudo_res_discrete}}.
+Pseudo-residuals are based on the probability integral transform. 
+If the cumulative distribution function (CDF) \eqn{F} of a random variable 
+\eqn{X} is known, then \eqn{F(X)} is uniformly distributed on \eqn{[0,1]}. 
+Applying the standard normal quantile function \eqn{\Phi^{-1}} then gives 
+a residual that is approximately standard normal under the model.
+
+For discrete-valued observations, the CDF is a step function, so the residual 
+is not uniquely defined. One can compute a "lower" and "upper" pseudo-residual 
+corresponding to \eqn{F(X-1)} and \eqn{F(X)}, respectively. 
+If \code{randomise = TRUE}, a value is drawn uniformly 
+between the lower and upper bounds. In this case, the resulting pseudo-residuals 
+are again approximately standard normal after applying the standard normal quantile function.
 }
 \examples{
 ## continuous-valued observations
@@ -81,13 +89,15 @@ pres = pseudo_res(obs, pnbinom, par, stateprobs,
                   discrete = TRUE)
 # if discrete CDF function is passed, 'discrete' needs to be set to TRUE
 
-## no CDF available, only density (artificial example)
+## no CDF function available, only density (artificial example)
 obs = rnorm(100)
 par = list(mean = c(1,2), sd = c(1,1))
+# construct CDF using numerical integration
 cdf = function(x, mean, sd) integrate(dnorm, -Inf, x, mean = mean, sd = sd)$value
 pres = pseudo_res(obs, cdf, par, stateprobs)
 
-## full example with model object
+
+### Full model fit example ###
 step = trex$step[1:200]
 
 nll = function(par){
@@ -106,13 +116,15 @@ par = list(logitGamma = c(-2,-2),
            logMu = log(c(0.3, 2.5)), 
            logSigma = log(c(0.3, 0.5)))
            
-obj = MakeADFun(nll, par)
+obj = MakeADFun(nll, par, silent = TRUE)
 opt = nlminb(obj$par, obj$fn, obj$gr)
 
 mod = obj$report()
 
-pres = pseudo_res(step, "gamma2", list(mean = mod$mu, sd = mod$sigma),
-                  mod = mod)
+pres = pseudo_res(step,      # observation sequence
+                  "gamma2",  # parametric family that was used
+                  list(mean = mod$mu, sd = mod$sigma), # parameters for that family
+                  mod = mod) # model object
 
 plot(pres)
 }

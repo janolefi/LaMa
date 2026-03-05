@@ -1,30 +1,83 @@
+# inner helper to eval CDF for both continuous and discrete pseudo residuals
+.eval_cdf_states <- function(x, par, stateprobs, cdf_func){
+  
+  nObs <- length(x)
+  N <- ncol(stateprobs)
+  ind <- which(!is.na(x))
+  
+  cdf_values <- matrix(0, nObs, N)
+  
+  for(state in 1:N){
+    current_par <- lapply(par, function(param){
+      if(is.matrix(param)){
+        if(nrow(param) != nObs | ncol(param) != N){
+          stop("Parameter matrix dimensions must match observations and states.")
+        }
+        param[, state]
+      } else if(is.vector(param)){
+        if(length(param) == 1){
+          param
+        } else{
+          if(length(param) != N){
+            stop("Parameter vector must have length equal to number of states.")
+          }
+          param[state]
+        }
+      } else{
+        stop("Invalid parameter specification.")
+      }
+    })
+    
+    # safe CDF evaluation
+    cdf_values[ind, state] <- tryCatch(
+      do.call(cdf_func, c(list(x[ind]), current_par)),
+      error = function(e)
+        do.call(cdf_func, c(list(pmax(x[ind], 0)), current_par))
+    )
+  }
+  
+  rowSums(cdf_values * stateprobs)
+}
+
+
 #' Calculate pseudo-residuals
 #' 
 #' @description
-#' For HMMs, pseudo-residuals are used to assess the goodness-of-fit of the model. 
+#' For HMMs, pseudo-residuals are used to assess the overall goodness-of-fit of the model. 
 #' These are based on the cumulative distribution function (CDF)
 #' \deqn{F_{X_t}(x_t) = F(x_t \mid x_1, \dots, x_{t-1}, x_{t+1}, \dots, x_T)}
 #' and can be used to quantify whether an observation is extreme relative to its model-implied distribution.
 #' 
-#' This function calculates such residuals via probability integral transform, based on the local state probabilities obtained by \code{\link{stateprobs}} or \code{\link{stateprobs_g}} and the respective parametric family.
+#' This function calculates such residuals via the probability integral transform, based on the local state probabilities obtained by \code{\link{stateprobs}} or \code{\link{stateprobs_g}} and the respective parametric family.
 #'
 #' @details
-#' When used for discrete pseudo-residuals, this function is just a wrapper for \code{\link{pseudo_res_discrete}}.
+#' Pseudo-residuals are based on the probability integral transform. 
+#' If the cumulative distribution function (CDF) \eqn{F} of a random variable 
+#' \eqn{X} is known, then \eqn{F(X)} is uniformly distributed on \eqn{[0,1]}. 
+#' Applying the standard normal quantile function \eqn{\Phi^{-1}} then gives 
+#' a residual that is approximately standard normal under the model.
+#' 
+#' For discrete-valued observations, the CDF is a step function, so the residual 
+#' is not uniquely defined. One can compute a "lower" and "upper" pseudo-residual 
+#' corresponding to \eqn{F(X-1)} and \eqn{F(X)}, respectively. 
+#' If \code{randomise = TRUE}, a value is drawn uniformly 
+#' between the lower and upper bounds. In this case, the resulting pseudo-residuals 
+#' are again approximately standard normal after applying the standard normal quantile function.
 #'
 #' @seealso \code{\link{plot.LaMaResiduals}} for plotting pseudo-residuals.
 #' 
-#' @param obs vector of continuous-valued observations (of length n)
+#' @param obs vector of continuous-valued observations (of length \code{nObs})
 #' @param dist character string specifying which parametric CDF to use (e.g., \code{"norm"} for normal or \code{"pois"} for Poisson) or CDF function to evaluate directly.
-#' If a discrete CDF is passed, the \code{discrete} argument needs to be set to \code{TRUE} because this cannot determined automatically.
+#' If a discrete CDF function is passed, the \code{discrete} argument needs to be set to \code{TRUE} because this cannot determined automatically.
 #' @param par named parameter list for the parametric CDF
 #' 
 #' Names need to correspond to the parameter names in the specified distribution (e.g. \code{list(mean = c(1,2), sd = c(1,1))} for a normal distribution and 2 states).
 #' This argument is as flexible as the parametric distribution allows. For example you can have a matrix of parameters with one row for each observation and one column for each state.
-#' @param stateprobs matrix of local state probabilities for each observation (of dimension c(n,N), where N is the number of states) as computed by \code{\link{stateprobs}}, \code{\link{stateprobs_g}} or \code{\link{stateprobs_p}}
-#' @param mod optional model object containing initial distribution \code{delta}, transition probability matrix \code{Gamma}, matrix of state-dependent probabilities \code{allprobs}, and potentially a \code{trackID} variable
+#' @param stateprobs matrix of local state probabilities for each observation (of dimension c(nObs, nStates)) as computed by \code{\link{stateprobs}}, \code{\link{stateprobs_g}} or \code{\link{stateprobs_p}}
+#' @param mod optional model object containing required quantities
 #' 
-#' If you are using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward}}, \code{\link{forward_g}} or \code{\link{forward_p}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
-#' Hence, you can pass the model object obtained from running \code{RTMB::report()} or from \code{\link{qreml}} directly to this function and avoid calculating local state proabilities manually.
+#' When using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward}}, \code{\link{forward_g}} or \code{\link{forward_p}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
+#' Hence, you can pass the model object obtained from running \code{report()} or from \code{\link{qreml}} directly to this function and avoid calculating local state proabilities manually.
 #' In this case, a call should look like \code{pseudo_res(obs, "norm", par, mod = mod)}.
 #' @param normal logical, if \code{TRUE}, returns Gaussian pseudo residuals
 #'
@@ -32,11 +85,12 @@
 #' @param discrete logical, if \code{TRUE}, computes discrete pseudo residuals (which slightly differ in their definition)
 #'
 #' By default, will be determined using \code{dist} argument, but only works for standard discrete distributions.
-#' When used with a special discrete distribution, set to \code{TRUE} manually. See \code{\link{pseudo_res_discrete}} for details.
+#' When used with a special discrete distribution, set to \code{TRUE} manually.
 #' @param randomise for discrete pseudo residuals only. Logical, if \code{TRUE}, return randomised pseudo residuals. Recommended for discrete observations.
-#' @param seed for discrete pseudo residuals only. Integer, seed for random number generation
 #'
-#' @return vector of pseudo residuals
+#' @return vector of pseudo residuals of class \code{LaMaResiduals} or list containing \code{lower}, \code{upper}, and \code{mean} if discrete residuals are not randomised.
+#' 
+#' @importFrom stats runif
 #' @export
 #'
 #' @examples
@@ -58,13 +112,15 @@
 #'                   discrete = TRUE)
 #' # if discrete CDF function is passed, 'discrete' needs to be set to TRUE
 #' 
-#' ## no CDF available, only density (artificial example)
+#' ## no CDF function available, only density (artificial example)
 #' obs = rnorm(100)
 #' par = list(mean = c(1,2), sd = c(1,1))
+#' # construct CDF using numerical integration
 #' cdf = function(x, mean, sd) integrate(dnorm, -Inf, x, mean = mean, sd = sd)$value
 #' pres = pseudo_res(obs, cdf, par, stateprobs)
 #' 
-#' ## full example with model object
+#' 
+#' ### Full model fit example ###
 #' step = trex$step[1:200]
 #' 
 #' nll = function(par){
@@ -83,16 +139,122 @@
 #'            logMu = log(c(0.3, 2.5)), 
 #'            logSigma = log(c(0.3, 0.5)))
 #'            
-#' obj = MakeADFun(nll, par)
+#' obj = MakeADFun(nll, par, silent = TRUE)
 #' opt = nlminb(obj$par, obj$fn, obj$gr)
 #' 
 #' mod = obj$report()
 #' 
-#' pres = pseudo_res(step, "gamma2", list(mean = mod$mu, sd = mod$sigma),
-#'                   mod = mod)
+#' pres = pseudo_res(step,      # observation sequence
+#'                   "gamma2",  # parametric family that was used
+#'                   list(mean = mod$mu, sd = mod$sigma), # parameters for that family
+#'                   mod = mod) # model object
 #'
 #' plot(pres)
-pseudo_res = function(obs, 
+pseudo_res <- function(obs,
+                       dist,
+                       par,
+                       stateprobs = NULL,
+                       mod = NULL,
+                       normal = TRUE,
+                       discrete = NULL,
+                       randomise = TRUE) {
+  
+  # handle model input
+  if(!is.null(mod)){
+    # checks
+    if(is.null(mod$type)){
+      stop("'mod' contains no type.")
+    }
+    if(!(mod$type) %in% c("homogeneous","inhomogeneous","periodic","continuous_time")){
+      stop("'mod' contains invalid type.")
+    }
+    if(is.null(mod$delta)) stop("'mod' contains no initial distribution.")
+    if(is.null(mod$Gamma)) stop("'mod' contains no transition matrix.")
+    if(is.null(mod$allprobs)) stop("'mod' contains no state-dependent probabilities.")
+    if(mod$type == "periodic" && is.null(mod$tod)){
+      stop("'mod' contains no cyclic indexing variable.")
+    }
+    if(mod$type == "homogeneous"){
+      stateprobs = stateprobs(mod = mod)
+    }
+    if(mod$type %in% c("inhomogeneous","continuous_time")){
+      stateprobs = stateprobs_g(mod = mod)
+    }
+    if(mod$type == "periodic"){
+      stateprobs = stateprobs_p(mod = mod)
+    }
+  }
+  
+  nObs <- length(obs)
+  
+  if(nrow(stateprobs) != nObs){
+    stop("Rows of 'stateprobs' must match length of 'obs'.")
+  }
+  
+  # determine discrete automatically if possible
+  if(is.null(discrete)){
+    if(is.character(dist)){
+      discrete <- dist %in% c("pois","binom","geom","nbinom","nbinom2",
+                              "betabinom","genpois","zibinom","zibinom2",
+                              "zipois","ztbinom","ztnbinom","ztnbinom2", "ztpois")
+    } else if(is.function(dist)){
+      discrete <- FALSE
+      message("Assuming 'dist' evaluates a continuous CDF. Set 'discrete = TRUE' if not.")
+    }
+  }
+  
+  # obtain CDF
+  if(is.character(dist)){
+    cdf_func <- get(paste0("p", dist), mode = "function")
+  } else if(is.function(dist)){
+    cdf_func <- Vectorize(dist)
+  } else{
+    stop("'dist' must be a character string or function.")
+  }
+  
+  if(discrete){
+    message("Calculating discrete pseudo-residuals\n")
+    
+    u_upper <- .eval_cdf_states(obs, par, stateprobs, cdf_func)
+    u_lower <- .eval_cdf_states(obs - 1, par, stateprobs, cdf_func)
+    
+    if(randomise){
+      message("Randomised between lower and upper\n")
+      u <- rep(NA_real_, nObs)
+      ind <- which(!is.na(obs))
+      u[ind] <- runif(length(ind), u_lower[ind], u_upper[ind])
+    } else{
+      if(normal){
+        return(list(
+          lower = qnorm(u_lower),
+          upper = qnorm(u_upper),
+          mean  = qnorm((u_lower + u_upper)/2)
+        ))
+      } else{
+        return(list(
+          lower = u_lower,
+          upper = u_upper,
+          mean  = (u_lower + u_upper)/2
+        ))
+      }
+    }
+  } else{
+    u <- .eval_cdf_states(obs, par, stateprobs, cdf_func)
+  }
+  
+  if(normal){
+    u <- qnorm(u)
+  }
+  
+  u[is.infinite(u)] <- NA
+  
+  class(u) <- "LaMaResiduals"
+  
+  return(u)
+}
+
+
+pseudo_res2 = function(obs, 
                       dist, 
                       par,
                       stateprobs = NULL,
@@ -108,7 +270,7 @@ pseudo_res = function(obs,
     if(is.null(mod$type)){
       stop("'mod' contains no type.")
     }
-    if(!(mod$type) %in% c("homogeneous", "inhomogeneous", "periodic")){
+    if(!(mod$type) %in% c("homogeneous", "inhomogeneous", "periodic", "continuous_time")){
       stop("'mod' contains invalid type.")
     }
     
@@ -132,7 +294,7 @@ pseudo_res = function(obs,
     if(mod$type == "homogeneous"){
       stateprobs = stateprobs(mod = mod)
     }
-    if(mod$type == "inhomogeneous"){
+    if(mod$type %in% c("inhomogeneous", "continuous_time")){
       stateprobs = stateprobs_g(mod = mod)
     }
     if(mod$type == "periodic"){
@@ -230,44 +392,6 @@ pseudo_res = function(obs,
   return(residuals)
 }
 
-
-#' Calculate pseudo-residuals for discrete-valued observations
-#' 
-#' @description
-#' For HMMs, pseudo-residuals are used to assess the goodness-of-fit of the model. 
-#' These are based on the cumulative distribution function (CDF)
-#' \deqn{F_{X_t}(x_t) = F(x_t \mid x_1, \dots, x_{t-1}, x_{t+1}, \dots, x_T)}
-#' and can be used to quantify whether an observation is extreme relative to its model-implied distribution.
-#' 
-#' This function calculates such residuals for \strong{discrete-valued} observations, based on the local state probabilities obtained by \code{\link{stateprobs}} or \code{\link{stateprobs_g}} and the respective parametric family.
-#'
-#' @details
-#' For discrete observations, calculating pseudo residuals is slightly more involved, as the CDF is a step function.
-#' Therefore, one can calculate the lower and upper CDF values for each observation. 
-#' By default, this function does exactly that and then randomly samples the interval in between to give approximately Gaussian psuedo-residuals.
-#' If \code{randomise} is set to \code{FALSE}, the lower, upper and mean pseudo-residuasl are returned.
-#'
-#' @param obs vector of discrete-valued observations (of length n)
-#' @param dist character string specifying which parametric CDF to use (e.g., \code{"norm"} for normal or \code{"pois"} for Poisson) or CDF function to evaluate directly.
-#' @param par named parameter list for the parametric CDF
-#' 
-#' Names need to correspond to the parameter names in the specified distribution (e.g. \code{list(mean = c(1,2), sd = c(1,1))} for a normal distribution and 2 states).
-#' This argument is as flexible as the parametric distribution allows. For example you can have a matrix of parameters with one row for each observation and one column for each state.
-#' @param stateprobs matrix of local state probabilities for each observation (of dimension c(n,N), where N is the number of states)
-#' @param normal logical, if \code{TRUE}, returns Gaussian pseudo residuals
-#'
-#' These will be approximately standard normally distributed if the model is correct.
-#' @param randomise logical, if \code{TRUE}, return randomised pseudo residuals. Recommended for discrete observations.
-#' @param seed integer, seed for random number generation
-#'
-#' @return vector of pseudo residuals
-#' @export
-#'
-#' @examples
-#' obs = rpois(100, lambda = 1)
-#' stateprobs = matrix(0.5, nrow = 100, ncol = 2)
-#' par = list(lambda = c(1,2))
-#' pres = pseudo_res_discrete(obs, "pois", par, stateprobs)
 pseudo_res_discrete <- function(obs, 
                                 dist,
                                 par,
@@ -430,8 +554,10 @@ pseudo_res_discrete <- function(obs,
 #' 
 #' mod = obj$report()
 #' 
-#' pres = pseudo_res(step, "gamma2", list(mean = mod$mu, sd = mod$sigma),
-#'                   mod = mod)
+#' pres = pseudo_res(step,      # observations
+#'                   "gamma2",  # family that is used
+#'                   list(mean = mod$mu, sd = mod$sigma), # the family's parameters
+#'                   mod = mod) # model object
 #'                   
 #' plot(pres)
 plot.LaMaResiduals <- function(
@@ -454,8 +580,14 @@ plot.LaMaResiduals <- function(
     main <- c(main, rep("", columns - length(main)))
   }
   
-  old_par <- par(mfrow = c(1, columns))
-  on.exit(par(old_par))
+  # handle plotting in columns
+  current_layout <- par("mfrow")
+  set_layout <- all(current_layout == c(1, 1))
+  if (set_layout) {
+    old_mfrow <- par("mfrow")
+    on.exit(par(mfrow = old_mfrow))
+    par(mfrow = c(1, columns))
+  }
   
   # QQ Plot
   qqnorm(res_clean, main = main[1], 

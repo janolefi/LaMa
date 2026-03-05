@@ -132,7 +132,7 @@ P-splines (<code>cp</code>). This results in a cubic B-Spline basis,
 that is wrapped at boundary of the support (0 and 24). We then append
 both resulting matrices to the <code>dat</code> list.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://janoleko.github.io/LaMa/">LaMa</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://janolefi.github.io/LaMa/" class="external-link">LaMa</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; Loading required package: RTMB</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">trex</span><span class="op">)</span></span>
@@ -255,11 +255,12 @@ call using the <code>psname</code> argument.</li>
 <span><span class="co">#&gt; outer 9 - lambda: 0.312 0.129 </span></span>
 <span><span class="co">#&gt; outer 10 - lambda: 0.309 0.119 </span></span>
 <span><span class="co">#&gt; outer 11 - lambda: 0.308 0.114 </span></span>
-<span><span class="co">#&gt; outer 12 - lambda: 0.308 0.113 </span></span>
+<span><span class="co">#&gt; outer 12 - lambda: 0.308 0.112 </span></span>
+<span><span class="co">#&gt; outer 13 - lambda: 0.308 0.112 </span></span>
 <span><span class="co">#&gt; Converged</span></span>
-<span><span class="co">#&gt; Final model fit with lambda: 0.308 0.113</span></span>
+<span><span class="co">#&gt; Final model fit with lambda: 0.308 0.112</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   6.123   2.907   5.573</span></span></code></pre></div>
+<span><span class="co">#&gt;   9.480   2.691   7.895</span></span></code></pre></div>
 <p>The <code>mod</code> object is now a list that contains everything
 that is reported by the likelihood function, but also the
 <code>RTMB</code> object created in the process. After fitting the
@@ -456,7 +457,7 @@ the design matrix <code>Z</code>.</p>
 <span><span class="co">#&gt; Converged</span></span>
 <span><span class="co">#&gt; Final model fit with lambda: 1.033 1.01 1.744</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   8.494   3.441   7.812</span></span></code></pre></div>
+<span><span class="co">#&gt;  18.133   2.979  15.954</span></span></code></pre></div>
 <p>After fitting the model, we can easily visualise the smooth densities
 using the prepared prediction objects. We already have access to all
 reported quantities because <code><a href="../reference/qreml.html">qreml()</a></code> automatically runs the
@@ -585,11 +586,11 @@ intial penalty strength parameter in the <code>dat</code> list.</p>
 <span><span class="co">#&gt; outer 16 - lambda: 22.618 7.213 8.305 4.17 </span></span>
 <span><span class="co">#&gt; outer 17 - lambda: 22.598 7.213 8.286 4.169 </span></span>
 <span><span class="co">#&gt; outer 18 - lambda: 22.589 7.212 8.279 4.169 </span></span>
-<span><span class="co">#&gt; outer 19 - lambda: 22.588 7.212 8.277 4.169 </span></span>
+<span><span class="co">#&gt; outer 19 - lambda: 22.588 7.212 8.278 4.169 </span></span>
 <span><span class="co">#&gt; Converged</span></span>
-<span><span class="co">#&gt; Final model fit with lambda: 22.588 7.212 8.277 4.169</span></span>
+<span><span class="co">#&gt; Final model fit with lambda: 22.588 7.212 8.278 4.169</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   7.967   4.769   6.973</span></span></code></pre></div>
+<span><span class="co">#&gt;  17.094   3.894  14.414</span></span></code></pre></div>
 <p>Having fitted the model, we can visualise the results. We first
 decode the most probable state sequence and then plot the estimated
 state-dependent densities as a function of the oil price, as well as the

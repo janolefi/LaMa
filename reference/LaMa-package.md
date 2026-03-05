@@ -19,7 +19,7 @@ model classes.
 
 Useful links:
 
-- <https://janoleko.github.io/LaMa/>
+- <https://janolefi.github.io/LaMa/>
 
 ## Author
 

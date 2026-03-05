@@ -125,7 +125,7 @@ equations</strong>, but for more details see <span class="citation">Dobrow (<a h
 </h3>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># loading the package</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://janoleko.github.io/LaMa/">LaMa</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://janolefi.github.io/LaMa/" class="external-link">LaMa</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; Loading required package: RTMB</span></span></code></pre></div>
 <p>We start by setting parameters to simulate data. In this example,
 state 1 has a smaller rate and the state dwell time in state one follows
@@ -229,7 +229,7 @@ exponentials.</p>
 <span>  <span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm</a></span><span class="op">(</span><span class="va">nll</span>, <span class="va">par</span>, timediff <span class="op">=</span> <span class="va">timediff</span>, x <span class="op">=</span> <span class="va">x</span>, N <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.344   0.232   0.294</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.377   0.244   0.317</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="results">Results<a class="anchor" aria-label="anchor" href="#results"></a>
@@ -307,7 +307,7 @@ state to transition to, as explained in the beginning.</p>
 <span>  <span class="va">mod2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm</a></span><span class="op">(</span><span class="va">nll</span>, <span class="va">par</span>, timediff <span class="op">=</span> <span class="va">timediff</span>, x <span class="op">=</span> <span class="va">x</span>, N <span class="op">=</span> <span class="fl">3</span>, stepmax <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.882   2.059   1.315</span></span>
+<span><span class="co">#&gt;   3.287   2.672   1.988</span></span>
 <span><span class="co"># without restricting stepmax, we run into numerical problems</span></span></code></pre></div>
 </div>
 <div class="section level3">

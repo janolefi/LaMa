@@ -145,7 +145,7 @@ like <code>moveHMM</code> or <code>momentuHMM</code> return the
 parameter matrix such that the t.p.m. needs to be filled by row.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># loading the package</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://janoleko.github.io/LaMa/">LaMa</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://janolefi.github.io/LaMa/" class="external-link">LaMa</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; Loading required package: RTMB</span></span></code></pre></div>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># parameters</span></span>
@@ -230,7 +230,7 @@ the transition probabilities.</p>
 <span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.792   0.013   0.805</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.748   0.018   0.767</span></span></code></pre></div>
 <p>Really fast!</p>
 </div>
 <div class="section level3">
@@ -443,7 +443,7 @@ predictor for the <span class="math inline">j</span>-th state.</p>
 <span>  <span class="va">mod_reg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm</a></span><span class="op">(</span><span class="va">nllMSR</span>, <span class="va">par</span>, x <span class="op">=</span> <span class="va">x</span>, Z <span class="op">=</span> <span class="va">Z</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.296   0.014   0.311</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.325   0.027   0.351</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="visualising-results-1">Visualising results<a class="anchor" aria-label="anchor" href="#visualising-results-1"></a>

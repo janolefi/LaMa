@@ -96,46 +96,7 @@ Under the hood, \code{qreml} uses the R package \code{RTMB} for automatic differ
 The user has to specify the \strong{penalised negative log-likelihood function} \code{pnll} structured as dictated by \code{RTMB} and use the \code{\link{penalty}} function to compute the quadratic-form penalty inside the likelihood.
 }
 \examples{
-\dontrun{
-data = trex[1:1000,] # subset
-
-# initial parameter list
-par = list(logmu = log(c(0.3, 1)), # step mean
-           logsigma = log(c(0.2, 0.7)), # step sd
-           beta0 = c(-2,-2), # state process intercept
-           betaspline = matrix(rep(0, 18), nrow = 2)) # state process spline coefs
-          
-# data object with initial penalty strength lambda
-dat = list(step = data$step, # step length
-           tod = data$tod, # time of day covariate
-           N = 2, # number of states
-           lambda = rep(100,2)) # initial penalty strength
-
-# building model matrices
-modmat = make_matrices(~ s(tod, bs = "cp"), 
-                       data = data.frame(tod = 1:24), 
-                       knots = list(tod = c(0,24))) # wrapping points
-dat$Z = modmat$Z # spline design matrix
-dat$S = modmat$S # penalty matrix
-
-# penalised negative log-likelihood function
-pnll = function(par) {
-  getAll(par, dat) # makes everything contained available without $
-  Gamma = tpm_g(Z, cbind(beta0, betaspline), ad = TRUE) # transition probabilities
-  delta = stationary_p(Gamma, t = 1, ad = TRUE) # initial distribution
-  mu = exp(logmu) # step mean
-  sigma = exp(logsigma) # step sd
-  # calculating all state-dependent densities
-  allprobs = matrix(1, nrow = length(step), ncol = N)
-  ind = which(!is.na(step)) # only for non-NA obs.
-  for(j in 1:N) allprobs[ind,j] = dgamma2(step[ind],mu[j],sigma[j])
-  -forward_g(delta, Gamma[,,tod], allprobs) +
-      penalty(betaspline, S, lambda) # this does all the penalization work
-}
-
-# model fitting
-mod = qreml_old(pnll, par, dat, random = "betaspline")
-}
+no example
 }
 \references{
 Koslik, J. O. (2024). Efficient smoothness selection for nonparametric Markov-switching models via quasi restricted maximum likelihood. arXiv preprint arXiv:2411.11498.

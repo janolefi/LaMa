@@ -226,3 +226,7 @@ preprint arXiv:2411.11498.
 the penalty inside the likelihood function
 
 ## Examples
+
+``` r
+# no example
+```

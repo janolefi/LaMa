@@ -160,7 +160,7 @@ system.time(
 
 )
 #>    user  system elapsed 
-#>   0.745   0.018   0.763
+#>   0.737   0.029   0.765
 ```
 
 Really fast!
@@ -322,7 +322,7 @@ system.time(
   mod_reg <- nlm(nllMSR, par, x = x, Z = Z)
 )
 #>    user  system elapsed 
-#>   0.331   0.029   0.360
+#>   0.329   0.025   0.354
 ```
 
 ### Visualising results

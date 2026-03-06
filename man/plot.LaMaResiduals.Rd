@@ -4,12 +4,19 @@
 \alias{plot.LaMaResiduals}
 \title{Plot pseudo-residuals}
 \usage{
-\method{plot}{LaMaResiduals}(x, hist = TRUE, col = "darkblue", lwd = 1.5, main = NULL, ...)
+\method{plot}{LaMaResiduals}(
+  x,
+  col = "darkblue",
+  lwd = 1.5,
+  main = NULL,
+  breaks = "Sturges",
+  axis.lab = list(qq = c("Theoretical quantiles", "Sample quantiles"), hist =
+    c("Pseudo-residuals", "Density"), acf = c("Lag", "ACF")),
+  ...
+)
 }
 \arguments{
 \item{x}{pseudo-residuals as returned by \code{\link{pseudo_res}}}
-
-\item{hist}{logical, if \code{TRUE}, adds a histogram of the pseudo-residuals}
 
 \item{col}{character, color for the QQ-line (and density curve if \code{histogram = TRUE})}
 
@@ -17,17 +24,22 @@
 
 \item{main}{optional character vector of main titles for the plots of length 2 (or 3 if \code{histogram = TRUE})}
 
+\item{breaks}{\code{breaks} argument passed to hist}
+
+\item{axis.lab}{labels used for the x and y axis of each plot (named list)}
+
 \item{...}{currently ignored. For method consistency}
 }
 \value{
-NULL, plots the pseudo-residuals in a 2- or 3-panel layout
+NULL, plots the pseudo-residuals in a 3-panel layout
 }
 \description{
 Plot pseudo-residuals computed by \code{\link{pseudo_res}}.
 }
 \examples{
 ## pseudo-residuals for the trex data
-step = trex$step[1:200]
+step = trex$step[1:1000]
+angle = trex$angle[1:1000]
 
 nll = function(par){
   getAll(par)
@@ -35,25 +47,43 @@ nll = function(par){
   delta = stationary(Gamma)
   mu = exp(logMu); REPORT(mu)
   sigma = exp(logSigma); REPORT(sigma)
+  kappa = exp(logKappa); REPORT(kappa)
   allprobs = matrix(1, length(step), 2)
-  ind = which(!is.na(step))
-  for(j in 1:2) allprobs[ind,j] = dgamma2(step[ind], mu[j], sigma[j])
+  ind = which(!is.na(step) & !is.na(angle))
+  for(j in 1:2) {
+    allprobs[ind,j] = dgamma2(step[ind], mu[j], sigma[j]) * 
+         dvm(angle[ind], 0, kappa[j])
+  }
   -forward(delta, Gamma, allprobs)
 }
 
 par = list(logitGamma = c(-2,-2), 
            logMu = log(c(0.3, 2.5)), 
-           logSigma = log(c(0.3, 0.5)))
+           logSigma = log(c(0.3, 0.5)),
+           logKappa = log(c(0.2, 1)))
            
 obj = MakeADFun(nll, par)
 opt = nlminb(obj$par, obj$fn, obj$gr)
 
-mod = obj$report()
+mod = report(obj)
 
-pres = pseudo_res(step,      # observations
-                  "gamma2",  # family that is used
-                  list(mean = mod$mu, sd = mod$sigma), # the family's parameters
-                  mod = mod) # model object
-                  
-plot(pres)
+pres_step = pseudo_res(step,      # observations
+                       "gamma2",  # family that is used
+                       list(mean = mod$mu, sd = mod$sigma), # the family's parameters
+                       mod = mod) # model object
+pres_angle = pseudo_res(angle,
+                        "vm",
+                        list(mu = 0, kappa = mod$kappa),
+                        mod = mod)
+                        
+# separate plots 
+plot(pres_step)
+plot(pres_angle)
+
+# together
+par(mfrow = c(2,3))
+plot(pres_step, main = c("", "Step Length", ""), 
+     axis.lab = list(hist = c("Step residuals", "Density")))
+plot(pres_angle, main = c("", "Turning Angle", ""),
+     axis.lab = list(hist = c("Angle residuals", "Density")))
 }

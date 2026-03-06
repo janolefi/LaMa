@@ -213,13 +213,13 @@ pseudo_res <- function(obs,
   }
   
   if(discrete){
-    message("Calculating discrete pseudo-residuals\n")
+    message("Calculating discrete pseudo-residuals")
     
     u_upper <- .eval_cdf_states(obs, par, stateprobs, cdf_func)
     u_lower <- .eval_cdf_states(obs - 1, par, stateprobs, cdf_func)
     
     if(randomise){
-      message("Randomised between lower and upper\n")
+      message("Randomised between lower and upper")
       u <- rep(NA_real_, nObs)
       ind <- which(!is.na(obs))
       u[ind] <- runif(length(ind), u_lower[ind], u_upper[ind])

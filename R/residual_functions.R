@@ -225,17 +225,21 @@ pseudo_res <- function(obs,
       u[ind] <- runif(length(ind), u_lower[ind], u_upper[ind])
     } else{
       if(normal){
-        return(list(
+        out <- list(
           lower = qnorm(u_lower),
           upper = qnorm(u_upper),
           mean  = qnorm((u_lower + u_upper)/2)
-        ))
+        )
+        class(out) <- "LaMaResiduals"
+        return(out)
       } else{
-        return(list(
+        out <- list(
           lower = u_lower,
           upper = u_upper,
           mean  = (u_lower + u_upper)/2
-        ))
+        )
+        class(out) <- "LaMaResiduals"
+        return(out)
       }
     }
   } else{

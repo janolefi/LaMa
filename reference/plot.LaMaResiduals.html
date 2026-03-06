@@ -51,7 +51,16 @@
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S3 method for class 'LaMaResiduals'</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, hist <span class="op">=</span> <span class="cn">TRUE</span>, col <span class="op">=</span> <span class="st">"darkblue"</span>, lwd <span class="op">=</span> <span class="fl">1.5</span>, main <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span></span>
+<span>  <span class="va">x</span>,</span>
+<span>  col <span class="op">=</span> <span class="st">"darkblue"</span>,</span>
+<span>  lwd <span class="op">=</span> <span class="fl">1.5</span>,</span>
+<span>  main <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  breaks <span class="op">=</span> <span class="st">"Sturges"</span>,</span>
+<span>  axis.lab <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>qq <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Theoretical quantiles"</span>, <span class="st">"Sample quantiles"</span><span class="op">)</span>, hist <span class="op">=</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Pseudo-residuals"</span>, <span class="st">"Density"</span><span class="op">)</span>, acf <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Lag"</span>, <span class="st">"ACF"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -60,10 +69,6 @@
 
 <dl><dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
 <dd><p>pseudo-residuals as returned by <code><a href="pseudo_res.html">pseudo_res</a></code></p></dd>
-
-
-<dt id="arg-hist">hist<a class="anchor" aria-label="anchor" href="#arg-hist"></a></dt>
-<dd><p>logical, if <code>TRUE</code>, adds a histogram of the pseudo-residuals</p></dd>
 
 
 <dt id="arg-col">col<a class="anchor" aria-label="anchor" href="#arg-col"></a></dt>
@@ -78,19 +83,28 @@
 <dd><p>optional character vector of main titles for the plots of length 2 (or 3 if <code>histogram = TRUE</code>)</p></dd>
 
 
+<dt id="arg-breaks">breaks<a class="anchor" aria-label="anchor" href="#arg-breaks"></a></dt>
+<dd><p><code>breaks</code> argument passed to hist</p></dd>
+
+
+<dt id="arg-axis-lab">axis.lab<a class="anchor" aria-label="anchor" href="#arg-axis-lab"></a></dt>
+<dd><p>labels used for the x and y axis of each plot (named list)</p></dd>
+
+
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>currently ignored. For method consistency</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>NULL, plots the pseudo-residuals in a 2- or 3-panel layout</p>
+    <p>NULL, plots the pseudo-residuals in a 3-panel layout</p>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co">## pseudo-residuals for the trex data</span></span></span>
-<span class="r-in"><span><span class="va">step</span> <span class="op">=</span> <span class="va">trex</span><span class="op">$</span><span class="va">step</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">200</span><span class="op">]</span></span></span>
+<span class="r-in"><span><span class="va">step</span> <span class="op">=</span> <span class="va">trex</span><span class="op">$</span><span class="va">step</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">1000</span><span class="op">]</span></span></span>
+<span class="r-in"><span><span class="va">angle</span> <span class="op">=</span> <span class="va">trex</span><span class="op">$</span><span class="va">angle</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">1000</span><span class="op">]</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">nll</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">par</span><span class="op">)</span><span class="op">{</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">getAll</a></span><span class="op">(</span><span class="va">par</span><span class="op">)</span></span></span>
@@ -98,58 +112,98 @@
 <span class="r-in"><span>  <span class="va">delta</span> <span class="op">=</span> <span class="fu"><a href="stationary.html">stationary</a></span><span class="op">(</span><span class="va">Gamma</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="va">mu</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">logMu</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">REPORT</a></span><span class="op">(</span><span class="va">mu</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="va">sigma</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">logSigma</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">REPORT</a></span><span class="op">(</span><span class="va">sigma</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="va">kappa</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">logKappa</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">REPORT</a></span><span class="op">(</span><span class="va">kappa</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="va">allprobs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">step</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span></span></span>
-<span class="r-in"><span>  <span class="va">ind</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">step</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span>  <span class="kw">for</span><span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span> <span class="va">allprobs</span><span class="op">[</span><span class="va">ind</span>,<span class="va">j</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="gamma2.html">dgamma2</a></span><span class="op">(</span><span class="va">step</span><span class="op">[</span><span class="va">ind</span><span class="op">]</span>, <span class="va">mu</span><span class="op">[</span><span class="va">j</span><span class="op">]</span>, <span class="va">sigma</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="va">ind</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">step</span><span class="op">)</span> <span class="op">&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">angle</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="kw">for</span><span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>    <span class="va">allprobs</span><span class="op">[</span><span class="va">ind</span>,<span class="va">j</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="gamma2.html">dgamma2</a></span><span class="op">(</span><span class="va">step</span><span class="op">[</span><span class="va">ind</span><span class="op">]</span>, <span class="va">mu</span><span class="op">[</span><span class="va">j</span><span class="op">]</span>, <span class="va">sigma</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span> <span class="op">*</span> </span></span>
+<span class="r-in"><span>         <span class="fu"><a href="vm.html">dvm</a></span><span class="op">(</span><span class="va">angle</span><span class="op">[</span><span class="va">ind</span><span class="op">]</span>, <span class="fl">0</span>, <span class="va">kappa</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="op">}</span></span></span>
 <span class="r-in"><span>  <span class="op">-</span><span class="fu"><a href="forward.html">forward</a></span><span class="op">(</span><span class="va">delta</span>, <span class="va">Gamma</span>, <span class="va">allprobs</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">par</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>logitGamma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span>,<span class="op">-</span><span class="fl">2</span><span class="op">)</span>, </span></span>
 <span class="r-in"><span>           logMu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.3</span>, <span class="fl">2.5</span><span class="op">)</span><span class="op">)</span>, </span></span>
-<span class="r-in"><span>           logSigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.3</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>           logSigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.3</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>           logKappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span>           </span></span>
 <span class="r-in"><span><span class="va">obj</span> <span class="op">=</span> <span class="fu">MakeADFun</span><span class="op">(</span><span class="va">nll</span>, <span class="va">par</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Performance tip: Consider running `TapeConfig(matmul = 'plain')` before `MakeADFun()` to speed up the forward algorithm.</span>
 <span class="r-in"><span><span class="va">opt</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></span><span class="op">(</span><span class="va">obj</span><span class="op">$</span><span class="va">par</span>, <span class="va">obj</span><span class="op">$</span><span class="va">fn</span>, <span class="va">obj</span><span class="op">$</span><span class="va">gr</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  336.5166 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  20.97319 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  34.15246 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  19.14836 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  22.89668 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  14.22144 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  16.43229 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  8.153913 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  6.812466 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  9.6369 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  12.03652 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  3.217212 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  3.933861 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  3.111364 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  2.511187 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  3.259669 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  1.203184 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.9612578 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  1.247134 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  1.783606 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  1.46798 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.7872239 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.06505949 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.1913509 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.06904775 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.1037367 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.01007877 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.002057908 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.0002424967 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  1346.261 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  327.3472 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  200.2404 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  215.4124 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  65.44812 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  55.5835 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  89.48845 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  50.01703 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  19.29538 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  48.04218 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  12.58283 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  8.252805 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  12.50345 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  27.17566 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  21.5893 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  18.1972 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  26.14859 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  8.841267 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  13.26384 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  8.94153 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  3.621365 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  9.520088 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  5.015184 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  7.817317 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  15.53745 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  6.502823 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  9.099285 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  2.16175 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  8.943538 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.765158 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  3.67778 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  1.449207 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  3.683187 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  4.210138 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  2.460138 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  2.917419 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  1.790974 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.8606995 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  1.553886 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.5824252 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.2281493 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.0414528 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.02232808 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.0191833 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.02028886 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.009637611 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.003269403 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.0006318679 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  7.4312e-05 </span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">mod</span> <span class="op">=</span> <span class="va">obj</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">mod</span> <span class="op">=</span> <span class="fu"><a href="report.html">report</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">pres</span> <span class="op">=</span> <span class="fu"><a href="pseudo_res.html">pseudo_res</a></span><span class="op">(</span><span class="va">step</span>,      <span class="co"># observations</span></span></span>
-<span class="r-in"><span>                  <span class="st">"gamma2"</span>,  <span class="co"># family that is used</span></span></span>
-<span class="r-in"><span>                  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mean <span class="op">=</span> <span class="va">mod</span><span class="op">$</span><span class="va">mu</span>, sd <span class="op">=</span> <span class="va">mod</span><span class="op">$</span><span class="va">sigma</span><span class="op">)</span>, <span class="co"># the family's parameters</span></span></span>
-<span class="r-in"><span>                  mod <span class="op">=</span> <span class="va">mod</span><span class="op">)</span> <span class="co"># model object</span></span></span>
-<span class="r-in"><span>                  </span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">pres</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">pres_step</span> <span class="op">=</span> <span class="fu"><a href="pseudo_res.html">pseudo_res</a></span><span class="op">(</span><span class="va">step</span>,      <span class="co"># observations</span></span></span>
+<span class="r-in"><span>                       <span class="st">"gamma2"</span>,  <span class="co"># family that is used</span></span></span>
+<span class="r-in"><span>                       <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mean <span class="op">=</span> <span class="va">mod</span><span class="op">$</span><span class="va">mu</span>, sd <span class="op">=</span> <span class="va">mod</span><span class="op">$</span><span class="va">sigma</span><span class="op">)</span>, <span class="co"># the family's parameters</span></span></span>
+<span class="r-in"><span>                       mod <span class="op">=</span> <span class="va">mod</span><span class="op">)</span> <span class="co"># model object</span></span></span>
+<span class="r-in"><span><span class="va">pres_angle</span> <span class="op">=</span> <span class="fu"><a href="pseudo_res.html">pseudo_res</a></span><span class="op">(</span><span class="va">angle</span>,</span></span>
+<span class="r-in"><span>                        <span class="st">"vm"</span>,</span></span>
+<span class="r-in"><span>                        <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mu <span class="op">=</span> <span class="fl">0</span>, kappa <span class="op">=</span> <span class="va">mod</span><span class="op">$</span><span class="va">kappa</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                        mod <span class="op">=</span> <span class="va">mod</span><span class="op">)</span></span></span>
+<span class="r-in"><span>                        </span></span>
+<span class="r-in"><span><span class="co"># separate plots </span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">pres_step</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="plot.LaMaResiduals-1.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">pres_angle</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="plot.LaMaResiduals-2.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># together</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>,<span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">pres_step</span>, main <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">""</span>, <span class="st">"Step Length"</span>, <span class="st">""</span><span class="op">)</span>, </span></span>
+<span class="r-in"><span>     axis.lab <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>hist <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Step residuals"</span>, <span class="st">"Density"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">pres_angle</span>, main <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">""</span>, <span class="st">"Turning Angle"</span>, <span class="st">""</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>     axis.lab <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>hist <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Angle residuals"</span>, <span class="st">"Density"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="plot.LaMaResiduals-3.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

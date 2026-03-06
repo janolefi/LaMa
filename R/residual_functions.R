@@ -15,7 +15,7 @@
         }
         param[, state]
       } else if(is.vector(param)){
-        if(length(param) == 1){
+        if(length(param) == 1 | length(param) == nObs){
           param
         } else{
           if(length(param) != N){

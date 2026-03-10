@@ -106,8 +106,8 @@ chains, see the vignette *continuous-time HMMs* or also Dobrow
 
 We can easily calculate the log of the above expression using the
 standard implementation of the general forward algorithm
-[`forward_g()`](https://janolefi.github.io/reference/forward_g.md) when
-choosing the first matrix of state-dependent densities to be the
+[`forward_g()`](https://janolefi.github.io/LaMa/reference/forward_g.md)
+when choosing the first matrix of state-dependent densities to be the
 identity (i.e.) the first row of the `allprobs` matrix to be one and all
 other matrices of state-dependent density matrices to be \Lambda.
 
@@ -135,7 +135,7 @@ system.time(
   mod <- nlm(nll, par, timediff = timediff, N = 2, stepmax = 10)
 )
 #>    user  system elapsed 
-#>   0.371   0.242   0.311
+#>   0.384   0.236   0.316
 # we often need the stepmax, as the matrix exponential can be numerically unstable
 ```
 
@@ -247,10 +247,10 @@ MMPP likelihood, as we include the matrix of state-specific densities
 matrix with state-dependent densities for the observation at time t_i.
 We can again easily calculate the log of the above expression using the
 standard implementation of the general forward algorithm
-[`forward_g()`](https://janolefi.github.io/reference/forward_g.md) when
-first calculating the `allprobs` matrix with state-dependent densities
-for the marks (as usual for HMMs) and then multiplying each row except
-the first one element-wise with the state-dependent rates.
+[`forward_g()`](https://janolefi.github.io/LaMa/reference/forward_g.md)
+when first calculating the `allprobs` matrix with state-dependent
+densities for the marks (as usual for HMMs) and then multiplying each
+row except the first one element-wise with the state-dependent rates.
 
 ``` r
 nllMark = function(par, y, timediff, N){
@@ -280,7 +280,7 @@ system.time(
   mod2 <- nlm(nllMark, par, y = marks, timediff = timediff, N = 3, stepmax = 5)
 )
 #>    user  system elapsed 
-#>   5.582   4.528   3.380
+#>   5.724   4.543   3.432
 ```
 
 ### Results

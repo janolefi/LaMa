@@ -22,10 +22,10 @@ tpm_phsmm(omega, dm, eps = 1e-10)
 
   Either a matrix of dimension c(N,N) for homogeneous conditional
   transition probabilities (as computed by
-  [`tpm_emb`](https://janolefi.github.io/reference/tpm_emb.md)), or an
-  array of dimension c(N,N,L) for inhomogeneous conditional transition
-  probabilities (as computed by
-  [`tpm_emb_g`](https://janolefi.github.io/reference/tpm_emb_g.md)).
+  [`tpm_emb`](https://janolefi.github.io/LaMa/reference/tpm_emb.md)), or
+  an array of dimension c(N,N,L) for inhomogeneous conditional
+  transition probabilities (as computed by
+  [`tpm_emb_g`](https://janolefi.github.io/LaMa/reference/tpm_emb_g.md)).
 
 - dm:
 

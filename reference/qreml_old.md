@@ -14,8 +14,8 @@ Under the hood, `qreml` uses the R package `RTMB` for automatic
 differentiation in the inner optimisation. The user has to specify the
 **penalised negative log-likelihood function** `pnll` structured as
 dictated by `RTMB` and use the
-[`penalty`](https://janolefi.github.io/reference/penalty.md) function to
-compute the quadratic-form penalty inside the likelihood.
+[`penalty`](https://janolefi.github.io/LaMa/reference/penalty.md)
+function to compute the quadratic-form penalty inside the likelihood.
 
 ## Usage
 
@@ -44,8 +44,8 @@ qreml_old(
 
   penalised negative log-likelihood function that is structured as
   dictated by `RTMB` and uses the
-  [`penalty`](https://janolefi.github.io/reference/penalty.md) function
-  from `LaMa` to compute the penalty
+  [`penalty`](https://janolefi.github.io/LaMa/reference/penalty.md)
+  function from `LaMa` to compute the penalty
 
   Needs to be a function of the named list of initial parameters `par`
   only.
@@ -74,8 +74,8 @@ qreml_old(
 
   **Caution:** The ordering of `random` needs to match the order of the
   random effects passed to
-  [`penalty`](https://janolefi.github.io/reference/penalty.md) inside
-  the likelihood function.
+  [`penalty`](https://janolefi.github.io/LaMa/reference/penalty.md)
+  inside the likelihood function.
 
 - map:
 
@@ -222,8 +222,8 @@ preprint arXiv:2411.11498.
 
 ## See also
 
-[`penalty`](https://janolefi.github.io/reference/penalty.md) to compute
-the penalty inside the likelihood function
+[`penalty`](https://janolefi.github.io/LaMa/reference/penalty.md) to
+compute the penalty inside the likelihood function
 
 ## Examples
 

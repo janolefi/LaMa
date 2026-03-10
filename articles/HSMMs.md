@@ -102,15 +102,15 @@ HMM. As a semi-Markov chain is specified in terms of state-specific
 dwell-time distributions and conditional transition probabilities given
 that the current state is left, we have to compute both (here called
 `dm` and `omega`). For the latter, we can use the function
-[`tpm_emb()`](https://janolefi.github.io/reference/tpm_emb.md) that
+[`tpm_emb()`](https://janolefi.github.io/LaMa/reference/tpm_emb.md) that
 constructs a transition probability matrix via the inverse multinomial
 logit link (softmax), where the diagonal entries are forced to equal
 zero.
 
 The transition probability matrix of the approximating HMM can then be
 computed by the function
-[`tpm_hsmm()`](https://janolefi.github.io/reference/tpm_hsmm.md) where
-the exact procedure is detailed by Langrock and Zucchini
+[`tpm_hsmm()`](https://janolefi.github.io/LaMa/reference/tpm_hsmm.md)
+where the exact procedure is detailed by Langrock and Zucchini
 ([2011](#ref-langrock2011hidden)). We need the extra argument `agsizes`
 to specify the aggregate sizes that should be used to approximate the
 dwell-time distributions. These should be chosen such that most of the
@@ -149,7 +149,7 @@ system.time(
   mod <- nlm(nll, par, x = x, N = 3, agsizes = agsizes, stepmax = 2)
 )
 #>    user  system elapsed 
-#>   0.969   0.053   1.022
+#>   0.972   0.063   1.035
 ```
 
 Fitting HSMMs is rather slow (even using C++) as we translate the
@@ -206,7 +206,7 @@ zero. The state-dependent step lengths are modelled by gamma
 distributions, where we reparametrise the gamma distribution in terms of
 its mean and standard deviation as opposed to shape and scale for better
 interpretability using
-[`dgamma2()`](https://janolefi.github.io/reference/gamma2.md).
+[`dgamma2()`](https://janolefi.github.io/LaMa/reference/gamma2.md).
 
 ``` r
 nll_muskox = function(par, step, N, agsizes){
@@ -245,7 +245,7 @@ system.time(
                     agsizes = agsizes, iterlim = 500)
 )
 #>    user  system elapsed 
-#>   3.958   0.017   3.975
+#>   3.959   0.008   3.967
 ```
 
 ### Results

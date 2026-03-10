@@ -25,7 +25,7 @@ sdreportMC(
 
   object returned by `MakeADFun()` after optimisation or model of class
   `qremlModel` as returned by
-  [`qreml`](https://janolefi.github.io/reference/qreml.md).
+  [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md).
 
 - what:
 

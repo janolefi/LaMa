@@ -128,11 +128,12 @@ but a few points should be made here:
   The answer is: It can’t but provides its own version of all standard
   distributions like [`dnorm()`](https://rdrr.io/r/stats/Normal.html),
   [`dbinom()`](https://rdrr.io/r/stats/Binomial.html), etc. In this case
-  both [`dgamma2()`](https://janolefi.github.io/reference/gamma2.md) and
-  [`dvm()`](https://janolefi.github.io/reference/vm.md) come from `LaMa`
-  as these are non-standard, but under the hood build on `RTMB`
+  both
+  [`dgamma2()`](https://janolefi.github.io/LaMa/reference/gamma2.md) and
+  [`dvm()`](https://janolefi.github.io/LaMa/reference/vm.md) come from
+  `LaMa` as these are non-standard, but under the hood build on `RTMB`
   functions
-  ([`dgamma2()`](https://janolefi.github.io/reference/gamma2.md) is
+  ([`dgamma2()`](https://janolefi.github.io/LaMa/reference/gamma2.md) is
   actually just a convenience function that reparametrises the gamma
   distribution in terms of mean and standard deviation).
 - Actually, most of the standard functions
@@ -263,10 +264,10 @@ which works because of the
 [`REPORT()`](https://rdrr.io/pkg/RTMB/man/TMB-interface.html) statements
 in the likelihood function. Note that `delta`, `Gamma` and `allprobs`
 are always reported by default when using
-[`forward()`](https://janolefi.github.io/reference/forward.md) which is
-very useful for e.g. state decoding with
-[`viterbi()`](https://janolefi.github.io/reference/viterbi.md), because
-many downstream `LaMa` functions take these arguments as inputs.
+[`forward()`](https://janolefi.github.io/LaMa/reference/forward.md)
+which is very useful for e.g. state decoding with
+[`viterbi()`](https://janolefi.github.io/LaMa/reference/viterbi.md),
+because many downstream `LaMa` functions take these arguments as inputs.
 Functions of the `viterbi` and `stateprobs` family can also take the
 reported list object as an input. As the state-dependent parameters
 depend on the specific model formulation, these need to be reported
@@ -402,15 +403,17 @@ of day.
 To practically achieve this, we compute the trigonometric basis design
 matrix `Z` corresponding to above predictor and add the time of day to
 the `dat` list for indexing inside the likelihood function. The `LaMa`
-function [`cosinor()`](https://janolefi.github.io/reference/cosinor.md)
-does this very conveniently. We can either call it directly to build the
+function
+[`cosinor()`](https://janolefi.github.io/LaMa/reference/cosinor.md) does
+this very conveniently. We can either call it directly to build the
 design matrix, or use it in a `formula` passed to
-[`make_matrices()`](https://janolefi.github.io/reference/make_matrices.md).
+[`make_matrices()`](https://janolefi.github.io/LaMa/reference/make_matrices.md).
 The latter is preferable when dealing with more complicated models. Note
 that the first option does not include an intercept column, while the
 second does. When used with
-[`tpm_g()`](https://janolefi.github.io/reference/tpm_g.md) this does not
-matter as it automatically checks if an intercept column is included.
+[`tpm_g()`](https://janolefi.github.io/LaMa/reference/tpm_g.md) this
+does not matter as it automatically checks if an intercept column is
+included.
 
 ``` r
 Z = cosinor(1:24, period = c(24, 12))
@@ -429,7 +432,7 @@ regression parameters for the time of day. The regression parameters for
 the state process will typically have the form of a N (N-1) \times p+1
 matrix, where N is the number of states and p is the number of
 regressors – this format is also expected by
-[`tpm_g()`](https://janolefi.github.io/reference/tpm_g.md) which
+[`tpm_g()`](https://janolefi.github.io/LaMa/reference/tpm_g.md) which
 computes the array of transition matrices based on the design and
 parameter matrix. Another lovely convenience that `RTMB` allows for is
 that, in our parameter list, we can have matrices, making reshaping of
@@ -446,17 +449,17 @@ par = list(logmu = log(c(0.3, 1)),
 
 We can now define a more general likelihood function with the main
 difference being the use of
-[`tpm_g()`](https://janolefi.github.io/reference/tpm_g.md) instead of
-[`tpm()`](https://janolefi.github.io/reference/tpm.md) and the inclusion
-of the time of day in the transition matrix calculation. This leads to
-us using
-[`stationary_p()`](https://janolefi.github.io/reference/stationary_p.md)
+[`tpm_g()`](https://janolefi.github.io/LaMa/reference/tpm_g.md) instead
+of [`tpm()`](https://janolefi.github.io/LaMa/reference/tpm.md) and the
+inclusion of the time of day in the transition matrix calculation. This
+leads to us using
+[`stationary_p()`](https://janolefi.github.io/LaMa/reference/stationary_p.md)
 instead of
-[`stationary()`](https://janolefi.github.io/reference/stationary.md) to
-calculate the initial distribution and
-[`forward_g()`](https://janolefi.github.io/reference/forward_g.md)
+[`stationary()`](https://janolefi.github.io/LaMa/reference/stationary.md)
+to calculate the initial distribution and
+[`forward_g()`](https://janolefi.github.io/LaMa/reference/forward_g.md)
 instead of
-[`forward()`](https://janolefi.github.io/reference/forward.md) to
+[`forward()`](https://janolefi.github.io/LaMa/reference/forward.md) to
 calculate the log-likelihood.
 
 ``` r
@@ -658,7 +661,8 @@ Some more minor things:
   [`Matrix::expm()`](https://rdrr.io/pkg/Matrix/man/expm-methods.html)
   instead.
 - `CircStats::dvm()` also isn’t compatible with AD. Use
-  [`LaMa::dvm()`](https://janolefi.github.io/reference/vm.md) instead.
+  [`LaMa::dvm()`](https://janolefi.github.io/LaMa/reference/vm.md)
+  instead.
 - most of the standard distributions are available in `RTMB`. If you
   need a non-standard one, try implementing the density function
   yourself using plain R code. `RTMB` also provides AD versions of many

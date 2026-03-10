@@ -85,7 +85,7 @@ a list of class `LaMa_matrices` containing:
 
 ## See also
 
-[`predict.LaMa_matrices`](https://janolefi.github.io/reference/predict.LaMa_matrices.md)
+[`predict.LaMa_matrices`](https://janolefi.github.io/LaMa/reference/predict.LaMa_matrices.md)
 for prediction design matrix construction based on the model matrices
 object created by this function.
 

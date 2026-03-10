@@ -1,7 +1,7 @@
 # Plot pseudo-residuals
 
 Plot pseudo-residuals computed by
-[`pseudo_res`](https://janolefi.github.io/reference/pseudo_res.md).
+[`pseudo_res`](https://janolefi.github.io/LaMa/reference/pseudo_res.md).
 
 ## Usage
 
@@ -24,7 +24,7 @@ plot(
 - x:
 
   pseudo-residuals as returned by
-  [`pseudo_res`](https://janolefi.github.io/reference/pseudo_res.md)
+  [`pseudo_res`](https://janolefi.github.io/LaMa/reference/pseudo_res.md)
 
 - col:
 

@@ -20,7 +20,7 @@ tpm_hsmm(omega, dm, Fm = NULL, sparse = TRUE, eps = 1e-10)
 - omega:
 
   embedded transition probability matrix of dimension c(N,N) as computed
-  by [`tpm_emb`](https://janolefi.github.io/reference/tpm_emb.md).
+  by [`tpm_emb`](https://janolefi.github.io/LaMa/reference/tpm_emb.md).
 
 - dm:
 

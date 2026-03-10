@@ -35,7 +35,7 @@ forward_hsmm(
   Contains the transition probabilities given that the current state is
   left. Hence, the diagonal elements need to be zero and the rows need
   to sum to one. Can be constructed using
-  [`tpm_emb`](https://janolefi.github.io/reference/tpm_emb.md).
+  [`tpm_emb`](https://janolefi.github.io/LaMa/reference/tpm_emb.md).
 
 - allprobs:
 
@@ -104,13 +104,13 @@ dwell-time distributions. Computational Statistics & Data Analysis, 209,
 ## See also
 
 Other forward algorithms:
-[`forward()`](https://janolefi.github.io/reference/forward.md),
-[`forward2()`](https://janolefi.github.io/reference/forward2.md),
-[`forward_g()`](https://janolefi.github.io/reference/forward_g.md),
-[`forward_g2()`](https://janolefi.github.io/reference/forward_g2.md),
-[`forward_ihsmm()`](https://janolefi.github.io/reference/forward_ihsmm.md),
-[`forward_p()`](https://janolefi.github.io/reference/forward_p.md),
-[`forward_phsmm()`](https://janolefi.github.io/reference/forward_phsmm.md)
+[`forward()`](https://janolefi.github.io/LaMa/reference/forward.md),
+[`forward2()`](https://janolefi.github.io/LaMa/reference/forward2.md),
+[`forward_g()`](https://janolefi.github.io/LaMa/reference/forward_g.md),
+[`forward_g2()`](https://janolefi.github.io/LaMa/reference/forward_g2.md),
+[`forward_ihsmm()`](https://janolefi.github.io/LaMa/reference/forward_ihsmm.md),
+[`forward_p()`](https://janolefi.github.io/LaMa/reference/forward_p.md),
+[`forward_phsmm()`](https://janolefi.github.io/LaMa/reference/forward_phsmm.md)
 
 ## Examples
 

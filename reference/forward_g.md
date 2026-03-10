@@ -38,8 +38,9 @@ forward_g(
   If the elements of \\\Gamma^{(t)}\\ depend on covariate values at t or
   covariates \\t+1\\ is your choice in the calculation of the array,
   prior to using this function. When conducting the calculation by using
-  [`tpm_g()`](https://janolefi.github.io/reference/tpm_g.md), the choice
-  comes down to including the covariate matrix `Z[-1,]` oder `Z[-n,]`.
+  [`tpm_g()`](https://janolefi.github.io/LaMa/reference/tpm_g.md), the
+  choice comes down to including the covariate matrix `Z[-1,]` oder
+  `Z[-n,]`.
 
   If `trackID` is provided, Gamma needs to be an array of dimension
   `c(N,N,n)`, matching the number of rows of allprobs. For each track,
@@ -101,9 +102,10 @@ forward_g(
 
   When there are multiple tracks, for compatibility with downstream
   functions like
-  [`viterbi_g`](https://janolefi.github.io/reference/viterbi_g.md),
-  [`stateprobs_g`](https://janolefi.github.io/reference/stateprobs_g.md)
-  or [`pseudo_res`](https://janolefi.github.io/reference/pseudo_res.md),
+  [`viterbi_g`](https://janolefi.github.io/LaMa/reference/viterbi_g.md),
+  [`stateprobs_g`](https://janolefi.github.io/LaMa/reference/stateprobs_g.md)
+  or
+  [`pseudo_res`](https://janolefi.github.io/LaMa/reference/pseudo_res.md),
   `forward_g` should only be called **once** with a `trackID` argument.
 
 ## Value
@@ -113,13 +115,13 @@ log-likelihood for given data and parameters
 ## See also
 
 Other forward algorithms:
-[`forward()`](https://janolefi.github.io/reference/forward.md),
-[`forward2()`](https://janolefi.github.io/reference/forward2.md),
-[`forward_g2()`](https://janolefi.github.io/reference/forward_g2.md),
-[`forward_hsmm()`](https://janolefi.github.io/reference/forward_hsmm.md),
-[`forward_ihsmm()`](https://janolefi.github.io/reference/forward_ihsmm.md),
-[`forward_p()`](https://janolefi.github.io/reference/forward_p.md),
-[`forward_phsmm()`](https://janolefi.github.io/reference/forward_phsmm.md)
+[`forward()`](https://janolefi.github.io/LaMa/reference/forward.md),
+[`forward2()`](https://janolefi.github.io/LaMa/reference/forward2.md),
+[`forward_g2()`](https://janolefi.github.io/LaMa/reference/forward_g2.md),
+[`forward_hsmm()`](https://janolefi.github.io/LaMa/reference/forward_hsmm.md),
+[`forward_ihsmm()`](https://janolefi.github.io/LaMa/reference/forward_ihsmm.md),
+[`forward_p()`](https://janolefi.github.io/LaMa/reference/forward_p.md),
+[`forward_phsmm()`](https://janolefi.github.io/LaMa/reference/forward_phsmm.md)
 
 ## Examples
 

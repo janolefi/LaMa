@@ -8,8 +8,9 @@ extreme relative to its model-implied distribution.
 
 This function calculates such residuals via the probability integral
 transform, based on the local state probabilities obtained by
-[`stateprobs`](https://janolefi.github.io/reference/stateprobs.md) or
-[`stateprobs_g`](https://janolefi.github.io/reference/stateprobs_g.md)
+[`stateprobs`](https://janolefi.github.io/LaMa/reference/stateprobs.md)
+or
+[`stateprobs_g`](https://janolefi.github.io/LaMa/reference/stateprobs_g.md)
 and the respective parametric family.
 
 ## Usage
@@ -56,27 +57,29 @@ pseudo_res(
 
   matrix of local state probabilities for each observation (of dimension
   c(nObs, nStates)) as computed by
-  [`stateprobs`](https://janolefi.github.io/reference/stateprobs.md),
-  [`stateprobs_g`](https://janolefi.github.io/reference/stateprobs_g.md)
+  [`stateprobs`](https://janolefi.github.io/LaMa/reference/stateprobs.md),
+  [`stateprobs_g`](https://janolefi.github.io/LaMa/reference/stateprobs_g.md)
   or
-  [`stateprobs_p`](https://janolefi.github.io/reference/stateprobs_p.md)
+  [`stateprobs_p`](https://janolefi.github.io/LaMa/reference/stateprobs_p.md)
 
 - mod:
 
   optional model object containing required quantities
 
   When using automatic differentiation either with `RTMB::MakeADFun` or
-  [`qreml`](https://janolefi.github.io/reference/qreml.md) and include
-  [`forward`](https://janolefi.github.io/reference/forward.md),
-  [`forward_g`](https://janolefi.github.io/reference/forward_g.md) or
-  [`forward_p`](https://janolefi.github.io/reference/forward_p.md) in
-  your likelihood function, the objects needed for state decoding are
+  [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md) and
+  include
+  [`forward`](https://janolefi.github.io/LaMa/reference/forward.md),
+  [`forward_g`](https://janolefi.github.io/LaMa/reference/forward_g.md)
+  or
+  [`forward_p`](https://janolefi.github.io/LaMa/reference/forward_p.md)
+  in your likelihood function, the objects needed for state decoding are
   automatically reported after model fitting. Hence, you can pass the
   model object obtained from running
-  [`report()`](https://janolefi.github.io/reference/report.md) or from
-  [`qreml`](https://janolefi.github.io/reference/qreml.md) directly to
-  this function and avoid calculating local state proabilities manually.
-  In this case, a call should look like
+  [`report()`](https://janolefi.github.io/LaMa/reference/report.md) or
+  from [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md)
+  directly to this function and avoid calculating local state
+  proabilities manually. In this case, a call should look like
   `pseudo_res(obs, "norm", par, mod = mod)`.
 
 - normal:
@@ -123,7 +126,7 @@ quantile function.
 
 ## See also
 
-[`plot.LaMaResiduals`](https://janolefi.github.io/reference/plot.LaMaResiduals.md)
+[`plot.LaMaResiduals`](https://janolefi.github.io/LaMa/reference/plot.LaMaResiduals.md)
 for plotting pseudo-residuals.
 
 ## Examples

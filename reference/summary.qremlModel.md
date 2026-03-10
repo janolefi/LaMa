@@ -1,7 +1,7 @@
 # Summary method for `qremlModel` objects
 
 Prints a summary of a model object created by
-[`qreml`](https://janolefi.github.io/reference/qreml.md).
+[`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md).
 
 ## Usage
 
@@ -15,7 +15,7 @@ summary(object, ...)
 - object:
 
   `qremlModel` object created by
-  [`qreml`](https://janolefi.github.io/reference/qreml.md)
+  [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md)
 
 - ...:
 

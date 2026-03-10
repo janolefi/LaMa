@@ -1,4 +1,4 @@
-# Sparse version of [`stationary`](https://janolefi.github.io/reference/stationary.md)
+# Sparse version of [`stationary`](https://janolefi.github.io/LaMa/reference/stationary.md)
 
 This is function computes the stationary distribution of a Markov chain
 with a given **sparse** transition probability matrix. Compatible with

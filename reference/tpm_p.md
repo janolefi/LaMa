@@ -62,7 +62,7 @@ tpm_p(
   efficiency perspective, `Z` should be pre-calculated within the
   likelihood function, as the basis expansion should not be redundantly
   calculated. This can be done by using
-  [`trigBasisExp`](https://janolefi.github.io/reference/trigBasisExp.md).
+  [`trigBasisExp`](https://janolefi.github.io/LaMa/reference/trigBasisExp.md).
 
 - byrow:
 
@@ -94,21 +94,21 @@ Note that using this function inside the negative log-likelihood
 function is convenient, but it performs the basis expansion into sine
 and cosine terms each time it is called. As these do not change during
 the optimisation, using
-[`tpm_g`](https://janolefi.github.io/reference/tpm_g.md) with a
+[`tpm_g`](https://janolefi.github.io/LaMa/reference/tpm_g.md) with a
 pre-calculated (by
-[`trigBasisExp`](https://janolefi.github.io/reference/trigBasisExp.md))
+[`trigBasisExp`](https://janolefi.github.io/LaMa/reference/trigBasisExp.md))
 design matrix would be more efficient.
 
 ## See also
 
 Other transition probability matrix functions:
-[`generator()`](https://janolefi.github.io/reference/generator.md),
-[`tpm()`](https://janolefi.github.io/reference/tpm.md),
-[`tpm_cont()`](https://janolefi.github.io/reference/tpm_cont.md),
-[`tpm_emb()`](https://janolefi.github.io/reference/tpm_emb.md),
-[`tpm_emb_g()`](https://janolefi.github.io/reference/tpm_emb_g.md),
-[`tpm_g()`](https://janolefi.github.io/reference/tpm_g.md),
-[`tpm_g2()`](https://janolefi.github.io/reference/tpm_g2.md)
+[`generator()`](https://janolefi.github.io/LaMa/reference/generator.md),
+[`tpm()`](https://janolefi.github.io/LaMa/reference/tpm.md),
+[`tpm_cont()`](https://janolefi.github.io/LaMa/reference/tpm_cont.md),
+[`tpm_emb()`](https://janolefi.github.io/LaMa/reference/tpm_emb.md),
+[`tpm_emb_g()`](https://janolefi.github.io/LaMa/reference/tpm_emb_g.md),
+[`tpm_g()`](https://janolefi.github.io/LaMa/reference/tpm_g.md),
+[`tpm_g2()`](https://janolefi.github.io/LaMa/reference/tpm_g2.md)
 
 ## Examples
 

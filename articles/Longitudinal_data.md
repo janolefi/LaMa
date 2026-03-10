@@ -72,7 +72,7 @@ trackID = rep(1:K, each = n)
 To calculate the joint log-likelihood of the independent tracks, we
 slightly modify the standard negative log-likelihood function by adding
 the additional argument `trackID`.
-[`forward()`](https://janolefi.github.io/reference/forward.md) now
+[`forward()`](https://janolefi.github.io/LaMa/reference/forward.md) now
 calculates the sum of indivual likelihood contributions, each starting
 in the respective initial distribution (which we pool here).
 
@@ -113,9 +113,9 @@ nll_pool_slow = function(par, x, K){
 
 Now we estimate the model with complete pooling. We compare the fast
 version using
-[`forward()`](https://janolefi.github.io/reference/forward.md) with
+[`forward()`](https://janolefi.github.io/LaMa/reference/forward.md) with
 `trackID` with the slow version also using
-[`forward()`](https://janolefi.github.io/reference/forward.md) but
+[`forward()`](https://janolefi.github.io/LaMa/reference/forward.md) but
 looping over individuals in `R`.
 
 ``` r
@@ -129,14 +129,14 @@ system.time(
   mod <- nlm(nll_pool, par, x = x, trackID = trackID)
 )
 #>    user  system elapsed 
-#>   0.408   0.019   0.427
+#>   0.424   0.013   0.436
 
 # slow version
 system.time(
   mod <- nlm(nll_pool_slow, par, x = x, K = K)
 )
 #>    user  system elapsed 
-#>   3.468   0.042   3.510
+#>   3.547   0.045   3.593
 ```
 
 In this example, looping over individuals in `R` already leads to five
@@ -228,5 +228,5 @@ system.time(
   mod_partial <- nlm(nll_partial, par, x = x, z = z, trackID = trackID)
 )
 #>    user  system elapsed 
-#>   0.463   0.002   0.464
+#>   0.469   0.001   0.470
 ```

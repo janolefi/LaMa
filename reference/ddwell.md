@@ -45,8 +45,8 @@ or overall dwell-time distribution if `time` is `NULL`. If more than one
 For Markov chains whose transition probabilities vary only periodically,
 which is achieved for example by expressing the transition probability
 matrix as a periodic function of the time of day using
-[`tpm_p`](https://janolefi.github.io/reference/tpm_p.md) or
-[`cosinor`](https://janolefi.github.io/reference/cosinor.md), the
+[`tpm_p`](https://janolefi.github.io/LaMa/reference/tpm_p.md) or
+[`cosinor`](https://janolefi.github.io/LaMa/reference/cosinor.md), the
 probability distribution of time spent in a state can be computed
 analytically. This function computes said distribution, either for a
 specific time point (conditioning on transitioning into the state at

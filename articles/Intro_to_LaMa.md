@@ -42,7 +42,7 @@ the current state is i. Such a matrix is most-conveniently parameterised
 by an unconstrained parameter vector for the N (N-1) off-diagonal
 elements. Each row can then be computed via the inverse multinomial
 logistic link (also known as softmax). This can be done using the
-function [`tpm()`](https://janolefi.github.io/reference/tpm.md):
+function [`tpm()`](https://janolefi.github.io/LaMa/reference/tpm.md):
 
 ``` r
 (Gamma = tpm(c(-2, -3))) # 2 states -> 2*(2-1) = 2 off-diagonal entries
@@ -61,7 +61,7 @@ stationary distribution. This distribution (which we call \delta) can be
 computed by solving the system of equations \delta \Gamma = \delta,
 \quad \text{s.t.} \\ \sum\_{j=1}^N \delta_j = 1, which is implemented in
 the function
-[`stationary()`](https://janolefi.github.io/reference/stationary.md).
+[`stationary()`](https://janolefi.github.io/LaMa/reference/stationary.md).
 For stationary HMMs, we then replace the initial distribution
 \delta^{(1)} by this stationary distribution. We can easily compute the
 stationary distribution associated with the above t.p.m. using
@@ -85,7 +85,8 @@ MacDonald, and Langrock ([2016](#ref-zucchini)).
 
 We start by simulating some data from a simple 2-state HMM with Gaussian
 state-dependent distributions, to get some intuition. Here we can again
-use [`stationary()`](https://janolefi.github.io/reference/stationary.md)
+use
+[`stationary()`](https://janolefi.github.io/LaMa/reference/stationary.md)
 to compute the stationary distribution.
 
 ``` r
@@ -168,12 +169,13 @@ each state (columns), which, throughout the package, we call the
 
 In this example, within the negative log-likelihood function we build
 the homogeneous transition probability matrix using the
-[`tpm()`](https://janolefi.github.io/reference/tpm.md) function and
+[`tpm()`](https://janolefi.github.io/LaMa/reference/tpm.md) function and
 compute the stationary distribution of the Markov chain using
-[`stationary()`](https://janolefi.github.io/reference/stationary.md). We
-then build the `allprobs` matrix and calculate the log-likelihood using
-[`forward()`](https://janolefi.github.io/reference/forward.md) in the
-last line. It is returned negative such that the function can be
+[`stationary()`](https://janolefi.github.io/LaMa/reference/stationary.md).
+We then build the `allprobs` matrix and calculate the log-likelihood
+using
+[`forward()`](https://janolefi.github.io/LaMa/reference/forward.md) in
+the last line. It is returned negative such that the function can be
 numerically minimised by
 e.g. [`nlm()`](https://rdrr.io/r/stats/nlm.html).
 
@@ -203,7 +205,7 @@ system.time(
   mod <- nlm(nll, par, x = x)
 )
 #>    user  system elapsed 
-#>   0.134   0.010   0.143
+#>   0.130   0.013   0.143
 ```
 
 We see that implementation of the forward algorithm in C++ leads to
@@ -233,8 +235,8 @@ legend("topright", col = c(color, "black"), lwd = 2, bty = "n",
 ![](Intro_to_LaMa_files/figure-html/visualization-1.png)
 
 We can also decode the most probable state sequence with the
-[`viterbi()`](https://janolefi.github.io/reference/viterbi.md) function,
-when first computing the `allprobs` matrix:
+[`viterbi()`](https://janolefi.github.io/LaMa/reference/viterbi.md)
+function, when first computing the `allprobs` matrix:
 
 ``` r
 allprobs = matrix(1, length(x), 2)
@@ -258,7 +260,7 @@ probs = stateprobs(delta, Gamma, allprobs)
 
 Then, we can pass the observations, the state probabilities, the
 parametric family and the estimated parameters to the
-[`pseudo_res()`](https://janolefi.github.io/reference/pseudo_res.md)
+[`pseudo_res()`](https://janolefi.github.io/LaMa/reference/pseudo_res.md)
 function to get pseudo-residuals for model validation. These should be
 standard normally distributed if the model is correct.
 

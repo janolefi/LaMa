@@ -69,7 +69,7 @@ expansion for each data stream.
 ## Details
 
 Under the hood,
-[`make_matrices_dens`](https://janolefi.github.io/reference/make_matrices_dens.md)
+[`make_matrices_dens`](https://janolefi.github.io/LaMa/reference/make_matrices_dens.md)
 is used for the actual construction of the design and penalty matrices.
 
 You can provide one or multiple data streams of different types (real,

@@ -1,8 +1,8 @@
-# Build the prediction design matrix based on new data and model_matrices object created by [`make_matrices`](https://janolefi.github.io/reference/make_matrices.md)
+# Build the prediction design matrix based on new data and model_matrices object created by [`make_matrices`](https://janolefi.github.io/LaMa/reference/make_matrices.md)
 
 Build the prediction design matrix based on new data and model_matrices
 object created by
-[`make_matrices`](https://janolefi.github.io/reference/make_matrices.md)
+[`make_matrices`](https://janolefi.github.io/LaMa/reference/make_matrices.md)
 
 ## Usage
 
@@ -16,7 +16,7 @@ predict(object, newdata, what = NULL, ...)
 - object:
 
   model matrices object as returned from
-  [`make_matrices`](https://janolefi.github.io/reference/make_matrices.md)
+  [`make_matrices`](https://janolefi.github.io/LaMa/reference/make_matrices.md)
 
 - newdata:
 
@@ -41,7 +41,7 @@ prediction design matrix for `newdata` with the same basis as used for
 
 ## See also
 
-[`make_matrices`](https://janolefi.github.io/reference/make_matrices.md)
+[`make_matrices`](https://janolefi.github.io/LaMa/reference/make_matrices.md)
 for creating objects of class `LaMa_matrices` which can be used for
 prediction by this function.
 

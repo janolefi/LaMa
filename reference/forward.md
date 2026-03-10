@@ -80,9 +80,10 @@ forward(
 
   When there are multiple tracks, for compatibility with downstream
   functions like
-  [`viterbi`](https://janolefi.github.io/reference/viterbi.md),
-  [`stateprobs`](https://janolefi.github.io/reference/stateprobs.md) or
-  [`pseudo_res`](https://janolefi.github.io/reference/pseudo_res.md),
+  [`viterbi`](https://janolefi.github.io/LaMa/reference/viterbi.md),
+  [`stateprobs`](https://janolefi.github.io/LaMa/reference/stateprobs.md)
+  or
+  [`pseudo_res`](https://janolefi.github.io/LaMa/reference/pseudo_res.md),
   `forward` should only be called **once** with a `trackID` argument.
 
 ## Value
@@ -92,13 +93,13 @@ log-likelihood for given data and parameters
 ## See also
 
 Other forward algorithms:
-[`forward2()`](https://janolefi.github.io/reference/forward2.md),
-[`forward_g()`](https://janolefi.github.io/reference/forward_g.md),
-[`forward_g2()`](https://janolefi.github.io/reference/forward_g2.md),
-[`forward_hsmm()`](https://janolefi.github.io/reference/forward_hsmm.md),
-[`forward_ihsmm()`](https://janolefi.github.io/reference/forward_ihsmm.md),
-[`forward_p()`](https://janolefi.github.io/reference/forward_p.md),
-[`forward_phsmm()`](https://janolefi.github.io/reference/forward_phsmm.md)
+[`forward2()`](https://janolefi.github.io/LaMa/reference/forward2.md),
+[`forward_g()`](https://janolefi.github.io/LaMa/reference/forward_g.md),
+[`forward_g2()`](https://janolefi.github.io/LaMa/reference/forward_g2.md),
+[`forward_hsmm()`](https://janolefi.github.io/LaMa/reference/forward_hsmm.md),
+[`forward_ihsmm()`](https://janolefi.github.io/LaMa/reference/forward_ihsmm.md),
+[`forward_p()`](https://janolefi.github.io/LaMa/reference/forward_p.md),
+[`forward_phsmm()`](https://janolefi.github.io/LaMa/reference/forward_phsmm.md)
 
 ## Examples
 

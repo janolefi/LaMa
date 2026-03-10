@@ -50,13 +50,14 @@ viterbi_p(delta, Gamma, allprobs, tod, trackID = NULL, mod = NULL)
 
   If you are using automatic differentiation either with
   `RTMB::MakeADFun` or
-  [`qreml`](https://janolefi.github.io/reference/qreml.md) and include
-  [`forward_p`](https://janolefi.github.io/reference/forward_p.md) in
-  your likelihood function, the objects needed for state decoding are
+  [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md) and
+  include
+  [`forward_p`](https://janolefi.github.io/LaMa/reference/forward_p.md)
+  in your likelihood function, the objects needed for state decoding are
   automatically reported after model fitting. Hence, you can pass the
   model object obtained from running `RTMB::report()` or from
-  [`qreml`](https://janolefi.github.io/reference/qreml.md) directly to
-  this function.
+  [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md) directly
+  to this function.
 
 ## Value
 
@@ -65,11 +66,11 @@ vector of decoded states of length n
 ## See also
 
 Other decoding functions:
-[`stateprobs()`](https://janolefi.github.io/reference/stateprobs.md),
-[`stateprobs_g()`](https://janolefi.github.io/reference/stateprobs_g.md),
-[`stateprobs_p()`](https://janolefi.github.io/reference/stateprobs_p.md),
-[`viterbi()`](https://janolefi.github.io/reference/viterbi.md),
-[`viterbi_g()`](https://janolefi.github.io/reference/viterbi_g.md)
+[`stateprobs()`](https://janolefi.github.io/LaMa/reference/stateprobs.md),
+[`stateprobs_g()`](https://janolefi.github.io/LaMa/reference/stateprobs_g.md),
+[`stateprobs_p()`](https://janolefi.github.io/LaMa/reference/stateprobs_p.md),
+[`viterbi()`](https://janolefi.github.io/LaMa/reference/viterbi.md),
+[`viterbi_g()`](https://janolefi.github.io/LaMa/reference/viterbi_g.md)
 
 ## Examples
 

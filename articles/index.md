@@ -3,20 +3,22 @@
 ### All vignettes
 
 - [Continuous-time
-  HMMs](https://janolefi.github.io/articles/Continuous_time_HMMs.md):
+  HMMs](https://janolefi.github.io/LaMa/articles/Continuous_time_HMMs.md):
 - [Hidden semi-Markov
-  models](https://janolefi.github.io/articles/HSMMs.md):
+  models](https://janolefi.github.io/LaMa/articles/HSMMs.md):
 - [Inhomogeneous
-  HMMs](https://janolefi.github.io/articles/Inhomogeneous_HMMs.md):
+  HMMs](https://janolefi.github.io/LaMa/articles/Inhomogeneous_HMMs.md):
 - [Introduction to
-  LaMa](https://janolefi.github.io/articles/Intro_to_LaMa.md):
-- [LaMa and RTMB](https://janolefi.github.io/articles/LaMa_and_RTMB.md):
+  LaMa](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.md):
+- [LaMa and
+  RTMB](https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.md):
 - [Longitudinal
-  data](https://janolefi.github.io/articles/Longitudinal_data.md):
+  data](https://janolefi.github.io/LaMa/articles/Longitudinal_data.md):
 - [Markov-modulated (marked) Poisson
-  processes](https://janolefi.github.io/articles/MMMPPs.md):
+  processes](https://janolefi.github.io/LaMa/articles/MMMPPs.md):
 - [Penalised
-  splines](https://janolefi.github.io/articles/Penalised_splines.md):
-- [Periodic HMMs](https://janolefi.github.io/articles/Periodic_HMMs.md):
+  splines](https://janolefi.github.io/LaMa/articles/Penalised_splines.md):
+- [Periodic
+  HMMs](https://janolefi.github.io/LaMa/articles/Periodic_HMMs.md):
 - [State-space
-  models](https://janolefi.github.io/articles/State_space_models.md):
+  models](https://janolefi.github.io/LaMa/articles/State_space_models.md):

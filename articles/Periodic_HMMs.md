@@ -29,18 +29,19 @@ library(LaMa)
 We simulate a 2-state HMM with Gaussian state-dependent distributions.
 For the periodic inhomogeneity, we choose a bimodal activity pattern.
 All L transition probability matrices can conveniently be calculated
-using [`tpm_p()`](https://janolefi.github.io/reference/tpm_p.md). Under
-the hood, this performs a basis expansion using
-[`cosinor()`](https://janolefi.github.io/reference/cosinor.md) into sine
-and cosine terms and uses linear predictors of the form \eta^{(t)}\_{ij}
-= \beta_0^{(ij)} + \sum\_{k=1}^K \bigl( \beta\_{1k}^{(ij)} \sin(\frac{2
-\pi k t}{L}) + \beta\_{2k}^{(ij)} \cos(\frac{2 \pi k t}{L}) \bigr) for
-the off-diagonal entries of the transition probability matrix. The
-special case of periodically inhomogeneous Markov chains also allows the
-derivation of a so-called **periodically stationary distribution**
-([Koslik et al. 2023](#ref-koslik2023inference)) which we can compute
-this distribution using
-[`stationary_p()`](https://janolefi.github.io/reference/stationary_p.md).
+using [`tpm_p()`](https://janolefi.github.io/LaMa/reference/tpm_p.md).
+Under the hood, this performs a basis expansion using
+[`cosinor()`](https://janolefi.github.io/LaMa/reference/cosinor.md) into
+sine and cosine terms and uses linear predictors of the form
+\eta^{(t)}\_{ij} = \beta_0^{(ij)} + \sum\_{k=1}^K \bigl(
+\beta\_{1k}^{(ij)} \sin(\frac{2 \pi k t}{L}) + \beta\_{2k}^{(ij)}
+\cos(\frac{2 \pi k t}{L}) \bigr) for the off-diagonal entries of the
+transition probability matrix. The special case of periodically
+inhomogeneous Markov chains also allows the derivation of a so-called
+**periodically stationary distribution** ([Koslik et al.
+2023](#ref-koslik2023inference)) which we can compute this distribution
+using
+[`stationary_p()`](https://janolefi.github.io/LaMa/reference/stationary_p.md).
 
 ``` r
 # parameters
@@ -100,9 +101,9 @@ par(oldpar)
 
 We specify the likelihood function and pretend we know the degree of the
 trigonometric link which, in practice, is never the case. Again we use
-[`tpm_p()`](https://janolefi.github.io/reference/tpm_p.md) and we
+[`tpm_p()`](https://janolefi.github.io/LaMa/reference/tpm_p.md) and we
 compute the periodically stationary start by using
-[`stationary_p()`](https://janolefi.github.io/reference/stationary_p.md)
+[`stationary_p()`](https://janolefi.github.io/LaMa/reference/stationary_p.md)
 with the additional argument that specifies which time point to compute.
 
 ``` r
@@ -130,14 +131,14 @@ system.time(
   mod <- nlm(nll, par, x = x, tod = tod)
 )
 #>    user  system elapsed 
-#>   0.918   0.021   0.939
+#>   0.923   0.015   0.938
 ```
 
 ### Visualising results
 
-Again, we use [`tpm_p()`](https://janolefi.github.io/reference/tpm_p.md)
-and
-[`stationary_p()`](https://janolefi.github.io/reference/stationary_p.md)
+Again, we use
+[`tpm_p()`](https://janolefi.github.io/LaMa/reference/tpm_p.md) and
+[`stationary_p()`](https://janolefi.github.io/LaMa/reference/stationary_p.md)
 to transform the parameters.
 
 ``` r
@@ -175,16 +176,16 @@ par(oldpar)
 ## Efficiency and convenience
 
 While it is convenient to use
-[`tpm_p()`](https://janolefi.github.io/reference/tpm_p.md), it performs
-the basis expansion into sine and cosine terms each time it is
+[`tpm_p()`](https://janolefi.github.io/LaMa/reference/tpm_p.md), it
+performs the basis expansion into sine and cosine terms each time it is
 evaluated. This is wasteful in model estimation as these terms stay
 fixed. A better alternative is to first build the corresponding design
 matrix. This can be done conveniently using the
-[`cosinor()`](https://janolefi.github.io/reference/cosinor.md) function,
-either by itself or in a formula passed to
-[`make_matrices()`](https://janolefi.github.io/reference/make_matrices.md).
+[`cosinor()`](https://janolefi.github.io/LaMa/reference/cosinor.md)
+function, either by itself or in a formula passed to
+[`make_matrices()`](https://janolefi.github.io/LaMa/reference/make_matrices.md).
 First let’s call
-[`cosinor()`](https://janolefi.github.io/reference/cosinor.md) by
+[`cosinor()`](https://janolefi.github.io/LaMa/reference/cosinor.md) by
 itself:
 
 ``` r
@@ -205,7 +206,7 @@ period of the trigonometric functions. As you can see, `period` can be a
 vector, leading to a larger basis expansion, i.e. more flexibility. If
 your model involves other covariates than time of day, say temperature
 (`temp`), it might be more convenient to use
-[`make_matrices()`](https://janolefi.github.io/reference/make_matrices.md)
+[`make_matrices()`](https://janolefi.github.io/LaMa/reference/make_matrices.md)
 with a formula:
 
 ``` r
@@ -223,8 +224,8 @@ head(Z, 2)
 ```
 
 In both cases, the transition probability matrix can then be calculated
-using [`tpm_g()`](https://janolefi.github.io/reference/tpm_g.md) or
-[`tpm_p()`](https://janolefi.github.io/reference/tpm_p.md):
+using [`tpm_g()`](https://janolefi.github.io/LaMa/reference/tpm_g.md) or
+[`tpm_p()`](https://janolefi.github.io/LaMa/reference/tpm_p.md):
 
 ``` r
 # coefficient matrix

@@ -4,18 +4,19 @@ This function computes a quadratic penalty of the form \$\$0.5 \sum\_{i}
 \lambda_i b^T S_i b,\$\$ with smoothing parameters \\\lambda_i\\,
 coefficient vector \\b\\, and fixed penalty matrices \\S_i\\. This
 generalises the
-[`penalty`](https://janolefi.github.io/reference/penalty.md) by allowing
-subsets of the coefficient vector \\b\\ to be penalised multiple times
-with different smoothing parameters, which is necessary for **tensor
-products**, **functional random effects** or **adaptive smoothing**.
+[`penalty`](https://janolefi.github.io/LaMa/reference/penalty.md) by
+allowing subsets of the coefficient vector \\b\\ to be penalised
+multiple times with different smoothing parameters, which is necessary
+for **tensor products**, **functional random effects** or **adaptive
+smoothing**.
 
 It is intended to be used inside the **penalised negative log-likelihood
 function** when fitting models with penalised splines or simple random
 effects via **quasi restricted maximum likelihood** (qREML) with the
-[`qreml`](https://janolefi.github.io/reference/qreml.md) function. For
-[`qreml`](https://janolefi.github.io/reference/qreml.md) to work, the
-likelihood function needs to be compatible with the `RTMB` R package to
-enable automatic differentiation.
+[`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md) function.
+For [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md) to
+work, the likelihood function needs to be compatible with the `RTMB` R
+package to enable automatic differentiation.
 
 ## Usage
 
@@ -61,7 +62,7 @@ penalty2(re_coef, S, lambda)
 ## Value
 
 returns the penalty value and reports to
-[`qreml`](https://janolefi.github.io/reference/qreml.md).
+[`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md).
 
 ## Details
 
@@ -73,11 +74,11 @@ matrix inside your likelihood and pass the matrix to `penalty`. If these
 are seperate random effects, each with its own name, they need to be
 passed as a list to `penalty`. Moreover, the ordering of `re_coef` needs
 to match the character vector `random` specified in
-[`qreml`](https://janolefi.github.io/reference/qreml.md).
+[`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md).
 
 ## See also
 
-[`qreml`](https://janolefi.github.io/reference/qreml.md) for the
+[`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md) for the
 **qREML** algorithm
 
 ## Examples

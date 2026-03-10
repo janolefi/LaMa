@@ -119,12 +119,12 @@ same structure as the regular HMM likelihood: L(\theta) = \delta^{(1)}
 as usual and \Gamma(t_k, t\_{k+1}) is computed as explained above. Thus
 we can fit such models using the standard implementation of the general
 forward algorithm
-[`forward_g()`](https://janoleko.github.io/reference/forward_g.md) with
+[`forward_g()`](https://janolefi.github.io/reference/forward_g.md) with
 time-varying transition probability matrices. We can use the
-[`generator()`](https://janoleko.github.io/reference/generator.md)
+[`generator()`](https://janolefi.github.io/reference/generator.md)
 function to compute the infinitesimal generator matrix from an
 unconstrained parameter vector and
-[`tpm_cont()`](https://janoleko.github.io/reference/tpm_cont.md) to
+[`tpm_cont()`](https://janolefi.github.io/reference/tpm_cont.md) to
 compute all matrix exponentials.
 
 ``` r
@@ -156,7 +156,7 @@ system.time(
   mod <- nlm(nll, par, timediff = timediff, x = x, N = 2)
 )
 #>    user  system elapsed 
-#>   0.372   0.248   0.318
+#>   0.384   0.228   0.312
 ```
 
 ### Results
@@ -233,7 +233,7 @@ system.time(
   mod2 <- nlm(nll, par, timediff = timediff, x = x, N = 3, stepmax = 10)
 )
 #>    user  system elapsed 
-#>   2.693   2.112   1.605
+#>   3.356   2.651   2.006
 # without restricting stepmax, we run into numerical problems
 ```
 

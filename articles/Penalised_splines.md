@@ -44,7 +44,7 @@ T-rex’s **step lengths** and **turning angles** using state-dependent
 **gamma** and **von Mises** distributions.
 
 To ease with model specification, `LaMa` provides the function
-[`make_matrices()`](https://janoleko.github.io/reference/make_matrices.md)
+[`make_matrices()`](https://janolefi.github.io/reference/make_matrices.md)
 which creates **design** and **penalty** matrices for regression
 settings based on the R package `mgcv`. The user only needs to specify
 the right side of a formula using `mgcv` syntax and provide data. Here,
@@ -77,10 +77,10 @@ S = modmat$S # penalty matrix
 
 We can now specify the **penalised negative log-likelihood function**.
 The transition probability matrix can be computed the regular way using
-[`tpm_g()`](https://janoleko.github.io/reference/tpm_g.md). In the last
+[`tpm_g()`](https://janolefi.github.io/reference/tpm_g.md). In the last
 line we need to add the curvature penalty based on `S`, which we can
 conveniently do using
-[`penalty()`](https://janoleko.github.io/reference/penalty.md).
+[`penalty()`](https://janolefi.github.io/reference/penalty.md).
 
 ``` r
 pnll = function(par) {
@@ -132,19 +132,19 @@ dat = list(step = trex$step, # observed steps
 ```
 
 The model fit with automatic smoothness selection can then be conducted
-by using the [`qreml()`](https://janoleko.github.io/reference/qreml.md)
+by using the [`qreml()`](https://janolefi.github.io/reference/qreml.md)
 function contained in `LaMa`. The **quasi restricted maximum
 likelihood** algorithm finds a good penalty strength parameter `lambda`
 by treating the spline coefficients as random effects. Under the hood,
-[`qreml()`](https://janoleko.github.io/reference/qreml.md) also
+[`qreml()`](https://janolefi.github.io/reference/qreml.md) also
 constructs an AD function with `RTMB` but uses the **qREML** algorithm
 ([Koslik 2024](#ref-koslik2024efficient)) to fit the model. We have to
-tell the [`qreml()`](https://janoleko.github.io/reference/qreml.md)
+tell the [`qreml()`](https://janolefi.github.io/reference/qreml.md)
 function which parameters are spline coefficients by providing the name
 of the corresponding list element of `par`.
 
 There are some rules to follow when using
-[`qreml()`](https://janoleko.github.io/reference/qreml.md):
+[`qreml()`](https://janolefi.github.io/reference/qreml.md):
 
 1.  The likelihood function needs to be `RTMB`-compatible, i.e. have the
     same structure as the likelihood functions in the vignette *LaMa and
@@ -159,10 +159,10 @@ There are some rules to follow when using
     different penalty matrix, we would have needed more elements in
     `lambda`.
 
-3.  The [`penalty()`](https://janoleko.github.io/reference/penalty.md)
+3.  The [`penalty()`](https://janolefi.github.io/reference/penalty.md)
     function can only be called *once* in the likelihood. If several
     spline coefficients are penalised,
-    [`penalty()`](https://janoleko.github.io/reference/penalty.md)
+    [`penalty()`](https://janolefi.github.io/reference/penalty.md)
     expects a list of coefficient matrices or vectors and a list of
     penalty matrices. This is shown in the third example in this
     vignette.
@@ -170,13 +170,13 @@ There are some rules to follow when using
 &nbsp;
 
 4.  By default,
-    [`qreml()`](https://janoleko.github.io/reference/qreml.md) assumes
+    [`qreml()`](https://janolefi.github.io/reference/qreml.md) assumes
     that the penalisation hyperparameter in the `dat` object is called
     `lambda`. You can use a different name for `dat` (of course then
     changing it in your `pnll` as well), but if you want to use a
     different name for the penalisation hyperparameter, you have to
     specify it as a character string in the
-    [`qreml()`](https://janoleko.github.io/reference/qreml.md) call
+    [`qreml()`](https://janolefi.github.io/reference/qreml.md) call
     using the `psname` argument.
 
 ``` r
@@ -201,7 +201,7 @@ system.time(
 #> Converged
 #> Final model fit with lambda: 0.308 0.112
 #>    user  system elapsed 
-#>   9.762   2.693   8.181
+#>   9.538   2.625   7.926
 ```
 
 The `mod` object is now a list that contains everything that is reported
@@ -315,7 +315,7 @@ densities based on P-Splines.
 
 In a first step, this requires us to prepare the **design** and
 **penalty matrices** needed using
-[`smooth_dens_construct()`](https://janoleko.github.io/reference/smooth_dens_construct.md).
+[`smooth_dens_construct()`](https://janolefi.github.io/reference/smooth_dens_construct.md).
 This function can take multiple data streams and a set of initial
 parameters (specifying initial means and standard deviations) for each
 data stream. It then builds the **P-Spline** design and penalty matrices
@@ -361,7 +361,7 @@ using the inverse multinomial logistic link (softmax). The columns of
 the `allprobs` matrix are then computed as linear combinations of the
 columns of `Z` and the weights `alpha`. Lastly, we penalise the
 unconstrained coefficients `beta` (not the constrained `alpha`’s) using
-the [`penalty()`](https://janoleko.github.io/reference/penalty.md)
+the [`penalty()`](https://janolefi.github.io/reference/penalty.md)
 function.
 
 ``` r
@@ -419,13 +419,13 @@ system.time(
 #> Converged
 #> Final model fit with lambda: 1.033 1.01 1.744
 #>    user  system elapsed 
-#>  17.941   3.106  15.876
+#>  16.951   3.159  14.953
 ```
 
 After fitting the model, we can easily visualise the smooth densities
 using the prepared prediction objects. We already have access to all
 reported quantities because
-[`qreml()`](https://janoleko.github.io/reference/qreml.md) automatically
+[`qreml()`](https://janolefi.github.io/reference/qreml.md) automatically
 runs the reporting after model fitting.
 
 ``` r
@@ -473,7 +473,7 @@ head(energy)
 ```
 
 Similar to the first example, we can prepare the model matrices using
-[`make_matrices()`](https://janoleko.github.io/reference/make_matrices.md):
+[`make_matrices()`](https://janolefi.github.io/reference/make_matrices.md):
 
 ``` r
 modmat = make_matrices(~ s(Oil, k = 12, bs = "ps"), energy)
@@ -488,15 +488,15 @@ Additionally, we now have two completely separated spline-coefficient
 matrices/ random effects called `betaSpline` and `alphaSpline` for the
 state-dependent means and standard deviations respectively. Thus, we
 need to pass them as a list to the
-[`penalty()`](https://janoleko.github.io/reference/penalty.md) function.
+[`penalty()`](https://janolefi.github.io/reference/penalty.md) function.
 
 We also pass the penalty matrix list `S` that is provided by
-[`make_matrices()`](https://janoleko.github.io/reference/make_matrices.md).
+[`make_matrices()`](https://janolefi.github.io/reference/make_matrices.md).
 This could potentially be a list of length two if the two spline
 coefficient matrices were penalised differently (e.g. by us using a
 different spline basis). In this case, however, they are the same and we
 only pass the list of length one. It does not matter to
-[`penalty()`](https://janoleko.github.io/reference/penalty.md) if we
+[`penalty()`](https://janolefi.github.io/reference/penalty.md) if we
 pass a list of length one or just one matrix.
 
 ``` r
@@ -567,7 +567,7 @@ system.time(
 #> Converged
 #> Final model fit with lambda: 22.588 7.212 8.278 4.169
 #>    user  system elapsed 
-#>  17.366   3.961  14.755
+#>  16.924   4.059  14.451
 ```
 
 Having fitted the model, we can visualise the results. We first decode

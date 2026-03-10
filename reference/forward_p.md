@@ -72,9 +72,9 @@ forward_p(
 
   **Caution:** When there are multiple tracks, for compatibility with
   downstream functions like
-  [`viterbi_p`](https://janoleko.github.io/reference/viterbi_p.md),
-  [`stateprobs_p`](https://janoleko.github.io/reference/stateprobs_p.md)
-  or [`pseudo_res`](https://janoleko.github.io/reference/pseudo_res.md),
+  [`viterbi_p`](https://janolefi.github.io/reference/viterbi_p.md),
+  [`stateprobs_p`](https://janolefi.github.io/reference/stateprobs_p.md)
+  or [`pseudo_res`](https://janolefi.github.io/reference/pseudo_res.md),
   `forward_p` should only be called **once** with a `trackID` argument.
 
 - logspace:
@@ -104,13 +104,13 @@ variable that maps the data index to the according time.
 ## See also
 
 Other forward algorithms:
-[`forward()`](https://janoleko.github.io/reference/forward.md),
-[`forward2()`](https://janoleko.github.io/reference/forward2.md),
-[`forward_g()`](https://janoleko.github.io/reference/forward_g.md),
-[`forward_g2()`](https://janoleko.github.io/reference/forward_g2.md),
-[`forward_hsmm()`](https://janoleko.github.io/reference/forward_hsmm.md),
-[`forward_ihsmm()`](https://janoleko.github.io/reference/forward_ihsmm.md),
-[`forward_phsmm()`](https://janoleko.github.io/reference/forward_phsmm.md)
+[`forward()`](https://janolefi.github.io/reference/forward.md),
+[`forward2()`](https://janolefi.github.io/reference/forward2.md),
+[`forward_g()`](https://janolefi.github.io/reference/forward_g.md),
+[`forward_g2()`](https://janolefi.github.io/reference/forward_g2.md),
+[`forward_hsmm()`](https://janolefi.github.io/reference/forward_hsmm.md),
+[`forward_ihsmm()`](https://janolefi.github.io/reference/forward_ihsmm.md),
+[`forward_phsmm()`](https://janolefi.github.io/reference/forward_phsmm.md)
 
 ## Examples
 

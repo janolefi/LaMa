@@ -13,7 +13,7 @@ This function can be used to fit HSMMs where the state-duration
 distribution and/ or the conditional transition probabilities vary
 periodically. In the special case of periodic variation (as compared to
 arbitrary covariate influence), this version is to be preferred over
-[`forward_ihsmm`](https://janoleko.github.io/reference/forward_ihsmm.md)
+[`forward_ihsmm`](https://janolefi.github.io/reference/forward_ihsmm.md)
 because it computes the **correct periodically stationary distribution**
 and no observations are lost for the approximation.
 
@@ -60,9 +60,9 @@ forward_phsmm(
   It contains the transition probabilities given the current state is
   left. Hence, the diagonal elements need to be zero and the rows need
   to sum to one. Such a matrix can be constructed using
-  [`tpm_emb`](https://janoleko.github.io/reference/tpm_emb.md) and an
+  [`tpm_emb`](https://janolefi.github.io/reference/tpm_emb.md) and an
   array using
-  [`tpm_emb_g`](https://janoleko.github.io/reference/tpm_emb_g.md).
+  [`tpm_emb_g`](https://janolefi.github.io/reference/tpm_emb_g.md).
 
 - allprobs:
 
@@ -124,13 +124,13 @@ dwell-time distributions. Computational Statistics & Data Analysis, 209,
 ## See also
 
 Other forward algorithms:
-[`forward()`](https://janoleko.github.io/reference/forward.md),
-[`forward2()`](https://janoleko.github.io/reference/forward2.md),
-[`forward_g()`](https://janoleko.github.io/reference/forward_g.md),
-[`forward_g2()`](https://janoleko.github.io/reference/forward_g2.md),
-[`forward_hsmm()`](https://janoleko.github.io/reference/forward_hsmm.md),
-[`forward_ihsmm()`](https://janoleko.github.io/reference/forward_ihsmm.md),
-[`forward_p()`](https://janoleko.github.io/reference/forward_p.md)
+[`forward()`](https://janolefi.github.io/reference/forward.md),
+[`forward2()`](https://janolefi.github.io/reference/forward2.md),
+[`forward_g()`](https://janolefi.github.io/reference/forward_g.md),
+[`forward_g2()`](https://janolefi.github.io/reference/forward_g2.md),
+[`forward_hsmm()`](https://janolefi.github.io/reference/forward_hsmm.md),
+[`forward_ihsmm()`](https://janolefi.github.io/reference/forward_ihsmm.md),
+[`forward_p()`](https://janolefi.github.io/reference/forward_p.md)
 
 ## Examples
 

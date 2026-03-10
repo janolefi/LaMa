@@ -29,12 +29,12 @@ dimension `c(nTracks,N)` with one stationary distribution in each row
 
 ## See also
 
-[`generator`](https://janoleko.github.io/reference/generator.md) to
+[`generator`](https://janolefi.github.io/reference/generator.md) to
 create a generator matrix
 
 Other stationary distribution functions:
-[`stationary()`](https://janoleko.github.io/reference/stationary.md),
-[`stationary_p()`](https://janoleko.github.io/reference/stationary_p.md)
+[`stationary()`](https://janolefi.github.io/reference/stationary.md),
+[`stationary_p()`](https://janolefi.github.io/reference/stationary_p.md)
 
 ## Examples
 

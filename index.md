@@ -99,11 +99,11 @@ head(trex, 3)
 
 We start by defining the negative log-likelihood function. This is made
 really convenient by the functions
-[`tpm()`](https://janoleko.github.io/reference/tpm.md) which computes
+[`tpm()`](https://janolefi.github.io/reference/tpm.md) which computes
 the transition probability matrix via the multinomial logit link,
-[`stationary()`](https://janoleko.github.io/reference/stationary.md)
+[`stationary()`](https://janolefi.github.io/reference/stationary.md)
 which computes the stationary distribution of the Markov chain and
-[`forward()`](https://janoleko.github.io/reference/forward.md) which
+[`forward()`](https://janolefi.github.io/reference/forward.md) which
 calculates the log-likelihood via the forward algorithm.
 
 ``` r
@@ -141,9 +141,9 @@ system.time(
 Really fast for 10.000 data points!
 
 After tranforming the working (unconstrained) parameters to natural
-parameters using [`tpm()`](https://janoleko.github.io/reference/tpm.md)
+parameters using [`tpm()`](https://janolefi.github.io/reference/tpm.md)
 and
-[`stationary()`](https://janoleko.github.io/reference/stationary.md), we
+[`stationary()`](https://janolefi.github.io/reference/stationary.md), we
 can visualise the results:
 
 ``` r

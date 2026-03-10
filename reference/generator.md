@@ -34,13 +34,13 @@ infinitesimal generator matrix of dimension c(N,N)
 ## See also
 
 Other transition probability matrix functions:
-[`tpm()`](https://janoleko.github.io/reference/tpm.md),
-[`tpm_cont()`](https://janoleko.github.io/reference/tpm_cont.md),
-[`tpm_emb()`](https://janoleko.github.io/reference/tpm_emb.md),
-[`tpm_emb_g()`](https://janoleko.github.io/reference/tpm_emb_g.md),
-[`tpm_g()`](https://janoleko.github.io/reference/tpm_g.md),
-[`tpm_g2()`](https://janoleko.github.io/reference/tpm_g2.md),
-[`tpm_p()`](https://janoleko.github.io/reference/tpm_p.md)
+[`tpm()`](https://janolefi.github.io/reference/tpm.md),
+[`tpm_cont()`](https://janolefi.github.io/reference/tpm_cont.md),
+[`tpm_emb()`](https://janolefi.github.io/reference/tpm_emb.md),
+[`tpm_emb_g()`](https://janolefi.github.io/reference/tpm_emb_g.md),
+[`tpm_g()`](https://janolefi.github.io/reference/tpm_g.md),
+[`tpm_g2()`](https://janolefi.github.io/reference/tpm_g2.md),
+[`tpm_p()`](https://janolefi.github.io/reference/tpm_p.md)
 
 ## Examples
 

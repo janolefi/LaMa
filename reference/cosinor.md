@@ -3,7 +3,7 @@
 This function can be used to evaluate a trigonometric basis expansion
 for a given periodic variable and period. It can also be used in
 formulas passed to
-[`make_matrices`](https://janoleko.github.io/reference/make_matrices.md).
+[`make_matrices`](https://janolefi.github.io/reference/make_matrices.md).
 
 ## Usage
 

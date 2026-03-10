@@ -56,13 +56,13 @@ arXiv:2312.14583.
 
 ## See also
 
-[`tpm_p`](https://janoleko.github.io/reference/tpm_p.md) and
-[`tpm_g`](https://janoleko.github.io/reference/tpm_g.md) to create
+[`tpm_p`](https://janolefi.github.io/reference/tpm_p.md) and
+[`tpm_g`](https://janolefi.github.io/reference/tpm_g.md) to create
 multiple transition matrices based on a cyclic variable or design matrix
 
 Other stationary distribution functions:
-[`stationary()`](https://janoleko.github.io/reference/stationary.md),
-[`stationary_cont()`](https://janoleko.github.io/reference/stationary_cont.md)
+[`stationary()`](https://janolefi.github.io/reference/stationary.md),
+[`stationary_cont()`](https://janolefi.github.io/reference/stationary_cont.md)
 
 ## Examples
 

@@ -14,7 +14,7 @@ sdreport_outer(mod, invert = FALSE)
 - mod:
 
   model objects as returned by
-  [`qreml`](https://janoleko.github.io/reference/qreml.md)
+  [`qreml`](https://janolefi.github.io/reference/qreml.md)
 
 - invert:
 

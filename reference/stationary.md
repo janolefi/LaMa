@@ -29,13 +29,13 @@ length `N`) or a matrix of stationary distributions of dimension
 
 ## See also
 
-[`tpm`](https://janoleko.github.io/reference/tpm.md) to create a
+[`tpm`](https://janolefi.github.io/reference/tpm.md) to create a
 transition probabilty matrix using the multinomial logistic link
 (softmax)
 
 Other stationary distribution functions:
-[`stationary_cont()`](https://janoleko.github.io/reference/stationary_cont.md),
-[`stationary_p()`](https://janoleko.github.io/reference/stationary_p.md)
+[`stationary_cont()`](https://janolefi.github.io/reference/stationary_cont.md),
+[`stationary_p()`](https://janolefi.github.io/reference/stationary_p.md)
 
 ## Examples
 

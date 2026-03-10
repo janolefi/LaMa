@@ -7,8 +7,8 @@ coefficient vectors \\b_i\\, and fixed penalty matrices \\S_i\\.
 It is intended to be used inside the **penalised negative log-likelihood
 function** when fitting models with penalised splines or simple random
 effects via **quasi restricted maximum likelihood** (qREML) with the
-[`qreml`](https://janoleko.github.io/reference/qreml.md) function. For
-[`qreml`](https://janoleko.github.io/reference/qreml.md) to work, the
+[`qreml`](https://janolefi.github.io/reference/qreml.md) function. For
+[`qreml`](https://janolefi.github.io/reference/qreml.md) to work, the
 likelihood function needs to be compatible with the `RTMB` R package to
 enable automatic differentiation.
 
@@ -48,7 +48,7 @@ penalty(re_coef, S, lambda)
 ## Value
 
 returns the penalty value and reports to
-[`qreml`](https://janoleko.github.io/reference/qreml.md).
+[`qreml`](https://janolefi.github.io/reference/qreml.md).
 
 ## Details
 
@@ -60,7 +60,7 @@ matrix inside your likelihood and pass the matrix to `penalty`. If these
 are seperate random effects, each with its own name, they need to be
 passed as a list to `penalty`. Moreover, the ordering of `re_coef` needs
 to match the character vector `random` specified in
-[`qreml`](https://janoleko.github.io/reference/qreml.md).
+[`qreml`](https://janolefi.github.io/reference/qreml.md).
 
 ## References
 
@@ -70,7 +70,7 @@ preprint arXiv:2411.11498.
 
 ## See also
 
-[`qreml`](https://janoleko.github.io/reference/qreml.md) for the
+[`qreml`](https://janolefi.github.io/reference/qreml.md) for the
 **qREML** algorithm
 
 ## Examples

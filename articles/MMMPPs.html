@@ -77,8 +77,8 @@ Koslik</h4>
     
 <blockquote>
 <p>Before diving into this vignette, we recommend reading the vignettes
-<a href="https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html" class="external-link"><strong>Introduction
-to LaMa</strong></a> and <a href="https://janolefi.github.io/LaMa/articles/Continuous_time_HMMs.html" class="external-link"><strong>Continuous-time
+<a href="https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html"><strong>Introduction
+to LaMa</strong></a> and <a href="https://janolefi.github.io/LaMa/articles/Continuous_time_HMMs.html"><strong>Continuous-time
 HMMs</strong></a>.</p>
 </blockquote>
 <p><code>LaMa</code> can also be used to fit so-called
@@ -108,7 +108,7 @@ about Poisson processes, see <span class="citation">Dobrow (<a href="#ref-dobrow
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># loading the package</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://janolefi.github.io/LaMa/" class="external-link">LaMa</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://janolefi.github.io/LaMa/">LaMa</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; Loading required package: RTMB</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="setting-parameters">Setting parameters<a class="anchor" aria-label="anchor" href="#setting-parameters"></a>
@@ -204,7 +204,7 @@ state-dependent density matrices to be <span class="math inline">\Lambda</span>.
 <span>  <span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm</a></span><span class="op">(</span><span class="va">nll</span>, <span class="va">par</span>, timediff <span class="op">=</span> <span class="va">timediff</span>, N <span class="op">=</span> <span class="fl">2</span>, stepmax <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.392   0.261   0.333</span></span>
+<span><span class="co">#&gt;   0.371   0.242   0.311</span></span>
 <span><span class="co"># we often need the stepmax, as the matrix exponential can be numerically unstable</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -343,7 +343,7 @@ one element-wise with the state-dependent rates.</p>
 <span>  <span class="va">mod2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm</a></span><span class="op">(</span><span class="va">nllMark</span>, <span class="va">par</span>, y <span class="op">=</span> <span class="va">marks</span>, timediff <span class="op">=</span> <span class="va">timediff</span>, N <span class="op">=</span> <span class="fl">3</span>, stepmax <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   5.296   4.409   3.252</span></span></code></pre></div>
+<span><span class="co">#&gt;   5.582   4.528   3.380</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="results-1">Results<a class="anchor" aria-label="anchor" href="#results-1"></a>

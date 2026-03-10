@@ -28,7 +28,7 @@ transition probabilities via the inverse multinomial logistic link as
 \frac{\exp(\eta\_{ij}^{(t)})}{\sum\_{k=1}^N \exp(\eta\_{ik}^{(t)})},
 where \eta\_{ii} is set to zero for i = 1, \dots, N for identifiability
 and N is the number of hidden states. The function
-[`tpm_g()`](https://janoleko.github.io/reference/tpm_g.md) conducts this
+[`tpm_g()`](https://janolefi.github.io/reference/tpm_g.md) conducts this
 calculation for all elements of the t.p.m. and all time points
 efficiently in C++.
 
@@ -43,11 +43,11 @@ there is no established convention, so this choice needs to be made by
 users and can be important when the exact timing of the covariate effect
 is relevant. In `LaMa` this comes down to either passing the design
 matrix excluding its first or last row to
-[`tpm_g()`](https://janoleko.github.io/reference/tpm_g.md), where we use
+[`tpm_g()`](https://janolefi.github.io/reference/tpm_g.md), where we use
 the first option in this vignette. If you forget to exclude the first or
 the last row of the design matrix when calculating all transition
 matrices, and pass an array of dimension `c(N,N,T)` to
-[`forward_g()`](https://janoleko.github.io/reference/forward_g.md) for
+[`forward_g()`](https://janolefi.github.io/reference/forward_g.md) for
 likelihood evaluation, the function will revert to the first option by
 just ignoring the first slice of the array.
 
@@ -57,7 +57,7 @@ We begin by simulating data from the above specified model, assuming 2
 states and Gaussian state-dependent distributions. The covariate effects
 for the state process are fully specified by a parameter matrix `beta`
 of dimension `c(N*(N-1), p+1)`. By default the function
-[`tpm_g()`](https://janoleko.github.io/reference/tpm_g.md) will fill the
+[`tpm_g()`](https://janolefi.github.io/reference/tpm_g.md) will fill the
 off-diagonal elements of each transition matrix by column, which can be
 changed by setting `byrow = TRUE`. The latter is useful, as popular HMM
 packages like `moveHMM` or `momentuHMM` return the parameter matrix such
@@ -160,15 +160,15 @@ system.time(
 
 )
 #>    user  system elapsed 
-#>   0.769   0.016   0.786
+#>   0.765   0.015   0.780
 ```
 
 Really fast!
 
 ### Visualising results
 
-Again, we use [`tpm_g()`](https://janoleko.github.io/reference/tpm_g.md)
-and [`stationary()`](https://janoleko.github.io/reference/stationary.md)
+Again, we use [`tpm_g()`](https://janolefi.github.io/reference/tpm_g.md)
+and [`stationary()`](https://janolefi.github.io/reference/stationary.md)
 to transform the parameters.
 
 ``` r
@@ -322,7 +322,7 @@ system.time(
   mod_reg <- nlm(nllMSR, par, x = x, Z = Z)
 )
 #>    user  system elapsed 
-#>   0.337   0.022   0.360
+#>   0.324   0.029   0.353
 ```
 
 ### Visualising results

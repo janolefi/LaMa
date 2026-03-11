@@ -65,11 +65,8 @@
 report <- function(obj) {
   mod <- tryCatch(
     obj$report(),
-    error = function(e) NULL
+    error = function(e) stop("Does not seem to be an RTMB object.")
   )
-  if(is.null(mod)) {
-    stop("Does not seem to be an RTMB object.")
-  } 
   
   # assign log-likelihood, number of parameters, and number of observations to the model object
   mod$ll <- -obj$fn()

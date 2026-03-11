@@ -5,7 +5,7 @@
 \alias{dvm}
 \alias{pvm}
 \alias{rvm}
-\title{von Mises distribution}
+\title{Von Mises distribution}
 \usage{
 dvm(x, mu = 0, kappa = 1, log = FALSE)
 

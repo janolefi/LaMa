@@ -4,7 +4,7 @@
 \alias{wrpcauchy}
 \alias{dwrpcauchy}
 \alias{rwrpcauchy}
-\title{wrapped Cauchy distribution}
+\title{Wrapped Cauchy distribution}
 \usage{
 dwrpcauchy(x, mu = 0, rho, log = FALSE)
 
@@ -31,10 +31,10 @@ Density and random generation for the wrapped Cauchy distribution.
 }
 \details{
 This implementation of \code{dwrpcauchy} allows for automatic differentiation with \code{RTMB}. 
-\code{rwrpcauchy} is simply a wrapper for \code{rwrappedcauchy}imported from \code{circular}.
+\code{rwrpcauchy} is simply a wrapper for \code{rwrappedcauchy} imported from \code{circular}.
 }
 \examples{
 set.seed(1)
-x = rwrpcauchy(10, 0, 1)
-d = dwrpcauchy(x, 0, 1)
+x = rwrpcauchy(10, 0, 0.3)
+d = dwrpcauchy(x, 0, 0.3)
 }

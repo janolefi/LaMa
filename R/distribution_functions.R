@@ -1,4 +1,4 @@
-#' von Mises distribution
+#' Von Mises distribution
 #' 
 #' Density, distribution function and random generation for the von Mises distribution.
 #' 
@@ -28,77 +28,32 @@ NULL
 #' @rdname vm
 #' @export
 #' @importFrom RTMBdist dvm
-dvm = function(x, mu = 0, kappa = 1, log = FALSE) {
-  
-  # stable calculation of log(besselI(kappa, 0))
-  # logI0 <- log(RTMB::besselI(kappa, 0, expon.scaled = TRUE)) + kappa
-  # logI0 <- log(RTMB::besselI(kappa, 0))
-  # 
-  # logdens <- -log(2 * pi) - logI0 + kappa * cos(x - mu)
-  # 
-  # # logdens <- -log(2 * pi) - 
-  # #   log(RTMB::besselI(kappa, 0)) + 
-  # #   kappa * cos(x - mu)
-  # 
-  # 
-  # if(log){
-  #   return(logdens)
-  # } else{
-  #   return(exp(logdens))
-  # }
-  
+dvm <- function(x, mu = 0, kappa = 1, log = FALSE) {
   RTMBdist::dvm(x, mu = mu, kappa = kappa, log = log)
 }
 
 #' @rdname vm
 #' @export
-#' @importFrom circular pvonmises
-pvm = function(q, mu = 0, kappa = 1, from = NULL, tol = 1e-20) {
-  # NA handling
-  ind = which(!is.na(q))
-  
-  if(is.matrix(mu)){
-    mu = mu[ind,]
-  }
-  if(is.matrix(kappa)){
-    kappa = kappa[ind,]
-  }
-  
-  probs = numeric(length(q))
-  
-  suppressWarnings(
-    probs[ind] <- circular::pvonmises(q[ind], mu, kappa, from = from, tol = tol)
-  )
-  
-  probs[-ind] = NA
-  
-  as.numeric(probs)
+#' @importFrom RTMBdist pvm
+pvm <- function(q, mu = 0, kappa = 1, from = NULL, tol = 1e-20) {
+  RTMBdist::pvm(q, mu=mu, kappa=kappa, from=from, tol=tol)
 }
 
 #' @rdname vm
 #' @export
-#' @importFrom circular rvonmises
-rvm = function(n, mu = 0, kappa = 1, wrap = TRUE) {
-  # angles = CircStats::rvm(n, mu, kappa)
-  suppressWarnings(
-    angles <- as.numeric(rvonmises(n, mu, kappa))
-  )
-  
-  # if generated angels should be wrapped, i.e. mapped to interval [-pi, pi], do so
-  if(wrap){
-    angles = (angles + pi) %% (2 * pi) - pi
-  }
-  angles
+#' @importFrom RTMBdist rvm
+rvm <- function(n, mu = 0, kappa = 1, wrap = TRUE) {
+  RTMBdist::rvm(n, mu=mu, kappa=kappa, wrap=wrap)
 }
 
 
-#' wrapped Cauchy distribution
+#' Wrapped Cauchy distribution
 #' 
 #' Density and random generation for the wrapped Cauchy distribution.
 #' 
 #' @details
 #' This implementation of \code{dwrpcauchy} allows for automatic differentiation with \code{RTMB}. 
-#' \code{rwrpcauchy} is simply a wrapper for \code{rwrappedcauchy}imported from \code{circular}.
+#' \code{rwrpcauchy} is simply a wrapper for \code{rwrappedcauchy} imported from \code{circular}.
 #'
 #' @param x vector of angles measured in radians at which to evaluate the density function.
 #' @param mu mean direction of the distribution measured in radians.
@@ -111,38 +66,23 @@ rvm = function(n, mu = 0, kappa = 1, wrap = TRUE) {
 #'
 #' @examples 
 #' set.seed(1)
-#' x = rwrpcauchy(10, 0, 1)
-#' d = dwrpcauchy(x, 0, 1)
+#' x = rwrpcauchy(10, 0, 0.3)
+#' d = dwrpcauchy(x, 0, 0.3)
 #' @name wrpcauchy
 NULL
 
 #' @rdname wrpcauchy
 #' @export
+#' @importFrom RTMBdist dwrpcauchy
 dwrpcauchy <- function(x, mu = 0, rho, log = FALSE) {
-  logdens <- - log(2 * pi) + 
-    log(1 - rho^2) - 
-    log(1 + rho^2 - 2 * rho * cos(x - mu))
-  
-  if(log){
-    return(logdens)
-  } else{
-    return(exp(logdens))
-  }
+  RTMBdist::dwrpcauchy(x, mu=mu, rho=rho, log=log)
 }
 
 #' @rdname wrpcauchy
 #' @export
-#' @importFrom circular rwrappedcauchy
-rwrpcauchy = function(n, mu = 0, rho, wrap = TRUE) {
-  suppressWarnings(
-    angles <- as.numeric(rwrappedcauchy(n, mu, rho))
-  )
-  
-  # if generated angels should be wrapped, i.e. mapped to interval [-pi, pi], do so
-  if(wrap){
-    angles = (angles + pi) %% (2 * pi) - pi
-  }
-  angles
+#' @importFrom RTMBdist rwrpcauchy
+rwrpcauchy <- function(n, mu = 0, rho, wrap = TRUE) {
+  RTMBdist::rwrpcauchy(n, mu=mu, rho=rho, wrap=wrap)
 }
 
 
@@ -175,35 +115,30 @@ NULL
 
 #' @rdname gamma2
 #' @export
-#' @importFrom RTMB dgamma
+#' @importFrom RTMBdist dgamma2
 dgamma2 = function(x, mean = 1, sd = 1, log = FALSE) {
-  shape = mean^2 / sd^2
-  scale = sd^2 / mean
-  RTMB::dgamma(x = x, shape = shape, scale = scale, log = log)
+  RTMBdist::dgamma2(x, mean=mean, sd=sd, log=log)
 }
 
 #' @rdname gamma2
 #' @export
+#' @importFrom RTMBdist pgamma2
 pgamma2 = function(q, mean = 1, sd = 1, lower.tail = TRUE, log.p = FALSE) {
-  shape = mean^2 / sd^2
-  scale = sd^2 / mean
-  RTMB::pgamma(q = q, shape = shape, scale = scale, lower.tail = lower.tail, log.p = log.p)
+  RTMBdist::pgamma2(q, mean=mean, sd=sd, lower.tail=lower.tail, log.p=log.p)
 }
 
 #' @rdname gamma2
 #' @export
+#' @importFrom RTMBdist qgamma2
 qgamma2 = function(p, mean = 1, sd = 1, lower.tail = TRUE, log.p = FALSE) {
-  shape = mean^2 / sd^2
-  scale = sd^2 / mean
-  RTMB::qgamma(p = p, shape = shape, scale = scale, lower.tail = lower.tail, log.p = log.p)
+  RTMBdist::qgamma2(p, mean=mean, sd=sd, lower.tail = lower.tail, log.p = log.p)
 }
 
 #' @rdname gamma2
 #' @export
+#' @importFrom RTMBdist rgamma2
 rgamma2 = function(n, mean = 1, sd = 1) {
-  shape = mean^2 / sd^2
-  scale = sd^2 / mean
-  stats::rgamma(n = n, shape = shape, scale = scale)
+  RTMBdist::rgamma2(n, mean=mean, sd=sd)
 }
 
 
@@ -238,42 +173,30 @@ NULL
 
 #' @rdname skewnorm
 #' @export
-#' @importFrom RTMB dnorm
-#' @importFrom RTMB pnorm
+#' @importFrom RTMBdist dskewnorm
 dskewnorm <- function(x, xi = 0, omega = 1, alpha = 0, log = FALSE) {
-  z = (x - xi) / omega # standardised observation
-  
-  log_normal_density <- RTMB::dnorm(z, log = TRUE)
-  log_skew_component <- log(2) - log(omega) + log(RTMB::pnorm(alpha * z))
-
-  log_density = log_normal_density + log_skew_component
-  
-  if(log) {
-    return(log_density)
-  } else{
-    return(exp(log_density))
-  }
+  RTMBdist::dskewnorm(x, xi=xi, omega=omega, alpha=alpha, log=log)
 }
 
 #' @rdname skewnorm
 #' @export
-#' @importFrom sn psn
+#' @importFrom RTMBdist pskewnorm
 pskewnorm <- function(q, xi = 0, omega = 1, alpha = 0, ...) {
-  sn::psn(x = q, xi = xi, omega = omega, alpha = alpha, ...)
+  RTMBdist::pskewnorm(q, xi=xi, omega=omega, alpha=alpha, log=log, ...)
 }
 
 #' @rdname skewnorm
 #' @export
-#' @importFrom sn qsn
+#' @importFrom RTMBdist qskewnorm
 qskewnorm <- function(p, xi = 0, omega = 1, alpha = 0, ...) {
-  sn::qsn(p = p, xi = xi, omega = omega, alpha = alpha, ...)
+  RTMBdist::qskewnorm(p, xi=xi, omega=omega, alpha=alpha, ...)
 }
 
 #' @rdname skewnorm
 #' @export
-#' @importFrom sn rsn
+#' @importFrom RTMBdist rskewnorm
 rskewnorm <- function(n, xi = 0, omega = 1, alpha = 0) {
-  sn::rsn(n = n, xi = xi, omega = omega, alpha = alpha)
+  RTMBdist::rskewnorm(n, xi=xi, omega=omega, alpha=alpha)
 }
 
 

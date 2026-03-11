@@ -69,7 +69,7 @@ process_cosinor <- function(formula){
 #' 
 #' The returned basis can be used for linear predictors of the form
 #' \deqn{ 
-#'  \eta^{(t)} = \beta_0 + \sum_{k} \bigl( \beta_{1k} \sin(\frac{2 \pi t}{period_k}) + \beta_{2k} \cos(\frac{2 \pi t}{period_k}) \bigr). 
+#'  \eta^{(t)} = \beta_0 + \sum_{k} \bigl( \beta_{1k} \sin(\frac{2 \pi t}{\text{period}_k}) + \beta_{2k} \cos(\frac{2 \pi t}{\text{period}_k}) \bigr). 
 #' }
 #' This is relevant for modeling e.g. diurnal variation and the flexibility can be increased by adding smaller frequencies (i.e. increasing the length of \code{period}).
 #'  
@@ -376,8 +376,8 @@ make_matrices_flat <- function(formula, data, knots = NULL) {
 #' \item{\code{coef}}{list of coefficient vectors filled with zeros of the correct length for each formula, for ease of setting up initial parameters}
 #' \item{\code{data}}{the data frame used for the model(s)}
 #' \item{\code{gam}}{unfitted \code{mgcv::gam} object used for construction of \code{Z} and \code{S} (or list of such objects if \code{formula} is a list)}
-#' \item{\code{gam0}}{fitted \code{mgcv::gam} which is used internally for to create prediction design matrices (or list of such objects if \code{formula} is a list)}
-#' \item{\code{knots}}{knot list used in the basis construction (or named list over such lists if \code{formula} is a list}
+#' \item{\code{gam0}}{fitted \code{mgcv::gam} which is used internally to create prediction design matrices (or list of such objects if \code{formula} is a list)}
+#' \item{\code{knots}}{knot list used in the basis construction (or named list over such lists if \code{formula} is a list)}
 #'
 #' @export
 #' 
@@ -644,8 +644,8 @@ process_hid_formulas <- function(formulas,
 #'
 #' @param object model matrices object as returned from \code{\link{make_matrices}}
 #' @param newdata data frame containing the variables in the formula and new data for which to evaluate the basis
-#' @param what optional character string specifying which formula to use for prediction, if \code{object} contains multiple formulas. If \code{NULL}, the first formula is used.
-#' @param ... needs to be a \code{newdata} data frame containing the variables in the formula and new data for which to evaluate the basis
+#' @param what optional character string specifying which formula to use for prediction if \code{object} contains multiple formulas.
+#' @param ... for method consistency only
 #'
 #' @seealso \code{\link{make_matrices}} for creating objects of class \code{LaMa_matrices} which can be used for prediction by this function.
 #'

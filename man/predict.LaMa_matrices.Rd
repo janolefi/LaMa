@@ -11,9 +11,9 @@
 
 \item{newdata}{data frame containing the variables in the formula and new data for which to evaluate the basis}
 
-\item{what}{optional character string specifying which formula to use for prediction, if \code{object} contains multiple formulas. If \code{NULL}, the first formula is used.}
+\item{what}{optional character string specifying which formula to use for prediction if \code{object} contains multiple formulas.}
 
-\item{...}{needs to be a \code{newdata} data frame containing the variables in the formula and new data for which to evaluate the basis}
+\item{...}{for method consistency only}
 }
 \value{
 prediction design matrix for \code{newdata} with the same basis as used for \code{model_matrices}

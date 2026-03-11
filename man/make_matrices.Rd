@@ -27,8 +27,8 @@ a list of class \code{LaMa_matrices} containing:
 \item{\code{coef}}{list of coefficient vectors filled with zeros of the correct length for each formula, for ease of setting up initial parameters}
 \item{\code{data}}{the data frame used for the model(s)}
 \item{\code{gam}}{unfitted \code{mgcv::gam} object used for construction of \code{Z} and \code{S} (or list of such objects if \code{formula} is a list)}
-\item{\code{gam0}}{fitted \code{mgcv::gam} which is used internally for to create prediction design matrices (or list of such objects if \code{formula} is a list)}
-\item{\code{knots}}{knot list used in the basis construction (or named list over such lists if \code{formula} is a list}
+\item{\code{gam0}}{fitted \code{mgcv::gam} which is used internally to create prediction design matrices (or list of such objects if \code{formula} is a list)}
+\item{\code{knots}}{knot list used in the basis construction (or named list over such lists if \code{formula} is a list)}
 }
 \description{
 Build the design and the penalty matrix for models involving penalised splines based on a formula and a data set

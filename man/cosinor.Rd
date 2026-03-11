@@ -23,7 +23,7 @@ It can also be used in formulas passed to \code{\link{make_matrices}}.
 \details{
 The returned basis can be used for linear predictors of the form
 \deqn{ 
- \eta^{(t)} = \beta_0 + \sum_{k} \bigl( \beta_{1k} \sin(\frac{2 \pi t}{period_k}) + \beta_{2k} \cos(\frac{2 \pi t}{period_k}) \bigr). 
+ \eta^{(t)} = \beta_0 + \sum_{k} \bigl( \beta_{1k} \sin(\frac{2 \pi t}{\text{period}_k}) + \beta_{2k} \cos(\frac{2 \pi t}{\text{period}_k}) \bigr). 
 }
 This is relevant for modeling e.g. diurnal variation and the flexibility can be increased by adding smaller frequencies (i.e. increasing the length of \code{period}).
 }

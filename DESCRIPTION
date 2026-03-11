@@ -20,15 +20,13 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Imports: 
     Rcpp,
-    mgcv,
-    Matrix,
     stats,
     utils,
-    MASS,
+    methods,
+    Matrix,
     splines2,
-    methods, 
-    circular,
-    sn,
+    mgcv,
+    MASS,
     numDeriv,
     RTMBdist
 LinkingTo: 

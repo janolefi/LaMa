@@ -608,7 +608,7 @@ X = array(0, dim = c(1,2,3))
 
 to avoid the error.
 
-If you create and array and fill with something parameter-dependent, you
+If you create an array and fill with something parameter-dependent, you
 should also do:
 
 ``` r

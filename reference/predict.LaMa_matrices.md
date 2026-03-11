@@ -26,13 +26,11 @@ predict(object, newdata, what = NULL, ...)
 - what:
 
   optional character string specifying which formula to use for
-  prediction, if `object` contains multiple formulas. If `NULL`, the
-  first formula is used.
+  prediction if `object` contains multiple formulas.
 
 - ...:
 
-  needs to be a `newdata` data frame containing the variables in the
-  formula and new data for which to evaluate the basis
+  for method consistency only
 
 ## Value
 

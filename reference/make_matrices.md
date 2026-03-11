@@ -75,13 +75,13 @@ a list of class `LaMa_matrices` containing:
 - `gam0`:
 
   fitted [`mgcv::gam`](https://rdrr.io/pkg/mgcv/man/gam.html) which is
-  used internally for to create prediction design matrices (or list of
-  such objects if `formula` is a list)
+  used internally to create prediction design matrices (or list of such
+  objects if `formula` is a list)
 
 - `knots`:
 
   knot list used in the basis construction (or named list over such
-  lists if `formula` is a list
+  lists if `formula` is a list)
 
 ## See also
 

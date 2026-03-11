@@ -37,10 +37,10 @@ or a character vector with the terms as strings (`eval = FALSE`).
 
 The returned basis can be used for linear predictors of the form \$\$
 \eta^{(t)} = \beta_0 + \sum\_{k} \bigl( \beta\_{1k} \sin(\frac{2 \pi
-t}{period_k}) + \beta\_{2k} \cos(\frac{2 \pi t}{period_k}) \bigr). \$\$
-This is relevant for modeling e.g. diurnal variation and the flexibility
-can be increased by adding smaller frequencies (i.e. increasing the
-length of `period`).
+t}{\text{period}\_k}) + \beta\_{2k} \cos(\frac{2 \pi
+t}{\text{period}\_k}) \bigr). \$\$ This is relevant for modeling e.g.
+diurnal variation and the flexibility can be increased by adding smaller
+frequencies (i.e. increasing the length of `period`).
 
 ## Examples
 

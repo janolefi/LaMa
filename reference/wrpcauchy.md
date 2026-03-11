@@ -1,4 +1,4 @@
-# wrapped Cauchy distribution
+# Wrapped Cauchy distribution
 
 Density and random generation for the wrapped Cauchy distribution.
 
@@ -48,13 +48,13 @@ deviates.
 ## Details
 
 This implementation of `dwrpcauchy` allows for automatic differentiation
-with `RTMB`. `rwrpcauchy` is simply a wrapper for
-`rwrappedcauchy`imported from `circular`.
+with `RTMB`. `rwrpcauchy` is simply a wrapper for `rwrappedcauchy`
+imported from `circular`.
 
 ## Examples
 
 ``` r
 set.seed(1)
-x = rwrpcauchy(10, 0, 1)
-d = dwrpcauchy(x, 0, 1)
+x = rwrpcauchy(10, 0, 0.3)
+d = dwrpcauchy(x, 0, 0.3)
 ```

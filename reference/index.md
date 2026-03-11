@@ -298,12 +298,12 @@
 
 - [`dvm()`](https://janolefi.github.io/LaMa/reference/vm.md)
   [`pvm()`](https://janolefi.github.io/LaMa/reference/vm.md)
-  [`rvm()`](https://janolefi.github.io/LaMa/reference/vm.md) : von Mises
+  [`rvm()`](https://janolefi.github.io/LaMa/reference/vm.md) : Von Mises
   distribution
 
 - [`dwrpcauchy()`](https://janolefi.github.io/LaMa/reference/wrpcauchy.md)
   [`rwrpcauchy()`](https://janolefi.github.io/LaMa/reference/wrpcauchy.md)
-  : wrapped Cauchy distribution
+  : Wrapped Cauchy distribution
 
 - [`zero_inflate()`](https://janolefi.github.io/LaMa/reference/zero_inflate.md)
   : Zero-inflated density constructer

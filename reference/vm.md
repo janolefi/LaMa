@@ -1,4 +1,4 @@
-# von Mises distribution
+# Von Mises distribution
 
 Density, distribution function and random generation for the von Mises
 distribution.

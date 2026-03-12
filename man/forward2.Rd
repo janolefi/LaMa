@@ -65,14 +65,3 @@ par = c(-2,-2,            # initial tpm params (logit-scale)
         log(c(0.2, 1.5))) # initial sds for step length (log-transformed)
 mod = nlm(nll, par, step = trex$step[1:1000])
 }
-\seealso{
-Other forward algorithms: 
-\code{\link{forward}()},
-\code{\link{forward_g}()},
-\code{\link{forward_g2}()},
-\code{\link{forward_hsmm}()},
-\code{\link{forward_ihsmm}()},
-\code{\link{forward_p}()},
-\code{\link{forward_phsmm}()}
-}
-\concept{forward algorithms}

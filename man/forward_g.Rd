@@ -10,9 +10,9 @@ forward_g(
   allprobs,
   trackID = NULL,
   logspace = FALSE,
-  ad = NULL,
   bw = NULL,
-  report = TRUE
+  report = TRUE,
+  ad = NULL
 )
 }
 \arguments{
@@ -42,8 +42,6 @@ Furthermore, instead of a single vector \code{delta} corresponding to the initia
 If so, internal computations are also done on log-scale which is numerically more robust when the entries are very small.
 Note that this is only supported when used in AD mode with \code{RTMB}.}
 
-\item{ad}{optional logical, indicating whether automatic differentiation with \code{RTMB} should be used. By default, the function determines this itself.}
-
 \item{bw}{optional integer, indicating the bandwidth for a banded approximation of the forward algorithm. This is for expert users only, if sparsity in the Hessian matrix w.r.t. observations is required.}
 
 \item{report}{logical, indicating whether \code{delta}, \code{Gamma}, \code{allprobs}, and potentially \code{trackID} should be reported from the fitted model. 
@@ -51,6 +49,8 @@ Defaults to \code{TRUE}, but only works if \code{ad = TRUE}, as it uses the \cod
 
 When there are multiple tracks, for compatibility with downstream functions like \code{\link{viterbi_g}}, \code{\link{stateprobs_g}} or \code{\link{pseudo_res}}, 
 \code{forward_g} should only be called \strong{once} with a \code{trackID} argument.}
+
+\item{ad}{optional logical, indicating whether automatic differentiation should be used. Determined automatically and intended only for debugging purposes.}
 }
 \value{
 log-likelihood for given data and parameters
@@ -93,8 +93,6 @@ mod = nlm(nll, par, step = trex$step[1:500], Z = cosinor(trex$tod[1:500]))
 \seealso{
 Other forward algorithms: 
 \code{\link{forward}()},
-\code{\link{forward2}()},
-\code{\link{forward_g2}()},
 \code{\link{forward_hsmm}()},
 \code{\link{forward_ihsmm}()},
 \code{\link{forward_p}()},

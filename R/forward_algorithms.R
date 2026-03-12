@@ -6,8 +6,6 @@
 #' \href{https://www.taylorfrancis.com/books/mono/10.1201/b20790/hidden-markov-models-time-series-walter-zucchini-iain-macdonald-roland-langrock}{Forward algorithm} with homogeneous transition probability matrix
 #' 
 #' Calculates the log-likelihood of a sequence of observations under a homogeneous hidden Markov model using the \strong{forward algorithm}.
-#' 
-#' @family forward algorithms
 #'
 #' @param delta initial or stationary distribution of length N, or matrix of dimension c(k,N) for k independent tracks, if \code{trackID} is provided
 #' @param Gamma transition probability matrix of dimension c(N,N), or array of k transition probability matrices of dimension c(N,N,k), if \code{trackID} is provided
@@ -256,13 +254,13 @@ forward2 <- function(delta,
 #' @param logspace logical, indicating whether the probabilities/ densities in the \code{allprobs} matrix are on log-scale. 
 #' If so, internal computations are also done on log-scale which is numerically more robust when the entries are very small.
 #' Note that this is only supported when used in AD mode with \code{RTMB}.
-#' @param ad optional logical, indicating whether automatic differentiation with \code{RTMB} should be used. By default, the function determines this itself.
 #' @param bw optional integer, indicating the bandwidth for a banded approximation of the forward algorithm. This is for expert users only, if sparsity in the Hessian matrix w.r.t. observations is required.
 #' @param report logical, indicating whether \code{delta}, \code{Gamma}, \code{allprobs}, and potentially \code{trackID} should be reported from the fitted model. 
 #' Defaults to \code{TRUE}, but only works if \code{ad = TRUE}, as it uses the \code{RTMB} package. 
 #' 
 #' When there are multiple tracks, for compatibility with downstream functions like \code{\link{viterbi}}, \code{\link{stateprobs}} or \code{\link{pseudo_res}}, 
 #' \code{forward} should only be called \strong{once} with a \code{trackID} argument.
+#' @param ad optional logical, indicating whether automatic differentiation should be used. Determined automatically and intended only for debugging purposes.
 #'
 #' @return log-likelihood for given data and parameters
 #' @export
@@ -294,9 +292,9 @@ forward <- function(delta,
                     allprobs, 
                     trackID = NULL, 
                     logspace = FALSE,
-                    ad = NULL, 
                     bw = NULL,
-                    report = TRUE
+                    report = TRUE,
+                    ad = NULL
                     ){
   
   # Check allprobs 
@@ -612,8 +610,6 @@ forward <- function(delta,
 #' General \href{https://www.taylorfrancis.com/books/mono/10.1201/b20790/hidden-markov-models-time-series-walter-zucchini-iain-macdonald-roland-langrock}{forward algorithm} with time-varying transition probability matrix
 #'
 #' Calculates the log-likelihood of a sequence of observations under a hidden Markov model with time-varying transition probabilities using the \strong{forward algorithm}.
-#' 
-#' @family forward algorithms
 #'
 #' @param delta initial or stationary distribution of length N, or matrix of dimension c(k,N) for k independent tracks, if \code{trackID} is provided
 #' @param Gamma array of transition probability matrices of dimension c(N,N,n-1), as in a time series of length n, there are only n-1 transitions. 
@@ -919,13 +915,13 @@ forward_g2 = function(delta,
 #' @param logspace logical, indicating whether the probabilities/ densities in the \code{allprobs} matrix are on log-scale. 
 #' If so, internal computations are also done on log-scale which is numerically more robust when the entries are very small.
 #' Note that this is only supported when used in AD mode with \code{RTMB}.
-#' @param ad optional logical, indicating whether automatic differentiation with \code{RTMB} should be used. By default, the function determines this itself.
 #' @param bw optional integer, indicating the bandwidth for a banded approximation of the forward algorithm. This is for expert users only, if sparsity in the Hessian matrix w.r.t. observations is required.
 #' @param report logical, indicating whether \code{delta}, \code{Gamma}, \code{allprobs}, and potentially \code{trackID} should be reported from the fitted model. 
 #' Defaults to \code{TRUE}, but only works if \code{ad = TRUE}, as it uses the \code{RTMB} package. 
 #' 
 #' When there are multiple tracks, for compatibility with downstream functions like \code{\link{viterbi_g}}, \code{\link{stateprobs_g}} or \code{\link{pseudo_res}}, 
 #' \code{forward_g} should only be called \strong{once} with a \code{trackID} argument.
+#' @param ad optional logical, indicating whether automatic differentiation should be used. Determined automatically and intended only for debugging purposes.
 #' 
 #' @return log-likelihood for given data and parameters
 #' @export
@@ -967,9 +963,9 @@ forward_g <- function(delta,
                       allprobs, 
                       trackID = NULL, 
                       logspace = FALSE,
-                      ad = NULL, 
                       bw = NULL,
-                      report = TRUE
+                      report = TRUE,
+                      ad = NULL
                       ){
   
   # Check allprobs 

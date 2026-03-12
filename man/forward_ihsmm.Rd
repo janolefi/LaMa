@@ -69,9 +69,7 @@ Koslik, J. O. (2025). Hidden semi-Markov models with inhomogeneous state dwell-t
 \seealso{
 Other forward algorithms: 
 \code{\link{forward}()},
-\code{\link{forward2}()},
 \code{\link{forward_g}()},
-\code{\link{forward_g2}()},
 \code{\link{forward_hsmm}()},
 \code{\link{forward_p}()},
 \code{\link{forward_phsmm}()}

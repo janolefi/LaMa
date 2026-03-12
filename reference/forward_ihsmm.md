@@ -130,9 +130,7 @@ dwell-time distributions. Computational Statistics & Data Analysis, 209,
 
 Other forward algorithms:
 [`forward()`](https://janolefi.github.io/LaMa/reference/forward.md),
-[`forward2()`](https://janolefi.github.io/LaMa/reference/forward2.md),
 [`forward_g()`](https://janolefi.github.io/LaMa/reference/forward_g.md),
-[`forward_g2()`](https://janolefi.github.io/LaMa/reference/forward_g2.md),
 [`forward_hsmm()`](https://janolefi.github.io/LaMa/reference/forward_hsmm.md),
 [`forward_p()`](https://janolefi.github.io/LaMa/reference/forward_p.md),
 [`forward_phsmm()`](https://janolefi.github.io/LaMa/reference/forward_phsmm.md)

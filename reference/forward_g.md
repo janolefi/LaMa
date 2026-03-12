@@ -13,9 +13,9 @@ forward_g(
   allprobs,
   trackID = NULL,
   logspace = FALSE,
-  ad = NULL,
   bw = NULL,
-  report = TRUE
+  report = TRUE,
+  ad = NULL
 )
 ```
 
@@ -81,12 +81,6 @@ forward_g(
   entries are very small. Note that this is only supported when used in
   AD mode with `RTMB`.
 
-- ad:
-
-  optional logical, indicating whether automatic differentiation with
-  `RTMB` should be used. By default, the function determines this
-  itself.
-
 - bw:
 
   optional integer, indicating the bandwidth for a banded approximation
@@ -108,6 +102,12 @@ forward_g(
   [`pseudo_res`](https://janolefi.github.io/LaMa/reference/pseudo_res.md),
   `forward_g` should only be called **once** with a `trackID` argument.
 
+- ad:
+
+  optional logical, indicating whether automatic differentiation should
+  be used. Determined automatically and intended only for debugging
+  purposes.
+
 ## Value
 
 log-likelihood for given data and parameters
@@ -116,8 +116,6 @@ log-likelihood for given data and parameters
 
 Other forward algorithms:
 [`forward()`](https://janolefi.github.io/LaMa/reference/forward.md),
-[`forward2()`](https://janolefi.github.io/LaMa/reference/forward2.md),
-[`forward_g2()`](https://janolefi.github.io/LaMa/reference/forward_g2.md),
 [`forward_hsmm()`](https://janolefi.github.io/LaMa/reference/forward_hsmm.md),
 [`forward_ihsmm()`](https://janolefi.github.io/LaMa/reference/forward_ihsmm.md),
 [`forward_p()`](https://janolefi.github.io/LaMa/reference/forward_p.md),

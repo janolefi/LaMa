@@ -106,9 +106,7 @@ variable that maps the data index to the according time.
 
 Other forward algorithms:
 [`forward()`](https://janolefi.github.io/LaMa/reference/forward.md),
-[`forward2()`](https://janolefi.github.io/LaMa/reference/forward2.md),
 [`forward_g()`](https://janolefi.github.io/LaMa/reference/forward_g.md),
-[`forward_g2()`](https://janolefi.github.io/LaMa/reference/forward_g2.md),
 [`forward_hsmm()`](https://janolefi.github.io/LaMa/reference/forward_hsmm.md),
 [`forward_ihsmm()`](https://janolefi.github.io/LaMa/reference/forward_ihsmm.md),
 [`forward_phsmm()`](https://janolefi.github.io/LaMa/reference/forward_phsmm.md)

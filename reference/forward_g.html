@@ -56,9 +56,9 @@
 <span>  <span class="va">allprobs</span>,</span>
 <span>  trackID <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  logspace <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  ad <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  bw <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  report <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  report <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  ad <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -97,10 +97,6 @@ If so, internal computations are also done on log-scale which is numerically mor
 Note that this is only supported when used in AD mode with <code>RTMB</code>.</p></dd>
 
 
-<dt id="arg-ad">ad<a class="anchor" aria-label="anchor" href="#arg-ad"></a></dt>
-<dd><p>optional logical, indicating whether automatic differentiation with <code>RTMB</code> should be used. By default, the function determines this itself.</p></dd>
-
-
 <dt id="arg-bw">bw<a class="anchor" aria-label="anchor" href="#arg-bw"></a></dt>
 <dd><p>optional integer, indicating the bandwidth for a banded approximation of the forward algorithm. This is for expert users only, if sparsity in the Hessian matrix w.r.t. observations is required.</p></dd>
 
@@ -111,6 +107,10 @@ Defaults to <code>TRUE</code>, but only works if <code>ad = TRUE</code>, as it u
 <p>When there are multiple tracks, for compatibility with downstream functions like <code><a href="viterbi_g.html">viterbi_g</a></code>, <code><a href="stateprobs_g.html">stateprobs_g</a></code> or <code><a href="pseudo_res.html">pseudo_res</a></code>,
 <code>forward_g</code> should only be called <strong>once</strong> with a <code>trackID</code> argument.</p></dd>
 
+
+<dt id="arg-ad">ad<a class="anchor" aria-label="anchor" href="#arg-ad"></a></dt>
+<dd><p>optional logical, indicating whether automatic differentiation should be used. Determined automatically and intended only for debugging purposes.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -120,8 +120,6 @@ Defaults to <code>TRUE</code>, but only works if <code>ad = TRUE</code>, as it u
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p>Other forward algorithms:
 <code><a href="forward.html">forward()</a></code>,
-<code><a href="forward2.html">forward2()</a></code>,
-<code><a href="forward_g2.html">forward_g2()</a></code>,
 <code><a href="forward_hsmm.html">forward_hsmm()</a></code>,
 <code><a href="forward_ihsmm.html">forward_ihsmm()</a></code>,
 <code><a href="forward_p.html">forward_p()</a></code>,

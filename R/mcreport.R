@@ -51,13 +51,13 @@ getJointPrecision <- function(obj) {
   
   # Second derivatives of the joint posterior at the joint
   # mode for the fixed:random effect elements only. Uses AD.
-  message("\nEvaluating cross-derivatives...")
+  message("Evaluating cross-derivatives...")
   H_AB <- obj$env$f(q_hat, order = 1, type = "ADGrad", keepx=nonr, keepy=r) ## TMBad only !!!
   H_BA <- t(H_AB)
   
   # Numerically efficient way to compute H_BA %*% solve(t(H_AA)) %*% H_AB + H_Bhat
   # way faster than solve(t(H_AA))
-  message("\nSolving system...")
+  message("Solving system...")
   X <- Matrix::solve(H_AA, H_AB)
   H_BB <- H_BA %*% X + H_Bhat
   

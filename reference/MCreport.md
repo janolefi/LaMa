@@ -1,0 +1,70 @@
+# Sample parameters from approximate Gaussian posterior distribution
+
+Efficient Monte Carlo sampling of parameters from the approximate
+posterior of an `RTMB` model. See
+[sdreport](https://rdrr.io/pkg/TMB/man/sdreport.html) for details on
+posterior variance-covariance in random effects models.
+
+## Usage
+
+``` r
+MCreport(obj, nSamples = 1000, sample_random_effects = TRUE)
+```
+
+## Arguments
+
+- obj:
+
+  Optimised `RTMB` object
+
+- nSamples:
+
+  Number of samples to draw
+
+- sample_random_effects:
+
+  Logical; should random effects be sampled? Ignored if the model has no
+  random effects.
+
+## Value
+
+A list of parameter samples, each structured like the initial parameter
+list from MakeADFun
+
+## Examples
+
+``` r
+step <- trex$step[1:1000] # subsetting trex data
+N <- 2                    # 2 states
+
+# custom likelihood
+nll <- function(par) {
+  getAll(par)
+  Gamma <- tpm(eta)
+  delta <- stationary(Gamma)
+  mu <- exp(log_mu)
+  sigma <- exp(log_sigma)
+  allprobs <- matrix(1, length(step), N)
+  for(j in 1:N) allprobs[,j] <- dgamma2(step, mu[j], sigma[j])
+  -forward(delta, Gamma, allprobs)
+}
+
+# initial parameters in named list
+par0 <- list(eta = rep(-2,2), 
+             log_mu = log(c(0.3, 1)), 
+             log_sigma = log(c(0.2, 0.7)))
+    
+# constructing AD object        
+obj <- MakeADFun(nll, par0, silent = TRUE)
+#> Performance tip: Consider running `TapeConfig(matmul = 'plain')` before `MakeADFun()` to speed up the forward algorithm.
+
+# optimising
+opt <- nlminb(obj$par, obj$fn, obj$gr)
+
+# sampling from distribution of the MLE
+par_samples <- MCreport(obj, nSamples = 10)
+# each entry has same structure as par0
+
+# e.g. extracting mean samples
+mus <- lapply(par_samples, function(p) exp(p$log_mu))
+```

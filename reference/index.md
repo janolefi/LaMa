@@ -2,6 +2,9 @@
 
 ## All functions
 
+- [`MCreport()`](https://janolefi.github.io/LaMa/reference/MCreport.md)
+  : Sample parameters from approximate Gaussian posterior distribution
+
 - [`calc_trackInd()`](https://janolefi.github.io/LaMa/reference/calc_trackInd.md)
   : Calculate the index of the first observation of each track based on
   an ID variable
@@ -177,6 +180,9 @@
 
   Get reported quantities from and `RTMB` object and return a
   `LaMaModel`
+
+- [`rgmrf()`](https://janolefi.github.io/LaMa/reference/rgmrf.md) :
+  Sample from a multivariate Gaussian with a sparse precision matrix
 
 - [`sdreportMC()`](https://janolefi.github.io/LaMa/reference/sdreportMC.md)
   :

@@ -147,6 +147,9 @@ MCreport <- function(obj,
       message("Computing marginal Hessian...")
       Hessian <- optimHess(p_hat, obj$fn, obj$gr) # Hessian of marginal posterior
       Q <- Matrix(Hessian, sparse = TRUE)
+      # Sampling parameter vectors
+      samples <- rgmrf(nSamples, p_hat, Q)
+      # Relisting samples
       par_samples <- lapply(seq_len(nSamples),
                             function(i) {
                               out <- relist_par(x = samples[i, ])

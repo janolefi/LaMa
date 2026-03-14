@@ -89,6 +89,7 @@ getJointPrecision <- function(obj) {
 #' 
 #' @importFrom stats optimHess
 #' @importFrom Matrix Matrix
+#' @importFrom RTMB sdreport
 #'
 #' @examples
 #' step <- trex$step[1:1000] # subsetting trex data
@@ -138,7 +139,11 @@ MCreport <- function(obj,
   
   if(random) {
     if(sample_random_effects) {
-      Q <- getJointPrecision(obj) # build joint precision matrix
+      # Q <- getJointPrecision(obj) # build joint precision matrix
+      
+      # something wrong with my getJointPrecision function, use RTMB
+      Q <- sdreport(obj, getJointPrecision = TRUE,
+                    skip.delta.method = TRUE, getReportCovariance = FALSE)$jointPrecision
     } else{
       # only sample using marginal Hessian
       random_names <- unique(names(p_hat[random_ind]))

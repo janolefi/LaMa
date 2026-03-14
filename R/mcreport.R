@@ -142,6 +142,7 @@ MCreport <- function(obj,
       # Q <- getJointPrecision(obj) # build joint precision matrix
       
       # something wrong with my getJointPrecision function, use RTMB
+      message("Computing marginal Hessian...")
       Q <- sdreport(obj, getJointPrecision = TRUE,
                     skip.delta.method = TRUE, getReportCovariance = FALSE)$jointPrecision
     } else{

@@ -27,7 +27,7 @@ MCreport(obj, nSamples = 1000, include_random_pars = TRUE, report = FALSE, ...)
 
 - report:
 
-  Logical; Should reported quantities be samples as well? Defaults to
+  Logical; Should reported quantities be sampled as well? Defaults to
   `FALSE` because this may be slow depending on your model.
 
 - ...:

@@ -66,7 +66,7 @@ This then yields estimated parameters on their natural scale, allows for conveni
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A model object of class "<code>LaMaModel</code>" containing a list with the reported quantities from the <code>RTMB</code> object, along with log-likelihood, number of parameters, and number of observations.</p>
+    <p>A model object of class "<code>LaMaModel</code>" containing a list with the reported quantities from the <code>RTMB</code> object, along estimated parameters and other quantities.</p>
     </div>
 
     <div class="section level2">
@@ -106,6 +106,20 @@ This then yields estimated parameters on their natural scale, allows for conveni
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">### reporting ###</span></span></span>
 <span class="r-in"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu">report</span><span class="op">(</span><span class="va">obj</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># estimated parameters</span></span></span>
+<span class="r-in"><span><span class="va">mod</span><span class="op">$</span><span class="va">par</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $log_mu</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -1.1595375  0.9430611</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $log_sigma</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -1.5925839  0.4146816</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $eta</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -1.233553 -1.440485</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"check.passed")</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># estimated quantities on natural scale</span></span></span>
 <span class="r-in"><span><span class="va">mod</span><span class="op">$</span><span class="va">mu</span></span></span>

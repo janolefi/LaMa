@@ -21,8 +21,8 @@ report(obj)
 ## Value
 
 A model object of class "`LaMaModel`" containing a list with the
-reported quantities from the `RTMB` object, along with log-likelihood,
-number of parameters, and number of observations.
+reported quantities from the `RTMB` object, along estimated parameters
+and other quantities.
 
 ## Examples
 
@@ -62,6 +62,20 @@ opt <- nlminb(obj$par, obj$fn, obj$gr)
 
 ### reporting ###
 mod <- report(obj)
+
+# estimated parameters
+mod$par
+#> $log_mu
+#> [1] -1.1595375  0.9430611
+#> 
+#> $log_sigma
+#> [1] -1.5925839  0.4146816
+#> 
+#> $eta
+#> [1] -1.233553 -1.440485
+#> 
+#> attr(,"check.passed")
+#> [1] TRUE
 
 # estimated quantities on natural scale
 mod$mu

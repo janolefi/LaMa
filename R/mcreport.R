@@ -33,58 +33,7 @@ rgmrf <- function(n, mean = 0, Q) {
   t(samples)
 }
 
-# Compute joint precision matrix from RTMB model
-# getJointPrecision <- function(obj) {
-#   q_hat <- obj$env$last.par.best  # joint mode
-#   par_names <- names(q_hat)       # parmeter names
-#   n <- length(q_hat)
-#   r <- obj$env$random # index of random effects
-#   nonr <- setdiff(seq_along(q_hat), r) # index of fixed effects
-#   theta_hat <- q_hat[nonr] # mode of fixed effects
-#   
-#   # Hessian block for fixed effects using finite differences
-#   message("Computing marginal Hessian...")
-#   H_Bhat <- stats::optimHess(theta_hat, obj$fn, obj$gr) # Hessian of marginal posterior
-#   
-#   # Hessian of random effects at joint mode using AD.
-#   H_AA <- obj$env$spHess(q_hat, random = TRUE)
-#   
-#   # Second derivatives of the joint posterior at the joint
-#   # mode for the fixed:random effect elements only. Uses AD.
-#   message("Evaluating cross-derivatives...")
-#   H_AB <- obj$env$f(q_hat, order = 1, type = "ADGrad", keepx=nonr, keepy=r) ## TMBad only !!!
-#   H_BA <- t(H_AB)
-#   
-#   # Numerically efficient way to compute H_BA %*% solve(t(H_AA)) %*% H_AB + H_Bhat
-#   # way faster than solve(t(H_AA))
-#   message("Solving system...")
-#   X <- Matrix::solve(H_AA, H_AB)
-#   H_BB <- H_BA %*% X + H_Bhat
-#   
-#   # Building joint precision
-#   Q <- rbind(
-#     cbind(H_AA, H_AB),
-#     cbind(H_BA, H_BB)
-#   )
-#   
-#   rownames(Q) <- colnames(Q) <- par_names
-#   
-#   gc()
-#   
-#   return(Q)
-# }
-
-transpose_samples <- function(x) {
-  n <- length(x)
-  nm <- names(x[[1]])
-  out <- setNames(vector("list", length(nm)), nm)
-  for (k in nm) {
-    out[[k]] <- lapply(x, `[[`, k)
-  }
-  out
-}
-
-
+# helper functions to MCreport()
 transpose_samples <- function(x) {
   nm <- unique(unlist(lapply(x, names)))
   out <- stats::setNames(vector("list", length(nm)), nm)

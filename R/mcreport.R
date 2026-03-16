@@ -56,7 +56,7 @@ append_report_suffix <- function(report_names, par_names, suffix = ".report") {
 #' @param obj Optimised \code{RTMB} object
 #' @param nSamples Number of samples to draw
 #' @param include_random_pars Logical; Should random parameters be included in the output?
-#' @param report Logical; Should reported quantities be samples as well? 
+#' @param report Logical; Should reported quantities be sampled as well? 
 #' Defaults to \code{FALSE} because this may be slow depending on your model.
 #' @param ... For internal use only
 #'

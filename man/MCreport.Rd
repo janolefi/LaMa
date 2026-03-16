@@ -13,7 +13,7 @@ MCreport(obj, nSamples = 1000, include_random_pars = TRUE, report = FALSE, ...)
 
 \item{include_random_pars}{Logical; Should random parameters be included in the output?}
 
-\item{report}{Logical; Should reported quantities be samples as well? 
+\item{report}{Logical; Should reported quantities be sampled as well? 
 Defaults to \code{FALSE} because this may be slow depending on your model.}
 
 \item{...}{For internal use only}

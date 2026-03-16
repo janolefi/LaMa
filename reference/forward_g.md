@@ -110,7 +110,7 @@ forward_g(
 
 ## Value
 
-log-likelihood for given data and parameters
+HMM log-likelihood for given data and parameters
 
 ## See also
 

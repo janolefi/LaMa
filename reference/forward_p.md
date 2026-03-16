@@ -87,7 +87,7 @@ forward_p(
 
 ## Value
 
-log-likelihood for given data and parameters
+HMM log-likelihood for given data and parameters
 
 ## Details
 

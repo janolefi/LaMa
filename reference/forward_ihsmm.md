@@ -104,7 +104,7 @@ forward_ihsmm(
 
 ## Value
 
-log-likelihood for given data and parameters
+HSMM log-likelihood for given data and parameters
 
 ## Details
 

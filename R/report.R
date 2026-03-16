@@ -75,7 +75,7 @@ report <- function(obj) {
   mod$par <- obj$env$parList(par = p_hat)
   
   # assign log-likelihood, number of parameters, and number of observations to the model object
-  mod$ll <- -obj$fn(p_hat)
+  mod$ll <- -obj$fn(par = p_hat)
   mod$df <- length(obj$par)
   mod$nobs <- tryCatch(
     nrow(mod$allprobs),

@@ -43,7 +43,7 @@ Instead of a single vector \code{delta} corresponding to the initial distributio
 \item{report}{logical, indicating whether initial distribution, approximating transition probability matrix and \code{allprobs} matrix should be reported from the fitted model. Defaults to \code{TRUE}.}
 }
 \value{
-log-likelihood for given data and parameters
+HSMM log-likelihood for given data and parameters
 }
 \description{
 Hidden semi-Markov models (HSMMs) are a flexible extension of HMMs, where the state duration distribution is explicitly modelled by a distribution on the positive integers. This function can be used to fit HSMMs where the state-duration distribution and/ or the conditional transition probabilities vary with covariates.

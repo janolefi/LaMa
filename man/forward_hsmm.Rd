@@ -38,7 +38,7 @@ By default, the stationary distribution is computed (which is typically recommen
 \item{report}{logical, indicating whether initial distribution, approximating transition probability matrix and \code{allprobs} matrix should be reported from the fitted model. Defaults to \code{TRUE}.}
 }
 \value{
-log-likelihood for given data and parameters
+HSMM log-likelihood for given data and parameters
 }
 \description{
 Calculates the (approximate) log-likelihood of a sequence of observations under a homogeneous hidden semi-Markov model using a modified \strong{forward algorithm}.

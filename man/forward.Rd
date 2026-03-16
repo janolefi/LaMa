@@ -43,7 +43,7 @@ When there are multiple tracks, for compatibility with downstream functions like
 \item{ad}{optional logical, indicating whether automatic differentiation should be used. Determined automatically and intended only for debugging purposes.}
 }
 \value{
-log-likelihood for given data and parameters
+HMM log-likelihood for given data and parameters
 }
 \description{
 Calculates the log-likelihood of a sequence of observations under a homogeneous hidden Markov model using the \strong{forward algorithm}.

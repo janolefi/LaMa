@@ -44,7 +44,7 @@ Defaults to \code{TRUE}, but only works if \code{ad = TRUE}, as it uses the \cod
 \item{logspace}{logical, indicating whether the probabilities/ densities in the \code{allprobs} matrix are on log-scale. If so, internal computations are also done on log-scale which is numerically more robust when the entries are very small.}
 }
 \value{
-log-likelihood for given data and parameters
+HMM log-likelihood for given data and parameters
 }
 \description{
 Calculates the log-likelihood of a sequence of observations under a hidden Markov model with periodically varying transition probabilities using the \strong{forward algorithm}.

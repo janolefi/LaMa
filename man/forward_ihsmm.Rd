@@ -49,7 +49,7 @@ Hence, when not provided, \code{startInd} is chosen to be \code{max(sapply(dm, n
 \item{report}{logical, indicating whether initial distribution, approximating transition probability matrix and \code{allprobs} matrix should be reported from the fitted model. Defaults to \code{TRUE}.}
 }
 \value{
-log-likelihood for given data and parameters
+HSMM log-likelihood for given data and parameters
 }
 \description{
 Calculates the (approximate) log-likelihood of a sequence of observations under an inhomogeneous hidden semi-Markov model using a modified \strong{forward algorithm}.

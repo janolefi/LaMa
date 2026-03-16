@@ -26,7 +26,7 @@
 #' \code{forward} should only be called \strong{once} with a \code{trackID} argument.
 #' @param ad optional logical, indicating whether automatic differentiation should be used. Determined automatically and intended only for debugging purposes.
 #'
-#' @return log-likelihood for given data and parameters
+#' @return HMM log-likelihood for given data and parameters
 #' @export
 #' @import RTMB
 #'
@@ -407,7 +407,7 @@ forward <- function(delta,
 #' \code{forward_g} should only be called \strong{once} with a \code{trackID} argument.
 #' @param ad optional logical, indicating whether automatic differentiation should be used. Determined automatically and intended only for debugging purposes.
 #' 
-#' @return log-likelihood for given data and parameters
+#' @return HMM log-likelihood for given data and parameters
 #' @export
 #' @import RTMB
 #'
@@ -837,7 +837,7 @@ stateDist_banded <- function(delta, Gamma, bw){
 #' \code{forward_p} should only be called \strong{once} with a \code{trackID} argument.
 #' @param logspace logical, indicating whether the probabilities/ densities in the \code{allprobs} matrix are on log-scale. If so, internal computations are also done on log-scale which is numerically more robust when the entries are very small.
 #'
-#' @return log-likelihood for given data and parameters
+#' @return HMM log-likelihood for given data and parameters
 #' @export
 #' @importFrom RTMB REPORT
 #'
@@ -936,7 +936,7 @@ forward_p <- function(delta,
 #' @param eps small value to avoid numerical issues in the approximating transition matrix construction. Usually, this should not be changed.
 #' @param report logical, indicating whether initial distribution, approximating transition probability matrix and \code{allprobs} matrix should be reported from the fitted model. Defaults to \code{TRUE}.
 #'
-#' @return log-likelihood for given data and parameters
+#' @return HSMM log-likelihood for given data and parameters
 #' @export
 #' @import RTMB
 #'
@@ -1190,7 +1190,7 @@ forward_hsmm <- function(dm, omega, allprobs,
 #' @param eps small value to avoid numerical issues in the approximating transition matrix construction. Usually, this should not be changed.
 #' @param report logical, indicating whether initial distribution, approximating transition probability matrix and \code{allprobs} matrix should be reported from the fitted model. Defaults to \code{TRUE}.
 #'
-#' @return log-likelihood for given data and parameters
+#' @return HSMM log-likelihood for given data and parameters
 #' @export
 #' @import RTMB
 #'
@@ -1549,7 +1549,7 @@ forward_ihsmm <- function(dm, omega, allprobs,
 #' @param eps small value to avoid numerical issues in the approximating transition matrix construction. Usually, this should not be changed.
 #' @param report logical, indicating whether initial distribution, approximating transition probability matrix and \code{allprobs} matrix should be reported from the fitted model. Defaults to \code{TRUE}.
 #'
-#' @return log-likelihood for given data and parameters
+#' @return HSMM log-likelihood for given data and parameters
 #' @export
 #' @import RTMB
 #'

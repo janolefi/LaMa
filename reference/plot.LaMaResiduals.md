@@ -127,11 +127,11 @@ opt = nlminb(obj$par, obj$fn, obj$gr)
 #> outer mgc:  1.790974 
 #> outer mgc:  0.8606995 
 #> outer mgc:  1.553886 
-#> outer mgc:  0.5824252 
+#> outer mgc:  0.5824251 
 #> outer mgc:  0.2281493 
 #> outer mgc:  0.0414528 
 #> outer mgc:  0.02232808 
-#> outer mgc:  0.0191833 
+#> outer mgc:  0.01918331 
 #> outer mgc:  0.02028886 
 #> outer mgc:  0.009637611 
 #> outer mgc:  0.003269403 

@@ -135,7 +135,7 @@ system.time(
   mod <- nlm(nll, par, timediff = timediff, N = 2, stepmax = 10)
 )
 #>    user  system elapsed 
-#>   0.362   0.252   0.313
+#>   0.349   0.241   0.300
 # we often need the stepmax, as the matrix exponential can be numerically unstable
 ```
 
@@ -146,8 +146,8 @@ system.time(
 #> [1]  1.949689 15.083121
 (Q = generator(mod$estimate[3:4]))
 #>            S1         S2
-#> S1 -0.4003955  0.4003955
-#> S2  1.8998848 -1.8998848
+#> S1 -0.4003954  0.4003954
+#> S2  1.8998847 -1.8998847
 (Pi = stationary_cont(Q))
 #>        S1        S2 
 #> 0.8259362 0.1740638
@@ -280,7 +280,7 @@ system.time(
   mod2 <- nlm(nllMark, par, y = marks, timediff = timediff, N = 3, stepmax = 5)
 )
 #>    user  system elapsed 
-#>   5.656   4.564   3.424
+#>   4.974   5.568   3.522
 ```
 
 ### Results
@@ -288,16 +288,16 @@ system.time(
 ``` r
 N = 3
 (lambda = exp(mod2$estimate[1:N]))
-#> [1]  0.9646715  4.8640550 19.5008965
+#> [1]  0.9646715  4.8640549 19.5008965
 (mu = mod2$estimate[N+1:N])
-#> [1] -5.18540508 -0.09097055  4.80538783
+#> [1] -5.18540508 -0.09097056  4.80538783
 (sigma = exp(mod2$estimate[2*N+1:N]))
-#> [1] 1.7931062 0.9644485 2.0093266
+#> [1] 1.7931062 0.9644486 2.0093266
 (Q = generator(mod2$estimate[3*N+1:(N*(N-1))]))
 #>            S1         S2         S3
 #> S1 -0.5909290  0.2788642  0.3120648
-#> S2  0.9258939 -1.1798377  0.2539439
-#> S3  1.1933693  1.2097188 -2.4030882
+#> S2  0.9258937 -1.1798376  0.2539439
+#> S3  1.1933696  1.2097185 -2.4030882
 (Pi = stationary_cont(Q))
 #>        S1        S2        S3 
 #> 0.6296990 0.2609524 0.1093485

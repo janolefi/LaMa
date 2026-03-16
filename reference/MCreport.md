@@ -1,14 +1,14 @@
 # Sample parameters from approximate Gaussian posterior distribution
 
-Efficient Monte Carlo sampling of parameters from the approximate
-posterior of an `RTMB` model. See
+Efficient Monte Carlo sampling of parameters (and `REPORT`ed quantities)
+from the approximate posterior of an `RTMB` model. See
 [sdreport](https://rdrr.io/pkg/TMB/man/sdreport.html) for details on
 posterior variance-covariance in random effects models.
 
 ## Usage
 
 ``` r
-MCreport(obj, nSamples = 1000, sample_random_effects = TRUE)
+MCreport(obj, nSamples = 1000, include_random_pars = TRUE, report = FALSE, ...)
 ```
 
 ## Arguments
@@ -21,10 +21,18 @@ MCreport(obj, nSamples = 1000, sample_random_effects = TRUE)
 
   Number of samples to draw
 
-- sample_random_effects:
+- include_random_pars:
 
-  Logical; should random effects be sampled? Ignored if the model has no
-  random effects.
+  Logical; Should random parameters be included in the output?
+
+- report:
+
+  Logical; Should reported quantities be samples as well? Defaults to
+  `FALSE` because this may be slow depending on your model.
+
+- ...:
+
+  For internal use only
 
 ## Value
 
@@ -42,8 +50,8 @@ nll <- function(par) {
   getAll(par)
   Gamma <- tpm(eta)
   delta <- stationary(Gamma)
-  mu <- exp(log_mu)
-  sigma <- exp(log_sigma)
+  mu <- exp(log_mu); REPORT(mu)
+  sigma <- exp(log_sigma); REPORT(sigma)
   allprobs <- matrix(1, length(step), N)
   for(j in 1:N) allprobs[,j] <- dgamma2(step, mu[j], sigma[j])
   -forward(delta, Gamma, allprobs)
@@ -62,9 +70,7 @@ obj <- MakeADFun(nll, par0, silent = TRUE)
 opt <- nlminb(obj$par, obj$fn, obj$gr)
 
 # sampling from distribution of the MLE
-par_samples <- MCreport(obj, nSamples = 10)
-# each entry has same structure as par0
-
-# e.g. extracting mean samples
-mus <- lapply(par_samples, function(p) exp(p$log_mu))
+samples <- MCreport(obj, nSamples = 10, report = TRUE)
+#> Evaluating Hessian...
+#> Computing reported quantities...
 ```

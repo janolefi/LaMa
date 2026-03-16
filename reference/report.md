@@ -16,7 +16,7 @@ report(obj)
 
 - obj:
 
-  Object returned by `RTMB::MakeADFun()`
+  Optimised `RTMB` object
 
 ## Value
 

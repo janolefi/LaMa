@@ -25,21 +25,7 @@
   algorithm](https://www.taylorfrancis.com/books/mono/10.1201/b20790/hidden-markov-models-time-series-walter-zucchini-iain-macdonald-roland-langrock)
   with homogeneous transition probability matrix
 
-- [`forward2()`](https://janolefi.github.io/LaMa/reference/forward2.md)
-  :
-
-  [Forward
-  algorithm](https://www.taylorfrancis.com/books/mono/10.1201/b20790/hidden-markov-models-time-series-walter-zucchini-iain-macdonald-roland-langrock)
-  with homogeneous transition probability matrix
-
 - [`forward_g()`](https://janolefi.github.io/LaMa/reference/forward_g.md)
-  :
-
-  General [forward
-  algorithm](https://www.taylorfrancis.com/books/mono/10.1201/b20790/hidden-markov-models-time-series-walter-zucchini-iain-macdonald-roland-langrock)
-  with time-varying transition probability matrix
-
-- [`forward_g2()`](https://janolefi.github.io/LaMa/reference/forward_g2.md)
   :
 
   General [forward

@@ -7,7 +7,7 @@
 report(obj)
 }
 \arguments{
-\item{obj}{Object returned by \code{RTMB::MakeADFun()}}
+\item{obj}{Optimised \code{RTMB} object}
 }
 \value{
 A model object of class "\code{LaMaModel}" containing a list with the reported quantities from the \code{RTMB} object, along estimated parameters and other quantities.

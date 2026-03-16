@@ -3,7 +3,7 @@
 #' Having fitted a latent Markov model using automatic differentiation via \code{RTMB}, this function calls \code{RTMB}'s \code{obj$report()} and does some additional processing.
 #' This then yields estimated parameters on their natural scale, allows for convenient calculation of \code{AIC} and \code{BIC}, state-decoding, and residual calculation.
 #'
-#' @param obj Object returned by \code{RTMB::MakeADFun()}
+#' @param obj Optimised \code{RTMB} object
 #'
 #' @returns A model object of class "\code{LaMaModel}" containing a list with the reported quantities from the \code{RTMB} object, along estimated parameters and other quantities.
 #' @export 

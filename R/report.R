@@ -5,7 +5,7 @@
 #'
 #' @param obj Object returned by \code{RTMB::MakeADFun()}
 #'
-#' @returns A model object of class "\code{LaMaModel}" containing a list with the reported quantities from the \code{RTMB} object, along with log-likelihood, number of parameters, and number of observations.
+#' @returns A model object of class "\code{LaMaModel}" containing a list with the reported quantities from the \code{RTMB} object, along estimated parameters and other quantities.
 #' @export 
 #'
 #' @examples
@@ -44,6 +44,9 @@
 #' ### reporting ###
 #' mod <- report(obj)
 #' 
+#' # estimated parameters
+#' mod$par
+#' 
 #' # estimated quantities on natural scale
 #' mod$mu
 #' mod$sigma
@@ -68,8 +71,11 @@ report <- function(obj) {
     error = function(e) stop("Does not seem to be an RTMB object.")
   )
   
+  p_hat <- obj$env$last.par.best
+  mod$par <- obj$env$parList(par = p_hat)
+  
   # assign log-likelihood, number of parameters, and number of observations to the model object
-  mod$ll <- -obj$fn()
+  mod$ll <- -obj$fn(p_hat)
   mod$df <- length(obj$par)
   mod$nobs <- tryCatch(
     nrow(mod$allprobs),

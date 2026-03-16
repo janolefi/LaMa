@@ -10,7 +10,7 @@ report(obj)
 \item{obj}{Object returned by \code{RTMB::MakeADFun()}}
 }
 \value{
-A model object of class "\code{LaMaModel}" containing a list with the reported quantities from the \code{RTMB} object, along with log-likelihood, number of parameters, and number of observations.
+A model object of class "\code{LaMaModel}" containing a list with the reported quantities from the \code{RTMB} object, along estimated parameters and other quantities.
 }
 \description{
 Having fitted a latent Markov model using automatic differentiation via \code{RTMB}, this function calls \code{RTMB}'s \code{obj$report()} and does some additional processing.
@@ -51,6 +51,9 @@ opt <- nlminb(obj$par, obj$fn, obj$gr)
 
 ### reporting ###
 mod <- report(obj)
+
+# estimated parameters
+mod$par
 
 # estimated quantities on natural scale
 mod$mu

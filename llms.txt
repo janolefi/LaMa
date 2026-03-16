@@ -136,7 +136,7 @@ system.time(
   mod <- nlm(nll, par, step = trex$step)
 )
 #>    user  system elapsed 
-#>   0.356   0.013   0.374
+#>   0.359   0.014   0.399
 ```
 
 Really fast for 10.000 data points!

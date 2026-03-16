@@ -9,7 +9,7 @@ status](https://www.r-pkg.org/badges/version/LaMa)](https://CRAN.R-project.org/p
 downloads](https://cranlogs.r-pkg.org/badges/last-month/LaMa)](https://cran.r-project.org/package=LaMa)
 [![total
 downloads](https://cranlogs.r-pkg.org:443/badges/grand-total/LaMa)](https://cranlogs.r-pkg.org:443/badges/grand-total/LaMa)
-[![R-CMD-check](https://github.com/janoleko/LaMa/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/janoleko/LaMa/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/janolefi/LaMa/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/janolefi/LaMa/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 A variety of **latent Markov models**
@@ -161,7 +161,7 @@ system.time(
   mod <- nlm(nll, par, step = trex$step)
 )
 #>    user  system elapsed 
-#>   0.356   0.013   0.374
+#>   0.359   0.014   0.399
 ```
 
 Really fast for 10.000 data points!

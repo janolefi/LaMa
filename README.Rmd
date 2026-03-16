@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 [![CRAN status](https://www.r-pkg.org/badges/version/LaMa)](https://CRAN.R-project.org/package=LaMa)
 [![metacran downloads](https://cranlogs.r-pkg.org/badges/last-month/LaMa)](https://cran.r-project.org/package=LaMa)
 [![total downloads](https://cranlogs.r-pkg.org:443/badges/grand-total/LaMa)]( https://cranlogs.r-pkg.org:443/badges/grand-total/LaMa)
-[![R-CMD-check](https://github.com/janoleko/LaMa/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/janoleko/LaMa/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/janolefi/LaMa/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/janolefi/LaMa/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 A variety of **latent Markov models** <a href="https://journals.sagepub.com/doi/abs/10.1177/1471082X251355681" target="_blank">[@mews2024build]</a>, including **hidden Markov models** (HMMs), **hidden semi-Markov models** (HSMMs), **state-space models** (SSMs) 

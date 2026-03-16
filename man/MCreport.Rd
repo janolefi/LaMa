@@ -4,20 +4,25 @@
 \alias{MCreport}
 \title{Sample parameters from approximate Gaussian posterior distribution}
 \usage{
-MCreport(obj, nSamples = 1000, sample_random_effects = TRUE)
+MCreport(obj, nSamples = 1000, include_random_pars = TRUE, report = FALSE, ...)
 }
 \arguments{
 \item{obj}{Optimised \code{RTMB} object}
 
 \item{nSamples}{Number of samples to draw}
 
-\item{sample_random_effects}{Logical; should random effects be sampled? Ignored if the model has no random effects.}
+\item{include_random_pars}{Logical; Should random parameters be included in the output?}
+
+\item{report}{Logical; Should reported quantities be samples as well? 
+Defaults to \code{FALSE} because this may be slow depending on your model.}
+
+\item{...}{For internal use only}
 }
 \value{
 A list of parameter samples, each structured like the initial parameter list from \link[RTMB]{MakeADFun}
 }
 \description{
-Efficient Monte Carlo sampling of parameters from the approximate posterior of an \code{RTMB} model.
+Efficient Monte Carlo sampling of parameters (and \code{REPORT}ed quantities) from the approximate posterior of an \code{RTMB} model.
 See \link[TMB]{sdreport} for details on posterior variance-covariance in random effects models.
 }
 \examples{
@@ -29,8 +34,8 @@ nll <- function(par) {
   getAll(par)
   Gamma <- tpm(eta)
   delta <- stationary(Gamma)
-  mu <- exp(log_mu)
-  sigma <- exp(log_sigma)
+  mu <- exp(log_mu); REPORT(mu)
+  sigma <- exp(log_sigma); REPORT(sigma)
   allprobs <- matrix(1, length(step), N)
   for(j in 1:N) allprobs[,j] <- dgamma2(step, mu[j], sigma[j])
   -forward(delta, Gamma, allprobs)
@@ -48,9 +53,5 @@ obj <- MakeADFun(nll, par0, silent = TRUE)
 opt <- nlminb(obj$par, obj$fn, obj$gr)
 
 # sampling from distribution of the MLE
-par_samples <- MCreport(obj, nSamples = 10)
-# each entry has same structure as par0
-
-# e.g. extracting mean samples
-mus <- lapply(par_samples, function(p) exp(p$log_mu))
+samples <- MCreport(obj, nSamples = 10, report = TRUE)
 }

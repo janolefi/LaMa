@@ -34,55 +34,82 @@ rgmrf <- function(n, mean = 0, Q) {
 }
 
 # Compute joint precision matrix from RTMB model
-getJointPrecision <- function(obj) {
-  q_hat <- obj$env$last.par.best  # joint mode
-  par_names <- names(q_hat)       # parmeter names
-  n <- length(q_hat)
-  r <- obj$env$random # index of random effects
-  nonr <- setdiff(seq_along(q_hat), r) # index of fixed effects
-  theta_hat <- q_hat[nonr] # mode of fixed effects
-  
-  # Hessian block for fixed effects using finite differences
-  message("Computing marginal Hessian...")
-  H_Bhat <- stats::optimHess(theta_hat, obj$fn, obj$gr) # Hessian of marginal posterior
-  
-  # Hessian of random effects at joint mode using AD.
-  H_AA <- obj$env$spHess(q_hat, random = TRUE)
-  
-  # Second derivatives of the joint posterior at the joint
-  # mode for the fixed:random effect elements only. Uses AD.
-  message("Evaluating cross-derivatives...")
-  H_AB <- obj$env$f(q_hat, order = 1, type = "ADGrad", keepx=nonr, keepy=r) ## TMBad only !!!
-  H_BA <- t(H_AB)
-  
-  # Numerically efficient way to compute H_BA %*% solve(t(H_AA)) %*% H_AB + H_Bhat
-  # way faster than solve(t(H_AA))
-  message("Solving system...")
-  X <- Matrix::solve(H_AA, H_AB)
-  H_BB <- H_BA %*% X + H_Bhat
-  
-  # Building joint precision
-  Q <- rbind(
-    cbind(H_AA, H_AB),
-    cbind(H_BA, H_BB)
-  )
-  
-  rownames(Q) <- colnames(Q) <- par_names
-  
-  gc()
-  
-  return(Q)
+# getJointPrecision <- function(obj) {
+#   q_hat <- obj$env$last.par.best  # joint mode
+#   par_names <- names(q_hat)       # parmeter names
+#   n <- length(q_hat)
+#   r <- obj$env$random # index of random effects
+#   nonr <- setdiff(seq_along(q_hat), r) # index of fixed effects
+#   theta_hat <- q_hat[nonr] # mode of fixed effects
+#   
+#   # Hessian block for fixed effects using finite differences
+#   message("Computing marginal Hessian...")
+#   H_Bhat <- stats::optimHess(theta_hat, obj$fn, obj$gr) # Hessian of marginal posterior
+#   
+#   # Hessian of random effects at joint mode using AD.
+#   H_AA <- obj$env$spHess(q_hat, random = TRUE)
+#   
+#   # Second derivatives of the joint posterior at the joint
+#   # mode for the fixed:random effect elements only. Uses AD.
+#   message("Evaluating cross-derivatives...")
+#   H_AB <- obj$env$f(q_hat, order = 1, type = "ADGrad", keepx=nonr, keepy=r) ## TMBad only !!!
+#   H_BA <- t(H_AB)
+#   
+#   # Numerically efficient way to compute H_BA %*% solve(t(H_AA)) %*% H_AB + H_Bhat
+#   # way faster than solve(t(H_AA))
+#   message("Solving system...")
+#   X <- Matrix::solve(H_AA, H_AB)
+#   H_BB <- H_BA %*% X + H_Bhat
+#   
+#   # Building joint precision
+#   Q <- rbind(
+#     cbind(H_AA, H_AB),
+#     cbind(H_BA, H_BB)
+#   )
+#   
+#   rownames(Q) <- colnames(Q) <- par_names
+#   
+#   gc()
+#   
+#   return(Q)
+# }
+
+transpose_samples <- function(x) {
+  n <- length(x)
+  nm <- names(x[[1]])
+  out <- setNames(vector("list", length(nm)), nm)
+  for (k in nm) {
+    out[[k]] <- lapply(x, `[[`, k)
+  }
+  out
 }
 
 
+transpose_samples <- function(x) {
+  nm <- unique(unlist(lapply(x, names)))
+  out <- stats::setNames(vector("list", length(nm)), nm)
+  for(k in nm) {
+    out[[k]] <- lapply(x, function(el) el[[k]])
+  }
+  out
+}
+append_report_suffix <- function(report_names, par_names, suffix = ".report") {
+  ind <- report_names %in% par_names
+  report_names[ind] <- paste0(report_names[ind], suffix)
+  report_names
+}
+
 #' Sample parameters from approximate Gaussian posterior distribution
 #' 
-#' Efficient Monte Carlo sampling of parameters from the approximate posterior of an \code{RTMB} model.
+#' Efficient Monte Carlo sampling of parameters (and \code{REPORT}ed quantities) from the approximate posterior of an \code{RTMB} model.
 #' See \link[TMB]{sdreport} for details on posterior variance-covariance in random effects models.
 #'
 #' @param obj Optimised \code{RTMB} object
 #' @param nSamples Number of samples to draw
-#' @param sample_random_effects Logical; should random effects be sampled? Ignored if the model has no random effects.
+#' @param include_random_pars Logical; Should random parameters be included in the output?
+#' @param report Logical; Should reported quantities be samples as well? 
+#' Defaults to \code{FALSE} because this may be slow depending on your model.
+#' @param ... For internal use only
 #'
 #' @returns A list of parameter samples, each structured like the initial parameter list from \link[RTMB]{MakeADFun}
 #' @export
@@ -100,8 +127,8 @@ getJointPrecision <- function(obj) {
 #'   getAll(par)
 #'   Gamma <- tpm(eta)
 #'   delta <- stationary(Gamma)
-#'   mu <- exp(log_mu)
-#'   sigma <- exp(log_sigma)
+#'   mu <- exp(log_mu); REPORT(mu)
+#'   sigma <- exp(log_sigma); REPORT(sigma)
 #'   allprobs <- matrix(1, length(step), N)
 #'   for(j in 1:N) allprobs[,j] <- dgamma2(step, mu[j], sigma[j])
 #'   -forward(delta, Gamma, allprobs)
@@ -119,53 +146,41 @@ getJointPrecision <- function(obj) {
 #' opt <- nlminb(obj$par, obj$fn, obj$gr)
 #' 
 #' # sampling from distribution of the MLE
-#' par_samples <- MCreport(obj, nSamples = 10)
-#' # each entry has same structure as par0
-#' 
-#' # e.g. extracting mean samples
-#' mus <- lapply(par_samples, function(p) exp(p$log_mu))
+#' samples <- MCreport(obj, nSamples = 10, report = TRUE)
 MCreport <- function(obj, 
-                     nSamples = 1000, 
-                     sample_random_effects = TRUE) {
+                     nSamples = 1000,
+                     include_random_pars = TRUE,
+                     report = FALSE,
+                     ...) {
+  if(nSamples < 1) stop("At least one sample needs to be drawn")
+  
   # Function to map parameter vector to list
   relist_par <- obj$env$parList
-  
-  # Are random effects present?
-  random_ind <- obj$env$random # index of random effects
-  random <- !is.null(random_ind)
   
   # MLE or c(MLE, predicted random effects)
   p_hat <- obj$env$last.par.best
   
+  # Are random effects present?
+  random_ind <- obj$env$random # index of random effects
+  random <- !is.null(random_ind)
+  random_names <- unique(names(p_hat[random_ind]))
+  
+  # Quantities to exclude when REPORT sampling
+  excl <- c("allprobs", "type", "trackID")
+  # Should allprobs be included?
+  dots <- list(...)
+  include_allprobs <- isTRUE(dots$include_allprobs)
+  if(include_allprobs) excl <- setdiff(excl, "allprobs")
+  
   if(random) {
-    if(sample_random_effects) {
-      # Q <- getJointPrecision(obj) # build joint precision matrix
-      
-      # something wrong with my getJointPrecision function, use RTMB
-      message("Computing marginal Hessian...")
-      Q <- sdreport(obj, getJointPrecision = TRUE,
-                    skip.delta.method = TRUE, getReportCovariance = FALSE)$jointPrecision
-    } else{
-      # only sample using marginal Hessian
-      random_names <- unique(names(p_hat[random_ind]))
-      fixed_ind <- setdiff(seq_along(p_hat), random_ind) # index of fixed effects
-      p_hat <- p_hat[fixed_ind]
-      message("Computing marginal Hessian...")
-      Hessian <- optimHess(p_hat, obj$fn, obj$gr) # Hessian of marginal posterior
-      Q <- Matrix(Hessian, sparse = TRUE)
-      # Sampling parameter vectors
-      samples <- rgmrf(nSamples, p_hat, Q)
-      # Relisting samples
-      par_samples <- lapply(seq_len(nSamples),
-                            function(i) {
-                              out <- relist_par(x = samples[i, ])
-                              out[!names(out) %in% random_names]
-                            })
-      return(par_samples)
-    }
-    
+    # model with random effects -> use joint precision approx from TMB
+    message("Computing joint precision...")
+    Q <- sdreport(obj, getJointPrecision = TRUE,
+                  skip.delta.method = TRUE, getReportCovariance = FALSE)$jointPrecision
   } else {
-    Hessian <- obj$he(obj$env$last.par.best)
+    # model without random effects -> use Hessian
+    message("Evaluating Hessian...")
+    Hessian <- obj$he(p_hat)
     Q <- Matrix(Hessian, sparse = TRUE)
   }
   
@@ -173,12 +188,33 @@ MCreport <- function(obj,
   samples <- rgmrf(nSamples, p_hat, Q)
   
   # Relisting samples
-  par_samples <- lapply(seq_len(nSamples),
-                        function(i) {
-                          relist_par(par = samples[i, ])
-                        })
+  par_samples <- lapply(seq_len(nSamples), function(i) {
+    p <- samples[i, ]
+    relist_par(par = p)
+  })
+  # nicer shape: named list outside
+  par_samples <- transpose_samples(par_samples)
   
-  gc() # cleaning up
+  if(!include_random_pars && random) {
+    par_samples <- par_samples[!names(par_samples) %in% random_names]
+  }
+  
+  if(report) {
+    message("Computing reported quantities...")
+    report_samples <- lapply(seq_len(nSamples), function(i) {
+      p <- samples[i, ]
+      r <- obj$report(par = p)
+      r[!names(r) %in% excl] # exclude large, unnecessary quantities
+    })
+    # nicer shape: named list outside
+    report_samples <- transpose_samples(report_samples)
+    # adding .report to names when par and report share names to avoid collision when merging
+    names(report_samples) <- append_report_suffix(names(report_samples),names(par_samples))
+    # merging
+    par_samples <- c(par_samples, report_samples)
+  }
   
   return(par_samples)
 }
+
+

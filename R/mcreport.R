@@ -29,7 +29,7 @@ rgmrf <- function(n, mean = 0, Q) {
   # adding mean
   samples <- as.matrix(u) + mean
   
-  # returning transposed (rows = samples, columsn = dimensions)
+  # returning transposed (rows = samples, columns = dimensions)
   t(samples)
 }
 

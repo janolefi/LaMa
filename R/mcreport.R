@@ -149,6 +149,7 @@ MCreport <- function(obj,
     par_samples <- par_samples[!names(par_samples) %in% random_names]
   }
   
+  # if report = TRUE, call obj$report() on each sampled parameter vector
   if(report) {
     message("Computing reported quantities...")
     report_samples <- lapply(seq_len(nSamples), function(i) {

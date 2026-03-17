@@ -13,13 +13,13 @@ MCreport(obj, nSamples = 1000, include_random_pars = TRUE, report = FALSE, ...)
 
 \item{include_random_pars}{Logical; Should random parameters be included in the output?}
 
-\item{report}{Logical; Should reported quantities be sampled as well? 
+\item{report}{Logical; Should \code{REPORT}ed quantities be sampled as well? 
 Defaults to \code{FALSE} because this may be slow depending on your model.}
 
 \item{...}{For internal use only}
 }
 \value{
-A list of parameter samples, each structured like the initial parameter list from \link[RTMB]{MakeADFun}
+A list structured like the original parameter list used in the \link[RTMB]{MakeADFun} call (potentially including additional \code{REPORT}ed quantities). Each entry is a list with \code{nSamples} entries.
 }
 \description{
 Efficient Monte Carlo sampling of parameters (and \code{REPORT}ed quantities) from the approximate posterior of an \code{RTMB} model.

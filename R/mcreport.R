@@ -56,11 +56,12 @@ append_report_suffix <- function(report_names, par_names, suffix = ".report") {
 #' @param obj Optimised \code{RTMB} object
 #' @param nSamples Number of samples to draw
 #' @param include_random_pars Logical; Should random parameters be included in the output?
-#' @param report Logical; Should reported quantities be sampled as well? 
+#' @param report Logical; Should \code{REPORT}ed quantities be sampled as well? 
 #' Defaults to \code{FALSE} because this may be slow depending on your model.
 #' @param ... For internal use only
 #'
-#' @returns A list of parameter samples, each structured like the initial parameter list from \link[RTMB]{MakeADFun}
+#' @returns A list structured like the original parameter list used in the \link[RTMB]{MakeADFun} call (potentially including additional \code{REPORT}ed quantities). Each entry is a list with \code{nSamples} entries.
+#' 
 #' @export
 #' 
 #' @importFrom stats optimHess

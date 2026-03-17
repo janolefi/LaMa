@@ -27,7 +27,7 @@ MCreport(obj, nSamples = 1000, include_random_pars = TRUE, report = FALSE, ...)
 
 - report:
 
-  Logical; Should reported quantities be sampled as well? Defaults to
+  Logical; Should `REPORT`ed quantities be sampled as well? Defaults to
   `FALSE` because this may be slow depending on your model.
 
 - ...:
@@ -36,8 +36,9 @@ MCreport(obj, nSamples = 1000, include_random_pars = TRUE, report = FALSE, ...)
 
 ## Value
 
-A list of parameter samples, each structured like the initial parameter
-list from MakeADFun
+A list structured like the original parameter list used in the MakeADFun
+call (potentially including additional `REPORT`ed quantities). Each
+entry is a list with `nSamples` entries.
 
 ## Examples
 

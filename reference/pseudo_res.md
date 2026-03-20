@@ -183,7 +183,7 @@ par = list(logitGamma = c(-2,-2),
            logSigma = log(c(0.3, 0.5)))
            
 obj = MakeADFun(nll, par, silent = TRUE)
-#> Performance tip: Consider running `TapeConfig(matmul = 'plain')` before `MakeADFun()` to speed up the forward algorithm.
+#> Performance tip: Consider running TapeConfig(matmul = 'plain') before MakeADFun() to speed up the forward algorithm.
 opt = nlminb(obj$par, obj$fn, obj$gr)
 
 mod = obj$report()

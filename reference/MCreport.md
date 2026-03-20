@@ -65,7 +65,7 @@ par0 <- list(eta = rep(-2,2),
     
 # constructing AD object        
 obj <- MakeADFun(nll, par0, silent = TRUE)
-#> Performance tip: Consider running `TapeConfig(matmul = 'plain')` before `MakeADFun()` to speed up the forward algorithm.
+#> Performance tip: Consider running TapeConfig(matmul = 'plain') before MakeADFun() to speed up the forward algorithm.
 
 # optimising
 opt <- nlminb(obj$par, obj$fn, obj$gr)

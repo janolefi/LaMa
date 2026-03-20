@@ -119,7 +119,7 @@ dat = list(
 
 ## creating AD function
 obj = MakeADFun(nll, par, silent = TRUE) # creating the objective function
-#> Performance tip: Consider running `TapeConfig(matmul = 'plain')` before `MakeADFun()` to speed up the forward algorithm.
+#> Performance tip: Consider running TapeConfig(matmul = 'plain') before MakeADFun() to speed up the forward algorithm.
 
 ## optimising
 opt = nlminb(obj$par, obj$fn, obj$gr) # optimization
@@ -129,7 +129,7 @@ opt = nlminb(obj$par, obj$fn, obj$gr) # optimization
 sdrMC = sdreportMC(obj, 
                    what = c("mu", "delta"), 
                    nSamples = 50)
-#> Performance tip: Consider running `TapeConfig(matmul = 'plain')` before `MakeADFun()` to speed up the forward algorithm.
+#> Performance tip: Consider running TapeConfig(matmul = 'plain') before MakeADFun() to speed up the forward algorithm.
 #> Sampling reported quantities...
 dim(sdrMC$delta)
 #> [1] 50  2

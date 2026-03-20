@@ -1,6 +1,5 @@
 # HMMs, ct-HMMs and MMPPs -------------------------------------------------
 
-
 #' \href{https://www.taylorfrancis.com/books/mono/10.1201/b20790/hidden-markov-models-time-series-walter-zucchini-iain-macdonald-roland-langrock}{Forward algorithm} with homogeneous transition probability matrix
 #' 
 #' Calculates the log-likelihood of a sequence of observations under a homogeneous hidden Markov model using the \strong{forward algorithm}.
@@ -194,12 +193,12 @@ forward <- function(delta,
     # printing suggestion to change TapeConfig
     cfg <- RTMB::TapeConfig()
     if(cfg$matmul != "plain" & nStates <= 5) {
-      cat("Performance tip: Consider running `TapeConfig(matmul = 'plain')` before `MakeADFun()` to speed up the forward algorithm.\n")
+      message("Performance tip: Consider running TapeConfig(matmul = 'plain') before MakeADFun() to speed up the forward algorithm.\n")
     }
     if(cfg$matmul == "plain" & nStates > 50) {
       msg <- paste0("Your model has a lot of states (", nStates, "). ",
-                    "Run `TapeConfig(matmul = 'atomic')` or `TapeConfig(matmul = 'compact')` before `MakeADFun()` to speed up the forward algorithm.\n")
-    cat(msg)
+                    "Run TapeConfig(matmul = 'atomic') or TapeConfig(matmul = 'compact') before MakeADFun() to speed up the forward algorithm.\n")
+      message(msg)
     }
     
     # AD overloading to avoid trouble 
@@ -596,12 +595,12 @@ forward_g <- function(delta,
     # printing suggestion to change TapeConfig
     cfg <- RTMB::TapeConfig()
     if(cfg$matmul != "plain" & nStates <= 5) {
-      cat("Performance tip: Consider running `TapeConfig(matmul = 'plain')` before `MakeADFun()` to speed up the forward algorithm.\n")
+      message("Performance tip: Consider running TapeConfig(matmul = 'plain') before MakeADFun() to speed up the forward algorithm.\n")
     }
     if(cfg$matmul == "plain" & nStates > 50) {
       msg <- paste0("Your model has a lot of states (", nStates, "). ",
-                    "Run `TapeConfig(matmul = 'atomic')` or `TapeConfig(matmul = 'compact')` before `MakeADFun()` to speed up the forward algorithm.\n")
-      cat(msg)
+                    "Run TapeConfig(matmul = 'atomic') or TapeConfig(matmul = 'compact') before MakeADFun() to speed up the forward algorithm.\n")
+      message(msg)
     }
     
     # AD overloading to avoid trouble 

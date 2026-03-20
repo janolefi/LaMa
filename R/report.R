@@ -66,12 +66,18 @@
 #'                    list(mean = mod$mu, sd = mod$sigma), # parameters for that family
 #'                    mod = mod) # model object
 report <- function(obj) {
-  mod <- tryCatch(
-    obj$report(),
+  
+  # get best parameter vector (potentially including random effects) from object
+  p_hat <- tryCatch(
+    obj$env$last.par.best,
     error = function(e) stop("Does not seem to be an RTMB object.")
   )
+  mod <- tryCatch(
+    obj$report(par = p_hat),
+    error = function(e) stop("Does not seem to be an RTMB object.")
+  )
+  # Now trust that it is RTMB object
   
-  p_hat <- obj$env$last.par.best
   mod$par <- obj$env$parList(par = p_hat)
   
   # assign log-likelihood, number of parameters, and number of observations to the model object

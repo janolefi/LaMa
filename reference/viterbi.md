@@ -1,7 +1,7 @@
-# Viterbi algorithm for state decoding in homogeneous HMMs
+# Viterbi algorithm for state decoding in HMMs
 
-The Viterbi algorithm allows one to decode the most probable state
-sequence of an HMM.
+The Viterbi algorithm decodes the most probable state sequence of an
+HMM.
 
 ## Usage
 
@@ -13,45 +13,50 @@ viterbi(delta, Gamma, allprobs, trackID = NULL, mod = NULL)
 
 - delta:
 
-  initial distribution of length N, or matrix of dimension c(k,N) for k
-  independent tracks, if `trackID` is provided
+  initial distribution; either
+
+  - a vector of length `nStates`, or
+
+  - a matrix of dimension `c(nTracks, nStates)` if `trackID` is provided
 
 - Gamma:
 
-  transition probability matrix of dimension c(N,N) or array of
-  transition probability matrices of dimension c(N,N,k) if `trackID` is
-  provided
+  transition probability matrix; either
+
+  - a matrix of dimension `c(nStates, nStates)`,
+
+  - an array of dimension `c(nStates, nStates, nTracks)` if `trackID` is
+    provided, or
+
+  - an array of dimension `c(nStates, nStates, nObs)` for time-varying
+    transition probabilities, in which case
+    [`viterbi_g`](https://janolefi.github.io/LaMa/reference/viterbi_g.md)
+    is called internally
 
 - allprobs:
 
-  matrix of state-dependent probabilities/ density values of dimension
-  c(n, N)
+  matrix of state-dependent probabilities or density values of dimension
+  `c(nObs, nStates)`
 
 - trackID:
 
-  optional vector of k track IDs, if multiple tracks need to be decoded
-  separately
+  optional vector of length `nObs` containing `nTracks` unique IDs that
+  separate tracks
 
 - mod:
 
-  optional model object containing initial distribution `delta`,
-  transition probability matrix `Gamma`, matrix of state-dependent
-  probabilities `allprobs`, and potentially a `trackID` variable
-
-  If you are using automatic differentiation either with
-  `RTMB::MakeADFun` or
-  [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md) and
-  include
+  optional model object containing `delta`, `Gamma`, `allprobs`, and
+  optionally `trackID`. When using `RTMB::MakeADFun` or
+  [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md) with
   [`forward`](https://janolefi.github.io/LaMa/reference/forward.md) in
-  your likelihood function, the objects needed for state decoding are
-  automatically reported after model fitting. Hence, you can pass the
-  model object obtained from running `RTMB::report()` or from
-  [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md) directly
-  to this function.
+  the likelihood, these are reported automatically after model fitting
+  and the object returned by `RTMB::report()` or
+  [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md) can be
+  passed directly.
 
 ## Value
 
-vector of decoded states of length n
+vector of decoded states of length `nObs`
 
 ## See also
 

@@ -285,7 +285,6 @@ pnll = function(par) {
 # model fitting
 mod = qreml(pnll, par, dat, random = "betaspline")
 #> Creating AD function
-#> Performance tip: Consider running TapeConfig(matmul = 'plain') before MakeADFun() to speed up the forward algorithm.
 #> Initialising with lambda: 10 10 
 #> outer 1 - lambda: 5.545 5.001 
 #> outer 2 - lambda: 3.289 3.001 
@@ -319,12 +318,15 @@ mod = qreml(pnll, par, dat, random = "betaspline")
 #> outer 30 - lambda: 0.488 0.101 
 #> outer 31 - lambda: 0.488 0.099 
 #> outer 32 - lambda: 0.489 0.097 
-#> outer 33 - lambda: 0.489 0.096 
-#> outer 34 - lambda: 0.489 0.095 
-#> outer 35 - lambda: 0.49 0.094 
+#> outer 33 - lambda: 0.489 0.097 
+#> outer 34 - lambda: 0.489 0.096 
+#> outer 35 - lambda: 0.49 0.095 
 #> outer 36 - lambda: 0.49 0.094 
-#> outer 37 - lambda: 0.49 0.093 
+#> outer 37 - lambda: 0.49 0.094 
 #> outer 38 - lambda: 0.49 0.093 
+#> outer 39 - lambda: 0.49 0.093 
+#> outer 40 - lambda: 0.49 0.093 
+#> outer 41 - lambda: 0.49 0.093 
 #> Converged
 #> Final model fit with lambda: 0.49 0.093 
 ```

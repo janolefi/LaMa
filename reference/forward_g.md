@@ -1,8 +1,8 @@
-# General [forward algorithm](https://www.taylorfrancis.com/books/mono/10.1201/b20790/hidden-markov-models-time-series-walter-zucchini-iain-macdonald-roland-langrock) with time-varying transition probability matrix
+# Forward algorithm with time-varying transition probability matrix
 
 Calculates the log-likelihood of a sequence of observations under a
 hidden Markov model with time-varying transition probabilities using the
-**forward algorithm**.
+**forward algorithm** (Zucchini, MacDonald & Langrock, 2016).
 
 ## Usage
 
@@ -23,94 +23,87 @@ forward_g(
 
 - delta:
 
-  initial or stationary distribution of length `N`, or matrix of
-  dimension `c(k,N)` for `k` independent tracks, if `trackID` is
-  provided
+  initial distribution; either
+
+  - a vector of length `nStates`, or
+
+  - a matrix of dimension `c(nTracks, nStates)`, if `trackID` is
+    provided.
 
 - Gamma:
 
-  array of transition probability matrices of dimension `c(N,N,n-1)`, as
-  in a time series of length `n`, there are only `n-1` transitions.
+  array of transition probability matrices of dimension
+  `c(nStates, nStates, nObs)`, where the first slice of each track is
+  ignored as there is no transition into the start of a track.
 
-  If an array of dimension `c(N,N,n)` for a single track is provided,
-  the first slice will be ignored.
+  For a single track, an array of dimension
+  `c(nStates, nStates, nObs-1)` is also accepted.
 
-  If the elements of \\\Gamma^{(t)}\\ depend on covariate values at t or
-  covariates \\t+1\\ is your choice in the calculation of the array,
-  prior to using this function. When conducting the calculation by using
-  [`tpm_g()`](https://janolefi.github.io/LaMa/reference/tpm_g.md), the
-  choice comes down to including the covariate matrix `Z[-1,]` oder
-  `Z[-n,]`.
-
-  If `trackID` is provided, Gamma needs to be an array of dimension
-  `c(N,N,n)`, matching the number of rows of allprobs. For each track,
-  the transition matrix at the beginning will be ignored. If the
-  parameters for Gamma are pooled across tracks or not, depends on your
-  calculation of Gamma. If pooled, you can use `tpm_g(Z, beta)` to
-  calculate the entire array of transition matrices when `Z` is of
-  dimension `c(n,p)`.  
-
-  This function can also be used to fit continuous-time HMMs, where each
-  array entry is the Markov semigroup \\\Gamma(\Delta t) = \exp(Q \Delta
-  t)\\ and \\Q\\ is the generator of the continuous-time Markov chain.
+  This function also supports continuous-time HMMs, where each slice is
+  a Markov semigroup \\\Gamma(\Delta t) = \exp(Q \Delta t)\\ for
+  generator \\Q\\.
 
 - allprobs:
 
-  matrix of state-dependent probabilities/ density values of dimension
-  `c(n, N)`
+  matrix of state-dependent probabilities or density values of dimension
+  `c(nObs, nStates)`
 
 - trackID:
 
-  optional vector of length `n` containing IDs that separate tracks.
-
-  If provided, the total log-likelihood will be the sum of each track's
-  likelihood contribution. In this case, `Gamma` must be an array of
-  dimension `c(N,N,n)`, matching the number of rows of allprobs. For
-  each track, the transition matrix at the beginning of the track will
-  be ignored (as there is no transition between tracks). Furthermore,
-  instead of a single vector `delta` corresponding to the initial
-  distribution, a `delta` matrix of initial distributions, of dimension
-  `c(k,N)`, can be provided, such that each track starts with it's own
-  initial distribution.
+  optional vector of length `nObs` containing `nTracks` unique IDs that
+  separate tracks (see ‘Details’).
 
 - logspace:
 
-  logical, indicating whether the probabilities/ densities in the
-  `allprobs` matrix are on log-scale. If so, internal computations are
-  also done on log-scale which is numerically more robust when the
-  entries are very small. Note that this is only supported when used in
-  AD mode with `RTMB`.
+  logical; if `TRUE`, `allprobs` is assumed to be on the log-scale,
+  improving numerical stability for small probabilities. Only supported
+  with `RTMB`.
 
 - bw:
 
-  optional integer, indicating the bandwidth for a banded approximation
-  of the forward algorithm. This is for expert users only, if sparsity
-  in the Hessian matrix w.r.t. observations is required.
+  optional positive integer specifying the bandwidth for a banded
+  approximation of the forward algorithm, inducing a banded Hessian
+  w.r.t. the observations. Defaults to `NULL` (exact algorithm).
+  Approximation error decays geometrically in `bw`.
 
 - report:
 
-  logical, indicating whether `delta`, `Gamma`, `allprobs`, and
-  potentially `trackID` should be reported from the fitted model.
-  Defaults to `TRUE`, but only works if `ad = TRUE`, as it uses the
-  `RTMB` package.
-
-  When there are multiple tracks, for compatibility with downstream
-  functions like
-  [`viterbi_g`](https://janolefi.github.io/LaMa/reference/viterbi_g.md),
-  [`stateprobs_g`](https://janolefi.github.io/LaMa/reference/stateprobs_g.md)
-  or
-  [`pseudo_res`](https://janolefi.github.io/LaMa/reference/pseudo_res.md),
-  `forward_g` should only be called **once** with a `trackID` argument.
+  logical; if `TRUE` (default), `delta`, `Gamma`, `allprobs`, and
+  `trackID` are reported from the fitted model. Requires `ad = TRUE`.
 
 - ad:
 
-  optional logical, indicating whether automatic differentiation should
-  be used. Determined automatically and intended only for debugging
-  purposes.
+  logical; whether to use automatic differentiation. Determined
+  automatically — for debugging only.
 
 ## Value
 
 HMM log-likelihood for given data and parameters
+
+## Details
+
+If `trackID` is provided, the total log-likelihood will be the sum of
+each track's likelihood contribution. In this case, `Gamma` must be an
+array of dimension `c(nStates, nStates, nObs)`, matching the number of
+rows of allprobs. For each track, the transition matrix at the beginning
+of the track will be ignored (as there is no transition between tracks).
+Additionally, `delta` can be a vector (same initial distribution for
+each track) or a matrix of dimension `c(nTracks, nStates)` (different
+initial distribution for each track).
+
+**Note:** When there are multiple tracks, for compatibility with
+downstream functions like
+[`viterbi_g`](https://janolefi.github.io/LaMa/reference/viterbi_g.md),
+[`stateprobs_g`](https://janolefi.github.io/LaMa/reference/stateprobs_g.md)
+or
+[`pseudo_res`](https://janolefi.github.io/LaMa/reference/pseudo_res.md),
+`forward_g` should only be called **once** with a `trackID` argument.
+
+## References
+
+Zucchini, W., MacDonald, I.L., & Langrock, R. (2016). *Hidden Markov
+Models for Time Series: An Introduction Using R* (2nd ed.). Chapman &
+Hall/CRC.
 
 ## See also
 

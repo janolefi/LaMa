@@ -57,7 +57,6 @@ nll <- function(par) {
 
 # automatic differentiation and optimisation
 obj <- MakeADFun(nll, par, silent = TRUE)
-#> Performance tip: Consider running TapeConfig(matmul = 'plain') before MakeADFun() to speed up the forward algorithm.
 opt <- nlminb(obj$par, obj$fn, obj$gr)
 
 ### reporting ###

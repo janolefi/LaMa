@@ -20,17 +20,10 @@
   Reparametrised multivariate Gaussian distribution
 
 - [`forward()`](https://janolefi.github.io/LaMa/reference/forward.md) :
-
-  [Forward
-  algorithm](https://www.taylorfrancis.com/books/mono/10.1201/b20790/hidden-markov-models-time-series-walter-zucchini-iain-macdonald-roland-langrock)
-  with homogeneous transition probability matrix
+  Forward algorithm to calculate the HMM log-likelihood
 
 - [`forward_g()`](https://janolefi.github.io/LaMa/reference/forward_g.md)
-  :
-
-  General [forward
-  algorithm](https://www.taylorfrancis.com/books/mono/10.1201/b20790/hidden-markov-models-time-series-walter-zucchini-iain-macdonald-roland-langrock)
-  with time-varying transition probability matrix
+  : Forward algorithm with time-varying transition probability matrix
 
 - [`forward_hsmm()`](https://janolefi.github.io/LaMa/reference/forward_hsmm.md)
   :
@@ -189,7 +182,7 @@
   : Build the design and penalty matrices for smooth density estimation
 
 - [`stateprobs()`](https://janolefi.github.io/LaMa/reference/stateprobs.md)
-  : Calculate conditional local state probabilities for homogeneous HMMs
+  : Calculate conditional local state probabilities in HMMs
 
 - [`stateprobs_g()`](https://janolefi.github.io/LaMa/reference/stateprobs_g.md)
   : Calculate conditional local state probabilities for inhomogeneous
@@ -279,7 +272,7 @@
   : Compute the design matrix for a trigonometric basis expansion
 
 - [`viterbi()`](https://janolefi.github.io/LaMa/reference/viterbi.md) :
-  Viterbi algorithm for state decoding in homogeneous HMMs
+  Viterbi algorithm for state decoding in HMMs
 
 - [`viterbi_g()`](https://janolefi.github.io/LaMa/reference/viterbi_g.md)
   : Viterbi algorithm for state decoding in inhomogeneous HMMs

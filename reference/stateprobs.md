@@ -1,6 +1,7 @@
-# Calculate conditional local state probabilities for homogeneous HMMs
+# Calculate conditional local state probabilities in HMMs
 
-Computes \$\$\Pr(S_t = j \mid X_1, ..., X_T)\$\$ for homogeneous HMMs
+Computes \$\$\Pr(\text{State}\_t = j \mid X_1, ..., X_T)\$\$ for a given
+HMM.
 
 ## Usage
 
@@ -19,58 +20,56 @@ stateprobs(
 
 - delta:
 
-  initial or stationary distribution of length N, or matrix of dimension
-  c(k,N) for k independent tracks, if `trackID` is provided
+  initial distribution; either
+
+  - a vector of length `nStates`, or
+
+  - a matrix of dimension `c(nTracks, nStates)` if `trackID` is provided
 
 - Gamma:
 
-  transition probability matrix of dimension c(N,N), or array of k
-  transition probability matrices of dimension c(N,N,k), if `trackID` is
-  provided
+  transition probability matrix; either
+
+  - a matrix of dimension `c(nStates, nStates)`,
+
+  - an array of dimension `c(nStates, nStates, nTracks)` if `trackID` is
+    provided, or
+
+  - an array of dimension `c(nStates, nStates, nObs)` for time-varying
+    transition probabilities, in which case
+    [`stateprobs_g`](https://janolefi.github.io/LaMa/reference/stateprobs_g.md)
+    is called internally
 
 - allprobs:
 
-  matrix of state-dependent probabilities/ density values of dimension
-  c(n, N)
+  matrix of state-dependent probabilities or density values of dimension
+  `c(nObs, nStates)`
 
 - trackID:
 
-  optional vector of length n containing IDs
-
-  If provided, the total log-likelihood will be the sum of each track's
-  likelihood contribution. In this case, `Gamma` can be a matrix,
-  leading to the same transition probabilities for each track, or an
-  array of dimension c(N,N,k), with one (homogeneous) transition
-  probability matrix for each track. Furthermore, instead of a single
-  vector `delta` corresponding to the initial distribution, a `delta`
-  matrix of initial distributions, of dimension c(k,N), can be provided,
-  such that each track starts with it's own initial distribution.
+  optional vector of length `nObs` containing `nTracks` unique IDs that
+  separate tracks
 
 - mod:
 
-  optional model object containing initial distribution `delta`,
-  transition probability matrix `Gamma`, matrix of state-dependent
-  probabilities `allprobs`, and potentially a `trackID` variable
-
-  If you are using automatic differentiation either with
-  `RTMB::MakeADFun` or
-  [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md) and
-  include
+  optional model object containing `delta`, `Gamma`, `allprobs`, and
+  optionally `trackID`. When using `RTMB::MakeADFun` or
+  [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md) with
   [`forward`](https://janolefi.github.io/LaMa/reference/forward.md) in
-  your likelihood function, the objects needed for state decoding are
-  automatically reported after model fitting. Hence, you can pass the
-  model object obtained from running `RTMB::report()` or from
-  [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md) directly
-  to this function.
+  the likelihood, these are reported automatically after model fitting
+  and the object returned by `RTMB::report()` or
+  [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md) can be
+  passed directly.
 
 - forecast:
 
-  logical, indicating if forecast probabilities \\\Pr(S_t = j \mid X_1,
-  ..., X_t)\\ should be calculated instead.
+  logical, indicating if forecast probabilities \\\Pr(\text{State}\_t =
+  j \mid X_1, ..., X_t)\\ should be calculated instead.
 
 ## Value
 
-matrix of conditional state probabilities of dimension c(n,N)
+matrix of conditional state probabilities of dimension
+`c(nObs, nStates)`
 
 ## See also
 

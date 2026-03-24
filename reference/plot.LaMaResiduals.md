@@ -86,7 +86,6 @@ par = list(logitGamma = c(-2,-2),
            logKappa = log(c(0.2, 1)))
            
 obj = MakeADFun(nll, par)
-#> Performance tip: Consider running TapeConfig(matmul = 'plain') before MakeADFun() to speed up the forward algorithm.
 opt = nlminb(obj$par, obj$fn, obj$gr)
 #> outer mgc:  1346.261 
 #> outer mgc:  327.3472 

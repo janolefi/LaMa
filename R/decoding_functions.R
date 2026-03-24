@@ -3,22 +3,38 @@
 # Global decoding ---------------------------------------------------------
 
 
-#' Viterbi algorithm for state decoding in homogeneous HMMs
-#' 
-#' The Viterbi algorithm allows one to decode the most probable state sequence of an HMM.
-#' 
+#' Viterbi algorithm for state decoding in HMMs
+#'
+#' The Viterbi algorithm decodes the most probable state sequence of an HMM.
+#'
 #' @family decoding functions
 #'
-#' @param delta initial distribution of length N, or matrix of dimension c(k,N) for k independent tracks, if \code{trackID} is provided
-#' @param Gamma transition probability matrix of dimension c(N,N) or array of transition probability matrices of dimension c(N,N,k) if \code{trackID} is provided
-#' @param allprobs matrix of state-dependent probabilities/ density values of dimension c(n, N)
-#' @param trackID optional vector of k track IDs, if multiple tracks need to be decoded separately
-#' @param mod optional model object containing initial distribution \code{delta}, transition probability matrix \code{Gamma}, matrix of state-dependent probabilities \code{allprobs}, and potentially a \code{trackID} variable
-#' 
-#' If you are using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
-#' Hence, you can pass the model object obtained from running \code{RTMB::report()} or from \code{\link{qreml}} directly to this function.
+#' @param delta 
+#' initial distribution; either
+#'   \itemize{
+#'     \item a vector of length \code{nStates}, or
+#'     \item a matrix of dimension \code{c(nTracks, nStates)} if \code{trackID} is provided
+#'   }
+#' @param Gamma 
+#' transition probability matrix; either
+#'   \itemize{
+#'     \item a matrix of dimension \code{c(nStates, nStates)},
+#'     \item an array of dimension \code{c(nStates, nStates, nTracks)} if \code{trackID} is provided, or
+#'     \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities, in which case \code{\link{viterbi_g}} is called internally
+#'   }
+#' @param allprobs 
+#' matrix of state-dependent probabilities or density values of dimension \code{c(nObs, nStates)}
 #'
-#' @return vector of decoded states of length n
+#' @param trackID 
+#' optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks
+#'
+#' @param mod 
+#' optional model object containing \code{delta}, \code{Gamma}, \code{allprobs}, and
+#'   optionally \code{trackID}. When using \code{RTMB::MakeADFun} or \code{\link{qreml}} with
+#'   \code{\link{forward}} in the likelihood, these are reported automatically after model fitting
+#'   and the object returned by \code{RTMB::report()} or \code{\link{qreml}} can be passed directly.
+#'
+#' @return vector of decoded states of length \code{nObs}
 #' @export
 #'
 #' @examples
@@ -51,6 +67,11 @@ viterbi = function(delta, Gamma, allprobs, trackID = NULL,
   n = nrow(allprobs)
   N = ncol(allprobs)
   
+  # Handle time-varying Gamma by dispatching to forward_g
+  if (is.array(Gamma) && length(dim(Gamma)) == 3 && (dim(Gamma)[3] == n | dim(Gamma)[3] == n-1)) {
+    return(viterbi_g(delta, Gamma, allprobs, trackID = trackID))
+  }
+  
   # inflating Gamma to use viterbi_g
   if(is.null(trackID)){
     if(length(dim(Gamma)) > 2){
@@ -78,25 +99,36 @@ viterbi = function(delta, Gamma, allprobs, trackID = NULL,
 
 
 #' Viterbi algorithm for state decoding in inhomogeneous HMMs
-#' 
-#' The Viterbi algorithm allows one to decode the most probable state sequence of an HMM.
-#' 
-#' @family decoding functions
-#' 
-#' @param delta initial distribution of length N, or matrix of dimension c(k,N) for k independent tracks, if \code{trackID} is provided
-#' @param Gamma array of transition probability matrices of dimension c(N,N,n-1), as in a time series of length n, there are only n-1 transitions
-#' 
-#' If an array of dimension c(N,N,n) is provided for a single track, the first slice will be ignored.
-#' 
-#' If \code{trackID} is provided, \code{Gamma} needs to be an array of dimension c(N,N,n), where n is the number of rows in \code{allprobs}. Then for each track the first transition matrix will be ignored.
-#' @param allprobs matrix of state-dependent probabilities/ density values of dimension c(n, N)
-#' @param trackID optional vector of k track IDs, if multiple tracks need to be decoded separately
-#' @param mod optional model object containing initial distribution \code{delta}, transition probability matrix \code{Gamma}, matrix of state-dependent probabilities \code{allprobs}, and potentially a \code{trackID} variable
-#' 
-#' If you are using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward_g}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
-#' Hence, you can pass the model object obtained from running \code{RTMB::report()} or from \code{\link{qreml}} directly to this function.
 #'
-#' @return vector of decoded states of length n
+#' The Viterbi algorithm decodes the most probable state sequence of an HMM.
+#'
+#' @family decoding functions
+#'
+#' @param delta 
+#' initial distribution; either
+#'   \itemize{
+#'     \item a vector of length \code{nStates}, or
+#'     \item a matrix of dimension \code{c(nTracks, nStates)} if \code{trackID} is provided
+#'   }
+#'
+#' @param Gamma 
+#' array of transition probability matrices of dimension \code{c(nStates, nStates, nObs)},
+#'   where the first slice of each track is ignored as there is no transition into the start of a track.
+#'   For a single track, an array of dimension \code{c(nStates, nStates, nObs-1)} is also accepted.
+#'
+#' @param allprobs 
+#' matrix of state-dependent probabilities or density values of dimension \code{c(nObs, nStates)}
+#'
+#' @param trackID 
+#' optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks
+#'
+#' @param mod 
+#' optional model object containing \code{delta}, \code{Gamma}, \code{allprobs}, and
+#'   optionally \code{trackID}. When using \code{RTMB::MakeADFun} or \code{\link{qreml}} with
+#'   \code{\link{forward_g}} in the likelihood, these are reported automatically after model fitting
+#'   and the object returned by \code{RTMB::report()} or \code{\link{qreml}} can be passed directly.
+#'
+#' @return vector of decoded states of length \code{nObs}
 #' @export
 #'
 #' @examples
@@ -188,7 +220,7 @@ viterbi_g = function(delta, Gamma, allprobs, trackID = NULL,
     }
     
     if(dim(Gamma)[3]==n){
-      message("Igoring the first slice of Gamma, as there are only n-1 transitions in a time series of length n.")
+      # message("Igoring the first slice of Gamma, as there are only n-1 transitions in a time series of length n.")
       # not using the first slice of Gamma, if n slices are provided
       Gamma = Gamma[,,-1]
     }
@@ -279,29 +311,43 @@ viterbi_p = function(delta, Gamma, allprobs, tod, trackID = NULL,
 # Local decoding ----------------------------------------------------------
 
 
-#' Calculate conditional local state probabilities for homogeneous HMMs
+#' Calculate conditional local state probabilities in HMMs
 #' 
 #' Computes
-#' \deqn{\Pr(S_t = j \mid X_1, ..., X_T)}
-#' for homogeneous HMMs
+#' \deqn{\Pr(\text{State}_t = j \mid X_1, ..., X_T)}
+#' for a given HMM.
 #'
 #' @family decoding functions
 #' 
-#' @param delta initial or stationary distribution of length N, or matrix of dimension c(k,N) for k independent tracks, if \code{trackID} is provided
-#' @param Gamma transition probability matrix of dimension c(N,N), or array of k transition probability matrices of dimension c(N,N,k), if \code{trackID} is provided
-#' @param allprobs matrix of state-dependent probabilities/ density values of dimension c(n, N)
-#' @param trackID optional vector of length n containing IDs
+#' @param delta 
+#' initial distribution; either
+#'   \itemize{
+#'     \item a vector of length \code{nStates}, or
+#'     \item a matrix of dimension \code{c(nTracks, nStates)} if \code{trackID} is provided
+#'   }
+#' @param Gamma 
+#' transition probability matrix; either
+#'   \itemize{
+#'     \item a matrix of dimension \code{c(nStates, nStates)},
+#'     \item an array of dimension \code{c(nStates, nStates, nTracks)} if \code{trackID} is provided, or
+#'     \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities, in which case \code{\link{stateprobs_g}} is called internally
+#'   }
+#' @param allprobs 
+#' matrix of state-dependent probabilities or density values of dimension \code{c(nObs, nStates)}
+#'
+#' @param trackID 
+#' optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks
+#'
+#' @param mod 
+#' optional model object containing \code{delta}, \code{Gamma}, \code{allprobs}, and
+#'   optionally \code{trackID}. When using \code{RTMB::MakeADFun} or \code{\link{qreml}} with
+#'   \code{\link{forward}} in the likelihood, these are reported automatically after model fitting
+#'   and the object returned by \code{RTMB::report()} or \code{\link{qreml}} can be passed directly.
+#'
+#' @param forecast 
+#' logical, indicating if forecast probabilities \eqn{\Pr(\text{State}_t = j \mid X_1, ..., X_t)} should be calculated instead.
 #' 
-#' If provided, the total log-likelihood will be the sum of each track's likelihood contribution.
-#' In this case, \code{Gamma} can be a matrix, leading to the same transition probabilities for each track, or an array of dimension c(N,N,k), with one (homogeneous) transition probability matrix for each track.
-#' Furthermore, instead of a single vector \code{delta} corresponding to the initial distribution, a \code{delta} matrix of initial distributions, of dimension c(k,N), can be provided, such that each track starts with it's own initial distribution.
-#' @param mod optional model object containing initial distribution \code{delta}, transition probability matrix \code{Gamma}, matrix of state-dependent probabilities \code{allprobs}, and potentially a \code{trackID} variable
-#' 
-#' If you are using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
-#' Hence, you can pass the model object obtained from running \code{RTMB::report()} or from \code{\link{qreml}} directly to this function.
-#' @param forecast logical, indicating if forecast probabilities \eqn{\Pr(S_t = j \mid X_1, ..., X_t)} should be calculated instead.
-#' 
-#' @return matrix of conditional state probabilities of dimension c(n,N)
+#' @return matrix of conditional state probabilities of dimension \code{c(nObs, nStates)}
 #' @export
 #'
 #' @examples
@@ -335,6 +381,11 @@ stateprobs = function(delta, Gamma, allprobs, trackID = NULL,
   n = nrow(allprobs)
   N = ncol(allprobs)
   
+  # Handle time-varying Gamma by dispatching to forward_g
+  if (is.array(Gamma) && length(dim(Gamma)) == 3 && (dim(Gamma)[3] == n | dim(Gamma)[3] == n-1)) {
+    return(stateprobs_g(delta, Gamma, allprobs, trackID = trackID))
+  }
+  
   # inflating Gamma to use stateprobs_g
   if(is.null(trackID)){
     Gammanew = array(Gamma, dim = c(N, N, n-1))
@@ -362,26 +413,39 @@ stateprobs = function(delta, Gamma, allprobs, trackID = NULL,
 #' Calculate conditional local state probabilities for inhomogeneous HMMs
 #' 
 #' Computes
-#' \deqn{\Pr(S_t = j \mid X_1, ..., X_T)}
+#' \deqn{\Pr(\text{State}_t = j \mid X_1, ..., X_T)}
 #' for inhomogeneous HMMs
 #' 
 #' @family decoding functions
 #' 
-#' @param delta initial or stationary distribution of length N, or matrix of dimension c(k,N) for k independent tracks, if \code{trackID} is provided
-#' @param Gamma array of transition probability matrices of dimension c(N,N,n-1), as in a time series of length n, there are only n-1 transitions
-#' 
-#' If an array of dimension c(N,N,n) for a single track is provided, the first slice will be ignored.
-#' 
-#' If \code{trackID} is provided, \code{Gamma} needs to be an array of dimension c(N,N,n), where n is the number of rows in \code{allprobs}. Then for each track the first transition matrix will be ignored.
-#' @param allprobs matrix of state-dependent probabilities/ density values of dimension c(n, N)
-#' @param trackID optional vector of k track IDs, if multiple tracks need to be decoded separately
-#' @param mod optional model object containing initial distribution \code{delta}, transition probability matrix \code{Gamma}, matrix of state-dependent probabilities \code{allprobs}, and potentially a \code{trackID} variable
-#' 
-#' If you are using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward_g}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
-#' Hence, you can pass the model object obtained from running \code{RTMB::report()} or from \code{\link{qreml}} directly to this function.
-#' @param forecast logical, indicating if forecast probabilities \eqn{\Pr(S_t = j \mid X_1, ..., X_t)} should be calculated instead.
+#' @param delta 
+#' initial distribution; either
+#'   \itemize{
+#'     \item a vector of length \code{nStates}, or
+#'     \item a matrix of dimension \code{c(nTracks, nStates)} if \code{trackID} is provided
+#'   }
 #'
-#' @return matrix of conditional state probabilities of dimension c(n,N)
+#' @param Gamma 
+#' array of transition probability matrices of dimension \code{c(nStates, nStates, nObs)},
+#'   where the first slice of each track is ignored as there is no transition into the start of a track.
+#'   For a single track, an array of dimension \code{c(nStates, nStates, nObs-1)} is also accepted.
+#'
+#' @param allprobs 
+#' matrix of state-dependent probabilities or density values of dimension \code{c(nObs, nStates)}
+#'
+#' @param trackID 
+#' optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks
+#'
+#' @param mod 
+#' optional model object containing \code{delta}, \code{Gamma}, \code{allprobs}, and
+#'   optionally \code{trackID}. When using \code{RTMB::MakeADFun} or \code{\link{qreml}} with
+#'   \code{\link{forward_g}} in the likelihood, these are reported automatically after model fitting
+#'   and the object returned by \code{RTMB::report()} or \code{\link{qreml}} can be passed directly.
+#'
+#' @param forecast 
+#' logical, indicating if forecast probabilities \eqn{\Pr(\text{State}_t = j \mid X_1, ..., X_t)} should be calculated instead.
+#'
+#' @return matrix of conditional state probabilities of dimension \code{c(nObs, nStates)}
 #' @export
 #'
 #' @examples
@@ -506,7 +570,7 @@ stateprobs_g = function(delta, Gamma, allprobs, trackID = NULL,
     }
     
     if(dim(Gamma)[3] == n){
-      message("Igoring the first slice of Gamma, as there are only n-1 transitions in a time series of length n.")
+      # message("Igoring the first slice of Gamma, as there are only n-1 transitions in a time series of length n.")
       # not using the first slice of Gamma, if n slices are provided
       Gamma = Gamma[,,-1]
     }

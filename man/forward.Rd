@@ -2,7 +2,7 @@
 % Please edit documentation in R/forward_algorithms.R
 \name{forward}
 \alias{forward}
-\title{\href{https://www.taylorfrancis.com/books/mono/10.1201/b20790/hidden-markov-models-time-series-walter-zucchini-iain-macdonald-roland-langrock}{Forward algorithm} with homogeneous transition probability matrix}
+\title{Forward algorithm to calculate the HMM log-likelihood}
 \usage{
 forward(
   delta,
@@ -16,37 +16,52 @@ forward(
 )
 }
 \arguments{
-\item{delta}{initial or stationary distribution of length \code{N}, or matrix of dimension \code{c(k,N)} for \code{k} independent tracks, if \code{trackID} is provided}
+\item{delta}{initial distribution; either
+\itemize{
+  \item a vector of length \code{nStates}, or
+  \item a matrix of dimension \code{c(nTracks, nStates)}, if \code{trackID} is provided.
+}}
 
-\item{Gamma}{transition probability matrix of dimension \code{c(N,N)}, or array of \code{k} transition probability matrices of dimension \code{c(N,N,k)}, if \code{trackID} is provided}
+\item{Gamma}{transition probability matrix; either
+\itemize{
+  \item a matrix of dimension \code{c(nStates, nStates)}, or
+  \item an array of dimension \code{c(nStates, nStates, nTracks)} if \code{trackID} is provided, or
+  \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities, in which case \code{\link{forward_g}} is called internally.
+}}
 
-\item{allprobs}{matrix of state-dependent probabilities/ density values of dimension \code{c(n, N)}}
+\item{allprobs}{matrix of state-dependent probabilities or density values of dimension \code{c(nObs, nStates)}}
 
-\item{trackID}{optional vector of length \code{n} containing IDs that separate tracks.
+\item{trackID}{optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks (see \sQuote{Details}).}
 
-If provided, the total log-likelihood will be the sum of each track's likelihood contribution.
-In this case, \code{Gamma} can be a matrix, leading to the same transition probabilities for each track, or an array of dimension \code{c(N,N,k)}, with one (homogeneous) transition probability matrix for each track.
-Furthermore, instead of a single vector \code{delta} corresponding to the initial distribution, a \code{delta} matrix of initial distributions, of dimension \code{c(k,N)}, can be provided, such that each track starts with it's own initial distribution.}
+\item{logspace}{logical; if \code{TRUE}, \code{allprobs} is assumed to be on the log-scale, improving numerical stability for small probabilities. Only supported with \code{RTMB}.}
 
-\item{logspace}{logical, indicating whether the probabilities/ densities in the \code{allprobs} matrix are on log-scale. 
-If so, internal computations are also done on log-scale which is numerically more robust when the entries are very small.
-Note that this is only supported when used in AD mode with \code{RTMB}.}
+\item{bw}{optional positive integer specifying the bandwidth for a banded approximation of the forward algorithm, inducing a banded Hessian w.r.t. the observations. 
+Defaults to \code{NULL} (exact algorithm). Approximation error decays geometrically in \code{bw}.}
 
-\item{bw}{optional integer, indicating the bandwidth for a banded approximation of the forward algorithm. This is for expert users only, if sparsity in the Hessian matrix w.r.t. observations is required.}
+\item{report}{logical; if \code{TRUE} (default), \code{delta}, \code{Gamma}, \code{allprobs}, and \code{trackID} are reported from the fitted model. Requires \code{ad = TRUE}.}
 
-\item{report}{logical, indicating whether \code{delta}, \code{Gamma}, \code{allprobs}, and potentially \code{trackID} should be reported from the fitted model. 
-Defaults to \code{TRUE}, but only works if \code{ad = TRUE}, as it uses the \code{RTMB} package. 
-
-When there are multiple tracks, for compatibility with downstream functions like \code{\link{viterbi}}, \code{\link{stateprobs}} or \code{\link{pseudo_res}}, 
-\code{forward} should only be called \strong{once} with a \code{trackID} argument.}
-
-\item{ad}{optional logical, indicating whether automatic differentiation should be used. Determined automatically and intended only for debugging purposes.}
+\item{ad}{logical; whether to use automatic differentiation. Determined automatically — for debugging only.}
 }
 \value{
 HMM log-likelihood for given data and parameters
 }
 \description{
-Calculates the log-likelihood of a sequence of observations under a homogeneous hidden Markov model using the \strong{forward algorithm}.
+Calculates the log-likelihood of a sequence of observations under a hidden Markov model
+using the \strong{forward algorithm} (Zucchini, MacDonald & Langrock, 2016).
+}
+\details{
+If \code{trackID} is provided, the total log-likelihood is the sum of each track's likelihood
+contribution. In this case, \code{Gamma} can be
+  \itemize{
+    \item a matrix (same transition probabilities for each track),
+    \item an array of dimension \code{c(nStates, nStates, nTracks)} (track-specific transition probability matrix), or
+    \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities, in which case \code{\link{forward_g}} is called internally.
+  }
+Additionally, \code{delta} can be a vector (same initial distribution for each track) or a
+matrix of dimension \code{c(nTracks, nStates)} (track-specific initial distributions).
+
+\strong{Note:} When there are multiple tracks, for compatibility with downstream functions like \code{\link{viterbi}}, \code{\link{stateprobs}} or \code{\link{pseudo_res}}, 
+\code{forward} should only be called \strong{once} with a \code{trackID} argument.
 }
 \examples{
 ## negative log likelihood function
@@ -69,6 +84,10 @@ par = c(-2,-2,            # initial tpm params (logit-scale)
         log(c(0.3, 2.5)), # initial means for step length (log-transformed)
         log(c(0.2, 1.5))) # initial sds for step length (log-transformed)
 mod = nlm(nll, par, step = trex$step[1:1000])
+}
+\references{
+Zucchini, W., MacDonald, I.L., & Langrock, R. (2016). \emph{Hidden Markov Models for
+  Time Series: An Introduction Using R} (2nd ed.). Chapman & Hall/CRC.
 }
 \seealso{
 Other forward algorithms: 

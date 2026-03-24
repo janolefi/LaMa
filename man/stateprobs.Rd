@@ -2,7 +2,7 @@
 % Please edit documentation in R/decoding_functions.R
 \name{stateprobs}
 \alias{stateprobs}
-\title{Calculate conditional local state probabilities for homogeneous HMMs}
+\title{Calculate conditional local state probabilities in HMMs}
 \usage{
 stateprobs(
   delta,
@@ -14,32 +14,37 @@ stateprobs(
 )
 }
 \arguments{
-\item{delta}{initial or stationary distribution of length N, or matrix of dimension c(k,N) for k independent tracks, if \code{trackID} is provided}
+\item{delta}{initial distribution; either
+\itemize{
+  \item a vector of length \code{nStates}, or
+  \item a matrix of dimension \code{c(nTracks, nStates)} if \code{trackID} is provided
+}}
 
-\item{Gamma}{transition probability matrix of dimension c(N,N), or array of k transition probability matrices of dimension c(N,N,k), if \code{trackID} is provided}
+\item{Gamma}{transition probability matrix; either
+\itemize{
+  \item a matrix of dimension \code{c(nStates, nStates)},
+  \item an array of dimension \code{c(nStates, nStates, nTracks)} if \code{trackID} is provided, or
+  \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities, in which case \code{\link{stateprobs_g}} is called internally
+}}
 
-\item{allprobs}{matrix of state-dependent probabilities/ density values of dimension c(n, N)}
+\item{allprobs}{matrix of state-dependent probabilities or density values of dimension \code{c(nObs, nStates)}}
 
-\item{trackID}{optional vector of length n containing IDs
+\item{trackID}{optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks}
 
-If provided, the total log-likelihood will be the sum of each track's likelihood contribution.
-In this case, \code{Gamma} can be a matrix, leading to the same transition probabilities for each track, or an array of dimension c(N,N,k), with one (homogeneous) transition probability matrix for each track.
-Furthermore, instead of a single vector \code{delta} corresponding to the initial distribution, a \code{delta} matrix of initial distributions, of dimension c(k,N), can be provided, such that each track starts with it's own initial distribution.}
+\item{mod}{optional model object containing \code{delta}, \code{Gamma}, \code{allprobs}, and
+optionally \code{trackID}. When using \code{RTMB::MakeADFun} or \code{\link{qreml}} with
+\code{\link{forward}} in the likelihood, these are reported automatically after model fitting
+and the object returned by \code{RTMB::report()} or \code{\link{qreml}} can be passed directly.}
 
-\item{mod}{optional model object containing initial distribution \code{delta}, transition probability matrix \code{Gamma}, matrix of state-dependent probabilities \code{allprobs}, and potentially a \code{trackID} variable
-
-If you are using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
-Hence, you can pass the model object obtained from running \code{RTMB::report()} or from \code{\link{qreml}} directly to this function.}
-
-\item{forecast}{logical, indicating if forecast probabilities \eqn{\Pr(S_t = j \mid X_1, ..., X_t)} should be calculated instead.}
+\item{forecast}{logical, indicating if forecast probabilities \eqn{\Pr(\text{State}_t = j \mid X_1, ..., X_t)} should be calculated instead.}
 }
 \value{
-matrix of conditional state probabilities of dimension c(n,N)
+matrix of conditional state probabilities of dimension \code{c(nObs, nStates)}
 }
 \description{
 Computes
-\deqn{\Pr(S_t = j \mid X_1, ..., X_T)}
-for homogeneous HMMs
+\deqn{\Pr(\text{State}_t = j \mid X_1, ..., X_T)}
+for a given HMM.
 }
 \examples{
 Gamma = tpm(c(-1,-2))

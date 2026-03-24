@@ -7,28 +7,30 @@
 viterbi_g(delta, Gamma, allprobs, trackID = NULL, mod = NULL)
 }
 \arguments{
-\item{delta}{initial distribution of length N, or matrix of dimension c(k,N) for k independent tracks, if \code{trackID} is provided}
+\item{delta}{initial distribution; either
+\itemize{
+  \item a vector of length \code{nStates}, or
+  \item a matrix of dimension \code{c(nTracks, nStates)} if \code{trackID} is provided
+}}
 
-\item{Gamma}{array of transition probability matrices of dimension c(N,N,n-1), as in a time series of length n, there are only n-1 transitions
+\item{Gamma}{array of transition probability matrices of dimension \code{c(nStates, nStates, nObs)},
+where the first slice of each track is ignored as there is no transition into the start of a track.
+For a single track, an array of dimension \code{c(nStates, nStates, nObs-1)} is also accepted.}
 
-If an array of dimension c(N,N,n) is provided for a single track, the first slice will be ignored.
+\item{allprobs}{matrix of state-dependent probabilities or density values of dimension \code{c(nObs, nStates)}}
 
-If \code{trackID} is provided, \code{Gamma} needs to be an array of dimension c(N,N,n), where n is the number of rows in \code{allprobs}. Then for each track the first transition matrix will be ignored.}
+\item{trackID}{optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks}
 
-\item{allprobs}{matrix of state-dependent probabilities/ density values of dimension c(n, N)}
-
-\item{trackID}{optional vector of k track IDs, if multiple tracks need to be decoded separately}
-
-\item{mod}{optional model object containing initial distribution \code{delta}, transition probability matrix \code{Gamma}, matrix of state-dependent probabilities \code{allprobs}, and potentially a \code{trackID} variable
-
-If you are using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward_g}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
-Hence, you can pass the model object obtained from running \code{RTMB::report()} or from \code{\link{qreml}} directly to this function.}
+\item{mod}{optional model object containing \code{delta}, \code{Gamma}, \code{allprobs}, and
+optionally \code{trackID}. When using \code{RTMB::MakeADFun} or \code{\link{qreml}} with
+\code{\link{forward_g}} in the likelihood, these are reported automatically after model fitting
+and the object returned by \code{RTMB::report()} or \code{\link{qreml}} can be passed directly.}
 }
 \value{
-vector of decoded states of length n
+vector of decoded states of length \code{nObs}
 }
 \description{
-The Viterbi algorithm allows one to decode the most probable state sequence of an HMM.
+The Viterbi algorithm decodes the most probable state sequence of an HMM.
 }
 \examples{
 delta = c(0.5, 0.5)

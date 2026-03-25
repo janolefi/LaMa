@@ -117,9 +117,9 @@ strength `lambda`.
 
 ``` r
 par = list(logmu = log(c(0.3, 2.5)), # state-dependent mean step
-           logsigma = log(c(0.2, 1.5)), # state-dependent sd step
-           logkappa = log(c(0.2, 1.5)), # state-dependent concentration angle
-           beta0 = c(-2, 2), # state process intercepts
+           logsigma = log(c(0.3, 2)), # state-dependent sd step
+           logkappa = log(c(0.1, 2)), # state-dependent concentration angle
+           beta0 = c(-2, -2), # state process intercepts
            betaSpline = matrix(rep(0, 2*(ncol(Z)-1)), nrow = 2)) # spline coefs
 
 dat = list(step = trex$step, # observed steps
@@ -187,23 +187,22 @@ system.time(
 )
 #> Creating AD function
 #> Initialising with lambda: 100 100 
-#> outer 1 - lambda: 32.051 31.828 
-#> outer 2 - lambda: 10.555 10.748 
-#> outer 3 - lambda: 3.659 3.977 
-#> outer 4 - lambda: 1.41 1.589 
-#> outer 5 - lambda: 0.669 0.693 
-#> outer 6 - lambda: 0.426 0.347 
-#> outer 7 - lambda: 0.346 0.21 
-#> outer 8 - lambda: 0.32 0.153 
-#> outer 9 - lambda: 0.312 0.129 
-#> outer 10 - lambda: 0.309 0.119 
-#> outer 11 - lambda: 0.308 0.114 
-#> outer 12 - lambda: 0.308 0.112 
-#> outer 13 - lambda: 0.308 0.112 
+#> outer 1 - lambda: 32.077 31.825 
+#> outer 2 - lambda: 10.571 10.745 
+#> outer 3 - lambda: 3.667 3.974 
+#> outer 4 - lambda: 1.414 1.588 
+#> outer 5 - lambda: 0.671 0.693 
+#> outer 6 - lambda: 0.427 0.347 
+#> outer 7 - lambda: 0.347 0.21 
+#> outer 8 - lambda: 0.321 0.154 
+#> outer 9 - lambda: 0.312 0.13 
+#> outer 10 - lambda: 0.31 0.12 
+#> outer 11 - lambda: 0.309 0.116 
+#> outer 12 - lambda: 0.309 0.114 
 #> Converged
-#> Final model fit with lambda: 0.308 0.112
+#> Final model fit with lambda: 0.309 0.114
 #>    user  system elapsed 
-#>   9.427   2.634   7.795
+#>   9.181   2.494   7.733
 ```
 
 The `mod` object is now a list that contains everything that is reported
@@ -421,7 +420,7 @@ system.time(
 #> Converged
 #> Final model fit with lambda: 1.033 1.01 1.744
 #>    user  system elapsed 
-#>  17.601   3.066  15.555
+#>  18.355   2.997  16.214
 ```
 
 After fitting the model, we can easily visualise the smooth densities
@@ -570,7 +569,7 @@ system.time(
 #> Converged
 #> Final model fit with lambda: 22.588 7.212 8.278 4.169
 #>    user  system elapsed 
-#>  16.937   3.911  14.293
+#>  17.922   3.935  15.360
 ```
 
 Having fitted the model, we can visualise the results. We first decode

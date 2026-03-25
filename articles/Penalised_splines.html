@@ -187,9 +187,9 @@ do penalised ML for a <strong>fixed</strong> penalty strength
 <code>lambda</code>.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">par</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>logmu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.3</span>, <span class="fl">2.5</span><span class="op">)</span><span class="op">)</span>, <span class="co"># state-dependent mean step</span></span>
-<span>           logsigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="fl">1.5</span><span class="op">)</span><span class="op">)</span>, <span class="co"># state-dependent sd step</span></span>
-<span>           logkappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="fl">1.5</span><span class="op">)</span><span class="op">)</span>, <span class="co"># state-dependent concentration angle</span></span>
-<span>           beta0 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span>, <span class="co"># state process intercepts</span></span>
+<span>           logsigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.3</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span>, <span class="co"># state-dependent sd step</span></span>
+<span>           logkappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span>, <span class="co"># state-dependent concentration angle</span></span>
+<span>           beta0 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span>, <span class="op">-</span><span class="fl">2</span><span class="op">)</span>, <span class="co"># state process intercepts</span></span>
 <span>           betaSpline <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">2</span><span class="op">*</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">Z</span><span class="op">)</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span> <span class="co"># spline coefs</span></span>
 <span></span>
 <span><span class="va">dat</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>step <span class="op">=</span> <span class="va">trex</span><span class="op">$</span><span class="va">step</span>, <span class="co"># observed steps</span></span>
@@ -244,23 +244,22 @@ call using the <code>psname</code> argument.</li>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Creating AD function</span></span>
 <span><span class="co">#&gt; Initialising with lambda: 100 100 </span></span>
-<span><span class="co">#&gt; outer 1 - lambda: 32.051 31.828 </span></span>
-<span><span class="co">#&gt; outer 2 - lambda: 10.555 10.748 </span></span>
-<span><span class="co">#&gt; outer 3 - lambda: 3.659 3.977 </span></span>
-<span><span class="co">#&gt; outer 4 - lambda: 1.41 1.589 </span></span>
-<span><span class="co">#&gt; outer 5 - lambda: 0.669 0.693 </span></span>
-<span><span class="co">#&gt; outer 6 - lambda: 0.426 0.347 </span></span>
-<span><span class="co">#&gt; outer 7 - lambda: 0.346 0.21 </span></span>
-<span><span class="co">#&gt; outer 8 - lambda: 0.32 0.153 </span></span>
-<span><span class="co">#&gt; outer 9 - lambda: 0.312 0.129 </span></span>
-<span><span class="co">#&gt; outer 10 - lambda: 0.309 0.119 </span></span>
-<span><span class="co">#&gt; outer 11 - lambda: 0.308 0.114 </span></span>
-<span><span class="co">#&gt; outer 12 - lambda: 0.308 0.112 </span></span>
-<span><span class="co">#&gt; outer 13 - lambda: 0.308 0.112 </span></span>
+<span><span class="co">#&gt; outer 1 - lambda: 32.077 31.825 </span></span>
+<span><span class="co">#&gt; outer 2 - lambda: 10.571 10.745 </span></span>
+<span><span class="co">#&gt; outer 3 - lambda: 3.667 3.974 </span></span>
+<span><span class="co">#&gt; outer 4 - lambda: 1.414 1.588 </span></span>
+<span><span class="co">#&gt; outer 5 - lambda: 0.671 0.693 </span></span>
+<span><span class="co">#&gt; outer 6 - lambda: 0.427 0.347 </span></span>
+<span><span class="co">#&gt; outer 7 - lambda: 0.347 0.21 </span></span>
+<span><span class="co">#&gt; outer 8 - lambda: 0.321 0.154 </span></span>
+<span><span class="co">#&gt; outer 9 - lambda: 0.312 0.13 </span></span>
+<span><span class="co">#&gt; outer 10 - lambda: 0.31 0.12 </span></span>
+<span><span class="co">#&gt; outer 11 - lambda: 0.309 0.116 </span></span>
+<span><span class="co">#&gt; outer 12 - lambda: 0.309 0.114 </span></span>
 <span><span class="co">#&gt; Converged</span></span>
-<span><span class="co">#&gt; Final model fit with lambda: 0.308 0.112</span></span>
+<span><span class="co">#&gt; Final model fit with lambda: 0.309 0.114</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   9.427   2.634   7.795</span></span></code></pre></div>
+<span><span class="co">#&gt;   9.181   2.494   7.733</span></span></code></pre></div>
 <p>The <code>mod</code> object is now a list that contains everything
 that is reported by the likelihood function, but also the
 <code>RTMB</code> object created in the process. After fitting the
@@ -457,7 +456,7 @@ the design matrix <code>Z</code>.</p>
 <span><span class="co">#&gt; Converged</span></span>
 <span><span class="co">#&gt; Final model fit with lambda: 1.033 1.01 1.744</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  17.601   3.066  15.555</span></span></code></pre></div>
+<span><span class="co">#&gt;  18.355   2.997  16.214</span></span></code></pre></div>
 <p>After fitting the model, we can easily visualise the smooth densities
 using the prepared prediction objects. We already have access to all
 reported quantities because <code><a href="../reference/qreml.html">qreml()</a></code> automatically runs the
@@ -590,7 +589,7 @@ intial penalty strength parameter in the <code>dat</code> list.</p>
 <span><span class="co">#&gt; Converged</span></span>
 <span><span class="co">#&gt; Final model fit with lambda: 22.588 7.212 8.278 4.169</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  16.937   3.911  14.293</span></span></code></pre></div>
+<span><span class="co">#&gt;  17.922   3.935  15.360</span></span></code></pre></div>
 <p>Having fitted the model, we can visualise the results. We first
 decode the most probable state sequence and then plot the estimated
 state-dependent densities as a function of the oil price, as well as the

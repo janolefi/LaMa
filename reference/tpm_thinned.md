@@ -19,7 +19,8 @@ tpm_thinned(Gamma, t)
 
 - Gamma:
 
-  array of transition probability matrices of dimension c(N,N,L).
+  array of transition probability matrices of dimension
+  `c(nStates, nStates, L)`.
 
 - t:
 
@@ -28,7 +29,7 @@ tpm_thinned(Gamma, t)
 
 ## Value
 
-thinned transition probabilty matrix of dimension c(N,N)
+thinned transition probabilty matrix of dimension `c(nStates, nStates)`
 
 ## Examples
 

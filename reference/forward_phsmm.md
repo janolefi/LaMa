@@ -39,8 +39,8 @@ forward_phsmm(
 
 - dm:
 
-  list of length N containing matrices (or vectors) of dwell-time
-  probability mass functions (PMFs) for each state.
+  list of length `nStates` containing matrices (or vectors) of
+  dwell-time probability mass functions (PMFs) for each state.
 
   If the dwell-time PMFs are constant, the vectors are the PMF of the
   dwell-time distribution fixed in time. The vector lengths correspond
@@ -53,9 +53,9 @@ forward_phsmm(
 
 - omega:
 
-  matrix of dimension c(N,N) or array of dimension c(N,N,L) of
-  conditional transition probabilites, also called embedded transition
-  probability matrix
+  matrix of dimension `c(nStates, nStates)` or array of dimension
+  `c(nStates, nStates, L)` of conditional transition probabilites, also
+  called embedded transition probability matrix
 
   It contains the transition probabilities given the current state is
   left. Hence, the diagonal elements need to be zero and the rows need
@@ -67,28 +67,28 @@ forward_phsmm(
 - allprobs:
 
   matrix of state-dependent probabilities/ density values of dimension
-  c(n, N)
+  `c(nObs, nStates)`
 
 - tod:
 
   (Integer valued) variable for cycle indexing in 1, ..., L, mapping the
-  data index to a generalised time of day (length n). For half-hourly
-  data L = 48. It could, however, also be day of year for daily data and
-  L = 365.
+  data index to a generalised time of day (length `nObs`). For
+  half-hourly data L = 48. It could, however, also be day of year for
+  daily data and L = 365.
 
 - trackID:
 
-  optional vector of length n containing IDs
+  optional vector of length `nObs` containing IDs
 
   If provided, the total log-likelihood will be the sum of each track's
   likelihood contribution. Instead of a single vector `delta`
   corresponding to the initial distribution, a `delta` matrix of initial
-  distributions, of dimension c(k,N), can be provided, such that each
-  track starts with it's own initial distribution.
+  distributions, of dimension `c(nTracks, nStates)`, can be provided,
+  such that each track starts with it's own initial distribution.
 
 - delta:
 
-  Optional vector of initial state probabilities of length N. By
+  Optional vector of initial state probabilities of length `nStates`. By
   default, instead of this, the stationary distribution is computed
   corresponding to the first approximating t.p.m. of each track is
   computed. Contrary to the homogeneous case, this is not theoretically

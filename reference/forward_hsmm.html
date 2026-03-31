@@ -66,27 +66,27 @@
 
 
 <dl><dt id="arg-dm">dm<a class="anchor" aria-label="anchor" href="#arg-dm"></a></dt>
-<dd><p>list of length N containing vectors of dwell-time probability mass functions (PMFs) for each state. The vector lengths correspond to the approximating state aggregate sizes, hence there should be little probablity mass not covered by these.</p></dd>
+<dd><p>list of length <code>nStates</code> containing vectors of dwell-time probability mass functions (PMFs) for each state. The vector lengths correspond to the approximating state aggregate sizes, hence there should be little probablity mass not covered by these.</p></dd>
 
 
 <dt id="arg-omega">omega<a class="anchor" aria-label="anchor" href="#arg-omega"></a></dt>
-<dd><p>matrix of dimension c(N,N) of conditional transition probabilites, also called embedded transition probability matrix.</p>
+<dd><p>matrix of dimension <code>c(nStates, nStates)</code> of conditional transition probabilites, also called embedded transition probability matrix.</p>
 <p>Contains the transition probabilities given that the current state is left. Hence, the diagonal elements need to be zero and the rows need to sum to one. Can be constructed using <code><a href="tpm_emb.html">tpm_emb</a></code>.</p></dd>
 
 
 <dt id="arg-allprobs">allprobs<a class="anchor" aria-label="anchor" href="#arg-allprobs"></a></dt>
-<dd><p>matrix of state-dependent probabilities/ density values of dimension c(n, N) which will automatically be converted to the appropriate dimension.</p></dd>
+<dd><p>matrix of state-dependent probabilities/ density values of dimension <code>c(nObs, nStates)</code> which will automatically be converted to the appropriate dimension.</p></dd>
 
 
 <dt id="arg-trackid">trackID<a class="anchor" aria-label="anchor" href="#arg-trackid"></a></dt>
-<dd><p>optional vector of length n containing IDs</p>
+<dd><p>optional vector of length <code>nObs</code> containing IDs</p>
 <p>If provided, the total log-likelihood will be the sum of each track's likelihood contribution.
-In this case, <code>dm</code> can be a nested list, where the top layer contains k <code>dm</code> lists as described above. <code>omega</code> can then also be an array of dimension c(N,N,k) with one conditional transition probability matrix for each track.
-Furthermore, instead of a single vector <code>delta</code> corresponding to the initial distribution, a <code>delta</code> matrix of initial distributions, of dimension c(k,N), can be provided, such that each track starts with it's own initial distribution.</p></dd>
+In this case, <code>dm</code> can be a nested list, where the top layer contains k <code>dm</code> lists as described above. <code>omega</code> can then also be an array of dimension <code>c(nStates, nStates, nTracks)</code> with one conditional transition probability matrix for each track.
+Furthermore, instead of a single vector <code>delta</code> corresponding to the initial distribution, a <code>delta</code> matrix of initial distributions, of dimension <code>c(nTracks, nStates)</code>, can be provided, such that each track starts with it's own initial distribution.</p></dd>
 
 
 <dt id="arg-delta">delta<a class="anchor" aria-label="anchor" href="#arg-delta"></a></dt>
-<dd><p>optional vector of initial state probabilities of length N</p>
+<dd><p>optional vector of initial state probabilities of length <code>nStates</code></p>
 <p>By default, the stationary distribution is computed (which is typically recommended).</p></dd>
 
 

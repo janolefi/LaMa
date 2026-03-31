@@ -3,12 +3,12 @@
 We can allow this matrix to vary with covariates, which is the purpose of this function.
 It builds all embedded/ conditional transition probability matrices based on a design and parameter matrix.
 For each row of the matrix, the inverse multinomial logistic link is applied.
-For a matrix of dimension c(N,N), the number of free off-diagonal elements is N*(N-2) which determines the number of rows of the parameter matrix.
+For a matrix of dimension c(nStates, nStates), the number of free off-diagonal elements is nStates * (nStates-2) which determines the number of rows of the parameter matrix.
 Compatible with automatic differentiation by RTMB"><meta property="og:description" content="Hidden semi-Markov models are defined in terms of state durations and an embedded transition probability matrix that contains the conditional transition probabilities given that the current state is left. This matrix necessarily has diagonal entries all equal to zero as self-transitions are impossible.
 We can allow this matrix to vary with covariates, which is the purpose of this function.
 It builds all embedded/ conditional transition probability matrices based on a design and parameter matrix.
 For each row of the matrix, the inverse multinomial logistic link is applied.
-For a matrix of dimension c(N,N), the number of free off-diagonal elements is N*(N-2) which determines the number of rows of the parameter matrix.
+For a matrix of dimension c(nStates, nStates), the number of free off-diagonal elements is nStates * (nStates-2) which determines the number of rows of the parameter matrix.
 Compatible with automatic differentiation by RTMB"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -59,7 +59,7 @@ Compatible with automatic differentiation by RTMB"></head><body>
 We can allow this matrix to vary with covariates, which is the purpose of this function.</p>
 <p>It builds all embedded/ conditional transition probability matrices based on a design and parameter matrix.
 For each row of the matrix, the inverse multinomial logistic link is applied.</p>
-<p>For a matrix of dimension c(N,N), the number of free off-diagonal elements is N*(N-2) which determines the number of rows of the parameter matrix.</p>
+<p>For a matrix of dimension <code>c(nStates, nStates)</code>, the number of free off-diagonal elements is <code>nStates * (nStates-2)</code> which determines the number of rows of the parameter matrix.</p>
 <p>Compatible with automatic differentiation by <code>RTMB</code></p>
     </div>
 
@@ -73,14 +73,14 @@ For each row of the matrix, the inverse multinomial logistic link is applied.</p
 
 
 <dl><dt id="arg-z">Z<a class="anchor" aria-label="anchor" href="#arg-z"></a></dt>
-<dd><p>covariate design matrix with or without intercept column, i.e. of dimension c(n, p) or c(n, p+1)</p>
-<p>If <code>Z</code> has only p columns, an intercept column of ones will be added automatically.</p></dd>
+<dd><p>covariate design matrix with or without intercept column, i.e. of dimension <code>c(nObs, p)</code> or <code>c(nObs, p+1)</code></p>
+<p>If <code>Z</code> has only <code>p</code> columns, an intercept column of ones will be added automatically.</p></dd>
 
 
 <dt id="arg-beta">beta<a class="anchor" aria-label="anchor" href="#arg-beta"></a></dt>
 <dd><p>matrix of coefficients for the off-diagonal elements of the embedded transition probability matrix</p>
-<p>Needs to be of dimension c(N*(N-2), p+1), where the first column contains the intercepts.
-p can be 0, in which case the model is homogeneous.</p></dd>
+<p>Needs to be of dimension <code>c(nStates * (nStates-2), p+1)</code>, where the first column contains the intercepts.
+<code>p</code> can be 0, in which case the model is homogeneous.</p></dd>
 
 
 <dt id="arg-report">report<a class="anchor" aria-label="anchor" href="#arg-report"></a></dt>
@@ -89,7 +89,7 @@ p can be 0, in which case the model is homogeneous.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>array of embedded/ conditional transition probability matrices of dimension c(N,N,n)</p>
+    <p>array of embedded/ conditional transition probability matrices of dimension <code>c(nStates, nStates, nObs)</code></p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

@@ -64,15 +64,15 @@ For direct numerical maximum likelhood estimation, HSMMs can be represented as H
 
 
 <dl><dt id="arg-omega">omega<a class="anchor" aria-label="anchor" href="#arg-omega"></a></dt>
-<dd><p>embedded transition probability matrix of dimension c(N,N) as computed by <code><a href="tpm_emb.html">tpm_emb</a></code>.</p></dd>
+<dd><p>embedded transition probability matrix of dimension <code>c(nStates, nStates)</code> as computed by <code><a href="tpm_emb.html">tpm_emb</a></code>.</p></dd>
 
 
 <dt id="arg-dm">dm<a class="anchor" aria-label="anchor" href="#arg-dm"></a></dt>
-<dd><p>state dwell-time distributions arranged in a list of length(N). Each list element needs to be a vector of length N_i, where N_i is the state aggregate size.</p></dd>
+<dd><p>state dwell-time distributions arranged in a list of length <code>nStates</code>. Each list element needs to be a vector of length N_i, where N_i is the state aggregate size.</p></dd>
 
 
 <dt id="arg-fm">Fm<a class="anchor" aria-label="anchor" href="#arg-fm"></a></dt>
-<dd><p>optional list of length N containing the cumulative distribution functions of the dwell-time distributions.</p></dd>
+<dd><p>optional list of length <code>nStates</code> containing the cumulative distribution functions of the dwell-time distributions.</p></dd>
 
 
 <dt id="arg-sparse">sparse<a class="anchor" aria-label="anchor" href="#arg-sparse"></a></dt>

@@ -11,9 +11,9 @@ It builds all embedded/ conditional transition probability matrices
 based on a design and parameter matrix. For each row of the matrix, the
 inverse multinomial logistic link is applied.
 
-For a matrix of dimension c(N,N), the number of free off-diagonal
-elements is N\*(N-2) which determines the number of rows of the
-parameter matrix.
+For a matrix of dimension `c(nStates, nStates)`, the number of free
+off-diagonal elements is `nStates * (nStates-2)` which determines the
+number of rows of the parameter matrix.
 
 Compatible with automatic differentiation by `RTMB`
 
@@ -28,9 +28,9 @@ tpm_emb_g(Z, beta, report = TRUE)
 - Z:
 
   covariate design matrix with or without intercept column, i.e. of
-  dimension c(n, p) or c(n, p+1)
+  dimension `c(nObs, p)` or `c(nObs, p+1)`
 
-  If `Z` has only p columns, an intercept column of ones will be added
+  If `Z` has only `p` columns, an intercept column of ones will be added
   automatically.
 
 - beta:
@@ -38,9 +38,9 @@ tpm_emb_g(Z, beta, report = TRUE)
   matrix of coefficients for the off-diagonal elements of the embedded
   transition probability matrix
 
-  Needs to be of dimension c(N\*(N-2), p+1), where the first column
-  contains the intercepts. p can be 0, in which case the model is
-  homogeneous.
+  Needs to be of dimension `c(nStates * (nStates-2), p+1)`, where the
+  first column contains the intercepts. `p` can be 0, in which case the
+  model is homogeneous.
 
 - report:
 
@@ -50,7 +50,7 @@ tpm_emb_g(Z, beta, report = TRUE)
 ## Value
 
 array of embedded/ conditional transition probability matrices of
-dimension c(N,N,n)
+dimension `c(nStates, nStates, nObs)`
 
 ## See also
 

@@ -10,11 +10,11 @@ This function builds such an embedded/ conditional transition
 probability matrix from an unconstrained parameter vector. For each row
 of the matrix, the inverse multinomial logistic link is applied.
 
-For a matrix of dimension c(N,N), the number of free off-diagonal
-elements is N\*(N-2), hence also the length of `param`. This means, for
-2 states, the function needs to be called without any arguments, for
-3-states with a vector of length 3, for 4 states with a vector of length
-8, etc.
+For a matrix of dimension `c(nStates, nStates)`, the number of free
+off-diagonal elements is `nStates * (nStates-2)`, hence also the length
+of `param`. This means, for 2 states, the function needs to be called
+without any arguments, for 3-states with a vector of length 3, for 4
+states with a vector of length 8, etc.
 
 Compatible with automatic differentiation by `RTMB`
 
@@ -28,8 +28,7 @@ tpm_emb(param = NULL)
 
 - param:
 
-  unconstrained parameter vector of length N\*(N-2) where N is the
-  number of states of the Markov chain
+  unconstrained parameter vector of length `nStates * (nStates-2)`
 
   If the function is called without `param`, it will return the
   conditional transition probability matrix for a 2-state HSMM, which is
@@ -37,7 +36,8 @@ tpm_emb(param = NULL)
 
 ## Value
 
-embedded/ conditional transition probability matrix of dimension c(N,N)
+embedded/ conditional transition probability matrix of dimension
+`c(nStates, nStates)`
 
 ## See also
 

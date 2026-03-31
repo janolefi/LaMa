@@ -67,25 +67,25 @@
 
 
 <dl><dt id="arg-dm">dm<a class="anchor" aria-label="anchor" href="#arg-dm"></a></dt>
-<dd><p>list of length N containing matrices (or vectors) of dwell-time probability mass functions (PMFs) for each state.</p>
+<dd><p>list of length <code>nStates</code> containing matrices (or vectors) of dwell-time probability mass functions (PMFs) for each state.</p>
 <p>If the dwell-time PMFs are constant, the vectors are the PMF of the dwell-time distribution fixed in time. The vector lengths correspond to the approximating state aggregate sizes, hence there should be little probablity mass not covered by these.</p>
 <p>If the dwell-time PMFs are inhomogeneous, the matrices need to have n rows, where n is the number of observations. The number of columns again correponds to the size of the approximating state aggregates.</p>
 <p>In the latter case, the first <code>max(sapply(dm, ncol)) - 1</code> observations will not be used because the first approximating transition probability matrix needs to be computed based on the first <code>max(sapply(dm, ncol))</code> covariate values (represented by <code>dm</code>).</p></dd>
 
 
 <dt id="arg-omega">omega<a class="anchor" aria-label="anchor" href="#arg-omega"></a></dt>
-<dd><p>matrix of dimension c(N,N) or array of dimension c(N,N,n) of conditional transition probabilites, also called embedded transition probability matrix.</p>
+<dd><p>matrix of dimension <code>c(nStates, nStates)</code> or array of dimension <code>c(nStates, nStates, nObs)</code> of conditional transition probabilites, also called embedded transition probability matrix.</p>
 <p>It contains the transition probabilities given the current state is left. Hence, the diagonal elements need to be zero and the rows need to sum to one. Such a matrix can be constructed using <code><a href="tpm_emb.html">tpm_emb</a></code> and an array using <code><a href="tpm_emb_g.html">tpm_emb_g</a></code>.</p></dd>
 
 
 <dt id="arg-allprobs">allprobs<a class="anchor" aria-label="anchor" href="#arg-allprobs"></a></dt>
-<dd><p>matrix of state-dependent probabilities/ density values of dimension c(n, N)</p></dd>
+<dd><p>matrix of state-dependent probabilities/ density values of dimension <code>c(nObs, nStates)</code></p></dd>
 
 
 <dt id="arg-trackid">trackID<a class="anchor" aria-label="anchor" href="#arg-trackid"></a></dt>
-<dd><p>trackID optional vector of length n containing IDs</p>
+<dd><p>trackID optional vector of length <code>nObs</code> containing IDs</p>
 <p>If provided, the total log-likelihood will be the sum of each track's likelihood contribution.
-Instead of a single vector <code>delta</code> corresponding to the initial distribution, a <code>delta</code> matrix of initial distributions, of dimension c(k,N), can be provided, such that each track starts with it's own initial distribution.</p></dd>
+Instead of a single vector <code>delta</code> corresponding to the initial distribution, a <code>delta</code> matrix of initial distributions, of dimension <code>c(nTracks, nStates)</code>, can be provided, such that each track starts with it's own initial distribution.</p></dd>
 
 
 <dt id="arg-delta">delta<a class="anchor" aria-label="anchor" href="#arg-delta"></a></dt>

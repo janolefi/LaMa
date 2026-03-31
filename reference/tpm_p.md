@@ -44,8 +44,8 @@ tpm_p(
   matrix of coefficients for the off-diagonal elements of the transition
   probability matrix
 
-  Needs to be of dimension c(N \*(N-1), 2\*degree+1), where the first
-  column contains the intercepts.
+  Needs to be of dimension `c(nStates *(nStates-1), 2*degree+1)`, where
+  the first column contains the intercepts.
 
 - degree:
 
@@ -86,7 +86,8 @@ tpm_p(
 
 ## Value
 
-array of transition probability matrices of dimension c(N,N,length(tod))
+array of transition probability matrices of dimension
+`c(nStates, nStates, length(tod))`
 
 ## Details
 

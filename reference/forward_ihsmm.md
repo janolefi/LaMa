@@ -23,8 +23,8 @@ forward_ihsmm(
 
 - dm:
 
-  list of length N containing matrices (or vectors) of dwell-time
-  probability mass functions (PMFs) for each state.
+  list of length `nStates` containing matrices (or vectors) of
+  dwell-time probability mass functions (PMFs) for each state.
 
   If the dwell-time PMFs are constant, the vectors are the PMF of the
   dwell-time distribution fixed in time. The vector lengths correspond
@@ -42,9 +42,9 @@ forward_ihsmm(
 
 - omega:
 
-  matrix of dimension c(N,N) or array of dimension c(N,N,n) of
-  conditional transition probabilites, also called embedded transition
-  probability matrix.
+  matrix of dimension `c(nStates, nStates)` or array of dimension
+  `c(nStates, nStates, nObs)` of conditional transition probabilites,
+  also called embedded transition probability matrix.
 
   It contains the transition probabilities given the current state is
   left. Hence, the diagonal elements need to be zero and the rows need
@@ -56,17 +56,17 @@ forward_ihsmm(
 - allprobs:
 
   matrix of state-dependent probabilities/ density values of dimension
-  c(n, N)
+  `c(nObs, nStates)`
 
 - trackID:
 
-  trackID optional vector of length n containing IDs
+  trackID optional vector of length `nObs` containing IDs
 
   If provided, the total log-likelihood will be the sum of each track's
   likelihood contribution. Instead of a single vector `delta`
   corresponding to the initial distribution, a `delta` matrix of initial
-  distributions, of dimension c(k,N), can be provided, such that each
-  track starts with it's own initial distribution.
+  distributions, of dimension `c(nTracks, nStates)`, can be provided,
+  such that each track starts with it's own initial distribution.
 
 - delta:
 

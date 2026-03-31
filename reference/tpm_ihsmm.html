@@ -62,11 +62,11 @@ This function computes the transition matrices of a periodically inhomogeneos HS
 
 <dl><dt id="arg-omega">omega<a class="anchor" aria-label="anchor" href="#arg-omega"></a></dt>
 <dd><p>embedded transition probability matrix</p>
-<p>Either a matrix of dimension c(N,N) for homogeneous conditional transition probabilities (as computed by <code><a href="tpm_emb.html">tpm_emb</a></code>), or an array of dimension c(N,N,n) for inhomogeneous conditional transition probabilities (as computed by <code><a href="tpm_emb_g.html">tpm_emb_g</a></code>).</p></dd>
+<p>Either a matrix of dimension <code>c(nStates, nStates)</code> for homogeneous conditional transition probabilities (as computed by <code><a href="tpm_emb.html">tpm_emb</a></code>), or an array of dimension <code>c(nStates, nStates, nObs)</code> for inhomogeneous conditional transition probabilities (as computed by <code><a href="tpm_emb_g.html">tpm_emb_g</a></code>).</p></dd>
 
 
 <dt id="arg-dm">dm<a class="anchor" aria-label="anchor" href="#arg-dm"></a></dt>
-<dd><p>state dwell-time distributions arranged in a list of length N</p>
+<dd><p>state dwell-time distributions arranged in a list of length <code>nStates</code></p>
 <p>Each list element needs to be a matrix of dimension c(n, N_i), where each row t is the (approximate) probability mass function of state i at time t.</p></dd>
 
 

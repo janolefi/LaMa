@@ -67,27 +67,27 @@
 
 
 <dl><dt id="arg-delta">delta<a class="anchor" aria-label="anchor" href="#arg-delta"></a></dt>
-<dd><p>initial or stationary distribution of length N, or matrix of dimension c(k,N) for k independent tracks, if <code>trackID</code> is provided</p></dd>
+<dd><p>initial or stationary distribution of length <code>nStates</code>, or matrix of dimension <code>c(nTracks, nStates)</code> for <code>nTracks</code> independent tracks, if <code>trackID</code> is provided</p></dd>
 
 
 <dt id="arg-gamma">Gamma<a class="anchor" aria-label="anchor" href="#arg-gamma"></a></dt>
-<dd><p>array of transition probability matrices of dimension c(N,N,L).</p>
+<dd><p>array of transition probability matrices of dimension <code>c(nStates, nStates, L)</code>.</p>
 <p>Here we use the definition \(\Pr(S_t=j \mid S_{t-1}=i) = \gamma_{ij}^{(t)}\) such that the transition probabilities between time point \(t-1\) and \(t\) are an element of \(\Gamma^{(t)}\).</p></dd>
 
 
 <dt id="arg-allprobs">allprobs<a class="anchor" aria-label="anchor" href="#arg-allprobs"></a></dt>
-<dd><p>matrix of state-dependent probabilities/ density values of dimension c(n, N)</p></dd>
+<dd><p>matrix of state-dependent probabilities/ density values of dimension <code>c(nObs, nStates)</code></p></dd>
 
 
 <dt id="arg-tod">tod<a class="anchor" aria-label="anchor" href="#arg-tod"></a></dt>
-<dd><p>(Integer valued) variable for cycle indexing in 1, ..., L, mapping the data index to a generalised time of day (length n)</p>
+<dd><p>(Integer valued) variable for cycle indexing in 1, ..., L, mapping the data index to a generalised time of day (length <code>nObs</code>)</p>
 <p>For half-hourly data L = 48. It could, however, also be day of year for daily data and L = 365.</p></dd>
 
 
 <dt id="arg-trackid">trackID<a class="anchor" aria-label="anchor" href="#arg-trackid"></a></dt>
-<dd><p>optional vector of length n containing IDs</p>
+<dd><p>optional vector of length <code>nObs</code> containing IDs</p>
 <p>If provided, the total log-likelihood will be the sum of each track's likelihood contribution.
-Instead of a single vector <code>delta</code> corresponding to the initial distribution, a <code>delta</code> matrix of initial distributions of dimension c(k,N), can be provided, such that each track starts with it's own initial distribution.</p></dd>
+Instead of a single vector <code>delta</code> corresponding to the initial distribution, a <code>delta</code> matrix of initial distributions of dimension <code>c(nTracks, nObs)</code>, can be provided, such that each track starts with it's own initial distribution.</p></dd>
 
 
 <dt id="arg-ad">ad<a class="anchor" aria-label="anchor" href="#arg-ad"></a></dt>

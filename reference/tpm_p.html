@@ -92,7 +92,7 @@ This is relevant for modeling e.g. diurnal variation and the flexibility can be 
 
 <dt id="arg-beta">beta<a class="anchor" aria-label="anchor" href="#arg-beta"></a></dt>
 <dd><p>matrix of coefficients for the off-diagonal elements of the transition probability matrix</p>
-<p>Needs to be of dimension c(N *(N-1), 2*degree+1), where the first column contains the intercepts.</p></dd>
+<p>Needs to be of dimension <code>c(nStates *(nStates-1), 2*degree+1)</code>, where the first column contains the intercepts.</p></dd>
 
 
 <dt id="arg-degree">degree<a class="anchor" aria-label="anchor" href="#arg-degree"></a></dt>
@@ -121,7 +121,7 @@ From an efficiency perspective, <code>Z</code> should be pre-calculated within t
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>array of transition probability matrices of dimension c(N,N,length(tod))</p>
+    <p>array of transition probability matrices of dimension <code>c(nStates, nStates, length(tod))</code></p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

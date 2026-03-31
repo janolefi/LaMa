@@ -19,19 +19,20 @@ tpm_hsmm(omega, dm, Fm = NULL, sparse = TRUE, eps = 1e-10)
 
 - omega:
 
-  embedded transition probability matrix of dimension c(N,N) as computed
-  by [`tpm_emb`](https://janolefi.github.io/LaMa/reference/tpm_emb.md).
+  embedded transition probability matrix of dimension
+  `c(nStates, nStates)` as computed by
+  [`tpm_emb`](https://janolefi.github.io/LaMa/reference/tpm_emb.md).
 
 - dm:
 
-  state dwell-time distributions arranged in a list of length(N). Each
-  list element needs to be a vector of length N_i, where N_i is the
+  state dwell-time distributions arranged in a list of length `nStates`.
+  Each list element needs to be a vector of length N_i, where N_i is the
   state aggregate size.
 
 - Fm:
 
-  optional list of length N containing the cumulative distribution
-  functions of the dwell-time distributions.
+  optional list of length `nStates` containing the cumulative
+  distribution functions of the dwell-time distributions.
 
 - sparse:
 

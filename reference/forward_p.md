@@ -23,12 +23,14 @@ forward_p(
 
 - delta:
 
-  initial or stationary distribution of length N, or matrix of dimension
-  c(k,N) for k independent tracks, if `trackID` is provided
+  initial or stationary distribution of length `nStates`, or matrix of
+  dimension `c(nTracks, nStates)` for `nTracks` independent tracks, if
+  `trackID` is provided
 
 - Gamma:
 
-  array of transition probability matrices of dimension c(N,N,L).
+  array of transition probability matrices of dimension
+  `c(nStates, nStates, L)`.
 
   Here we use the definition \\\Pr(S_t=j \mid S\_{t-1}=i) =
   \gamma\_{ij}^{(t)}\\ such that the transition probabilities between
@@ -37,25 +39,25 @@ forward_p(
 - allprobs:
 
   matrix of state-dependent probabilities/ density values of dimension
-  c(n, N)
+  `c(nObs, nStates)`
 
 - tod:
 
   (Integer valued) variable for cycle indexing in 1, ..., L, mapping the
-  data index to a generalised time of day (length n)
+  data index to a generalised time of day (length `nObs`)
 
   For half-hourly data L = 48. It could, however, also be day of year
   for daily data and L = 365.
 
 - trackID:
 
-  optional vector of length n containing IDs
+  optional vector of length `nObs` containing IDs
 
   If provided, the total log-likelihood will be the sum of each track's
   likelihood contribution. Instead of a single vector `delta`
   corresponding to the initial distribution, a `delta` matrix of initial
-  distributions of dimension c(k,N), can be provided, such that each
-  track starts with it's own initial distribution.
+  distributions of dimension `c(nTracks, nObs)`, can be provided, such
+  that each track starts with it's own initial distribution.
 
 - ad:
 

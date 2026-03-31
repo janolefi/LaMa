@@ -4,20 +4,45 @@
 \alias{generator}
 \title{Build the generator matrix of a continuous-time Markov chain}
 \usage{
-generator(param, byrow = FALSE, report = TRUE)
+generator(
+  beta,
+  Z = NULL,
+  Eta = NULL,
+  byrow = FALSE,
+  report = TRUE,
+  param = NULL
+)
 }
 \arguments{
-\item{param}{unconstrained parameter vector of length N*(N-1) where N is the number of states of the Markov chain}
+\item{beta}{parameters; either
+\itemize{
+   \item a vector of length \code{nStates * (nStates-1)}, or
+   \item a matrix of dimension \code{c(nStates * (nStates-1), p+1)} if design matrix \code{Z} is also provided.
+}}
 
-\item{byrow}{logical indicating if the transition probability matrix should be filled by row}
+\item{Z}{optional covariate design matrix with or without intercept column, i.e. of dimension \code{c(nObs, p)} or \code{c(nObs, p+1)}.
+If provided, \code{beta} needs to be a matrix of dimension \code{c(nStates * (nStates-1), p+1)}.}
 
-\item{report}{logical, indicating whether the generator matrix Q should be reported from the fitted model. Defaults to \code{TRUE}, but only works if when automatic differentiation with \code{RTMB} is used.}
+\item{Eta}{optional pre-calculated matrix of linear predictors of dimension \code{c(nObs, nStates * (nStates-1))}.
+If provided, \code{Z} and \code{beta} will be ignored.}
+
+\item{byrow}{logical indicating if the generator matrix should be filled by row}
+
+\item{report}{logical, indicating whether the generator matrix \code{Q} should be reported from the fitted model. Defaults to \code{TRUE}, but only works if when automatic differentiation with \code{RTMB} is used.}
+
+\item{param}{depricated, please use argument \code{beta} instead.}
 }
 \value{
-infinitesimal generator matrix of dimension c(N,N)
+infinitesimal generator matrix of dimension \code{c(nStates, nStates)} or array of such matrices of dimension \code{c(nStates, nStates, nObs)} if \code{Z} or \code{Eta} is provided.
 }
 \description{
 This function builds the \strong{infinitesimal generator matrix} for a \strong{continuous-time Markov chain} from an unconstrained parameter vector.
+}
+\details{
+Off-diagonal entries are calculated as \eqn{\exp(\beta_i)} to ensure positivity. The diagonal entries are then set to the negative row sums, which is required for generator matrices.
+
+If a design matrix \code{Z} or a matrix of linear predictors \code{Eta} is provided, the function will automatically call \code{\link{generator_g}} to build the generator matrix based on the design matrix and coefficient matrix.
+In that case, the argument \code{beta} needs to be a matrix of coefficients of dimension \code{c(nStates * (nStates-1), p+1)}, where the first column contains the intercepts.
 }
 \examples{
 # 2 states: 2 free off-diagonal elements
@@ -27,8 +52,9 @@ generator(rep(-2, 6))
 }
 \seealso{
 Other transition probability matrix functions: 
+\code{\link{generator_g}()},
 \code{\link{tpm}()},
-\code{\link{tpm_cont}()},
+\code{\link{tpm_ct}()},
 \code{\link{tpm_emb}()},
 \code{\link{tpm_emb_g}()},
 \code{\link{tpm_g}()},

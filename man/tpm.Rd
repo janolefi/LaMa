@@ -41,7 +41,7 @@ Defaults to \code{FALSE}, but should be set to \code{TRUE} if one wants to work 
 \item{param}{depricated, please use argument \code{beta} instead.}
 }
 \value{
-Transition probability matrix of dimension \code{c(nStates, nStates)}
+Transition probability matrix of dimension \code{c(nStates, nStates)} or array of such matrices of dimension \code{c(nStates, nStates, nObs)} if \code{Z} or \code{Eta} is provided.
 }
 \description{
 Markov chains are parametrised in terms of a transition probability matrix \eqn{\Gamma}, for which each row contains a conditional probability distribution of the next state given the current state.
@@ -61,7 +61,8 @@ Gamma2 = tpm(par2)
 \seealso{
 Other transition probability matrix functions: 
 \code{\link{generator}()},
-\code{\link{tpm_cont}()},
+\code{\link{generator_g}()},
+\code{\link{tpm_ct}()},
 \code{\link{tpm_emb}()},
 \code{\link{tpm_emb_g}()},
 \code{\link{tpm_g}()},

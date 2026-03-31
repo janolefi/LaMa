@@ -47,8 +47,9 @@ Gamma = tpm_g(Z, beta)
 \seealso{
 Other transition probability matrix functions: 
 \code{\link{generator}()},
+\code{\link{generator_g}()},
 \code{\link{tpm}()},
-\code{\link{tpm_cont}()},
+\code{\link{tpm_ct}()},
 \code{\link{tpm_emb}()},
 \code{\link{tpm_emb_g}()},
 \code{\link{tpm_g}()},

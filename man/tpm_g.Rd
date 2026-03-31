@@ -17,7 +17,7 @@ tpm_g(
 }
 \arguments{
 \item{Z}{Covariate design matrix with or without intercept column, i.e. of dimension \code{c(nObs, p)} or \code{c(nObs, p+1)}.
-If \code{Z} has only \code{p} columns, an intercept column of ones will be added automatically.}
+If not provided, intercept column is added automatically.}
 
 \item{beta}{Matrix of coefficients for the off-diagonal elements of the transition probability matrix 
 of dimension \code{c(nStates * (nStates-1), p+1)}. First columns contains the intercepts.}
@@ -55,8 +55,9 @@ Gamma = tpm_g(Z, beta)
 \seealso{
 Other transition probability matrix functions: 
 \code{\link{generator}()},
+\code{\link{generator_g}()},
 \code{\link{tpm}()},
-\code{\link{tpm_cont}()},
+\code{\link{tpm_ct}()},
 \code{\link{tpm_emb}()},
 \code{\link{tpm_emb_g}()},
 \code{\link{tpm_g2}()},

@@ -61,6 +61,10 @@ semigroup_cpp <- function(Q, times) {
     .Call(`_LaMa_semigroup_cpp`, Q, times)
 }
 
+semigroup_g_cpp <- function(Q, times) {
+    .Call(`_LaMa_semigroup_g_cpp`, Q, times)
+}
+
 tpm_thinned_t_cpp <- function(Gamma, t) {
     .Call(`_LaMa_tpm_thinned_t_cpp`, Gamma, t)
 }

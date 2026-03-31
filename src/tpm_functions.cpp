@@ -149,6 +149,20 @@ arma::cube semigroup_cpp(const arma::mat& Q, const std::vector<double>& times) {
 }
 
 // [[Rcpp::export]]
+arma::cube semigroup_g_cpp(const arma::cube& Q, const std::vector<double>& times) {
+  int N = Q.n_cols;
+  int n = times.size();
+  
+  arma::cube Gamma(N, N, n);
+  
+  for (unsigned int i = 0; i < n; i++) {
+    Gamma.slice(i) = arma::expmat(Q.slice(i) * times.at(i));
+  }
+  
+  return Gamma;
+}
+
+// [[Rcpp::export]]
 arma::mat tpm_thinned_t_cpp(const arma::cube& Gamma, const int t)
 {
   arma::uword L = Gamma.n_slices;

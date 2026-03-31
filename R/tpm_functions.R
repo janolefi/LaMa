@@ -39,9 +39,10 @@
 #' @param report 
 #' logical; if TRUE (default), \code{delta}, \code{Gamma}, \code{allprobs}, and \code{trackID} are reported from the fitted model. Requires \code{ad = TRUE}. 
 #' 
-#' @param param depricated, please use argument \code{beta} instead.
+#' @param param 
+#' depricated, please use argument \code{beta} instead.
 #' 
-#' @return Transition probability matrix of dimension \code{c(nStates, nStates)}
+#' @return Transition probability matrix of dimension \code{c(nStates, nStates)} or array of such matrices of dimension \code{c(nStates, nStates, nObs)} if \code{Z} or \code{Eta} is provided.
 #' @export
 #' @import RTMB
 #'
@@ -93,7 +94,7 @@ tpm <- function(
   N <- 0.5 + sqrt(0.25 + K)
   int_N <- abs(N - round(N)) < .Machine$double.eps^0.5
   if (!int_N) {
-    stop("The length of param is not compatible with a transition probability matrix (nStates * (nStates-1) for integer nStates).")
+    stop("The length of beta is not compatible with a transition probability matrix (nStates * (nStates-1) for integer nStates).")
   }
   N <- as.integer(round(N))
   
@@ -149,7 +150,7 @@ tpm <- function(
 #'
 #' @param Z 
 #' Covariate design matrix with or without intercept column, i.e. of dimension \code{c(nObs, p)} or \code{c(nObs, p+1)}.
-#' If \code{Z} has only \code{p} columns, an intercept column of ones will be added automatically.
+#' If not provided, intercept column is added automatically.
 #'
 #' @param beta 
 #' Matrix of coefficients for the off-diagonal elements of the transition probability matrix 
@@ -251,9 +252,7 @@ tpm_g = function(Z, beta,
         stop("Eta needs to be either a matrix or advector.")
       }
     }
-    
-    # if delta is advector, run ad version of the function
-    # ad = inherits(beta, "advector")
+    # determine whether to use AD
     ad <- ad_context()
   }
   
@@ -266,9 +265,9 @@ tpm_g = function(Z, beta,
     Gamma <- tpm_g3_cpp(Eta, N, ref, byrow) # C++ version
     
   } else if(ad) {
-    "[<-" <- ADoverload("[<-") # overloading assignment operators, currently necessary
-    "c" <- ADoverload("c")
-    "diag<-" <- ADoverload("diag<-")
+    # "[<-" <- ADoverload("[<-") # overloading assignment operators, currently necessary
+    # "c" <- ADoverload("c")
+    # "diag<-" <- ADoverload("diag<-")
     
     # if(report) {
     #   RTMB::REPORT(beta) # reporting coefficient matrix
@@ -464,8 +463,8 @@ tpm_g2 <- function(Z,
     Gamma = tpm_g2_cpp(Eta, N, byrow, ref) # C++ version
     
   } else if(ad) {
-    "[<-" <- ADoverload("[<-") # overloading assignment operators, currently necessary
-    "c" <- ADoverload("c")
+    # "[<-" <- ADoverload("[<-") # overloading assignment operators, currently necessary
+    # "c" <- ADoverload("c")
     # "diag<-" <- ADoverload("diag<-")
     
     expEta = exp(Eta)
@@ -626,16 +625,23 @@ tpm_p = function(tod = 1:24, L=24, beta, degree = 1, Z = NULL, byrow = FALSE, ad
 #' 
 #' @family transition probability matrix functions
 #'
-#' @param Q infinitesimal generator matrix of the continuous-time Markov chain of dimension c(N,N)
-#' @param timediff time differences between observations of length n-1 when based on n observations
-#' @param rates optional vector of state-dependent rates for MM(M)PP fitting. 
+#' @param Q 
+#' infinitesimal generator matrix of the continuous-time Markov chain of dimension \code{c(nStates, nStates)}
+#' 
+#' @param timediff 
+#' time differences between observations of length \code{nObs}-1 when based on \code{nObs} observations
+#' 
+#' @param rates 
+#' optional vector of state-dependent rates for MM(M)PP fitting. 
 #' For the MM(M)PP likelihood, the matrices needed in the forward algorithm are \eqn{\exp((Q - \Lambda) \Delta t)}, where \eqn{\Lambda} is a diagonal matrix with the state-dependent rates on the diagonal.
-#' @param ad optional logical, indicating whether automatic differentiation with \code{RTMB} should be used. By default, the function determines this itself.
-#' @param report logical, indicating whether \code{Q} should be reported from the fitted model. Defaults to \code{TRUE}, but only works if \code{ad = TRUE}.
+#' 
+#' @param ad 
+#' optional logical, indicating whether automatic differentiation with \code{RTMB} should be used. By default, the function determines this itself.
+#' 
+#' @param report 
+#' logical, indicating whether \code{Q} should be reported from the fitted model. Defaults to \code{TRUE}, but only works if \code{ad = TRUE}.
 #'
-#' @return array of continuous-time transition matrices of dimension c(N,N,n-1)
-#' @export
-#' @import RTMB
+#' @return array of continuous-time transition matrices of dimension \code{c(nStates, nStates, nObs-1)}
 #'
 #' @examples
 #' # building a Q matrix for a 3-state cont.-time Markov chain
@@ -646,7 +652,13 @@ tpm_p = function(tod = 1:24, L=24, beta, degree = 1, Z = NULL, byrow = FALSE, ad
 #'
 #' # compute all transition matrices
 #' Gamma = tpm_cont(Q, timediff)
-tpm_cont <- function(Q, timediff, rates = NULL, ad = NULL, report = TRUE){
+#' 
+#' @name tpm_ct
+
+#' @rdname tpm_ct
+#' @export
+#' @import RTMB
+tpm_ct <- function(Q, timediff, rates = NULL, ad = NULL, report = TRUE){
   
   # report quantities for easy use later
   if(report) {
@@ -658,41 +670,54 @@ tpm_cont <- function(Q, timediff, rates = NULL, ad = NULL, report = TRUE){
     }
   }
   
+  N <- dim(Q)[1]
+  if(dim(Q)[2] != N) {
+    stop("Q needs to be a square matrix.")
+  }
+  
   if(!is.null(rates)) {
-    if(length(rates) != nrow(Q)) {
+    if(length(rates) != N) {
       stop("Length of rates needs to be equal to the number of states.")
     }
     
-    "diag<-" <- ADoverload("diag<-")
-    Q <- Q - diag(rates)
+    # "diag<-" <- ADoverload("diag<-")
+    if(is.matrix(Q)) {
+      Q <- Q - diag(rates)
+    } else if(is.array(Q) && length(dim(Q)) == 3){
+      for(i in seq_len(N)) {
+        Q[i,i, ] <- Q[i,i,] - rates[i]
+      }
+    }
   }
   
   # if ad is not explicitly provided, check if delta is an advector
   if(is.null(ad)){
-    # check if Q has any of the allowed classes
-    if(!any(class(Q) %in% c("advector", "numeric", "matrix", "array"))){
-      stop("Q needs to be either a vector, matrix or advector.")
-    }
-    
-    # if Q is advector, run ad version of the function
-    # ad = inherits(Q, "advector")
+    # determine whether to use AD
     ad <- ad_context()
   }
   
   if(!ad) {
     
-    Qube = semigroup_cpp(Q, timediff) # C++ version
-    
+    if(is.matrix(Q)) {
+      Qube <- semigroup_cpp(Q, timediff) # C++ version
+    } else {
+      Qube <- semigroup_g_cpp(Q, timediff) # C++ version
+    }
+
   } else if(ad) { # ad version with RTMB
-    "[<-" <- ADoverload("[<-") # currently necessary
+    # "[<-" <- ADoverload("[<-") # currently necessary
     
-    n = length(timediff)
-    N = nrow(Q)
+    n <- length(timediff)
+    Qube = array(0, dim = c(N, N, n))
     
-    Qube = array(NaN, dim = c(N, N, n))
-    
-    for(t in 1:n){
-      Qube[,,t] = as.matrix(Matrix::expm(Q * timediff[t])) # Matrix::expm for AD
+    if(is.matrix(Q)) {
+      for(t in 1:n){
+        Qube[,,t] = as.matrix(Matrix::expm(Q * timediff[t])) # Matrix::expm for AD
+      }
+    } else{
+      for(t in 1:n){
+        Qube[,,t] = as.matrix(Matrix::expm(Q[,,t] * timediff[t])) # Matrix::expm for AD
+      }
     }
   }
   
@@ -703,21 +728,59 @@ tpm_cont <- function(Q, timediff, rates = NULL, ad = NULL, report = TRUE){
   colnames(Qube) <- statenames
   
   attr(Qube, "time") <- "continuous"
-  Qube
+  
+  return(Qube)
 }
 
+#' @rdname tpm_ct
+#' @export
+#' @import RTMB
+tpm_cont <- function(
+    Q, 
+    timediff,
+    rates = NULL, 
+    ad = NULL, 
+    report = TRUE) {
+  tpm_ct(Q=Q, timediff=timediff, rates=rates, ad=ad, report=report)
+} 
 
 #' Build the generator matrix of a continuous-time Markov chain
 #' 
 #' This function builds the \strong{infinitesimal generator matrix} for a \strong{continuous-time Markov chain} from an unconstrained parameter vector.
 #' 
+#' @details
+#' Off-diagonal entries are calculated as \eqn{\exp(\beta_i)} to ensure positivity. The diagonal entries are then set to the negative row sums, which is required for generator matrices.
+#'
+#' If a design matrix \code{Z} or a matrix of linear predictors \code{Eta} is provided, the function will automatically call \code{\link{generator_g}} to build the generator matrix based on the design matrix and coefficient matrix.
+#' In that case, the argument \code{beta} needs to be a matrix of coefficients of dimension \code{c(nStates * (nStates-1), p+1)}, where the first column contains the intercepts.
+#'
 #' @family transition probability matrix functions
 #' 
-#' @param param unconstrained parameter vector of length N*(N-1) where N is the number of states of the Markov chain
-#' @param byrow logical indicating if the transition probability matrix should be filled by row
-#' @param report logical, indicating whether the generator matrix Q should be reported from the fitted model. Defaults to \code{TRUE}, but only works if when automatic differentiation with \code{RTMB} is used.
+#' @param beta 
+#' parameters; either
+#'   \itemize{
+#'      \item a vector of length \code{nStates * (nStates-1)}, or
+#'      \item a matrix of dimension \code{c(nStates * (nStates-1), p+1)} if design matrix \code{Z} is also provided.
+#'   }
 #'
-#' @return infinitesimal generator matrix of dimension c(N,N)
+#' @param Z
+#' optional covariate design matrix with or without intercept column, i.e. of dimension \code{c(nObs, p)} or \code{c(nObs, p+1)}.
+#' If provided, \code{beta} needs to be a matrix of dimension \code{c(nStates * (nStates-1), p+1)}.
+#' 
+#' @param Eta 
+#' optional pre-calculated matrix of linear predictors of dimension \code{c(nObs, nStates * (nStates-1))}.
+#' If provided, \code{Z} and \code{beta} will be ignored.
+#' 
+#' @param byrow 
+#' logical indicating if the generator matrix should be filled by row
+#'
+#' @param report 
+#' logical, indicating whether the generator matrix \code{Q} should be reported from the fitted model. Defaults to \code{TRUE}, but only works if when automatic differentiation with \code{RTMB} is used.
+#'
+#' @param param 
+#' depricated, please use argument \code{beta} instead.
+#' 
+#' @return infinitesimal generator matrix of dimension \code{c(nStates, nStates)} or array of such matrices of dimension \code{c(nStates, nStates, nObs)} if \code{Z} or \code{Eta} is provided.
 #' @export
 #' @import RTMB
 #'
@@ -726,24 +789,185 @@ tpm_cont <- function(Q, timediff, rates = NULL, ad = NULL, report = TRUE){
 #' generator(rep(-1, 2))
 #' # 3 states: 6 free off-diagonal elements
 #' generator(rep(-2, 6))
-generator = function(param, byrow = FALSE, report = TRUE) {
+generator <- function(
+    beta,
+    Z = NULL, 
+    Eta = NULL,
+    byrow = FALSE, 
+    report = TRUE,
+    param = NULL
+) {
   
-  "[<-" <- ADoverload("[<-") # currently necessary
+  if(!is.null(param)) {
+    beta <- param
+    message("Argument 'param' is deprecated. Please use 'beta' instead.")
+  }
   
-  K = length(param)
+  # potentially escape to tpm_g if matrix of linear predictors or design matrix is provided
+  if(!is.null(Eta) && is.matrix(Eta)) {
+    return(
+      generator_g(Eta = Eta, byrow = byrow, report = report)
+    )
+  }
+  if(!is.null(Z) && is.matrix(Z)) {
+    if(!is.matrix(beta)) {
+      stop("If a design matrix is provided, beta must be a matrix of coefficients.")
+    }
+    return(
+      generator_g(Z = Z, beta = beta, byrow = byrow, report = report)
+    )
+  }
+  
+  # "[<-" <- ADoverload("[<-") # currently necessary
+  
+  K <- length(beta)
   # for N > 1: N*(N-1) is bijective with solution
-  N = as.integer(0.5 + sqrt(0.25 + K), 0)
+  N <- 0.5 + sqrt(0.25 + K)
+  int_N <- abs(N - round(N)) < .Machine$double.eps^0.5
+  if (!int_N) {
+    stop("The length of beta is not compatible with a generator matrix (nStates * (nStates-1) for integer nStates).")
+  }
+  N <- as.integer(round(N))
   
-  Q = diag(N)
-  Q[!Q] = exp(param)
-  diag(Q) = 0
+  expParam <- exp(beta)
   
-  if(byrow) Q = t(Q) # transpose if necessary
+  Q <- AD(matrix(0, N, N))
+  ind <- 1
+  for(i in 1:N) {
+    for(j in 1:N) {
+      if(!byrow){
+        if(i != j){       # column-wise filling
+          Q[j, i] <- expParam[ind]
+          ind <- ind + 1
+        }
+      } else {
+        if(j != i){       # row-wise filling
+          Q[i, j] <- expParam[ind]
+          ind <- ind + 1
+        }
+      }
+    }
+  }
   
-  diag(Q) = -rowSums(Q)
+  # Normalize rows
+  diag(Q) <- -rowSums(Q)
+
+  # naming
+  statenames <- paste0("S", 1:N)
+  rownames(Q) <- statenames
+  colnames(Q) <- statenames
   
-  if(report) {
-    RTMB::REPORT(Q)
+  return(Q)
+}
+
+
+#' Build generator matrices of a continuous-time Markov chain
+#' 
+#' This function builds \strong{infinitesimal generator matrices} for a \strong{continuous-time Markov chain} based on a design matrix and coefficient matrix.
+#' 
+#' @details
+#' Off-diagonal entries are calculated as \eqn{\exp(Z \beta_i)} to ensure positivity. The diagonal entries are then set to the negative row sums, which is required for generator matrices.
+#' 
+#' 
+#' @family transition probability matrix functions
+#' 
+#' @param Z 
+#' Covariate design matrix with or without intercept column, i.e. of dimension \code{c(nObs, p)} or \code{c(nObs, p+1)}. If not provided, intercept column is added automatically.
+#'
+#' @param beta 
+#' Matrix of coefficients for the off-diagonal elements of the generator matrix 
+#' of dimension \code{c(nStates * (nStates-1), p+1)}. First columns contains the intercepts.
+#' 
+#' @param Eta 
+#' optional pre-calculated matrix of linear predictors of dimension \code{c(nObs, nStates * (nStates-1))}.
+#' If provided, no \code{Z} and \code{beta} are necessary and will be ignored.
+#'
+#' @param byrow 
+#' logical indicating if the generator matrices should be filled by row
+#'
+#' @param report 
+#' logical, indicating whether the generator matrices \code{Q} should be reported from the fitted model. Defaults to \code{TRUE}, but only works if when automatic differentiation with \code{RTMB} is used.
+#' 
+#' @return array of infinitesimal generator matrices of dimension \code{c(nStates, nStates, nObs)}
+#' @export
+#' @import RTMB
+#'
+#' @examples
+#' # 2 states: 2 free off-diagonal elements
+#' generator(rep(-1, 2))
+#' # 3 states: 6 free off-diagonal elements
+#' generator(rep(-2, 6))
+generator_g <- function(
+    Z, 
+    beta, 
+    Eta = NULL, 
+    byrow = FALSE, 
+    report = TRUE
+){
+  
+  if(is.null(Eta)) {
+    K <- nrow(beta)
+    p <- ncol(beta) - 1
+  } else {
+    K <- ncol(Eta)
+  }
+  
+  N <- 0.5 + sqrt(0.25 + K)
+  int_N <- abs(N - round(N)) < .Machine$double.eps^0.5
+  if (!int_N) {
+    stop("The number of rows of beta is not compatible with a transition probability matrix (N*(N-1) for integer N).")
+  }
+  N <- as.integer(round(N))
+  
+  if(is.null(Eta)) {
+    Z <- as.matrix(Z)
+    if(ncol(Z) == p){
+      Z = cbind(1, Z) # adding intercept column
+    } else if(ncol(Z) != p + 1){
+      stop("The dimensions of Z and beta do not match.")
+    }
+    
+    # report quantities for easy use later
+    if(report) {
+      # Setting colnames for beta: Inherit colnames from Z
+      colnames(beta) <- colnames(Z)
+      if(is.null(rownames(beta))){
+        # Setting rownames: depends on byrow
+        names <- outer(paste0("S", 1:N, ">"), paste0("S", 1:N), FUN = paste0) # matrix
+        diag(names) <- NA
+        rownames(beta) <- na.omit(if (byrow) c(t(names)) else c(names))
+      }
+      REPORT(beta)
+    }
+    
+    Eta <- Z %*% t(beta)
+  }
+    
+  expEta <- exp(Eta)
+  
+  Q <- AD(array(0, dim = c(N, N, nrow(expEta))))
+  
+  ## Loop over entries (stuff over time happens vectorised which speeds up the tape)
+  col_ind <- 1
+  for(i in seq_len(N)){       # loop over rows
+    for(j in seq_len(N)){     # loop over columns
+      if(!byrow){
+        if(i != j){           # column-wise filling
+          Q[j, i, ] <- expEta[, col_ind]
+          col_ind <- col_ind + 1
+        }
+      } else {
+        if(j != i){           # row-wise filling
+          Q[i, j, ] <- expEta[, col_ind]
+          col_ind <- col_ind + 1
+        }
+      }
+    }
+  }
+  
+  # Set diagonal entry to - rowsum
+  for(i in seq_len(N)){
+    Q[i, i, ] <- -colSums(Q[i, , ])
   }
   
   # naming
@@ -751,8 +975,11 @@ generator = function(param, byrow = FALSE, report = TRUE) {
   rownames(Q) <- statenames
   colnames(Q) <- statenames
   
-  Q
+  return(Q)
 }
+
+
+
 
 
 

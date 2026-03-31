@@ -24,7 +24,7 @@ For time of day and e.g. half-hourly data, this could be 1, ..., L and L = 48, o
 
 \item{beta}{matrix of coefficients for the off-diagonal elements of the transition probability matrix
 
-Needs to be of dimension c(N *(N-1), 2*degree+1), where the first column contains the intercepts.}
+Needs to be of dimension \code{c(nStates *(nStates-1), 2*degree+1)}, where the first column contains the intercepts.}
 
 \item{degree}{degree of the trigonometric link function
 
@@ -44,7 +44,7 @@ Defaults to \code{FALSE}, but should be set to \code{TRUE} if one wants to work 
 \item{report}{logical, indicating whether the coefficient matrix \code{beta} should be reported from the fitted model. Defaults to \code{TRUE}, but only works if \code{ad = TRUE}.}
 }
 \value{
-array of transition probability matrices of dimension c(N,N,length(tod))
+array of transition probability matrices of dimension \code{c(nStates, nStates, length(tod))}
 }
 \description{
 Given a periodically varying variable such as time of day or day of year and the associated cycle length, 

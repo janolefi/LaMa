@@ -9,9 +9,9 @@ tpm_ihsmm(omega, dm, eps = 1e-10)
 \arguments{
 \item{omega}{embedded transition probability matrix
 
-Either a matrix of dimension c(N,N) for homogeneous conditional transition probabilities (as computed by \code{\link{tpm_emb}}), or an array of dimension c(N,N,n) for inhomogeneous conditional transition probabilities (as computed by \code{\link{tpm_emb_g}}).}
+Either a matrix of dimension \code{c(nStates, nStates)} for homogeneous conditional transition probabilities (as computed by \code{\link{tpm_emb}}), or an array of dimension \code{c(nStates, nStates, nObs)} for inhomogeneous conditional transition probabilities (as computed by \code{\link{tpm_emb_g}}).}
 
-\item{dm}{state dwell-time distributions arranged in a list of length N
+\item{dm}{state dwell-time distributions arranged in a list of length \code{nStates}
 
 Each list element needs to be a matrix of dimension c(n, N_i), where each row t is the (approximate) probability mass function of state i at time t.}
 

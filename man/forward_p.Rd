@@ -16,22 +16,22 @@ forward_p(
 )
 }
 \arguments{
-\item{delta}{initial or stationary distribution of length N, or matrix of dimension c(k,N) for k independent tracks, if \code{trackID} is provided}
+\item{delta}{initial or stationary distribution of length \code{nStates}, or matrix of dimension \code{c(nTracks, nStates)} for \code{nTracks} independent tracks, if \code{trackID} is provided}
 
-\item{Gamma}{array of transition probability matrices of dimension c(N,N,L).
+\item{Gamma}{array of transition probability matrices of dimension \code{c(nStates, nStates, L)}.
 
 Here we use the definition \eqn{\Pr(S_t=j \mid S_{t-1}=i) = \gamma_{ij}^{(t)}} such that the transition probabilities between time point \eqn{t-1} and \eqn{t} are an element of \eqn{\Gamma^{(t)}}.}
 
-\item{allprobs}{matrix of state-dependent probabilities/ density values of dimension c(n, N)}
+\item{allprobs}{matrix of state-dependent probabilities/ density values of dimension \code{c(nObs, nStates)}}
 
-\item{tod}{(Integer valued) variable for cycle indexing in 1, ..., L, mapping the data index to a generalised time of day (length n)
+\item{tod}{(Integer valued) variable for cycle indexing in 1, ..., L, mapping the data index to a generalised time of day (length \code{nObs})
 
 For half-hourly data L = 48. It could, however, also be day of year for daily data and L = 365.}
 
-\item{trackID}{optional vector of length n containing IDs
+\item{trackID}{optional vector of length \code{nObs} containing IDs
 
 If provided, the total log-likelihood will be the sum of each track's likelihood contribution.
-Instead of a single vector \code{delta} corresponding to the initial distribution, a \code{delta} matrix of initial distributions of dimension c(k,N), can be provided, such that each track starts with it's own initial distribution.}
+Instead of a single vector \code{delta} corresponding to the initial distribution, a \code{delta} matrix of initial distributions of dimension \code{c(nTracks, nObs)}, can be provided, such that each track starts with it's own initial distribution.}
 
 \item{ad}{optional logical, indicating whether automatic differentiation with \code{RTMB} should be used. By default, the function determines this itself.}
 

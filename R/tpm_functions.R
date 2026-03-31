@@ -524,10 +524,10 @@ tpm_g2 <- function(Z,
 #' \deqn{\Gamma_t = \Gamma^{(t)} \Gamma^{(t+1)} \dots \Gamma^{(t+L-1)}} for all \eqn{t = 1, \dots, L.}
 #' This function calculates the matrix above efficiently as a preliminery step to calculating the periodically stationary distribution.
 #' 
-#' @param Gamma array of transition probability matrices of dimension c(N,N,L).
+#' @param Gamma array of transition probability matrices of dimension \code{c(nStates, nStates, L)}.
 #' @param t integer index of the time point in the cycle, for which to calculate the thinned transition probility matrix
 #'
-#' @return thinned transition probabilty matrix of dimension c(N,N)
+#' @return thinned transition probabilty matrix of dimension \code{c(nStates, nStates)}
 #' @export
 #'
 #' @examples
@@ -565,7 +565,7 @@ tpm_thinned = function(Gamma, t){
 #' 
 #' @param beta matrix of coefficients for the off-diagonal elements of the transition probability matrix
 #' 
-#' Needs to be of dimension c(N *(N-1), 2*degree+1), where the first column contains the intercepts.
+#' Needs to be of dimension \code{c(nStates *(nStates-1), 2*degree+1)}, where the first column contains the intercepts.
 #' @param degree degree of the trigonometric link function
 #' 
 #' For each additional degree, one sine and one cosine frequency are added.
@@ -579,7 +579,7 @@ tpm_thinned = function(Gamma, t){
 #' @param ad optional logical, indicating whether automatic differentiation with RTMB should be used. By default, the function determines this itself.
 #' @param report logical, indicating whether the coefficient matrix \code{beta} should be reported from the fitted model. Defaults to \code{TRUE}, but only works if \code{ad = TRUE}.
 #'
-#' @return array of transition probability matrices of dimension c(N,N,length(tod))
+#' @return array of transition probability matrices of dimension \code{c(nStates, nStates, length(tod))}
 #' @export
 #'
 #' @examples
@@ -1011,18 +1011,18 @@ generator_g <- function(
 #' This function builds such an embedded/ conditional transition probability matrix from an unconstrained parameter vector. 
 #' For each row of the matrix, the inverse multinomial logistic link is applied.
 #' 
-#' For a matrix of dimension c(N,N), the number of free off-diagonal elements is N*(N-2), hence also the length of \code{param}.
+#' For a matrix of dimension \code{c(nStates, nStates)}, the number of free off-diagonal elements is \code{nStates * (nStates-2)}, hence also the length of \code{param}.
 #' This means, for 2 states, the function needs to be called without any arguments, for 3-states with a vector of length 3, for 4 states with a vector of length 8, etc.
 #'
 #' Compatible with automatic differentiation by \code{RTMB}
 #' 
 #' @family transition probability matrix functions
 #'
-#' @param param unconstrained parameter vector of length N*(N-2) where N is the number of states of the Markov chain
+#' @param param unconstrained parameter vector of length \code{nStates * (nStates-2)}
 #'
 #' If the function is called without \code{param}, it will return the conditional transition probability matrix for a 2-state HSMM, which is fixed with 0 diagonal entries and off-diagonal entries equal to 1.
 #'
-#' @return embedded/ conditional transition probability matrix of dimension c(N,N)
+#' @return embedded/ conditional transition probability matrix of dimension \code{c(nStates, nStates)}
 #' @export
 #' @import RTMB
 #'
@@ -1072,22 +1072,22 @@ tpm_emb = function(param = NULL){
 #' It builds all embedded/ conditional transition probability matrices based on a design and parameter matrix.
 #' For each row of the matrix, the inverse multinomial logistic link is applied.
 #' 
-#' For a matrix of dimension c(N,N), the number of free off-diagonal elements is N*(N-2) which determines the number of rows of the parameter matrix.
+#' For a matrix of dimension \code{c(nStates, nStates)}, the number of free off-diagonal elements is \code{nStates * (nStates-2)} which determines the number of rows of the parameter matrix.
 #'
 #' Compatible with automatic differentiation by \code{RTMB}
 #' 
 #' @family transition probability matrix functions
 #' 
-#' @param Z covariate design matrix with or without intercept column, i.e. of dimension c(n, p) or c(n, p+1)
+#' @param Z covariate design matrix with or without intercept column, i.e. of dimension \code{c(nObs, p)} or \code{c(nObs, p+1)}
 #'
-#' If \code{Z} has only p columns, an intercept column of ones will be added automatically.
+#' If \code{Z} has only \code{p} columns, an intercept column of ones will be added automatically.
 #' @param beta matrix of coefficients for the off-diagonal elements of the embedded transition probability matrix
 #'
-#' Needs to be of dimension c(N*(N-2), p+1), where the first column contains the intercepts.
-#' p can be 0, in which case the model is homogeneous.
+#' Needs to be of dimension \code{c(nStates * (nStates-2), p+1)}, where the first column contains the intercepts.
+#' \code{p} can be 0, in which case the model is homogeneous.
 #' @param report logical, indicating whether the coefficient matrix beta should be reported from the fitted model. Defaults to \code{TRUE}.
 #'
-#' @return array of embedded/ conditional transition probability matrices of dimension c(N,N,n)
+#' @return array of embedded/ conditional transition probability matrices of dimension \code{c(nStates, nStates, nObs)}
 #' @export
 #' @import RTMB
 #'
@@ -1154,9 +1154,9 @@ tpm_emb_g = function(Z, beta, report = TRUE){
 #' 
 #' This function computes the transition matrix to approximate a given HSMM by an HMM with a larger state space.
 #'
-#' @param omega embedded transition probability matrix of dimension c(N,N) as computed by \code{\link{tpm_emb}}.
-#' @param dm state dwell-time distributions arranged in a list of length(N). Each list element needs to be a vector of length N_i, where N_i is the state aggregate size.
-#' @param Fm optional list of length N containing the cumulative distribution functions of the dwell-time distributions.
+#' @param omega embedded transition probability matrix of dimension \code{c(nStates, nStates)} as computed by \code{\link{tpm_emb}}.
+#' @param dm state dwell-time distributions arranged in a list of length \code{nStates}. Each list element needs to be a vector of length N_i, where N_i is the state aggregate size.
+#' @param Fm optional list of length \code{nStates} containing the cumulative distribution functions of the dwell-time distributions.
 #' @param sparse logical, indicating whether the output should be a \strong{sparse} matrix. Defaults to \code{TRUE}.
 #' @param eps rounding value: If an entry of the transition probabily matrix is smaller, than it is rounded to zero. Usually, this should not be changed.
 #'
@@ -1239,8 +1239,8 @@ tpm_hsmm <- function(omega, dm,
 #'
 #' @param omega embedded transition probability matrix
 #'
-#' Either a matrix of dimension c(N,N) for homogeneous conditional transition probabilities (as computed by \code{\link{tpm_emb}}), or an array of dimension c(N,N,n) for inhomogeneous conditional transition probabilities (as computed by \code{\link{tpm_emb_g}}).
-#' @param dm state dwell-time distributions arranged in a list of length N
+#' Either a matrix of dimension \code{c(nStates, nStates)} for homogeneous conditional transition probabilities (as computed by \code{\link{tpm_emb}}), or an array of dimension \code{c(nStates, nStates, nObs)} for inhomogeneous conditional transition probabilities (as computed by \code{\link{tpm_emb_g}}).
+#' @param dm state dwell-time distributions arranged in a list of length \code{nStates}
 #'
 #' Each list element needs to be a matrix of dimension c(n, N_i), where each row t is the (approximate) probability mass function of state i at time t.
 #' @param eps rounding value: If an entry of the transition probabily matrix is smaller, than it is rounded to zero. Usually, this should not be changed.
@@ -1315,8 +1315,8 @@ tpm_ihsmm = function(omega, dm,
 #'
 #' @param omega embedded transition probability matrix
 #'
-#' Either a matrix of dimension c(N,N) for homogeneous conditional transition probabilities (as computed by \code{\link{tpm_emb}}), or an array of dimension c(N,N,L) for inhomogeneous conditional transition probabilities (as computed by \code{\link{tpm_emb_g}}).
-#' @param dm state dwell-time distributions arranged in a list of length N
+#' Either a matrix of dimension \code{c(nStates, nStates)} for homogeneous conditional transition probabilities (as computed by \code{\link{tpm_emb}}), or an array of dimension \code{c(nStates, nStates, L)} for inhomogeneous conditional transition probabilities (as computed by \code{\link{tpm_emb_g}}).
+#' @param dm state dwell-time distributions arranged in a list of length \code{nStates}
 #'
 #' Each list element needs to be a matrix of dimension c(L, N_i), where each row t is the (approximate) probability mass function of state i at time t.
 #' @param eps rounding value: If an entry of the transition probabily matrix is smaller, than it is rounded to zero. Usually, this should not be changed.

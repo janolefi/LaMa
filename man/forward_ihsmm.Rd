@@ -16,7 +16,7 @@ forward_ihsmm(
 )
 }
 \arguments{
-\item{dm}{list of length N containing matrices (or vectors) of dwell-time probability mass functions (PMFs) for each state.
+\item{dm}{list of length \code{nStates} containing matrices (or vectors) of dwell-time probability mass functions (PMFs) for each state.
 
 If the dwell-time PMFs are constant, the vectors are the PMF of the dwell-time distribution fixed in time. The vector lengths correspond to the approximating state aggregate sizes, hence there should be little probablity mass not covered by these.
 
@@ -24,16 +24,16 @@ If the dwell-time PMFs are inhomogeneous, the matrices need to have n rows, wher
 
 In the latter case, the first \code{max(sapply(dm, ncol)) - 1} observations will not be used because the first approximating transition probability matrix needs to be computed based on the first \code{max(sapply(dm, ncol))} covariate values (represented by \code{dm}).}
 
-\item{omega}{matrix of dimension c(N,N) or array of dimension c(N,N,n) of conditional transition probabilites, also called embedded transition probability matrix.
+\item{omega}{matrix of dimension \code{c(nStates, nStates)} or array of dimension \code{c(nStates, nStates, nObs)} of conditional transition probabilites, also called embedded transition probability matrix.
 
 It contains the transition probabilities given the current state is left. Hence, the diagonal elements need to be zero and the rows need to sum to one. Such a matrix can be constructed using \code{\link{tpm_emb}} and an array using \code{\link{tpm_emb_g}}.}
 
-\item{allprobs}{matrix of state-dependent probabilities/ density values of dimension c(n, N)}
+\item{allprobs}{matrix of state-dependent probabilities/ density values of dimension \code{c(nObs, nStates)}}
 
-\item{trackID}{trackID optional vector of length n containing IDs
+\item{trackID}{trackID optional vector of length \code{nObs} containing IDs
 
 If provided, the total log-likelihood will be the sum of each track's likelihood contribution.
-Instead of a single vector \code{delta} corresponding to the initial distribution, a \code{delta} matrix of initial distributions, of dimension c(k,N), can be provided, such that each track starts with it's own initial distribution.}
+Instead of a single vector \code{delta} corresponding to the initial distribution, a \code{delta} matrix of initial distributions, of dimension \code{c(nTracks, nStates)}, can be provided, such that each track starts with it's own initial distribution.}
 
 \item{delta}{optional vector of initial state probabilities of length N
 

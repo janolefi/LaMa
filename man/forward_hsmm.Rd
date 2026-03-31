@@ -15,21 +15,21 @@ forward_hsmm(
 )
 }
 \arguments{
-\item{dm}{list of length N containing vectors of dwell-time probability mass functions (PMFs) for each state. The vector lengths correspond to the approximating state aggregate sizes, hence there should be little probablity mass not covered by these.}
+\item{dm}{list of length \code{nStates} containing vectors of dwell-time probability mass functions (PMFs) for each state. The vector lengths correspond to the approximating state aggregate sizes, hence there should be little probablity mass not covered by these.}
 
-\item{omega}{matrix of dimension c(N,N) of conditional transition probabilites, also called embedded transition probability matrix. 
+\item{omega}{matrix of dimension \code{c(nStates, nStates)} of conditional transition probabilites, also called embedded transition probability matrix. 
 
 Contains the transition probabilities given that the current state is left. Hence, the diagonal elements need to be zero and the rows need to sum to one. Can be constructed using \code{\link{tpm_emb}}.}
 
-\item{allprobs}{matrix of state-dependent probabilities/ density values of dimension c(n, N) which will automatically be converted to the appropriate dimension.}
+\item{allprobs}{matrix of state-dependent probabilities/ density values of dimension \code{c(nObs, nStates)} which will automatically be converted to the appropriate dimension.}
 
-\item{trackID}{optional vector of length n containing IDs
+\item{trackID}{optional vector of length \code{nObs} containing IDs
 
 If provided, the total log-likelihood will be the sum of each track's likelihood contribution.
-In this case, \code{dm} can be a nested list, where the top layer contains k \code{dm} lists as described above. \code{omega} can then also be an array of dimension c(N,N,k) with one conditional transition probability matrix for each track.
-Furthermore, instead of a single vector \code{delta} corresponding to the initial distribution, a \code{delta} matrix of initial distributions, of dimension c(k,N), can be provided, such that each track starts with it's own initial distribution.}
+In this case, \code{dm} can be a nested list, where the top layer contains k \code{dm} lists as described above. \code{omega} can then also be an array of dimension \code{c(nStates, nStates, nTracks)} with one conditional transition probability matrix for each track.
+Furthermore, instead of a single vector \code{delta} corresponding to the initial distribution, a \code{delta} matrix of initial distributions, of dimension \code{c(nTracks, nStates)}, can be provided, such that each track starts with it's own initial distribution.}
 
-\item{delta}{optional vector of initial state probabilities of length N
+\item{delta}{optional vector of initial state probabilities of length \code{nStates}
 
 By default, the stationary distribution is computed (which is typically recommended).}
 

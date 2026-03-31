@@ -7,19 +7,19 @@
 tpm_emb_g(Z, beta, report = TRUE)
 }
 \arguments{
-\item{Z}{covariate design matrix with or without intercept column, i.e. of dimension c(n, p) or c(n, p+1)
+\item{Z}{covariate design matrix with or without intercept column, i.e. of dimension \code{c(nObs, p)} or \code{c(nObs, p+1)}
 
-If \code{Z} has only p columns, an intercept column of ones will be added automatically.}
+If \code{Z} has only \code{p} columns, an intercept column of ones will be added automatically.}
 
 \item{beta}{matrix of coefficients for the off-diagonal elements of the embedded transition probability matrix
 
-Needs to be of dimension c(N*(N-2), p+1), where the first column contains the intercepts.
-p can be 0, in which case the model is homogeneous.}
+Needs to be of dimension \code{c(nStates * (nStates-2), p+1)}, where the first column contains the intercepts.
+\code{p} can be 0, in which case the model is homogeneous.}
 
 \item{report}{logical, indicating whether the coefficient matrix beta should be reported from the fitted model. Defaults to \code{TRUE}.}
 }
 \value{
-array of embedded/ conditional transition probability matrices of dimension c(N,N,n)
+array of embedded/ conditional transition probability matrices of dimension \code{c(nStates, nStates, nObs)}
 }
 \description{
 Hidden semi-Markov models are defined in terms of state durations and an \strong{embedded} transition probability matrix that contains the conditional transition probabilities given that the \strong{current state is left}. This matrix necessarily has diagonal entries all equal to zero as self-transitions are impossible.
@@ -28,7 +28,7 @@ We can allow this matrix to vary with covariates, which is the purpose of this f
 It builds all embedded/ conditional transition probability matrices based on a design and parameter matrix.
 For each row of the matrix, the inverse multinomial logistic link is applied.
 
-For a matrix of dimension c(N,N), the number of free off-diagonal elements is N*(N-2) which determines the number of rows of the parameter matrix.
+For a matrix of dimension \code{c(nStates, nStates)}, the number of free off-diagonal elements is \code{nStates * (nStates-2)} which determines the number of rows of the parameter matrix.
 
 Compatible with automatic differentiation by \code{RTMB}
 }

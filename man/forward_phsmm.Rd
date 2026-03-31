@@ -16,27 +16,27 @@ forward_phsmm(
 )
 }
 \arguments{
-\item{dm}{list of length N containing matrices (or vectors) of dwell-time probability mass functions (PMFs) for each state.
+\item{dm}{list of length \code{nStates} containing matrices (or vectors) of dwell-time probability mass functions (PMFs) for each state.
 
 If the dwell-time PMFs are constant, the vectors are the PMF of the dwell-time distribution fixed in time. The vector lengths correspond to the approximating state aggregate sizes, hence there should be little probablity mass not covered by these.
 
 If the dwell-time PMFs are inhomogeneous, the matrices need to have L rows, where L is the cycle length. The number of columns again correpond to the size of the approximating state aggregates.}
 
-\item{omega}{matrix of dimension c(N,N) or array of dimension c(N,N,L) of conditional transition probabilites, also called embedded transition probability matrix
+\item{omega}{matrix of dimension \code{c(nStates, nStates)} or array of dimension \code{c(nStates, nStates, L)} of conditional transition probabilites, also called embedded transition probability matrix
 
 It contains the transition probabilities given the current state is left. Hence, the diagonal elements need to be zero and the rows need to sum to one. Such a matrix can be constructed using \code{\link{tpm_emb}} and an array using \code{\link{tpm_emb_g}}.}
 
-\item{allprobs}{matrix of state-dependent probabilities/ density values of dimension c(n, N)}
+\item{allprobs}{matrix of state-dependent probabilities/ density values of dimension \code{c(nObs, nStates)}}
 
-\item{tod}{(Integer valued) variable for cycle indexing in 1, ..., L, mapping the data index to a generalised time of day (length n).
+\item{tod}{(Integer valued) variable for cycle indexing in 1, ..., L, mapping the data index to a generalised time of day (length \code{nObs}).
 For half-hourly data L = 48. It could, however, also be day of year for daily data and L = 365.}
 
-\item{trackID}{optional vector of length n containing IDs
+\item{trackID}{optional vector of length \code{nObs} containing IDs
 
 If provided, the total log-likelihood will be the sum of each track's likelihood contribution.
-Instead of a single vector \code{delta} corresponding to the initial distribution, a \code{delta} matrix of initial distributions, of dimension c(k,N), can be provided, such that each track starts with it's own initial distribution.}
+Instead of a single vector \code{delta} corresponding to the initial distribution, a \code{delta} matrix of initial distributions, of dimension \code{c(nTracks, nStates)}, can be provided, such that each track starts with it's own initial distribution.}
 
-\item{delta}{Optional vector of initial state probabilities of length N. By default, instead of this, the stationary distribution is computed corresponding to the first approximating t.p.m. of each track is computed. Contrary to the homogeneous case, this is not theoretically motivated but just for convenience.}
+\item{delta}{Optional vector of initial state probabilities of length \code{nStates}. By default, instead of this, the stationary distribution is computed corresponding to the first approximating t.p.m. of each track is computed. Contrary to the homogeneous case, this is not theoretically motivated but just for convenience.}
 
 \item{eps}{small value to avoid numerical issues in the approximating transition matrix construction. Usually, this should not be changed.}
 

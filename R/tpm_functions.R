@@ -705,7 +705,7 @@ tpm_ct <- function(Q, timediff, rates = NULL, ad = NULL, report = TRUE){
     }
 
   } else if(ad) { # ad version with RTMB
-    # "[<-" <- ADoverload("[<-") # currently necessary
+    "[<-" <- ADoverload("[<-") # currently necessary
     
     n <- length(timediff)
     Qube = array(0, dim = c(N, N, n))
@@ -818,7 +818,7 @@ generator <- function(
     )
   }
   
-  # "[<-" <- ADoverload("[<-") # currently necessary
+  "[<-" <- ADoverload("[<-") # currently necessary
   
   K <- length(beta)
   # for N > 1: N*(N-1) is bijective with solution
@@ -904,6 +904,8 @@ generator_g <- function(
     byrow = FALSE, 
     report = TRUE
 ){
+  
+  "[<-" <- ADoverload("[<-") # currently necessary
   
   if(is.null(Eta)) {
     K <- nrow(beta)

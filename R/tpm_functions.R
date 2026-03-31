@@ -10,14 +10,38 @@
 #'
 #' @family transition probability matrix functions
 #'
-#' @param param unconstrained parameter vector of length N*(N-1) where N is the number of states of the Markov chain
-#' @param byrow logical indicating if the transition probability matrix should be filled by row
+#' @param beta 
+#' parameters; either
+#'   \itemize{
+#'      \item a vector of length \code{nStates * (nStates-1)}, or
+#'      \item a matrix of dimension \code{c(nStates * (nStates-1), p+1)} if design matrix \code{Z} is also provided.
+#'   }
 #'
+#' @param Z
+#' optional covariate design matrix with or without intercept column, i.e. of dimension \code{c(nObs, p)} or \code{c(nObs, p+1)}.
+#' If provided, \code{beta} needs to be a matrix of dimension \code{c(nStates * (nStates-1), p+1)}.
+#' 
+#' @param Eta 
+#' optional pre-calculated matrix of linear predictors of dimension \code{c(nObs, nStates * (nStates-1))}.
+#' If provided, \code{Z} and \code{beta} will be ignored.
+#'
+#' @param byrow 
+#' logical indicating if each transition probability matrix should be filled by row.
 #' Defaults to \code{FALSE}, but should be set to \code{TRUE} if one wants to work with a matrix of beta parameters returned by popular HMM packages like \code{moveHMM}, \code{momentuHMM}, or \code{hmmTMB}.
-#' @param ref Optional integer vector of length N giving, for each row, the column index of the reference state 
-#' (its predictor is fixed to 0). Defaults to the diagonal (\code{ref = 1:N}).
 #'
-#' @return Transition probability matrix of dimension c(N,N)
+#' @param ref 
+#' optional integer vector of length \code{nStates} giving, for each row, the column index of the reference state 
+#' (its predictor is fixed to 0). Defaults to the diagonal (\code{ref = 1:nStates}).
+#'
+#' @param ad 
+#' logical; whether to use automatic differentiation. Determined automatically — for debugging only.
+#' 
+#' @param report 
+#' logical; if TRUE (default), \code{delta}, \code{Gamma}, \code{allprobs}, and \code{trackID} are reported from the fitted model. Requires \code{ad = TRUE}. 
+#' 
+#' @param param depricated, please use argument \code{beta} instead.
+#' 
+#' @return Transition probability matrix of dimension \code{c(nStates, nStates)}
 #' @export
 #' @import RTMB
 #'
@@ -29,18 +53,47 @@
 #' # 3 states: 6 free off-diagonal elements
 #' par2 = rep(-2, 6)
 #' Gamma2 = tpm(par2)
-tpm <- function(param, byrow = FALSE, ref = NULL) {
+tpm <- function(
+    beta, 
+    Z = NULL, 
+    Eta = NULL,
+    byrow = FALSE, 
+    ref = NULL,
+    ad = NULL,
+    report = TRUE,
+    param = NULL
+) {
   
-  "[<-" <- ADoverload("[<-") # overloading assignment operators, currently necessary
-  "c" <- ADoverload("c")
-  "diag<-" <- ADoverload("diag<-")
+  if(!is.null(param)) {
+    beta <- param
+    message("Argument 'param' is deprecated. Please use 'beta' instead.")
+  }
   
-  K <- length(param)
+  # potentially escape to tpm_g if matrix of linear predictors or design matrix is provided
+  if(!is.null(Eta) && is.matrix(Eta)) {
+    return(
+      tpm_g(Eta = Eta, byrow = byrow, ref = ref, ad = ad, report = report)
+    )
+  }
+  if(!is.null(Z) && is.matrix(Z)) {
+    if(!is.matrix(beta)) {
+      stop("If a design matrix is provided, beta must be a matrix of coefficients.")
+    }
+    return(
+      tpm_g(Z = Z, beta = beta, byrow = byrow, ref = ref, ad = ad, report = report)
+    )
+  }
+  
+  # "[<-" <- ADoverload("[<-") # overloading assignment operators, currently necessary
+  # "c" <- ADoverload("c")
+  # "diag<-" <- ADoverload("diag<-")
+  
+  K <- length(beta)
   # for N > 1: N*(N-1) is bijective with solution
   N <- 0.5 + sqrt(0.25 + K)
   int_N <- abs(N - round(N)) < .Machine$double.eps^0.5
   if (!int_N) {
-    stop("The length of param is not compatible with a transition probability matrix (N*(N-1) for integer N).")
+    stop("The length of param is not compatible with a transition probability matrix (nStates * (nStates-1) for integer nStates).")
   }
   N <- as.integer(round(N))
   
@@ -52,7 +105,7 @@ tpm <- function(param, byrow = FALSE, ref = NULL) {
     }
   }
   
-  expParam <- exp(param)
+  expParam <- exp(beta)
   
   Gamma <- AD(matrix(1, N, N))
   ind <- 1
@@ -94,25 +147,36 @@ tpm <- function(param, byrow = FALSE, ref = NULL) {
 #' 
 #' @family transition probability matrix functions
 #'
-#' @param Z covariate design matrix with or without intercept column, i.e. of dimension c(n, p) or c(n, p+1)
-#' 
-#' If \code{Z} has only p columns, an intercept column of ones will be added automatically.
-#' @param beta matrix of coefficients for the off-diagonal elements of the transition probability matrix
-#' 
-#' Needs to be of dimension c(N*(N-1), p+1), where the first column contains the intercepts.
-#' @param Eta optional pre-calculated linear predictor matrix of dimension c(n, N*(N-1)). 
-#' 
-#' Usually, \code{Eta} is calculated as \code{Z \%*\% t(beta)}. If provided, no \code{Z} and \code{beta} are necessary and will be ignored.
-#' @param byrow logical indicating if each transition probability matrix should be filled by row
-#'  
-#' Defaults to \code{FALSE}, but should be set to \code{TRUE} if one wants to work with a matrix of beta parameters returned by popular HMM packages like \code{moveHMM}, \code{momentuHMM}, or \code{hmmTMB}.
-#' @param ref Optional integer vector of length N giving, for each row, the column index of the reference state 
-#' (its predictor is fixed to 0). Defaults to the diagonal (\code{ref = 1:N}).
-#' @param ad optional logical, indicating whether automatic differentiation with \code{RTMB} should be used. By default, the function determines this itself.
-#' @param report logical, indicating whether the coefficient matrix \code{beta} should be reported from the fitted model. Defaults to \code{TRUE}, but only works if \code{ad = TRUE}.
-#' @param sparse logical, indicating whether sparsity in the rows of \code{Z} should be exploited.
+#' @param Z 
+#' Covariate design matrix with or without intercept column, i.e. of dimension \code{c(nObs, p)} or \code{c(nObs, p+1)}.
+#' If \code{Z} has only \code{p} columns, an intercept column of ones will be added automatically.
 #'
-#' @return array of transition probability matrices of dimension c(N,N,n)
+#' @param beta 
+#' Matrix of coefficients for the off-diagonal elements of the transition probability matrix 
+#' of dimension \code{c(nStates * (nStates-1), p+1)}. First columns contains the intercepts.
+#' 
+#' @param Eta 
+#' optional pre-calculated matrix of linear predictors of dimension \code{c(nObs, nStates * (nStates-1))}.
+#' If provided, no \code{Z} and \code{beta} are necessary and will be ignored.
+#' 
+#' @param byrow 
+#' logical indicating if each transition probability matrix should be filled by row.
+#' Defaults to \code{FALSE}, but should be set to \code{TRUE} if one wants to work with a matrix of beta parameters returned by popular HMM packages like \code{moveHMM}, \code{momentuHMM}, or \code{hmmTMB}.
+#' 
+#' @param ref 
+#' optional integer vector of length \code{nStates} giving, for each row, the column index of the reference state 
+#' (its predictor is fixed to 0). Defaults to the diagonal (\code{ref = 1:nStates}).
+#' 
+#' @param ad 
+#' logical; whether to use automatic differentiation. Determined automatically — for debugging only.
+#' 
+#' @param report 
+#' logical; if TRUE (default), \code{delta}, \code{Gamma}, \code{allprobs}, and \code{trackID} are reported from the fitted model. Requires \code{ad = TRUE}. 
+#' 
+#' @param sparse 
+#' logical, indicating whether sparsity in the rows of \code{Z} should be exploited.
+#'
+#' @return array of transition probability matrices of dimension \code{c(nStates, nStates, nObs)}
 #' @export
 #' @import RTMB
 #' @importFrom stats na.omit

@@ -16,33 +16,29 @@ tpm_g(
 )
 }
 \arguments{
-\item{Z}{covariate design matrix with or without intercept column, i.e. of dimension c(n, p) or c(n, p+1)
+\item{Z}{Covariate design matrix with or without intercept column, i.e. of dimension \code{c(nObs, p)} or \code{c(nObs, p+1)}.
+If \code{Z} has only \code{p} columns, an intercept column of ones will be added automatically.}
 
-If \code{Z} has only p columns, an intercept column of ones will be added automatically.}
+\item{beta}{Matrix of coefficients for the off-diagonal elements of the transition probability matrix 
+of dimension \code{c(nStates * (nStates-1), p+1)}. First columns contains the intercepts.}
 
-\item{beta}{matrix of coefficients for the off-diagonal elements of the transition probability matrix
+\item{Eta}{optional pre-calculated matrix of linear predictors of dimension \code{c(nObs, nStates * (nStates-1))}.
+If provided, no \code{Z} and \code{beta} are necessary and will be ignored.}
 
-Needs to be of dimension c(N*(N-1), p+1), where the first column contains the intercepts.}
-
-\item{Eta}{optional pre-calculated linear predictor matrix of dimension c(n, N*(N-1)). 
-
-Usually, \code{Eta} is calculated as \code{Z \%*\% t(beta)}. If provided, no \code{Z} and \code{beta} are necessary and will be ignored.}
-
-\item{byrow}{logical indicating if each transition probability matrix should be filled by row
- 
+\item{byrow}{logical indicating if each transition probability matrix should be filled by row.
 Defaults to \code{FALSE}, but should be set to \code{TRUE} if one wants to work with a matrix of beta parameters returned by popular HMM packages like \code{moveHMM}, \code{momentuHMM}, or \code{hmmTMB}.}
 
-\item{ref}{Optional integer vector of length N giving, for each row, the column index of the reference state 
-(its predictor is fixed to 0). Defaults to the diagonal (\code{ref = 1:N}).}
+\item{ref}{optional integer vector of length \code{nStates} giving, for each row, the column index of the reference state 
+(its predictor is fixed to 0). Defaults to the diagonal (\code{ref = 1:nStates}).}
 
-\item{ad}{optional logical, indicating whether automatic differentiation with \code{RTMB} should be used. By default, the function determines this itself.}
+\item{ad}{logical; whether to use automatic differentiation. Determined automatically — for debugging only.}
 
-\item{report}{logical, indicating whether the coefficient matrix \code{beta} should be reported from the fitted model. Defaults to \code{TRUE}, but only works if \code{ad = TRUE}.}
+\item{report}{logical; if TRUE (default), \code{delta}, \code{Gamma}, \code{allprobs}, and \code{trackID} are reported from the fitted model. Requires \code{ad = TRUE}.}
 
 \item{sparse}{logical, indicating whether sparsity in the rows of \code{Z} should be exploited.}
 }
 \value{
-array of transition probability matrices of dimension c(N,N,n)
+array of transition probability matrices of dimension \code{c(nStates, nStates, nObs)}
 }
 \description{
 In an HMM, we often model the influence of covariates on the state process by linking them to the transition probabiltiy matrix. 

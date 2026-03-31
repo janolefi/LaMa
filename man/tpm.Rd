@@ -4,20 +4,44 @@
 \alias{tpm}
 \title{Build the transition probability matrix from unconstrained parameter vector}
 \usage{
-tpm(param, byrow = FALSE, ref = NULL)
+tpm(
+  beta,
+  Z = NULL,
+  Eta = NULL,
+  byrow = FALSE,
+  ref = NULL,
+  ad = NULL,
+  report = TRUE,
+  param = NULL
+)
 }
 \arguments{
-\item{param}{unconstrained parameter vector of length N*(N-1) where N is the number of states of the Markov chain}
+\item{beta}{parameters; either
+\itemize{
+   \item a vector of length \code{nStates * (nStates-1)}, or
+   \item a matrix of dimension \code{c(nStates * (nStates-1), p+1)} if design matrix \code{Z} is also provided.
+}}
 
-\item{byrow}{logical indicating if the transition probability matrix should be filled by row
+\item{Z}{optional covariate design matrix with or without intercept column, i.e. of dimension \code{c(nObs, p)} or \code{c(nObs, p+1)}.
+If provided, \code{beta} needs to be a matrix of dimension \code{c(nStates * (nStates-1), p+1)}.}
 
+\item{Eta}{optional pre-calculated matrix of linear predictors of dimension \code{c(nObs, nStates * (nStates-1))}.
+If provided, \code{Z} and \code{beta} will be ignored.}
+
+\item{byrow}{logical indicating if each transition probability matrix should be filled by row.
 Defaults to \code{FALSE}, but should be set to \code{TRUE} if one wants to work with a matrix of beta parameters returned by popular HMM packages like \code{moveHMM}, \code{momentuHMM}, or \code{hmmTMB}.}
 
-\item{ref}{Optional integer vector of length N giving, for each row, the column index of the reference state 
-(its predictor is fixed to 0). Defaults to the diagonal (\code{ref = 1:N}).}
+\item{ref}{optional integer vector of length \code{nStates} giving, for each row, the column index of the reference state 
+(its predictor is fixed to 0). Defaults to the diagonal (\code{ref = 1:nStates}).}
+
+\item{ad}{logical; whether to use automatic differentiation. Determined automatically — for debugging only.}
+
+\item{report}{logical; if TRUE (default), \code{delta}, \code{Gamma}, \code{allprobs}, and \code{trackID} are reported from the fitted model. Requires \code{ad = TRUE}.}
+
+\item{param}{depricated, please use argument \code{beta} instead.}
 }
 \value{
-Transition probability matrix of dimension c(N,N)
+Transition probability matrix of dimension \code{c(nStates, nStates)}
 }
 \description{
 Markov chains are parametrised in terms of a transition probability matrix \eqn{\Gamma}, for which each row contains a conditional probability distribution of the next state given the current state.

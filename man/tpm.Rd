@@ -50,13 +50,24 @@ Hence, each row has entries between 0 and 1 that need to sum to one.
 For numerical optimisation, we parameterise in terms of unconstrained parameters, thus this function computes said matrix from an unconstrained parameter vector via the inverse multinomial logistic link (also known as softmax) applied to each row.
 }
 \examples{
-# 2 states: 2 free off-diagonal elements
-par1 = rep(-1, 2)
-Gamma1 = tpm(par1)
+## homogeneous Markov chain
+# 2 states: 2 = 2*(2-1) free off-diagonal elements
+par <- rep(-2, 2)
+Gamma <- tpm(par)
+# 3 states: 6 = 3*(3-1) free off-diagonal elements
+par <- rep(-3, 6)
+Gamma <- tpm(par)
+# 4 states: 12 = 4*(4-1) free off-diagonal elements
+par <- rep(-4, 12)
+Gamma <- tpm(par)
 
-# 3 states: 6 free off-diagonal elements
-par2 = rep(-2, 6)
-Gamma2 = tpm(par2)
+## inhomogeneous Markov chain
+# t.p.m. depends on covariates
+z1 <- runif(100); z2 <- runif(100) # 2 covariates
+Z <- cbind(1, z1, z2) # design matrix
+beta0 <- c(-2, -2); beta1 = c(1, -2); beta2 = c(2, -1) # coefficients for intercept and covariates
+beta <- cbind(beta0, beta1, beta2) # coefficient matrix; with intercepts!
+Gamma <- tpm(beta, Z) # array with 100 slices
 }
 \seealso{
 Other transition probability matrix functions: 

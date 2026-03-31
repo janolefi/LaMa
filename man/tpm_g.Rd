@@ -48,9 +48,13 @@ for each off-diagonal element (\eqn{i \neq j}) of the transition probability mat
 This function efficiently calculates all transition probabilty matrices for a given design matrix \code{Z} and parameter matrix \code{beta}.
 }
 \examples{
-Z = matrix(runif(200), ncol = 2)
-beta = matrix(c(-1, 1, 2, -2, 1, -2), nrow = 2, byrow = TRUE)
-Gamma = tpm_g(Z, beta)
+## inhomogeneous Markov chain
+# t.p.m. depends on covariates
+z1 <- runif(100); z2 <- runif(100) # 2 covariates
+Z <- cbind(1, z1, z2) # design matrix
+beta0 <- c(-2, -2); beta1 = c(1, -2); beta2 = c(2, -1) # coefficients for intercept and covariates
+beta <- cbind(beta0, beta1, beta2) # coefficient matrix; with intercepts!
+#' Gamma <- tpm(beta, Z) # array with 100 slices
 }
 \seealso{
 Other transition probability matrix functions: 

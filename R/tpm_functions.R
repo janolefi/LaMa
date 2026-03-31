@@ -37,7 +37,7 @@
 #' logical; whether to use automatic differentiation. Determined automatically — for debugging only.
 #' 
 #' @param report 
-#' logical; if TRUE (default), \code{delta}, \code{Gamma}, \code{allprobs}, and \code{trackID} are reported from the fitted model. Requires \code{ad = TRUE}. 
+#' logical; if \code{TRUE} (default), \code{delta}, \code{Gamma}, \code{allprobs}, and \code{trackID} are reported from the fitted model. Requires \code{ad = TRUE}. 
 #' 
 #' @param param 
 #' depricated, please use argument \code{beta} instead.
@@ -172,7 +172,7 @@ tpm <- function(
 #' logical; whether to use automatic differentiation. Determined automatically — for debugging only.
 #' 
 #' @param report 
-#' logical; if TRUE (default), \code{delta}, \code{Gamma}, \code{allprobs}, and \code{trackID} are reported from the fitted model. Requires \code{ad = TRUE}. 
+#' logical; if \code{TRUE} (default), \code{delta}, \code{Gamma}, \code{allprobs}, and \code{trackID} are reported from the fitted model. Requires \code{ad = TRUE}. 
 #' 
 #' @param sparse 
 #' logical, indicating whether sparsity in the rows of \code{Z} should be exploited.

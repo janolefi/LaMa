@@ -36,7 +36,7 @@ Defaults to \code{FALSE}, but should be set to \code{TRUE} if one wants to work 
 
 \item{ad}{logical; whether to use automatic differentiation. Determined automatically — for debugging only.}
 
-\item{report}{logical; if TRUE (default), \code{delta}, \code{Gamma}, \code{allprobs}, and \code{trackID} are reported from the fitted model. Requires \code{ad = TRUE}.}
+\item{report}{logical; if \code{TRUE} (default), \code{delta}, \code{Gamma}, \code{allprobs}, and \code{trackID} are reported from the fitted model. Requires \code{ad = TRUE}.}
 
 \item{param}{depricated, please use argument \code{beta} instead.}
 }

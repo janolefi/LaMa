@@ -83,6 +83,10 @@ sdreportMC = function(obj,
                       Hessian = NULL, 
                       CI = FALSE, 
                       probs = c(0.025, 0.975)){
+  
+  # tell user to use MCreport()
+  message("This function in deprecated. Please use MCreport().")
+  
   n <- nSamples
   
   # check whether obj is either a qremlModel or an RTMB object

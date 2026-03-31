@@ -68,7 +68,7 @@ tpm(
 
 - report:
 
-  logical; if TRUE (default), `delta`, `Gamma`, `allprobs`, and
+  logical; if `TRUE` (default), `delta`, `Gamma`, `allprobs`, and
   `trackID` are reported from the fitted model. Requires `ad = TRUE`.
 
 - param:

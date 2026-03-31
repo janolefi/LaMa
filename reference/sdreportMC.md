@@ -128,6 +128,7 @@ opt = nlminb(obj$par, obj$fn, obj$gr) # optimization
 sdrMC = sdreportMC(obj, 
                    what = c("mu", "delta"), 
                    nSamples = 50)
+#> This function in deprecated. Please use MCreport().
 #> Sampling reported quantities...
 dim(sdrMC$delta)
 #> [1] 50  2

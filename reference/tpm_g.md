@@ -29,54 +29,44 @@ tpm_g(
 
 - Z:
 
-  covariate design matrix with or without intercept column, i.e. of
-  dimension c(n, p) or c(n, p+1)
-
-  If `Z` has only p columns, an intercept column of ones will be added
-  automatically.
+  Covariate design matrix with or without intercept column, i.e. of
+  dimension `c(nObs, p)` or `c(nObs, p+1)`. If `Z` has only `p` columns,
+  an intercept column of ones will be added automatically.
 
 - beta:
 
-  matrix of coefficients for the off-diagonal elements of the transition
-  probability matrix
-
-  Needs to be of dimension c(N\*(N-1), p+1), where the first column
-  contains the intercepts.
+  Matrix of coefficients for the off-diagonal elements of the transition
+  probability matrix of dimension `c(nStates * (nStates-1), p+1)`. First
+  columns contains the intercepts.
 
 - Eta:
 
-  optional pre-calculated linear predictor matrix of dimension c(n,
-  N\*(N-1)).
-
-  Usually, `Eta` is calculated as `Z %*% t(beta)`. If provided, no `Z`
-  and `beta` are necessary and will be ignored.
+  optional pre-calculated matrix of linear predictors of dimension
+  `c(nObs, nStates * (nStates-1))`. If provided, no `Z` and `beta` are
+  necessary and will be ignored.
 
 - byrow:
 
   logical indicating if each transition probability matrix should be
-  filled by row
-
-  Defaults to `FALSE`, but should be set to `TRUE` if one wants to work
-  with a matrix of beta parameters returned by popular HMM packages like
-  `moveHMM`, `momentuHMM`, or `hmmTMB`.
+  filled by row. Defaults to `FALSE`, but should be set to `TRUE` if one
+  wants to work with a matrix of beta parameters returned by popular HMM
+  packages like `moveHMM`, `momentuHMM`, or `hmmTMB`.
 
 - ref:
 
-  Optional integer vector of length N giving, for each row, the column
-  index of the reference state (its predictor is fixed to 0). Defaults
-  to the diagonal (`ref = 1:N`).
+  optional integer vector of length `nStates` giving, for each row, the
+  column index of the reference state (its predictor is fixed to 0).
+  Defaults to the diagonal (`ref = 1:nStates`).
 
 - ad:
 
-  optional logical, indicating whether automatic differentiation with
-  `RTMB` should be used. By default, the function determines this
-  itself.
+  logical; whether to use automatic differentiation. Determined
+  automatically — for debugging only.
 
 - report:
 
-  logical, indicating whether the coefficient matrix `beta` should be
-  reported from the fitted model. Defaults to `TRUE`, but only works if
-  `ad = TRUE`.
+  logical; if TRUE (default), `delta`, `Gamma`, `allprobs`, and
+  `trackID` are reported from the fitted model. Requires `ad = TRUE`.
 
 - sparse:
 
@@ -85,7 +75,8 @@ tpm_g(
 
 ## Value
 
-array of transition probability matrices of dimension c(N,N,n)
+array of transition probability matrices of dimension
+`c(nStates, nStates, nObs)`
 
 ## See also
 

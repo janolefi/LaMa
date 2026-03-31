@@ -79,36 +79,36 @@ This function efficiently calculates all transition probabilty matrices for a gi
 
 
 <dl><dt id="arg-z">Z<a class="anchor" aria-label="anchor" href="#arg-z"></a></dt>
-<dd><p>covariate design matrix with or without intercept column, i.e. of dimension c(n, p) or c(n, p+1)</p>
-<p>If <code>Z</code> has only p columns, an intercept column of ones will be added automatically.</p></dd>
+<dd><p>Covariate design matrix with or without intercept column, i.e. of dimension <code>c(nObs, p)</code> or <code>c(nObs, p+1)</code>.
+If <code>Z</code> has only <code>p</code> columns, an intercept column of ones will be added automatically.</p></dd>
 
 
 <dt id="arg-beta">beta<a class="anchor" aria-label="anchor" href="#arg-beta"></a></dt>
-<dd><p>matrix of coefficients for the off-diagonal elements of the transition probability matrix</p>
-<p>Needs to be of dimension c(N*(N-1), p+1), where the first column contains the intercepts.</p></dd>
+<dd><p>Matrix of coefficients for the off-diagonal elements of the transition probability matrix
+of dimension <code>c(nStates * (nStates-1), p+1)</code>. First columns contains the intercepts.</p></dd>
 
 
 <dt id="arg-eta">Eta<a class="anchor" aria-label="anchor" href="#arg-eta"></a></dt>
-<dd><p>optional pre-calculated linear predictor matrix of dimension c(n, N*(N-1)).</p>
-<p>Usually, <code>Eta</code> is calculated as <code>Z %*% t(beta)</code>. If provided, no <code>Z</code> and <code>beta</code> are necessary and will be ignored.</p></dd>
+<dd><p>optional pre-calculated matrix of linear predictors of dimension <code>c(nObs, nStates * (nStates-1))</code>.
+If provided, no <code>Z</code> and <code>beta</code> are necessary and will be ignored.</p></dd>
 
 
 <dt id="arg-byrow">byrow<a class="anchor" aria-label="anchor" href="#arg-byrow"></a></dt>
-<dd><p>logical indicating if each transition probability matrix should be filled by row</p>
-<p>Defaults to <code>FALSE</code>, but should be set to <code>TRUE</code> if one wants to work with a matrix of beta parameters returned by popular HMM packages like <code>moveHMM</code>, <code>momentuHMM</code>, or <code>hmmTMB</code>.</p></dd>
+<dd><p>logical indicating if each transition probability matrix should be filled by row.
+Defaults to <code>FALSE</code>, but should be set to <code>TRUE</code> if one wants to work with a matrix of beta parameters returned by popular HMM packages like <code>moveHMM</code>, <code>momentuHMM</code>, or <code>hmmTMB</code>.</p></dd>
 
 
 <dt id="arg-ref">ref<a class="anchor" aria-label="anchor" href="#arg-ref"></a></dt>
-<dd><p>Optional integer vector of length N giving, for each row, the column index of the reference state
-(its predictor is fixed to 0). Defaults to the diagonal (<code>ref = 1:N</code>).</p></dd>
+<dd><p>optional integer vector of length <code>nStates</code> giving, for each row, the column index of the reference state
+(its predictor is fixed to 0). Defaults to the diagonal (<code>ref = 1:nStates</code>).</p></dd>
 
 
 <dt id="arg-ad">ad<a class="anchor" aria-label="anchor" href="#arg-ad"></a></dt>
-<dd><p>optional logical, indicating whether automatic differentiation with <code>RTMB</code> should be used. By default, the function determines this itself.</p></dd>
+<dd><p>logical; whether to use automatic differentiation. Determined automatically — for debugging only.</p></dd>
 
 
 <dt id="arg-report">report<a class="anchor" aria-label="anchor" href="#arg-report"></a></dt>
-<dd><p>logical, indicating whether the coefficient matrix <code>beta</code> should be reported from the fitted model. Defaults to <code>TRUE</code>, but only works if <code>ad = TRUE</code>.</p></dd>
+<dd><p>logical; if TRUE (default), <code>delta</code>, <code>Gamma</code>, <code>allprobs</code>, and <code>trackID</code> are reported from the fitted model. Requires <code>ad = TRUE</code>.</p></dd>
 
 
 <dt id="arg-sparse">sparse<a class="anchor" aria-label="anchor" href="#arg-sparse"></a></dt>
@@ -117,7 +117,7 @@ This function efficiently calculates all transition probabilty matrices for a gi
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>array of transition probability matrices of dimension c(N,N,n)</p>
+    <p>array of transition probability matrices of dimension <code>c(nStates, nStates, nObs)</code></p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

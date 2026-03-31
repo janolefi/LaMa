@@ -83,6 +83,9 @@
 - [`generator()`](https://janolefi.github.io/LaMa/reference/generator.md)
   : Build the generator matrix of a continuous-time Markov chain
 
+- [`generator_g()`](https://janolefi.github.io/LaMa/reference/generator_g.md)
+  : Build generator matrices of a continuous-time Markov chain
+
 - [`` `%sp%` ``](https://janolefi.github.io/LaMa/reference/grapes-sp-grapes.md)
   : Sparsity-retaining matrix multiplication
 
@@ -221,8 +224,9 @@
 - [`tpm()`](https://janolefi.github.io/LaMa/reference/tpm.md) : Build
   the transition probability matrix from unconstrained parameter vector
 
-- [`tpm_cont()`](https://janolefi.github.io/LaMa/reference/tpm_cont.md)
-  : Calculate continuous time transition probabilities
+- [`tpm_ct()`](https://janolefi.github.io/LaMa/reference/tpm_ct.md)
+  [`tpm_cont()`](https://janolefi.github.io/LaMa/reference/tpm_ct.md) :
+  Calculate continuous time transition probabilities
 
 - [`tpm_emb()`](https://janolefi.github.io/LaMa/reference/tpm_emb.md) :
   Build the embedded transition probability matrix of an HSMM from

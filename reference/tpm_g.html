@@ -80,7 +80,7 @@ This function efficiently calculates all transition probabilty matrices for a gi
 
 <dl><dt id="arg-z">Z<a class="anchor" aria-label="anchor" href="#arg-z"></a></dt>
 <dd><p>Covariate design matrix with or without intercept column, i.e. of dimension <code>c(nObs, p)</code> or <code>c(nObs, p+1)</code>.
-If <code>Z</code> has only <code>p</code> columns, an intercept column of ones will be added automatically.</p></dd>
+If not provided, intercept column is added automatically.</p></dd>
 
 
 <dt id="arg-beta">beta<a class="anchor" aria-label="anchor" href="#arg-beta"></a></dt>
@@ -123,8 +123,9 @@ Defaults to <code>FALSE</code>, but should be set to <code>TRUE</code> if one wa
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p>Other transition probability matrix functions:
 <code><a href="generator.html">generator()</a></code>,
+<code><a href="generator_g.html">generator_g()</a></code>,
 <code><a href="tpm.html">tpm()</a></code>,
-<code><a href="tpm_cont.html">tpm_cont()</a></code>,
+<code><a href="tpm_ct.html">tpm_ct()</a></code>,
 <code><a href="tpm_emb.html">tpm_emb()</a></code>,
 <code><a href="tpm_emb_g.html">tpm_emb_g()</a></code>,
 <code><a href="tpm_g2.html">tpm_g2()</a></code>,

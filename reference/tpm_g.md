@@ -30,8 +30,8 @@ tpm_g(
 - Z:
 
   Covariate design matrix with or without intercept column, i.e. of
-  dimension `c(nObs, p)` or `c(nObs, p+1)`. If `Z` has only `p` columns,
-  an intercept column of ones will be added automatically.
+  dimension `c(nObs, p)` or `c(nObs, p+1)`. If not provided, intercept
+  column is added automatically.
 
 - beta:
 
@@ -82,8 +82,9 @@ array of transition probability matrices of dimension
 
 Other transition probability matrix functions:
 [`generator()`](https://janolefi.github.io/LaMa/reference/generator.md),
+[`generator_g()`](https://janolefi.github.io/LaMa/reference/generator_g.md),
 [`tpm()`](https://janolefi.github.io/LaMa/reference/tpm.md),
-[`tpm_cont()`](https://janolefi.github.io/LaMa/reference/tpm_cont.md),
+[`tpm_ct()`](https://janolefi.github.io/LaMa/reference/tpm_ct.md),
 [`tpm_emb()`](https://janolefi.github.io/LaMa/reference/tpm_emb.md),
 [`tpm_emb_g()`](https://janolefi.github.io/LaMa/reference/tpm_emb_g.md),
 [`tpm_g2()`](https://janolefi.github.io/LaMa/reference/tpm_g2.md),

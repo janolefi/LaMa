@@ -124,7 +124,7 @@ with time-varying transition probability matrices. We can use the
 [`generator()`](https://janolefi.github.io/LaMa/reference/generator.md)
 function to compute the infinitesimal generator matrix from an
 unconstrained parameter vector and
-[`tpm_cont()`](https://janolefi.github.io/LaMa/reference/tpm_cont.md) to
+[`tpm_cont()`](https://janolefi.github.io/LaMa/reference/tpm_ct.md) to
 compute all matrix exponentials.
 
 ``` r
@@ -156,7 +156,7 @@ system.time(
   mod <- nlm(nll, par, timediff = timediff, x = x, N = 2)
 )
 #>    user  system elapsed 
-#>   0.217   0.369   0.299
+#>   0.251   0.398   0.332
 ```
 
 ### Results
@@ -233,7 +233,7 @@ system.time(
   mod2 <- nlm(nll, par, timediff = timediff, x = x, N = 3, stepmax = 10)
 )
 #>    user  system elapsed 
-#>   1.237   2.529   1.256
+#>   1.328   2.636   1.322
 # without restricting stepmax, we run into numerical problems
 ```
 

@@ -32,6 +32,7 @@
 <url><loc>https://janolefi.github.io/LaMa/reference/gamma2.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/gdeterminant.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/generator.html</loc></url>
+<url><loc>https://janolefi.github.io/LaMa/reference/generator_g.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/grapes-sp-grapes.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/index.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/logLik.LaMaModel.html</loc></url>
@@ -68,7 +69,7 @@
 <url><loc>https://janolefi.github.io/LaMa/reference/stationary_sparse.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/summary.qremlModel.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/tpm.html</loc></url>
-<url><loc>https://janolefi.github.io/LaMa/reference/tpm_cont.html</loc></url>
+<url><loc>https://janolefi.github.io/LaMa/reference/tpm_ct.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/tpm_emb.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/tpm_emb_g.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/tpm_g.html</loc></url>

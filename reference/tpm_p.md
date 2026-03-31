@@ -103,8 +103,9 @@ design matrix would be more efficient.
 
 Other transition probability matrix functions:
 [`generator()`](https://janolefi.github.io/LaMa/reference/generator.md),
+[`generator_g()`](https://janolefi.github.io/LaMa/reference/generator_g.md),
 [`tpm()`](https://janolefi.github.io/LaMa/reference/tpm.md),
-[`tpm_cont()`](https://janolefi.github.io/LaMa/reference/tpm_cont.md),
+[`tpm_ct()`](https://janolefi.github.io/LaMa/reference/tpm_ct.md),
 [`tpm_emb()`](https://janolefi.github.io/LaMa/reference/tpm_emb.md),
 [`tpm_emb_g()`](https://janolefi.github.io/LaMa/reference/tpm_emb_g.md),
 [`tpm_g()`](https://janolefi.github.io/LaMa/reference/tpm_g.md),

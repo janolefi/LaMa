@@ -77,13 +77,16 @@ tpm(
 
 ## Value
 
-Transition probability matrix of dimension `c(nStates, nStates)`
+Transition probability matrix of dimension `c(nStates, nStates)` or
+array of such matrices of dimension `c(nStates, nStates, nObs)` if `Z`
+or `Eta` is provided.
 
 ## See also
 
 Other transition probability matrix functions:
 [`generator()`](https://janolefi.github.io/LaMa/reference/generator.md),
-[`tpm_cont()`](https://janolefi.github.io/LaMa/reference/tpm_cont.md),
+[`generator_g()`](https://janolefi.github.io/LaMa/reference/generator_g.md),
+[`tpm_ct()`](https://janolefi.github.io/LaMa/reference/tpm_ct.md),
 [`tpm_emb()`](https://janolefi.github.io/LaMa/reference/tpm_emb.md),
 [`tpm_emb_g()`](https://janolefi.github.io/LaMa/reference/tpm_emb_g.md),
 [`tpm_g()`](https://janolefi.github.io/LaMa/reference/tpm_g.md),

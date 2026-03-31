@@ -6,36 +6,79 @@ This function builds the **infinitesimal generator matrix** for a
 ## Usage
 
 ``` r
-generator(param, byrow = FALSE, report = TRUE)
+generator(
+  beta,
+  Z = NULL,
+  Eta = NULL,
+  byrow = FALSE,
+  report = TRUE,
+  param = NULL
+)
 ```
 
 ## Arguments
 
-- param:
+- beta:
 
-  unconstrained parameter vector of length N\*(N-1) where N is the
-  number of states of the Markov chain
+  parameters; either
+
+  - a vector of length `nStates * (nStates-1)`, or
+
+  - a matrix of dimension `c(nStates * (nStates-1), p+1)` if design
+    matrix `Z` is also provided.
+
+- Z:
+
+  optional covariate design matrix with or without intercept column,
+  i.e. of dimension `c(nObs, p)` or `c(nObs, p+1)`. If provided, `beta`
+  needs to be a matrix of dimension `c(nStates * (nStates-1), p+1)`.
+
+- Eta:
+
+  optional pre-calculated matrix of linear predictors of dimension
+  `c(nObs, nStates * (nStates-1))`. If provided, `Z` and `beta` will be
+  ignored.
 
 - byrow:
 
-  logical indicating if the transition probability matrix should be
-  filled by row
+  logical indicating if the generator matrix should be filled by row
 
 - report:
 
-  logical, indicating whether the generator matrix Q should be reported
-  from the fitted model. Defaults to `TRUE`, but only works if when
-  automatic differentiation with `RTMB` is used.
+  logical, indicating whether the generator matrix `Q` should be
+  reported from the fitted model. Defaults to `TRUE`, but only works if
+  when automatic differentiation with `RTMB` is used.
+
+- param:
+
+  depricated, please use argument `beta` instead.
 
 ## Value
 
-infinitesimal generator matrix of dimension c(N,N)
+infinitesimal generator matrix of dimension `c(nStates, nStates)` or
+array of such matrices of dimension `c(nStates, nStates, nObs)` if `Z`
+or `Eta` is provided.
+
+## Details
+
+Off-diagonal entries are calculated as \\\exp(\beta_i)\\ to ensure
+positivity. The diagonal entries are then set to the negative row sums,
+which is required for generator matrices.
+
+If a design matrix `Z` or a matrix of linear predictors `Eta` is
+provided, the function will automatically call
+[`generator_g`](https://janolefi.github.io/LaMa/reference/generator_g.md)
+to build the generator matrix based on the design matrix and coefficient
+matrix. In that case, the argument `beta` needs to be a matrix of
+coefficients of dimension `c(nStates * (nStates-1), p+1)`, where the
+first column contains the intercepts.
 
 ## See also
 
 Other transition probability matrix functions:
+[`generator_g()`](https://janolefi.github.io/LaMa/reference/generator_g.md),
 [`tpm()`](https://janolefi.github.io/LaMa/reference/tpm.md),
-[`tpm_cont()`](https://janolefi.github.io/LaMa/reference/tpm_cont.md),
+[`tpm_ct()`](https://janolefi.github.io/LaMa/reference/tpm_ct.md),
 [`tpm_emb()`](https://janolefi.github.io/LaMa/reference/tpm_emb.md),
 [`tpm_emb_g()`](https://janolefi.github.io/LaMa/reference/tpm_emb_g.md),
 [`tpm_g()`](https://janolefi.github.io/LaMa/reference/tpm_g.md),

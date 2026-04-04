@@ -20,8 +20,31 @@ rgmrf <- function(n, mean = 0, Q) {
   if (length(mean) == 1) mean <- rep(mean, d)
   stopifnot(length(mean) == d)
   
-  # efficient sampling (taken from RTMBdist:::rgmrf0)
-  L <- Matrix::Cholesky(Q, super = TRUE, LDL = FALSE)
+  # force symmetric
+  Q <- Matrix::forceSymmetric(Q)
+  
+  ### efficient sampling (taken from RTMBdist:::rgmrf0)
+   
+  # safe Cholesky factorization with jitter if needed
+  L <- tryCatch(Matrix::Cholesky(Q, super = TRUE, LDL = FALSE),
+                error = function(e) NULL,
+                warning = function(w) NULL)
+  if (is.null(L)) {
+    eps <- 1e-08 * mean(diag(Q))
+    attempts <- 0
+    while (is.null(L) && attempts < max_attempts) {
+      Q <- Q + Matrix::Diagonal(x = rep(eps, nrow(Q)))
+      L <- tryCatch(Matrix::Cholesky(Q, super = TRUE, LDL = FALSE),
+                    error = function(e) NULL)
+      eps <- eps * 2
+      attempts <- attempts + 1
+    }
+    warning(paste0("Precision matrix is not PD, adding jitter...\n",
+                   "Required ", attempts, " attempts"))
+    if (is.null(L)) stop("Matrix still not PD after jitter attempts")
+  }
+  
+  # L <- Matrix::Cholesky(Q, super = TRUE, LDL = FALSE)
   u <- matrix(rnorm(ncol(L) * n), ncol(L), n)
   u <- Matrix::solve(L, u, system = "Lt")
   u <- Matrix::solve(L, u, system = "Pt")

@@ -32,7 +32,7 @@ rgmrf <- function(n, mean = 0, Q) {
   if (is.null(L)) {
     eps <- 1e-08 * mean(diag(Q))
     attempts <- 0
-    while (is.null(L) && attempts < max_attempts) {
+    while (is.null(L) && attempts < 20) {
       Q <- Q + Matrix::Diagonal(x = rep(eps, nrow(Q)))
       L <- tryCatch(Matrix::Cholesky(Q, super = TRUE, LDL = FALSE),
                     error = function(e) NULL)
@@ -41,7 +41,7 @@ rgmrf <- function(n, mean = 0, Q) {
     }
     warning(paste0("Precision matrix is not PD, adding jitter...\n",
                    "Required ", attempts, " attempts"))
-    if (is.null(L)) stop("Matrix still not PD after jitter attempts")
+    if (is.null(L)) stop("Matrix still not PD after 20 jitter attempts")
   }
   
   # L <- Matrix::Cholesky(Q, super = TRUE, LDL = FALSE)

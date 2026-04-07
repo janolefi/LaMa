@@ -1187,7 +1187,9 @@ qreml <- function(pnll, # penalized negative log-likelihood function
   Lambda_mapped <- matrix(lambda_mapped, nrow = 1, ncol = length(lambda_mapped))
   
   # creating the RTMB objective function
-  if(silent %in% 0:1) cat("Creating AD function\n")
+  if(silent %in% 0:1) {
+    message("Creating AD function")
+  }
   obj <- MakeADFun(func = f, 
                    parameters = par, 
                    silent = TRUE,
@@ -1198,7 +1200,7 @@ qreml <- function(pnll, # penalized negative log-likelihood function
   # use sparse Hessian?
   if(spHess) {
     Tape <- RTMB::GetTape(obj, name = "ADFun") # get the Tape
-    if(silent < 2) cat("Constructing sparse Hessian\n")
+    if(silent < 2) message("Constructing sparse Hessian")
     obj$spHess <- Tape$jacfun(sparse = TRUE)$jacfun(sparse = TRUE) # construct sparse Hessian function from Tape
     rm(Tape) # removing Tape to save memory
     # obj$gr <- function(p) as.matrix(spGrad(p))
@@ -1291,7 +1293,7 @@ qreml <- function(pnll, # penalized negative log-likelihood function
   }
   lambda_names <- names(unlist(Lambdas[[1]]))
   
-  if(silent < 2) cat("Initialising with", paste0(psname, ":"), round(lambda, 3), "\n")
+  if(silent < 2) message("Initialising with ", psname, ": ", paste(round(lambda, 3), collapse = " "))
   
   # Computing ranks of penalty matrices for simple_ind
   ranks <- sapply(S, function(x) if(is.matrix(x)) Matrix::rankMatrix(x) else NA)
@@ -1540,7 +1542,7 @@ qreml <- function(pnll, # penalized negative log-likelihood function
     if(conv_crit == "gradient"){
       if(k > 3 & (mgc < tol | opt$counts[2] < 3)) {
         if(silent < 2){
-          cat("Converged\n")
+          message("Converged")
         }
         break
       }
@@ -1550,14 +1552,14 @@ qreml <- function(pnll, # penalized negative log-likelihood function
       
       if(k > 3 & (all(rel_change[convInd_unmapped] < tol) | opt$counts[2] < 3)) {
         if(silent < 2){
-          cat("Converged\n")
+          message("Converged")
         }
         break
       }
     }
     
     if(k == maxiter){
-      cat("No convergence\n")
+      message("No convergence")
       warning("No convergence\n")
     } 
   }
@@ -1567,12 +1569,12 @@ qreml <- function(pnll, # penalized negative log-likelihood function
   
   if(silent < 2){
     if(any(smoothing != 1)){
-      cat("Smoothing factor:", smoothing, "\n")
+      message("Smoothing factor: ", paste(smoothing, collapse = " "))
     }
     if(silent == 0){
-      cat("\nFinal model fit with", paste0(psname, ":"), round(lambda, 3), "\n")
+      message("\nFinal model fit with ", psname, ": ", paste(round(lambda, 3), collapse = " "))
     } else{
-      cat("Final model fit with", paste0(psname, ":"), round(lambda, 3), "\n")
+      message("Final model fit with ", psname, ": ", paste(round(lambda, 3), collapse = " "))
     }
   }
   

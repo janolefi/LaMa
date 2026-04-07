@@ -285,7 +285,7 @@ pnll = function(par) {
 # model fitting
 mod = qreml(pnll, par, dat, random = "betaspline")
 #> Creating AD function
-#> Initialising with lambda: 10 10 
+#> Initialising with lambda: 10 10
 #> outer 1 - lambda: 5.545 5.001 
 #> outer 2 - lambda: 3.289 3.001 
 #> outer 3 - lambda: 2.081 2.091 
@@ -328,5 +328,5 @@ mod = qreml(pnll, par, dat, random = "betaspline")
 #> outer 40 - lambda: 0.49 0.093 
 #> outer 41 - lambda: 0.49 0.093 
 #> Converged
-#> Final model fit with lambda: 0.49 0.093 
+#> Final model fit with lambda: 0.49 0.093
 ```

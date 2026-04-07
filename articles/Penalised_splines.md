@@ -185,8 +185,6 @@ There are some rules to follow when using
 system.time(
   mod1 <- qreml(pnll, par, dat, random = "betaSpline")
 )
-#> Creating AD function
-#> Initialising with lambda: 100 100 
 #> outer 1 - lambda: 32.077 31.825 
 #> outer 2 - lambda: 10.571 10.745 
 #> outer 3 - lambda: 3.667 3.974 
@@ -198,11 +196,9 @@ system.time(
 #> outer 9 - lambda: 0.312 0.13 
 #> outer 10 - lambda: 0.31 0.12 
 #> outer 11 - lambda: 0.309 0.116 
-#> outer 12 - lambda: 0.309 0.114 
-#> Converged
-#> Final model fit with lambda: 0.309 0.114
+#> outer 12 - lambda: 0.309 0.114
 #>    user  system elapsed 
-#>   8.203   3.523   7.787
+#>   8.165   3.493   7.718
 ```
 
 The `mod` object is now a list that contains everything that is reported
@@ -403,7 +399,7 @@ system.time(
   mod2 <- qreml(pnll, par, dat, random = "beta")
 )
 #> Creating AD function
-#> Initialising with lambda: 10 10 10 
+#> Initialising with lambda: 10 10 10
 #> outer 1 - lambda: 4.213 3.833 4.836 
 #> outer 2 - lambda: 2.309 1.937 3.045 
 #> outer 3 - lambda: 1.604 1.332 2.338 
@@ -416,11 +412,11 @@ system.time(
 #> outer 10 - lambda: 1.035 1.01 1.747 
 #> outer 11 - lambda: 1.034 1.01 1.745 
 #> outer 12 - lambda: 1.033 1.01 1.745 
-#> outer 13 - lambda: 1.033 1.01 1.744 
+#> outer 13 - lambda: 1.033 1.01 1.744
 #> Converged
 #> Final model fit with lambda: 1.033 1.01 1.744
 #>    user  system elapsed 
-#>  17.176   4.489  16.508
+#>  17.175   4.419  16.524
 ```
 
 After fitting the model, we can easily visualise the smooth densities
@@ -546,7 +542,7 @@ system.time(
   mod3 <- qreml(pnll, par, dat, random = c("betaSpline", "alphaSpline"))
 )
 #> Creating AD function
-#> Initialising with lambda: 1000 1000 1000 1000 
+#> Initialising with lambda: 1000 1000 1000 1000
 #> outer 1 - lambda: 466.896 374.247 432.358 329.654 
 #> outer 2 - lambda: 250.283 143.698 200.372 113.051 
 #> outer 3 - lambda: 126.064 57.828 99.173 42.157 
@@ -565,11 +561,11 @@ system.time(
 #> outer 16 - lambda: 22.618 7.213 8.305 4.17 
 #> outer 17 - lambda: 22.598 7.213 8.286 4.169 
 #> outer 18 - lambda: 22.589 7.212 8.279 4.169 
-#> outer 19 - lambda: 22.588 7.212 8.278 4.169 
+#> outer 19 - lambda: 22.588 7.212 8.278 4.169
 #> Converged
 #> Final model fit with lambda: 22.588 7.212 8.278 4.169
 #>    user  system elapsed 
-#>  16.383   5.606  15.519
+#>  16.225   5.595  15.331
 ```
 
 Having fitted the model, we can visualise the results. We first decode

@@ -242,8 +242,6 @@ call using the <code>psname</code> argument.</li>
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
 <span>  <span class="va">mod1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/qreml.html">qreml</a></span><span class="op">(</span><span class="va">pnll</span>, <span class="va">par</span>, <span class="va">dat</span>, random <span class="op">=</span> <span class="st">"betaSpline"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; Creating AD function</span></span>
-<span><span class="co">#&gt; Initialising with lambda: 100 100 </span></span>
 <span><span class="co">#&gt; outer 1 - lambda: 32.077 31.825 </span></span>
 <span><span class="co">#&gt; outer 2 - lambda: 10.571 10.745 </span></span>
 <span><span class="co">#&gt; outer 3 - lambda: 3.667 3.974 </span></span>
@@ -255,11 +253,9 @@ call using the <code>psname</code> argument.</li>
 <span><span class="co">#&gt; outer 9 - lambda: 0.312 0.13 </span></span>
 <span><span class="co">#&gt; outer 10 - lambda: 0.31 0.12 </span></span>
 <span><span class="co">#&gt; outer 11 - lambda: 0.309 0.116 </span></span>
-<span><span class="co">#&gt; outer 12 - lambda: 0.309 0.114 </span></span>
-<span><span class="co">#&gt; Converged</span></span>
-<span><span class="co">#&gt; Final model fit with lambda: 0.309 0.114</span></span>
+<span><span class="co">#&gt; outer 12 - lambda: 0.309 0.114</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   8.203   3.523   7.787</span></span></code></pre></div>
+<span><span class="co">#&gt;   8.165   3.493   7.718</span></span></code></pre></div>
 <p>The <code>mod</code> object is now a list that contains everything
 that is reported by the likelihood function, but also the
 <code>RTMB</code> object created in the process. After fitting the
@@ -439,7 +435,7 @@ the design matrix <code>Z</code>.</p>
 <span>  <span class="va">mod2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/qreml.html">qreml</a></span><span class="op">(</span><span class="va">pnll</span>, <span class="va">par</span>, <span class="va">dat</span>, random <span class="op">=</span> <span class="st">"beta"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Creating AD function</span></span>
-<span><span class="co">#&gt; Initialising with lambda: 10 10 10 </span></span>
+<span><span class="co">#&gt; Initialising with lambda: 10 10 10</span></span>
 <span><span class="co">#&gt; outer 1 - lambda: 4.213 3.833 4.836 </span></span>
 <span><span class="co">#&gt; outer 2 - lambda: 2.309 1.937 3.045 </span></span>
 <span><span class="co">#&gt; outer 3 - lambda: 1.604 1.332 2.338 </span></span>
@@ -452,11 +448,11 @@ the design matrix <code>Z</code>.</p>
 <span><span class="co">#&gt; outer 10 - lambda: 1.035 1.01 1.747 </span></span>
 <span><span class="co">#&gt; outer 11 - lambda: 1.034 1.01 1.745 </span></span>
 <span><span class="co">#&gt; outer 12 - lambda: 1.033 1.01 1.745 </span></span>
-<span><span class="co">#&gt; outer 13 - lambda: 1.033 1.01 1.744 </span></span>
+<span><span class="co">#&gt; outer 13 - lambda: 1.033 1.01 1.744</span></span>
 <span><span class="co">#&gt; Converged</span></span>
 <span><span class="co">#&gt; Final model fit with lambda: 1.033 1.01 1.744</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  17.176   4.489  16.508</span></span></code></pre></div>
+<span><span class="co">#&gt;  17.175   4.419  16.524</span></span></code></pre></div>
 <p>After fitting the model, we can easily visualise the smooth densities
 using the prepared prediction objects. We already have access to all
 reported quantities because <code><a href="../reference/qreml.html">qreml()</a></code> automatically runs the
@@ -566,7 +562,7 @@ intial penalty strength parameter in the <code>dat</code> list.</p>
 <span>  <span class="va">mod3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/qreml.html">qreml</a></span><span class="op">(</span><span class="va">pnll</span>, <span class="va">par</span>, <span class="va">dat</span>, random <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"betaSpline"</span>, <span class="st">"alphaSpline"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Creating AD function</span></span>
-<span><span class="co">#&gt; Initialising with lambda: 1000 1000 1000 1000 </span></span>
+<span><span class="co">#&gt; Initialising with lambda: 1000 1000 1000 1000</span></span>
 <span><span class="co">#&gt; outer 1 - lambda: 466.896 374.247 432.358 329.654 </span></span>
 <span><span class="co">#&gt; outer 2 - lambda: 250.283 143.698 200.372 113.051 </span></span>
 <span><span class="co">#&gt; outer 3 - lambda: 126.064 57.828 99.173 42.157 </span></span>
@@ -585,11 +581,11 @@ intial penalty strength parameter in the <code>dat</code> list.</p>
 <span><span class="co">#&gt; outer 16 - lambda: 22.618 7.213 8.305 4.17 </span></span>
 <span><span class="co">#&gt; outer 17 - lambda: 22.598 7.213 8.286 4.169 </span></span>
 <span><span class="co">#&gt; outer 18 - lambda: 22.589 7.212 8.279 4.169 </span></span>
-<span><span class="co">#&gt; outer 19 - lambda: 22.588 7.212 8.278 4.169 </span></span>
+<span><span class="co">#&gt; outer 19 - lambda: 22.588 7.212 8.278 4.169</span></span>
 <span><span class="co">#&gt; Converged</span></span>
 <span><span class="co">#&gt; Final model fit with lambda: 22.588 7.212 8.278 4.169</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  16.383   5.606  15.519</span></span></code></pre></div>
+<span><span class="co">#&gt;  16.225   5.595  15.331</span></span></code></pre></div>
 <p>Having fitted the model, we can visualise the results. We first
 decode the most probable state sequence and then plot the estimated
 state-dependent densities as a function of the oil price, as well as the

@@ -126,15 +126,15 @@ For types <code>"real"</code> and <code>"circular"</code> the knots are placed e
 <span class="r-in"><span><span class="va">SmoothDens</span> <span class="op">=</span> <span class="fu">smooth_dens_construct</span><span class="op">(</span><span class="va">data</span>, </span></span>
 <span class="r-in"><span>                                   <span class="va">par</span>,</span></span>
 <span class="r-in"><span>                                   type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"real"</span>, <span class="st">"positive"</span>, <span class="st">"circular"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x1 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Leaving out last column of the penalty matrix, fix the last spline coefficient at zero for identifiability!</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter matrix excludes the last column. Add a (fixed) zero column using 'cbind(coef, 0)' in your loss function!</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x2 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Leaving out last column of the penalty matrix, fix the last spline coefficient at zero for identifiability!</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter matrix excludes the last column. Add a (fixed) zero column using 'cbind(coef, 0)' in your loss function!</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x3 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Leaving out last column of the penalty matrix, fix the last spline coefficient at zero for identifiability!</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter matrix excludes the last column. Add a (fixed) zero column using 'cbind(coef, 0)' in your loss function!</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Data stream: x1</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Leaving out last column of the penalty matrix, fix the last spline coefficient at zero for identifiability!</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Parameter matrix excludes the last column. Add zero column using 'cbind(coef, 0)' in your loss function!</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Data stream: x2</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Leaving out last column of the penalty matrix, fix the last spline coefficient at zero for identifiability!</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Parameter matrix excludes the last column. Add zero column using 'cbind(coef, 0)' in your loss function!</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Data stream: x3</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Leaving out last column of the penalty matrix, fix the last spline coefficient at zero for identifiability!</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Parameter matrix excludes the last column. Add zero column using 'cbind(coef, 0)' in your loss function!</span>
 <span class="r-in"><span>                             </span></span>
 <span class="r-in"><span><span class="co"># extracting objects for x1</span></span></span>
 <span class="r-in"><span><span class="va">Z1</span> <span class="op">=</span> <span class="va">SmoothDens</span><span class="op">$</span><span class="va">Z</span><span class="op">$</span><span class="va">x1</span></span></span>
@@ -150,9 +150,9 @@ For types <code>"real"</code> and <code>"circular"</code> the knots are placed e
 <span class="r-in"><span><span class="va">par</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">5</span><span class="op">)</span>, sd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">SmoothDens</span> <span class="op">=</span> <span class="fu">smooth_dens_construct</span><span class="op">(</span><span class="va">data</span>, par <span class="op">=</span> <span class="va">par</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> x </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Leaving out last column of the penalty matrix, fix the last spline coefficient at zero for identifiability!</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter matrix excludes the last column. Add a (fixed) zero column using 'cbind(coef, 0)' in your loss function!</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Data stream: x</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Leaving out last column of the penalty matrix, fix the last spline coefficient at zero for identifiability!</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Parameter matrix excludes the last column. Add zero column using 'cbind(coef, 0)' in your loss function!</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># extracting objects </span></span></span>
 <span class="r-in"><span><span class="va">Z</span> <span class="op">=</span> <span class="va">SmoothDens</span><span class="op">$</span><span class="va">Z</span><span class="op">$</span><span class="va">x</span></span></span>

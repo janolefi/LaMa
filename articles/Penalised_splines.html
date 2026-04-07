@@ -259,7 +259,7 @@ call using the <code>psname</code> argument.</li>
 <span><span class="co">#&gt; Converged</span></span>
 <span><span class="co">#&gt; Final model fit with lambda: 0.309 0.114</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   7.714   3.524   7.318</span></span></code></pre></div>
+<span><span class="co">#&gt;   8.203   3.523   7.787</span></span></code></pre></div>
 <p>The <code>mod</code> object is now a list that contains everything
 that is reported by the likelihood function, but also the
 <code>RTMB</code> object created in the process. After fitting the
@@ -373,9 +373,9 @@ needed for density estimation.</p>
 <span><span class="co"># construct the smooth density objects</span></span>
 <span><span class="va">modmat</span> <span class="op">=</span> <span class="fu"><a href="../reference/smooth_dens_construct.html">smooth_dens_construct</a></span><span class="op">(</span><span class="va">nessi</span><span class="op">[</span><span class="st">"logODBA"</span><span class="op">]</span>, <span class="co"># only one data stream here</span></span>
 <span>                               par <span class="op">=</span> <span class="va">par0</span><span class="op">)</span></span>
-<span><span class="co">#&gt; logODBA </span></span>
+<span><span class="co">#&gt; Data stream: logODBA</span></span>
 <span><span class="co">#&gt; Leaving out last column of the penalty matrix, fix the last spline coefficient at zero for identifiability!</span></span>
-<span><span class="co">#&gt; Parameter matrix excludes the last column. Add a (fixed) zero column using 'cbind(coef, 0)' in your loss function!</span></span>
+<span><span class="co">#&gt; Parameter matrix excludes the last column. Add zero column using 'cbind(coef, 0)' in your loss function!</span></span>
 <span></span>
 <span><span class="co"># par is nested named list: top layer: each data stream</span></span>
 <span><span class="co"># for each data stream: initial means and standard deviations for each state</span></span>
@@ -456,7 +456,7 @@ the design matrix <code>Z</code>.</p>
 <span><span class="co">#&gt; Converged</span></span>
 <span><span class="co">#&gt; Final model fit with lambda: 1.033 1.01 1.744</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  16.129   4.426  15.424</span></span></code></pre></div>
+<span><span class="co">#&gt;  17.176   4.489  16.508</span></span></code></pre></div>
 <p>After fitting the model, we can easily visualise the smooth densities
 using the prepared prediction objects. We already have access to all
 reported quantities because <code><a href="../reference/qreml.html">qreml()</a></code> automatically runs the
@@ -589,7 +589,7 @@ intial penalty strength parameter in the <code>dat</code> list.</p>
 <span><span class="co">#&gt; Converged</span></span>
 <span><span class="co">#&gt; Final model fit with lambda: 22.588 7.212 8.278 4.169</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  15.049   5.681  14.157</span></span></code></pre></div>
+<span><span class="co">#&gt;  16.383   5.606  15.519</span></span></code></pre></div>
 <p>Having fitted the model, we can visualise the results. We first
 decode the most probable state sequence and then plot the estimated
 state-dependent densities as a function of the oil price, as well as the

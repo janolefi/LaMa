@@ -202,7 +202,7 @@ system.time(
 #> Converged
 #> Final model fit with lambda: 0.309 0.114
 #>    user  system elapsed 
-#>   7.714   3.524   7.318
+#>   8.203   3.523   7.787
 ```
 
 The `mod` object is now a list that contains everything that is reported
@@ -332,9 +332,9 @@ par0 = list(logODBA = list(mean = c(-4, -3.3, -2.8), sd = c(0.3, 0.2, 0.5)))
 # construct the smooth density objects
 modmat = smooth_dens_construct(nessi["logODBA"], # only one data stream here
                                par = par0)
-#> logODBA 
+#> Data stream: logODBA
 #> Leaving out last column of the penalty matrix, fix the last spline coefficient at zero for identifiability!
-#> Parameter matrix excludes the last column. Add a (fixed) zero column using 'cbind(coef, 0)' in your loss function!
+#> Parameter matrix excludes the last column. Add zero column using 'cbind(coef, 0)' in your loss function!
 
 # par is nested named list: top layer: each data stream
 # for each data stream: initial means and standard deviations for each state
@@ -420,7 +420,7 @@ system.time(
 #> Converged
 #> Final model fit with lambda: 1.033 1.01 1.744
 #>    user  system elapsed 
-#>  16.129   4.426  15.424
+#>  17.176   4.489  16.508
 ```
 
 After fitting the model, we can easily visualise the smooth densities
@@ -569,7 +569,7 @@ system.time(
 #> Converged
 #> Final model fit with lambda: 22.588 7.212 8.278 4.169
 #>    user  system elapsed 
-#>  15.049   5.681  14.157
+#>  16.383   5.606  15.519
 ```
 
 Having fitted the model, we can visualise the results. We first decode

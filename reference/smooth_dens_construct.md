@@ -102,15 +102,15 @@ par = list(x1 = list(mean = 0, sd = 1),
 SmoothDens = smooth_dens_construct(data, 
                                    par,
                                    type = c("real", "positive", "circular"))
-#> x1 
+#> Data stream: x1
 #> Leaving out last column of the penalty matrix, fix the last spline coefficient at zero for identifiability!
-#> Parameter matrix excludes the last column. Add a (fixed) zero column using 'cbind(coef, 0)' in your loss function!
-#> x2 
+#> Parameter matrix excludes the last column. Add zero column using 'cbind(coef, 0)' in your loss function!
+#> Data stream: x2
 #> Leaving out last column of the penalty matrix, fix the last spline coefficient at zero for identifiability!
-#> Parameter matrix excludes the last column. Add a (fixed) zero column using 'cbind(coef, 0)' in your loss function!
-#> x3 
+#> Parameter matrix excludes the last column. Add zero column using 'cbind(coef, 0)' in your loss function!
+#> Data stream: x3
 #> Leaving out last column of the penalty matrix, fix the last spline coefficient at zero for identifiability!
-#> Parameter matrix excludes the last column. Add a (fixed) zero column using 'cbind(coef, 0)' in your loss function!
+#> Parameter matrix excludes the last column. Add zero column using 'cbind(coef, 0)' in your loss function!
                              
 # extracting objects for x1
 Z1 = SmoothDens$Z$x1
@@ -126,9 +126,9 @@ data = data.frame(x = x)
 par = list(x = list(mean = c(0, 5), sd = c(1,1)))
 
 SmoothDens = smooth_dens_construct(data, par = par)
-#> x 
+#> Data stream: x
 #> Leaving out last column of the penalty matrix, fix the last spline coefficient at zero for identifiability!
-#> Parameter matrix excludes the last column. Add a (fixed) zero column using 'cbind(coef, 0)' in your loss function!
+#> Parameter matrix excludes the last column. Add zero column using 'cbind(coef, 0)' in your loss function!
 
 # extracting objects 
 Z = SmoothDens$Z$x

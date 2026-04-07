@@ -1012,7 +1012,7 @@ make_matrices_dens = function(x, # data vector
   
   # constructing penalty matrix
   S <- crossprod(L[,-k], L[,-k]) # leaving out last column because parameter set to zero
-  cat("Leaving out last column of the penalty matrix, fix the last spline coefficient at zero for identifiability!\n")
+  message("Leaving out last column of the penalty matrix, fix the last spline coefficient at zero for identifiability!")
   
   basis <- list(
     type = type, 
@@ -1062,7 +1062,7 @@ make_splinecoef = function(model_matrices,
 
   beta = beta - beta[,k]
   # beta = beta - beta[,k-1]
-  cat("Parameter matrix excludes the last column. Add a (fixed) zero column using 'cbind(coef, 0)' in your loss function!\n")
+  message("Parameter matrix excludes the last column. Add zero column using 'cbind(coef, 0)' in your loss function!\n")
   return(beta[,-k])
 }
 
@@ -1142,7 +1142,7 @@ smooth_dens_construct <- function(data,
   quantile <- FALSE # no quantile spacing if knots are not custom
   
   if(!is.data.frame(data)){
-    stop("datastreams must be a data frame")
+    stop("data must be a data frame")
   }
   
   nStreams <- ncol(data)
@@ -1193,7 +1193,8 @@ smooth_dens_construct <- function(data,
   for(i in seq_len(nStreams)){
     thisname = varnames[i]
     
-    cat(thisname, "\n")
+    msg <- paste0("Data stream: ", thisname)
+    message(msg)
     
     modmat <- make_matrices_dens(x = data[[thisname]], 
                                 type = type[i], 

@@ -1,129 +1,3 @@
-
-# Regression setting ------------------------------------------------------
-
-# hidden helper function 
-# -> just to turn cosinor(x, period) terms into sine/ cosine terms
-process_cosinor <- function(formula){
-  # Extract formula terms
-  Terms <- stats::terms(formula, specials = "cosinor")
-  term_names <- attr(Terms, "term.labels")
-  var_names <- all.vars(formula)
-  
-  # Identify cosinor terms
-  cosInd <- grep("cosinor\\(", term_names)
-  
-  # Separate regular terms
-  mainpart <- if(length(cosInd) > 0) term_names[-cosInd] else term_names
-  
-  # Expand cosinor terms while preserving interactions
-  expanded_terms <- c()
-  for(name in term_names[cosInd]){
-    # Extract the cosinor(...) call using regex
-    match <- regmatches(name, regexpr("cosinor\\(.*\\)", name))
-    
-    # Check if ", eval = TRUE" is present
-    if (grepl(", eval = TRUE", match)) {
-      # Replace ", eval = TRUE" with ", eval = FALSE"
-      new_match <- sub(", eval = TRUE", ", eval = FALSE", match)
-    } else if (!grepl(", eval = FALSE", match)) {
-      # If ", eval = FALSE" is not present, insert it
-      new_match <- sub("(cosinor\\(.*)(\\))", "\\1, eval = FALSE\\2", match)
-    } else {
-      # If ", eval = FALSE" is already present, keep it as is
-      new_match <- match
-    }
-    
-    # Evaluate the expression using the data environment
-    replace <- eval(parse(text = new_match), envir = list(cosinor = cosinor))
-    
-    # Preserve interactions (all are converted to ":" by terms())
-    if (grepl(":", name)) {
-      parts <- unlist(strsplit(name, ":"))  # Split interaction terms
-      other_factors <- parts[parts != match]  # Extract non-cosinor parts
-      
-      # Rebuild interactions with expanded terms
-      expanded_terms <- c(expanded_terms, sapply(replace, function(rt) paste(c(other_factors, rt), collapse = ":")))
-    } else {
-      expanded_terms <- c(expanded_terms, replace)
-    }
-  }
-  
-  # Final expanded formula
-  final_terms <- c(mainpart, expanded_terms)
-  
-  expanded_formula <- if (length(final_terms) == 0) {
-    ~1
-  } else {
-    stats::as.formula(paste("~", paste(final_terms, collapse = " + ")))
-  }
-  
-  # expanded_formula <- stats::as.formula(paste("~", paste(final_terms, collapse = " + ")))
-  
-  expanded_formula
-}
-
-#' Evaluate trigonometric basis expansion
-#' 
-#' This function can be used to evaluate a trigonometric basis expansion for a given periodic variable and period. 
-#' It can also be used in formulas passed to \code{\link{make_matrices}}.
-#' 
-#' The returned basis can be used for linear predictors of the form
-#' \deqn{ 
-#'  \eta^{(t)} = \beta_0 + \sum_{k} \bigl( \beta_{1k} \sin(\frac{2 \pi t}{\text{period}_k}) + \beta_{2k} \cos(\frac{2 \pi t}{\text{period}_k}) \bigr). 
-#' }
-#' This is relevant for modeling e.g. diurnal variation and the flexibility can be increased by adding smaller frequencies (i.e. increasing the length of \code{period}).
-#'  
-#' @param x vector of periodic variable values
-#' @param period vector of period length. For example for time of day \code{period = 24}, or \code{period = c(24,12)} for more flexibility.
-#' @param eval logical, should not be changed. If \code{TRUE} the function returns the evaluated cosinor terms, if \code{FALSE} the function returns the terms as strings which is used internally form formula evaluation.
-#'
-#' @return either a desing matrix with the evaluated cosinor terms (\code{eval = TRUE}) or a character vector with the terms as strings (\code{eval = FALSE}).
-#' @export
-#'
-#' @examples
-#' ## Evaluate cosinor terms
-#' # builds design matrix
-#' X = cosinor(1:24, period = 24)
-#' X = cosinor(1:24, period = c(24, 12, 6))
-#' 
-#' ## Usage in model formulas
-#' # e.g. frequencies of 24 and 12 hours + interaction with temperature
-#' form = ~ x + temp * cosinor(hour, c(24, 12)) 
-#' data = data.frame(x = runif(24), temp = rnorm(24,20), hour = 1:24)
-#' modmat = make_matrices(form, data = data)
-cosinor = function(x = 1:24, period = 24, eval = TRUE){
-  # get the name of input varible
-  xname = deparse(substitute(x))
-  
-  if(eval == FALSE){
-    out = c()
-    # Loop over periods and construct sine and cosine strings
-    for(p in period){
-      out = c(out,
-              paste0("sin(2*pi*", xname, "/", p, ")"),
-              paste0("cos(2*pi*", xname, "/", p, ")"))
-    }
-    return(out)
-  } else{
-    # Evaluate the cosinor terms
-    # x might be a vector
-    out = matrix(NA, nrow = length(x), ncol = 0)
-    names = c()
-    for(p in period){
-      out = cbind(out,
-                  sin(2*pi*x/p),
-                  cos(2*pi*x/p))
-      
-      names = c(names,
-                paste0("sin(2*pi*", xname, "/", p, ")"),
-                paste0("cos(2*pi*", xname, "/", p, ")"))
-    }
-    colnames(out) = names
-    return(out)
-  }
-}
-
-
 #' Build the design and the penalty matrix for models involving penalised splines based on a formula and a data set
 #'
 #' @param formula right side of a formula as used in \code{mgcv}
@@ -159,7 +33,7 @@ make_matrices_old = function(formula,
                          ){
   
   ## Potenially expand cosinor terms
-  formula = process_cosinor(formula)
+  formula = expand_cosinor(formula)
   
   ## setting up the model using mgcv
   gam_setup = gam(formula = update(formula, dummy ~ .),
@@ -230,7 +104,7 @@ make_matrices_flat <- function(formula, data, knots = NULL) {
   }
   
   process_single <- function(fml, name, knots_sub) {
-    fml <- process_cosinor(fml)
+    fml <- expand_cosinor(fml)
     
     # prepare gam model setup
     gam_setup <- gam(update(fml, dummy ~ .), data = cbind(dummy = 1, data), 

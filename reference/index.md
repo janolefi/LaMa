@@ -10,7 +10,7 @@
   an ID variable
 
 - [`cosinor()`](https://janolefi.github.io/LaMa/reference/cosinor.md) :
-  Evaluate trigonometric basis expansion
+  Trigonometric basis expansion
 
 - [`ddwell()`](https://janolefi.github.io/LaMa/reference/ddwell.md) :
   State dwell-time distributions of periodically inhomogeneous Markov

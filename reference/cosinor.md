@@ -1,58 +1,121 @@
-# Evaluate trigonometric basis expansion
+# Trigonometric basis expansion
 
-This function can be used to evaluate a trigonometric basis expansion
-for a given periodic variable and period. It can also be used in
-formulas passed to
-[`make_matrices`](https://janolefi.github.io/LaMa/reference/make_matrices.md).
+Builds a design matrix of `sin`/`cos` pairs for use in models with
+periodic predictors. Can be used directly or inside formulas passed to
+`make_matrices` (where expansion is handled automatically).
 
 ## Usage
 
 ``` r
-cosinor(x = 1:24, period = 24, eval = TRUE)
+cosinor(x, period = 24)
 ```
 
 ## Arguments
 
 - x:
 
-  vector of periodic variable values
+  Numeric vector of the periodic variable.
 
 - period:
 
-  vector of period length. For example for time of day `period = 24`, or
-  `period = c(24,12)` for more flexibility.
-
-- eval:
-
-  logical, should not be changed. If `TRUE` the function returns the
-  evaluated cosinor terms, if `FALSE` the function returns the terms as
-  strings which is used internally form formula evaluation.
+  Numeric vector of period lengths, e.g. `24` for a daily cycle with
+  hourly data or `c(24, 12)` for a daily + semi-daily cycle.
 
 ## Value
 
-either a desing matrix with the evaluated cosinor terms (`eval = TRUE`)
-or a character vector with the terms as strings (`eval = FALSE`).
+A numeric matrix with `2 * length(period)` columns named
+`sin(2*pi*x/period)` / `cos(2*pi*x/period)`.
 
 ## Details
 
-The returned basis can be used for linear predictors of the form \$\$
-\eta^{(t)} = \beta_0 + \sum\_{k} \bigl( \beta\_{1k} \sin(\frac{2 \pi
-t}{\text{period}\_k}) + \beta\_{2k} \cos(\frac{2 \pi
-t}{\text{period}\_k}) \bigr). \$\$ This is relevant for modeling e.g.
-diurnal variation and the flexibility can be increased by adding smaller
-frequencies (i.e. increasing the length of `period`).
+The resulting columns form the basis for linear predictors of the form
+\$\$ \eta_t = \beta_0 + \sum_k \Bigl( \beta\_{1k} \sin\\\Bigl(\tfrac{2
+\pi x_t}{\text{period}\_k}\Bigr) + \beta\_{2k} \cos\\\Bigl(\tfrac{2 \pi
+x_t}{\text{period}\_k}\Bigr) \Bigr). \$\$
 
 ## Examples
 
 ``` r
-## Evaluate cosinor terms
-# builds design matrix
-X = cosinor(1:24, period = 24)
-X = cosinor(1:24, period = c(24, 12, 6))
+cosinor(1:24, period = 24)
+#>       sin(2*pi*1:24/24) cos(2*pi*1:24/24)
+#>  [1,]      2.588190e-01      9.659258e-01
+#>  [2,]      5.000000e-01      8.660254e-01
+#>  [3,]      7.071068e-01      7.071068e-01
+#>  [4,]      8.660254e-01      5.000000e-01
+#>  [5,]      9.659258e-01      2.588190e-01
+#>  [6,]      1.000000e+00      6.123234e-17
+#>  [7,]      9.659258e-01     -2.588190e-01
+#>  [8,]      8.660254e-01     -5.000000e-01
+#>  [9,]      7.071068e-01     -7.071068e-01
+#> [10,]      5.000000e-01     -8.660254e-01
+#> [11,]      2.588190e-01     -9.659258e-01
+#> [12,]      1.224647e-16     -1.000000e+00
+#> [13,]     -2.588190e-01     -9.659258e-01
+#> [14,]     -5.000000e-01     -8.660254e-01
+#> [15,]     -7.071068e-01     -7.071068e-01
+#> [16,]     -8.660254e-01     -5.000000e-01
+#> [17,]     -9.659258e-01     -2.588190e-01
+#> [18,]     -1.000000e+00     -1.836970e-16
+#> [19,]     -9.659258e-01      2.588190e-01
+#> [20,]     -8.660254e-01      5.000000e-01
+#> [21,]     -7.071068e-01      7.071068e-01
+#> [22,]     -5.000000e-01      8.660254e-01
+#> [23,]     -2.588190e-01      9.659258e-01
+#> [24,]     -2.449294e-16      1.000000e+00
+cosinor(1:24, period = c(24, 12, 6))
+#>       sin(2*pi*1:24/24) cos(2*pi*1:24/24) sin(2*pi*1:24/12) cos(2*pi*1:24/12)
+#>  [1,]      2.588190e-01      9.659258e-01      5.000000e-01      8.660254e-01
+#>  [2,]      5.000000e-01      8.660254e-01      8.660254e-01      5.000000e-01
+#>  [3,]      7.071068e-01      7.071068e-01      1.000000e+00      6.123234e-17
+#>  [4,]      8.660254e-01      5.000000e-01      8.660254e-01     -5.000000e-01
+#>  [5,]      9.659258e-01      2.588190e-01      5.000000e-01     -8.660254e-01
+#>  [6,]      1.000000e+00      6.123234e-17      1.224647e-16     -1.000000e+00
+#>  [7,]      9.659258e-01     -2.588190e-01     -5.000000e-01     -8.660254e-01
+#>  [8,]      8.660254e-01     -5.000000e-01     -8.660254e-01     -5.000000e-01
+#>  [9,]      7.071068e-01     -7.071068e-01     -1.000000e+00     -1.836970e-16
+#> [10,]      5.000000e-01     -8.660254e-01     -8.660254e-01      5.000000e-01
+#> [11,]      2.588190e-01     -9.659258e-01     -5.000000e-01      8.660254e-01
+#> [12,]      1.224647e-16     -1.000000e+00     -2.449294e-16      1.000000e+00
+#> [13,]     -2.588190e-01     -9.659258e-01      5.000000e-01      8.660254e-01
+#> [14,]     -5.000000e-01     -8.660254e-01      8.660254e-01      5.000000e-01
+#> [15,]     -7.071068e-01     -7.071068e-01      1.000000e+00      1.194340e-15
+#> [16,]     -8.660254e-01     -5.000000e-01      8.660254e-01     -5.000000e-01
+#> [17,]     -9.659258e-01     -2.588190e-01      5.000000e-01     -8.660254e-01
+#> [18,]     -1.000000e+00     -1.836970e-16      3.673940e-16     -1.000000e+00
+#> [19,]     -9.659258e-01      2.588190e-01     -5.000000e-01     -8.660254e-01
+#> [20,]     -8.660254e-01      5.000000e-01     -8.660254e-01     -5.000000e-01
+#> [21,]     -7.071068e-01      7.071068e-01     -1.000000e+00     -4.286264e-16
+#> [22,]     -5.000000e-01      8.660254e-01     -8.660254e-01      5.000000e-01
+#> [23,]     -2.588190e-01      9.659258e-01     -5.000000e-01      8.660254e-01
+#> [24,]     -2.449294e-16      1.000000e+00     -4.898587e-16      1.000000e+00
+#>       sin(2*pi*1:24/6) cos(2*pi*1:24/6)
+#>  [1,]     8.660254e-01              0.5
+#>  [2,]     8.660254e-01             -0.5
+#>  [3,]     1.224647e-16             -1.0
+#>  [4,]    -8.660254e-01             -0.5
+#>  [5,]    -8.660254e-01              0.5
+#>  [6,]    -2.449294e-16              1.0
+#>  [7,]     8.660254e-01              0.5
+#>  [8,]     8.660254e-01             -0.5
+#>  [9,]     3.673940e-16             -1.0
+#> [10,]    -8.660254e-01             -0.5
+#> [11,]    -8.660254e-01              0.5
+#> [12,]    -4.898587e-16              1.0
+#> [13,]     8.660254e-01              0.5
+#> [14,]     8.660254e-01             -0.5
+#> [15,]     2.388680e-15             -1.0
+#> [16,]    -8.660254e-01             -0.5
+#> [17,]    -8.660254e-01              0.5
+#> [18,]    -7.347881e-16              1.0
+#> [19,]     8.660254e-01              0.5
+#> [20,]     8.660254e-01             -0.5
+#> [21,]     8.572528e-16             -1.0
+#> [22,]    -8.660254e-01             -0.5
+#> [23,]    -8.660254e-01              0.5
+#> [24,]    -9.797174e-16              1.0
 
-## Usage in model formulas
-# e.g. frequencies of 24 and 12 hours + interaction with temperature
-form = ~ x + temp * cosinor(hour, c(24, 12)) 
-data = data.frame(x = runif(24), temp = rnorm(24,20), hour = 1:24)
-modmat = make_matrices(form, data = data)
+## In model formulas (expand_cosinor handles the expansion):
+form <- ~ x + temp * cosinor(hour, c(24, 12))
+data <- data.frame(x = runif(24), temp = rnorm(24, 20), hour = 1:24)
+modmat <- make_matrices(form, data = data)
 ```

@@ -250,13 +250,13 @@ each state (columns), which, throughout the package, we call the
 <code>allprobs</code> matrix.</p>
 <p>In this example, within the negative log-likelihood function we</p>
 <ol style="list-style-type: decimal">
-<li><p>build the transition probability matrix using the
-<code><a href="../reference/tpm.html">tpm()</a></code> function,</p></li>
-<li><p>compute the stationary distribution of the Markov chain using
-<code><a href="../reference/stationary.html">stationary()</a></code>,</p></li>
-<li><p>build the <code>allprobs</code> matrix, and</p></li>
-<li><p>calculate the log-likelihood using <code><a href="../reference/forward.html">forward()</a></code> in the
-last line.</p></li>
+<li>build the transition probability matrix using the <code><a href="../reference/tpm.html">tpm()</a></code>
+function,</li>
+<li>compute the stationary distribution of the Markov chain using
+<code><a href="../reference/stationary.html">stationary()</a></code>,</li>
+<li>build the <code>allprobs</code> matrix, and</li>
+<li>calculate the log-likelihood using <code><a href="../reference/forward.html">forward()</a></code> in the
+last line.</li>
 </ol>
 <p>We return <span class="math inline">-1</span> times the
 log-likelihood such that it can be numerically minimised.</p>
@@ -291,7 +291,7 @@ maximum.</p>
 <span>  <span class="va">opt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm</a></span><span class="op">(</span><span class="va">nll</span>, <span class="va">par</span>, x <span class="op">=</span> <span class="va">x</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.118   0.013   0.131</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.104   0.014   0.117</span></span></code></pre></div>
 <p>We see that implementation of the forward algorithm in C++ leads to
 really fast estimation speeds.</p>
 </div>

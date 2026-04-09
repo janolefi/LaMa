@@ -179,12 +179,9 @@ In this example, within the negative log-likelihood function we
 1.  build the transition probability matrix using the
     [`tpm()`](https://janolefi.github.io/LaMa/reference/tpm.md)
     function,
-
 2.  compute the stationary distribution of the Markov chain using
     [`stationary()`](https://janolefi.github.io/LaMa/reference/stationary.md),
-
 3.  build the `allprobs` matrix, and
-
 4.  calculate the log-likelihood using
     [`forward()`](https://janolefi.github.io/LaMa/reference/forward.md)
     in the last line.
@@ -226,7 +223,7 @@ system.time(
   opt <- nlm(nll, par, x = x)
 )
 #>    user  system elapsed 
-#>   0.118   0.013   0.131
+#>   0.104   0.014   0.117
 ```
 
 We see that implementation of the forward algorithm in C++ leads to

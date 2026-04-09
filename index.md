@@ -1,35 +1,20 @@
 # LaMa - Latent Markov model toolbox 🛠️ ![](reference/figures/Logo_LaMa_surf.png)
 
-A variety of **latent Markov models** [(Mews, Koslik, and Langrock
-2025)](https://journals.sagepub.com/doi/abs/10.1177/1471082X251355681),
+A variety of [**latent Markov
+models**](https://journals.sagepub.com/doi/abs/10.1177/1471082X251355681),
 including **hidden Markov models** (HMMs), **hidden semi-Markov models**
 (HSMMs), **state-space models** (SSMs) and **continuous-time** variants
 can be formulated and estimated within the same framework via directly
 maximising the likelihood function using the so-called **forward
-algorithm** [(Zucchini, MacDonald, and Langrock
-2016)](https://www.taylorfrancis.com/books/mono/10.1201/b20790/hidden-markov-models-time-series-walter-zucchini-iain-macdonald-roland-langrock).
-Applied researchers often need custom models that standard software does
-not easily support. Writing tailored `R` code offers flexibility but
-suffers from slow estimation speeds. This `R` package solves these
-issues by providing easy-to-use functions (written in C++ for speed) for
-common tasks like the forward algorithm. These functions can be combined
-into custom models in a Lego-type approach, offering up to 10-20 times
-faster estimation via standard numerical optimisers. In its most recent
-iteration, `LaMa` allows for automatic differentiation with the `RTMB`
-package which drastically increases speed and accuracy even more.
-
-The most important families of functions are
-
-- the `forward` family that calculates the log-likelihood for various
-  different models,
-
-- the `tpm` family for calculating transition probability matrices,
-
-- the `stationary` family to compute stationary and periodically
-  stationary distributions
-
-- as well as the `stateprobs` and `viterbi` families for local and
-  global decoding.
+algorithm**. Applied researchers often need custom models that standard
+software does not easily support. Writing tailored `R` code offers
+flexibility but suffers from slow estimation speeds. This `R` package
+solves these issues by providing easy-to-use building-blocks for common
+tasks like the forward algorithm. These functions can be combined into
+custom models in a Lego-type approach, offering very fast estimation
+speeds. In its most recent iteration, `LaMa` allows for automatic
+differentiation with the `RTMB` package which drastically increases
+speed and accuracy even more.
 
 ## Installation
 
@@ -55,29 +40,29 @@ package.
 
 HMMs, from simple to complex:
 
-- [Introduction to
-  LaMa](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html)
-- [Inhomogeneous HMMs with covariate
-  effects](https://janolefi.github.io/LaMa/articles/Inhomogeneous_HMMs.html)
-- [Longitudinal
-  data](https://janolefi.github.io/LaMa/articles/Longitudinal_data.html)
-- [Periodic
-  HMMs](https://janolefi.github.io/LaMa/articles/Periodic_HMM.html)
-- [LaMa and
-  RTMB](https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html)
-- [Penalised
-  splines](https://janolefi.github.io/LaMa/articles/Penalised_splines.html)
+1.  [Introduction to
+    LaMa](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html)
+2.  [Automatic differentiation via
+    RTMB](https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html)
+3.  [Covariate
+    effects](https://janolefi.github.io/LaMa/articles/Inhomogeneous_HMMs.html)
+4.  [Periodic
+    HMMs](https://janolefi.github.io/LaMa/articles/Periodic_HMM.html)
+5.  [Longitudinal
+    data](https://janolefi.github.io/LaMa/articles/Longitudinal_data.html)
+6.  [Penalised
+    splines](https://janolefi.github.io/LaMa/articles/Penalised_splines.html)
 
 Other latent Markov model classes:
 
-- [State-space
-  models](https://janolefi.github.io/LaMa/articles/State_space_models.html)
-- [Continuous-time
-  HMMs](https://janolefi.github.io/LaMa/articles/Continuous_time_HMMs.html)
-- [Hidden semi-Markov
-  models](https://janolefi.github.io/LaMa/articles/HSMMs.html)
-- [Markov-modulated (marked) Poisson
-  processes](https://janolefi.github.io/LaMa/articles/MMMPPs.html)
+7.  [Continuous-time
+    HMMs](https://janolefi.github.io/LaMa/articles/Continuous_time_HMMs.html)
+8.  [Markov-modulated (marked) Poisson
+    processes](https://janolefi.github.io/LaMa/articles/MMMPPs.html)
+9.  [State-space
+    models](https://janolefi.github.io/LaMa/articles/State_space_models.html)
+10. [Hidden semi-Markov
+    models](https://janolefi.github.io/LaMa/articles/HSMMs.html)
 
 ## Introductory example: Homogeneous HMM
 
@@ -136,7 +121,7 @@ system.time(
   mod <- nlm(nll, par, step = trex$step)
 )
 #>    user  system elapsed 
-#>   0.359   0.014   0.399
+#>   0.353   0.012   0.366
 ```
 
 Really fast for 10.000 data points!
@@ -168,11 +153,3 @@ legend("topright", col = c("orange", "deepskyblue"), lwd = 2, bty = "n", legend 
 ```
 
 ![](reference/figures/README-visualization-1.png)
-
-Mews, Sina, Jan-Ole Koslik, and Roland Langrock. 2025. “How to Build
-Your Latent Markov Model: The Role of Time and Space.” *Statistical
-Modelling* 0 (0). <https://doi.org/10.1177/1471082X251355681>.
-
-Zucchini, Walter, Iain L. MacDonald, and Roland Langrock. 2016. *Hidden
-Markov Models for Time Series: An Introduction Using R*. Boca Raton:
-Chapman & Hall/CRC.

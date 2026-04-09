@@ -45,6 +45,7 @@
     <li><a class="dropdown-item" href="articles/Continuous_time_HMMs.html">7 Continuous-time HMMs</a></li>
     <li><a class="dropdown-item" href="articles/MMMPPs.html">8 Markov modulated Poisson processes</a></li>
     <li><a class="dropdown-item" href="articles/State_space_models.html">9 State space models</a></li>
+    <li><a class="dropdown-item" href="articles/HSMMs.html">10 Hidden semi-Markov models</a></li>
   </ul>
 </li>
       </ul>
@@ -64,14 +65,12 @@
 </h1></div>
 <!-- badges: start -->
 
-<p>A variety of <strong>latent Markov models</strong> <a href="https://journals.sagepub.com/doi/abs/10.1177/1471082X251355681" target="_blank" class="external-link">(Mews, Koslik, and Langrock 2025)</a>, including <strong>hidden Markov models</strong> (HMMs), <strong>hidden semi-Markov models</strong> (HSMMs), <strong>state-space models</strong> (SSMs) and <strong>continuous-time</strong> variants can be formulated and estimated within the same framework via directly maximising the likelihood function using the so-called <strong>forward algorithm</strong> <a href="https://www.taylorfrancis.com/books/mono/10.1201/b20790/hidden-markov-models-time-series-walter-zucchini-iain-macdonald-roland-langrock" target="_blank" class="external-link">(Zucchini, MacDonald, and Langrock 2016)</a>. Applied researchers often need custom models that standard software does not easily support. Writing tailored <code>R</code> code offers flexibility but suffers from slow estimation speeds. This <code>R</code> package solves these issues by providing easy-to-use functions (written in C++ for speed) for common tasks like the forward algorithm. These functions can be combined into custom models in a Lego-type approach, offering up to 10-20 times faster estimation via standard numerical optimisers. In its most recent iteration, <code>LaMa</code> allows for automatic differentiation with the <code>RTMB</code> package which drastically increases speed and accuracy even more.</p>
-<p>The most important families of functions are</p>
-<ul>
-<li><p>the <code>forward</code> family that calculates the log-likelihood for various different models,</p></li>
-<li><p>the <code>tpm</code> family for calculating transition probability matrices, <!-- + `tpm()` for calculating a homogeneous transition probability matrix via the multinomial logistic link,  --> <!-- + `tpm_g()` for calculating general inhomogeneous transition probabilty matrices,  --> <!-- + `tpm_p()` for calculating transition matrices of periodically inhomogeneous HMMs, --> <!-- + `tpm_cont()` for calculating the transition probabilites of a continuous-time Markov chain, --> <!-- + `tpm_emb()` for calculating the embedded transition matrix of an HSMM, --></p></li>
-<li><p>the <code>stationary</code> family to compute stationary and periodically stationary distributions</p></li>
-<li><p>as well as the <code>stateprobs</code> and <code>viterbi</code> families for local and global decoding.</p></li>
-</ul>
+<p>A variety of <a href="https://journals.sagepub.com/doi/abs/10.1177/1471082X251355681" target="_blank" class="external-link"><strong>latent Markov models</strong></a>, including <strong>hidden Markov models</strong> (HMMs), <strong>hidden semi-Markov models</strong> (HSMMs), <strong>state-space models</strong> (SSMs) and <strong>continuous-time</strong> variants can be formulated and estimated within the same framework via directly maximising the likelihood function using the so-called <strong>forward algorithm</strong>. Applied researchers often need custom models that standard software does not easily support. Writing tailored <code>R</code> code offers flexibility but suffers from slow estimation speeds. This <code>R</code> package solves these issues by providing easy-to-use building-blocks for common tasks like the forward algorithm. These functions can be combined into custom models in a Lego-type approach, offering very fast estimation speeds. In its most recent iteration, <code>LaMa</code> allows for automatic differentiation with the <code>RTMB</code> package which drastically increases speed and accuracy even more.</p>
+<!-- The most important functions are -->
+<!-- * `forward` to calculate the log-likelihood for various different models, -->
+<!-- * `tpm` for calculating transition probability matrices, -->
+<!-- * `stationary` to compute stationary and periodically stationary distributions, -->
+<!-- * `stateprobs` and `viterbi` for local and global decoding. -->
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -88,21 +87,21 @@
 </h2>
 <p>To aid in building fully custom likelihood functions, this package contains several vignettes that demonstrate how to simulate data from and estimate a wide range of models using the functions included in this package.</p>
 <p>HMMs, from simple to complex:</p>
-<ul>
+<ol style="list-style-type: decimal">
 <li><a href="https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html">Introduction to LaMa</a></li>
-<li><a href="https://janolefi.github.io/LaMa/articles/Inhomogeneous_HMMs.html">Inhomogeneous HMMs with covariate effects</a></li>
-<li><a href="https://janolefi.github.io/LaMa/articles/Longitudinal_data.html">Longitudinal data</a></li>
+<li><a href="https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html">Automatic differentiation via RTMB</a></li>
+<li><a href="https://janolefi.github.io/LaMa/articles/Inhomogeneous_HMMs.html">Covariate effects</a></li>
 <li><a href="https://janolefi.github.io/LaMa/articles/Periodic_HMM.html">Periodic HMMs</a></li>
-<li><a href="https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html">LaMa and RTMB</a></li>
+<li><a href="https://janolefi.github.io/LaMa/articles/Longitudinal_data.html">Longitudinal data</a></li>
 <li><a href="https://janolefi.github.io/LaMa/articles/Penalised_splines.html">Penalised splines</a></li>
-</ul>
+</ol>
 <p>Other latent Markov model classes:</p>
-<ul>
-<li><a href="https://janolefi.github.io/LaMa/articles/State_space_models.html">State-space models</a></li>
+<ol start="7" style="list-style-type: decimal">
 <li><a href="https://janolefi.github.io/LaMa/articles/Continuous_time_HMMs.html">Continuous-time HMMs</a></li>
-<li><a href="https://janolefi.github.io/LaMa/articles/HSMMs.html">Hidden semi-Markov models</a></li>
 <li><a href="https://janolefi.github.io/LaMa/articles/MMMPPs.html">Markov-modulated (marked) Poisson processes</a></li>
-</ul>
+<li><a href="https://janolefi.github.io/LaMa/articles/State_space_models.html">State-space models</a></li>
+<li><a href="https://janolefi.github.io/LaMa/articles/HSMMs.html">Hidden semi-Markov models</a></li>
+</ol>
 <!-- ## Citation --><!-- When using LaMa, please cite the package as follows: --><!-- ```{r citation} --><!-- citation(package = "LaMa") --><!-- ``` -->
 </div>
 <div class="section level2">
@@ -143,7 +142,7 @@
 <span>  <span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm</a></span><span class="op">(</span><span class="va">nll</span>, <span class="va">par</span>, step <span class="op">=</span> <span class="va">trex</span><span class="op">$</span><span class="va">step</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.359   0.014   0.399</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.353   0.012   0.366</span></span></code></pre></div>
 <p>Really fast for 10.000 data points!</p>
 <p>After tranforming the working (unconstrained) parameters to natural parameters using <code><a href="reference/tpm.html">tpm()</a></code> and <code><a href="reference/stationary.html">stationary()</a></code>, we can visualise the results:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
@@ -165,14 +164,6 @@
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/curve.html" class="external-link">curve</a></span><span class="op">(</span><span class="va">delta</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span> <span class="op">*</span> <span class="fu"><a href="reference/gamma2.html">dgamma2</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">mu</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="va">sigma</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>, add <span class="op">=</span> <span class="cn">TRUE</span>, lwd <span class="op">=</span> <span class="fl">2</span>, col <span class="op">=</span> <span class="st">"deepskyblue"</span>, n<span class="op">=</span><span class="fl">500</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html" class="external-link">legend</a></span><span class="op">(</span><span class="st">"topright"</span>, col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"orange"</span>, <span class="st">"deepskyblue"</span><span class="op">)</span>, lwd <span class="op">=</span> <span class="fl">2</span>, bty <span class="op">=</span> <span class="st">"n"</span>, legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"state 1"</span>, <span class="st">"state 2"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-visualization-1.png" width="75%" style="display: block; margin: auto;"></p>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
-<div id="ref-mews2024build" class="csl-entry">
-Mews, Sina, Jan-Ole Koslik, and Roland Langrock. 2025. “How to Build Your Latent Markov Model: The Role of Time and Space.” <em>Statistical Modelling</em> 0 (0). <a href="https://doi.org/10.1177/1471082X251355681" class="external-link uri">https://doi.org/10.1177/1471082X251355681</a>.
-</div>
-<div id="ref-zucchini" class="csl-entry">
-Zucchini, Walter, Iain L. MacDonald, and Roland Langrock. 2016. <em>Hidden Markov Models for Time Series: An Introduction Using R</em>. Boca Raton: Chapman &amp; Hall/CRC.
-</div>
-</div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">

@@ -163,6 +163,9 @@
   Get reported quantities from and `RTMB` object and return a
   `LaMaModel`
 
+- [`rgmrf()`](https://janolefi.github.io/LaMa/reference/rgmrf.md) :
+  Sample from a multivariate Gaussian with a sparse precision matrix
+
 - [`sdreportMC()`](https://janolefi.github.io/LaMa/reference/sdreportMC.md)
   :
 

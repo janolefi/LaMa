@@ -64,6 +64,13 @@ models). This is a common approach to get an approximate idea of
 parameter uncertainty around the MLE, but it relies on large-sample
 asymptotics.
 
+Sampling random effects from their posterior as compared to calculating
+marginal standard devitions like
+[`sdreport`](https://rdrr.io/pkg/TMB/man/sdreport.html) is particularly
+useful for multidimensional random effects (e.g. for locations \\x\\ and
+\\y\\) where pointwise confidence intervals (e.g. along a path) based on
+standard deviations are not possible.
+
 ## Examples
 
 ``` r

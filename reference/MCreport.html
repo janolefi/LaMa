@@ -9,7 +9,7 @@ See sdreport for details on posterior variance-covariance in random effects mode
 
     <a class="navbar-brand me-2" href="../index.html">LaMa</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -103,6 +103,8 @@ If not provided, computed internally using <code>sdreport</code>. Only used for 
 This has nothing to do with Bayesian posterior sampling.
 It is simple Monte Carlo sampling from a Gaussian distribution with mean at the MLE and covariance given by the inverse of the Hessian (for fixed effects models) or the joint precision matrix (for random effects models).
 This is a common approach to get an approximate idea of parameter uncertainty around the MLE, but it relies on large-sample asymptotics.</p>
+<p>Sampling random effects from their posterior as compared to calculating marginal standard devitions like <code><a href="https://rdrr.io/pkg/TMB/man/sdreport.html" class="external-link">sdreport</a></code> is particularly useful for multidimensional random effects (e.g. for locations \(x\) and \(y\))
+where pointwise confidence intervals (e.g. along a path) based on standard deviations are not possible.</p>
     </div>
 
     <div class="section level2">

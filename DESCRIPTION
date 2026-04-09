@@ -1,7 +1,7 @@
 Package: LaMa
 Type: Package
 Title: Fast Numerical Maximum Likelihood Estimation for Latent Markov Models 
-Version: 2.1.0
+Version: 2.1.1
 Authors@R: c(
     person(given = "Jan-Ole", family = "Fischer", 
           email = "jan-ole.fischer@mailbox.org",
@@ -28,7 +28,7 @@ Imports:
     mgcv,
     MASS,
     numDeriv,
-    RTMBdist
+    RTMBdist (>= 1.0.4)
 LinkingTo: 
     Rcpp, 
     RcppArmadillo

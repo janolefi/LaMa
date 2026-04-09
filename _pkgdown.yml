@@ -3,17 +3,27 @@ url: https://janolefi.github.io/LaMa/
 template:
   bootstrap: 5
   math-rendering: katex
-
-articles:
-- title: "Articles"
-  contents:
-  - Intro_to_LaMa
-  - LaMa_and_RTMB
-  - Inhomogeneous_HMMs
-  - Periodic_HMMs
-  - Longitudinal_data
-  - Penalised_splines
-  - Continuous_time_HMMs
-  - MMMPPs
-  - State_space_models
-  - HSMMs
+  
+navbar:
+  components:
+    articles:
+      text: Articles
+      menu:
+      - text: 1 Introduction to LaMa
+        href: articles/Intro_to_LaMa.html
+      - text: 2 LaMa and RTMB
+        href: articles/LaMa_and_RTMB.html
+      - text: 3 Inhomogeneous HMMs
+        href: articles/Inhomogeneous_HMMs.html
+      - text: 4 Periodic HMMs
+        href: articles/Periodic_HMMs.html
+      - text: 5 Longitudinal data
+        href: articles/Longitudinal_data.html
+      - text: 6 Penalised splines
+        href: articles/Penalised_splines.html
+      - text: 7 Continuous-time HMMs
+        href: articles/Continuous_time_HMMs.html
+      - text: 8 Markov modulated Poisson processes
+        href: articles/MMMPPs.html
+      - text: 9 State space models
+        href: articles/State_space_models.html

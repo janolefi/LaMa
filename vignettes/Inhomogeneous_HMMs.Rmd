@@ -1,6 +1,6 @@
 ---
 title: "Inhomogeneous HMMs"
-author: "Jan-Ole Koslik"
+author: "Jan-Ole Fischer"
 output: rmarkdown::html_vignette
 # output: pdf_document
 vignette: >

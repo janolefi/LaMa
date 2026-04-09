@@ -1,5 +1,6 @@
 ---
 title: "LaMa and RTMB"
+author: "Jan-Ole Fischer"
 output: rmarkdown::html_vignette
 # output: pdf_document
 vignette: >

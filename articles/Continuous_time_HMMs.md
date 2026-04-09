@@ -1,4 +1,4 @@
-# Continuous-time HMMs
+# 7 Continuous-time HMMs
 
 > Before diving into this vignette, we recommend reading the vignette
 > [**Introduction to
@@ -156,7 +156,7 @@ system.time(
   mod <- nlm(nll, par, timediff = timediff, x = x, N = 2)
 )
 #>    user  system elapsed 
-#>   0.234   0.385   0.318
+#>   0.366   0.238   0.308
 ```
 
 ### Results
@@ -233,7 +233,7 @@ system.time(
   mod2 <- nlm(nll, par, timediff = timediff, x = x, N = 3, stepmax = 10)
 )
 #>    user  system elapsed 
-#>   2.084   3.968   2.021
+#>   1.983   2.288   1.425
 # without restricting stepmax, we run into numerical problems
 ```
 

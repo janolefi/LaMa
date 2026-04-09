@@ -1,4 +1,4 @@
-# Inhomogeneous HMMs
+# 3 Covariate effects
 
 > Before diving into this vignette, we recommend reading the vignette
 > [**Introduction to
@@ -160,7 +160,7 @@ system.time(
 
 )
 #>    user  system elapsed 
-#>   0.747   0.016   0.763
+#>   0.797   0.012   0.808
 ```
 
 Really fast!
@@ -323,7 +323,7 @@ system.time(
   mod_reg <- nlm(nllMSR, par, x = x, Z = Z)
 )
 #>    user  system elapsed 
-#>   0.318   0.016   0.334
+#>   0.270   0.022   0.293
 ```
 
 ### Visualising results

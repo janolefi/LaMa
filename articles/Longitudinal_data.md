@@ -1,4 +1,4 @@
-# Longitudinal data
+# 5 Longitudinal data
 
 > Before diving into this vignette, we recommend reading the vignettes
 > [**Introduction to
@@ -129,14 +129,14 @@ system.time(
   mod <- nlm(nll_pool, par, x = x, trackID = trackID)
 )
 #>    user  system elapsed 
-#>   0.405   0.011   0.417
+#>   0.384   0.010   0.394
 
 # slow version
 system.time(
   mod <- nlm(nll_pool_slow, par, x = x, K = K)
 )
 #>    user  system elapsed 
-#>   3.494   0.034   3.528
+#>   2.936   0.025   2.962
 ```
 
 In this example, looping over individuals in `R` already leads to five
@@ -228,5 +228,5 @@ system.time(
   mod_partial <- nlm(nll_partial, par, x = x, z = z, trackID = trackID)
 )
 #>    user  system elapsed 
-#>   0.452   0.005   0.457
+#>   0.419   0.001   0.420
 ```

@@ -2,23 +2,23 @@
 
 ### All vignettes
 
-- [Continuous-time
+- [7 Continuous-time
   HMMs](https://janolefi.github.io/LaMa/articles/Continuous_time_HMMs.md):
 - [Hidden semi-Markov
   models](https://janolefi.github.io/LaMa/articles/HSMMs.md):
-- [Inhomogeneous
-  HMMs](https://janolefi.github.io/LaMa/articles/Inhomogeneous_HMMs.md):
+- [3 Covariate
+  effects](https://janolefi.github.io/LaMa/articles/Inhomogeneous_HMMs.md):
 - [1 Introduction to
   LaMa](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.md):
-- [LaMa and
+- [2 Automatic differentiation via
   RTMB](https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.md):
-- [Longitudinal
+- [5 Longitudinal
   data](https://janolefi.github.io/LaMa/articles/Longitudinal_data.md):
-- [Markov-modulated (marked) Poisson
+- [8 Markov-modulated (marked) Poisson
   processes](https://janolefi.github.io/LaMa/articles/MMMPPs.md):
-- [Penalised
+- [6 Penalised
   splines](https://janolefi.github.io/LaMa/articles/Penalised_splines.md):
-- [Periodic
+- [4 Periodic
   HMMs](https://janolefi.github.io/LaMa/articles/Periodic_HMMs.md):
-- [State-space
+- [9 State-space
   models](https://janolefi.github.io/LaMa/articles/State_space_models.md):

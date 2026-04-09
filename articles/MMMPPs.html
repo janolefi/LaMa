@@ -5,13 +5,13 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Markov-modulated (marked) Poisson processes • LaMa</title>
+<title>8 Markov-modulated (marked) Poisson processes • LaMa</title>
 <!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Markov-modulated (marked) Poisson processes">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="8 Markov-modulated (marked) Poisson processes">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -35,8 +35,8 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/Intro_to_LaMa.html">1 Introduction to LaMa</a></li>
-    <li><a class="dropdown-item" href="../articles/LaMa_and_RTMB.html">2 LaMa and RTMB</a></li>
-    <li><a class="dropdown-item" href="../articles/Inhomogeneous_HMMs.html">3 Inhomogeneous HMMs</a></li>
+    <li><a class="dropdown-item" href="../articles/LaMa_and_RTMB.html">2 Automatic differentiation</a></li>
+    <li><a class="dropdown-item" href="../articles/Inhomogeneous_HMMs.html">3 Covariate effects</a></li>
     <li><a class="dropdown-item" href="../articles/Periodic_HMMs.html">4 Periodic HMMs</a></li>
     <li><a class="dropdown-item" href="../articles/Longitudinal_data.html">5 Longitudinal data</a></li>
     <li><a class="dropdown-item" href="../articles/Penalised_splines.html">6 Penalised splines</a></li>
@@ -63,7 +63,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>Markov-modulated (marked) Poisson processes</h1>
+      <h1>8 Markov-modulated (marked) Poisson processes</h1>
                         <h4 data-toc-skip class="author">Jan-Ole
 Fischer</h4>
             
@@ -203,7 +203,7 @@ state-dependent density matrices to be <span class="math inline">\Lambda</span>.
 <span>  <span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm</a></span><span class="op">(</span><span class="va">nll</span>, <span class="va">par</span>, timediff <span class="op">=</span> <span class="va">timediff</span>, N <span class="op">=</span> <span class="fl">2</span>, stepmax <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.211   0.363   0.294</span></span>
+<span><span class="co">#&gt;   0.368   0.229   0.305</span></span>
 <span><span class="co"># we often need the stepmax, as the matrix exponential can be numerically unstable</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -214,8 +214,8 @@ state-dependent density matrices to be <span class="math inline">\Lambda</span>.
 <span><span class="co">#&gt; [1]  1.949689 15.083121</span></span>
 <span><span class="op">(</span><span class="va">Q</span> <span class="op">=</span> <span class="fu"><a href="../reference/generator.html">generator</a></span><span class="op">(</span><span class="va">mod</span><span class="op">$</span><span class="va">estimate</span><span class="op">[</span><span class="fl">3</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;            S1         S2</span></span>
-<span><span class="co">#&gt; S1 -0.4003955  0.4003955</span></span>
-<span><span class="co">#&gt; S2  1.8998848 -1.8998848</span></span>
+<span><span class="co">#&gt; S1 -0.4003954  0.4003954</span></span>
+<span><span class="co">#&gt; S2  1.8998847 -1.8998847</span></span>
 <span><span class="op">(</span><span class="va">Pi</span> <span class="op">=</span> <span class="fu"><a href="../reference/stationary_cont.html">stationary_cont</a></span><span class="op">(</span><span class="va">Q</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;        S1        S2 </span></span>
 <span><span class="co">#&gt; 0.8259362 0.1740638</span></span></code></pre></div>
@@ -342,7 +342,7 @@ one element-wise with the state-dependent rates.</p>
 <span>  <span class="va">mod2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm</a></span><span class="op">(</span><span class="va">nllMark</span>, <span class="va">par</span>, y <span class="op">=</span> <span class="va">marks</span>, timediff <span class="op">=</span> <span class="va">timediff</span>, N <span class="op">=</span> <span class="fl">3</span>, stepmax <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   3.601   6.063   3.231</span></span></code></pre></div>
+<span><span class="co">#&gt;   5.139   5.578   3.584</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="results-1">Results<a class="anchor" aria-label="anchor" href="#results-1"></a>
@@ -350,16 +350,16 @@ one element-wise with the state-dependent rates.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">N</span> <span class="op">=</span> <span class="fl">3</span></span>
 <span><span class="op">(</span><span class="va">lambda</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">mod2</span><span class="op">$</span><span class="va">estimate</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1]  0.9646715  4.8640550 19.5008965</span></span>
+<span><span class="co">#&gt; [1]  0.9646715  4.8640549 19.5008965</span></span>
 <span><span class="op">(</span><span class="va">mu</span> <span class="op">=</span> <span class="va">mod2</span><span class="op">$</span><span class="va">estimate</span><span class="op">[</span><span class="va">N</span><span class="op">+</span><span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] -5.18540508 -0.09097055  4.80538783</span></span>
+<span><span class="co">#&gt; [1] -5.18540508 -0.09097056  4.80538783</span></span>
 <span><span class="op">(</span><span class="va">sigma</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">mod2</span><span class="op">$</span><span class="va">estimate</span><span class="op">[</span><span class="fl">2</span><span class="op">*</span><span class="va">N</span><span class="op">+</span><span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 1.7931062 0.9644485 2.0093266</span></span>
+<span><span class="co">#&gt; [1] 1.7931062 0.9644486 2.0093266</span></span>
 <span><span class="op">(</span><span class="va">Q</span> <span class="op">=</span> <span class="fu"><a href="../reference/generator.html">generator</a></span><span class="op">(</span><span class="va">mod2</span><span class="op">$</span><span class="va">estimate</span><span class="op">[</span><span class="fl">3</span><span class="op">*</span><span class="va">N</span><span class="op">+</span><span class="fl">1</span><span class="op">:</span><span class="op">(</span><span class="va">N</span><span class="op">*</span><span class="op">(</span><span class="va">N</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;            S1         S2         S3</span></span>
 <span><span class="co">#&gt; S1 -0.5909290  0.2788642  0.3120648</span></span>
-<span><span class="co">#&gt; S2  0.9258939 -1.1798377  0.2539439</span></span>
-<span><span class="co">#&gt; S3  1.1933693  1.2097188 -2.4030882</span></span>
+<span><span class="co">#&gt; S2  0.9258937 -1.1798376  0.2539439</span></span>
+<span><span class="co">#&gt; S3  1.1933696  1.2097185 -2.4030882</span></span>
 <span><span class="op">(</span><span class="va">Pi</span> <span class="op">=</span> <span class="fu"><a href="../reference/stationary_cont.html">stationary_cont</a></span><span class="op">(</span><span class="va">Q</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;        S1        S2        S3 </span></span>
 <span><span class="co">#&gt; 0.6296990 0.2609524 0.1093485</span></span></code></pre></div>

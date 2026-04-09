@@ -1,4 +1,4 @@
-# State-space models
+# 9 State-space models
 
 > Before diving into this vignette, we recommend reading the vignette
 > [**Introduction to
@@ -106,7 +106,7 @@ system.time(
   mod <- nlm(nll, par, y = y, bm = bm, m = m)
 )
 #>    user  system elapsed 
-#>   1.334   2.602   1.009
+#>   1.621   2.369   1.019
 ```
 
 ### Results

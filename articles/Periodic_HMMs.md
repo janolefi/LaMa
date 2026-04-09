@@ -1,4 +1,4 @@
-# Periodic HMMs
+# 4 Periodic HMMs
 
 > Before diving into this vignette, we recommend reading the vignettes
 > [**Introduction to
@@ -131,7 +131,7 @@ system.time(
   mod <- nlm(nll, par, x = x, tod = tod)
 )
 #>    user  system elapsed 
-#>   0.923   0.013   0.936
+#>   0.970   0.016   0.986
 ```
 
 ### Visualising results

@@ -122,11 +122,8 @@ For efficiency, it is also advisable to evaluate the state-dependent densities (
 In this example, within the negative log-likelihood function we 
 
 1) build the transition probability matrix using the `tpm()` function,
-
 2) compute the stationary distribution of the Markov chain using `stationary()`,
-
 3) build the `allprobs` matrix, and 
-
 4) calculate the log-likelihood using `forward()` in the last line. 
 
 We return $-1$ times the log-likelihood such that it can be numerically minimised.

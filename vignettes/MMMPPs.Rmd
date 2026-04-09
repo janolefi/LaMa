@@ -1,5 +1,5 @@
 ---
-title: "Markov-modulated (marked) Poisson processes"
+title: "8 Markov-modulated (marked) Poisson processes"
 author: "Jan-Ole Fischer"
 output: rmarkdown::html_vignette
 # output: pdf_document

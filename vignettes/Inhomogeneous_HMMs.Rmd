@@ -1,5 +1,5 @@
 ---
-title: "Inhomogeneous HMMs"
+title: "3 Covariate effects"
 author: "Jan-Ole Fischer"
 output: rmarkdown::html_vignette
 # output: pdf_document

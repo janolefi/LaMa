@@ -1,5 +1,5 @@
 ---
-title: "Continuous-time HMMs"
+title: "7 Continuous-time HMMs"
 author: "Jan-Ole Fischer"
 output: rmarkdown::html_vignette
 # output: pdf_document

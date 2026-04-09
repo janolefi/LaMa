@@ -1,5 +1,5 @@
 ---
-title: "Periodic HMMs"
+title: "4 Periodic HMMs"
 author: "Jan-Ole Fischer"
 output: rmarkdown::html_vignette
 # output: pdf_document

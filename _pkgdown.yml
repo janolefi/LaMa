@@ -11,9 +11,9 @@ navbar:
       menu:
       - text: 1 Introduction to LaMa
         href: articles/Intro_to_LaMa.html
-      - text: 2 LaMa and RTMB
+      - text: 2 Automatic differentiation
         href: articles/LaMa_and_RTMB.html
-      - text: 3 Inhomogeneous HMMs
+      - text: 3 Covariate effects
         href: articles/Inhomogeneous_HMMs.html
       - text: 4 Periodic HMMs
         href: articles/Periodic_HMMs.html

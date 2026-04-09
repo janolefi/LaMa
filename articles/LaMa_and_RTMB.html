@@ -546,109 +546,99 @@ lines(tod_seq, Gamma_plot[2,1,], lwd = 2, lty = 3)
 legend("topleft", lwd = 2, lty = c(1,3), bty = "n",
        legend = c(expression(gamma[12]^(t)), expression(gamma[21]^(t))))
 ``` -->
-<div class="section level3">
-<h3 id="rtmb-tips-and-issues">
-<code>RTMB</code> tips and issues<a class="anchor" aria-label="anchor" href="#rtmb-tips-and-issues"></a>
-</h3>
+<div class="section level2">
+<h2 id="tips-and-common-issues">Tips and common issues<a class="anchor" aria-label="anchor" href="#tips-and-common-issues"></a>
+</h2>
+<p>There are some commonly occuring issues with <code>RTMB</code> to
+keep in mind. I list the main ones I have encountered here – please let
+me know if you encounter more so they can be added.</p>
 <div class="section level4">
-<h4 id="tips">Tips<a class="anchor" aria-label="anchor" href="#tips"></a>
+<h4 id="non-standard-distributions">Non-standard distributions<a class="anchor" aria-label="anchor" href="#non-standard-distributions"></a>
 </h4>
-<p>When using the forward algorithm, it is usually a good idea to
-run:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">RTMB</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/Tape.html" class="external-link">TapeConfig</a></span><span class="op">(</span>matmul <span class="op">=</span> <span class="st">"plain"</span><span class="op">)</span></span></code></pre></div>
-<p>This changes how <code>RTMB</code> internally represents matrix
-multiplications and can speed up the forward algorithm considerably.</p>
-<p>If you want to use non-standard probability distributions, check-out
-the <code>R</code> package <a href="https://janolefi.github.io/RTMBdist/" class="external-link"><code>RTMBdist</code></a>
-which provides a library of <code>AD</code>-compatible distributions
-that can be used inside likelihood functions.</p>
+<p>If you need a non-standard probability distribution, existing
+implementations will likely fail due to AD incompatibility. Check
+whether the distribution is available in <a href="https://janolefi.github.io/RTMBdist/" class="external-link"><code>RTMBdist</code></a>,
+which provides a library of AD-compatible distributions for use inside
+likelihood functions.</p>
 </div>
 <div class="section level4">
-<h4 id="common-issues">Common issues<a class="anchor" aria-label="anchor" href="#common-issues"></a>
+<h4 id="operator-overloading">Operator overloading<a class="anchor" aria-label="anchor" href="#operator-overloading"></a>
 </h4>
-<p>There are some problems with <code>RTMB</code> one has to keep in
-mind. I list the main ones I have encountered here but please tell me if
-you encounter more, such that they can be added.</p>
-<ul>
-<li>A typical issue with <code>RTMB</code> is that some operators might
-need to be overloaded to allow for automatic differentiation which
-cannot be done by default. In typical model setups <code>LaMa</code>
-functions do this themselves, but if you go a very individualistic route
-and get an error like</li>
-</ul>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/stop.html" class="external-link">stop</a></span><span class="op">(</span><span class="st">"Invalid argument to 'advector' (lost class attribute?)"</span><span class="op">)</span></span></code></pre></div>
+<p>A typical issue is that some operators may need to be overloaded to
+allow for automatic differentiation. In typical model setups
+<code>LaMa</code> functions handle this automatically, but if you take a
+more individualistic route and encounter an error like</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span>  <span class="kw"><a href="https://rdrr.io/r/base/stop.html" class="external-link">stop</a></span><span class="op">(</span><span class="st">"Invalid argument to 'advector' (lost class attribute?)"</span><span class="op">)</span></span></code></pre></div>
 <p>you might have to overload the operator yourself. To do this put</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="st">"[&lt;-"</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/ADoverload.html" class="external-link">ADoverload</a></span><span class="op">(</span><span class="st">"[&lt;-"</span><span class="op">)</span></span></code></pre></div>
 <p>as the first line of your likelihood function. If the error still
 prevails also add</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="st">"c"</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/ADoverload.html" class="external-link">ADoverload</a></span><span class="op">(</span><span class="st">"c"</span><span class="op">)</span></span>
 <span><span class="st">"diag&lt;-"</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/ADoverload.html" class="external-link">ADoverload</a></span><span class="op">(</span><span class="st">"diag&lt;-"</span><span class="op">)</span></span></code></pre></div>
 <p>which should hopefully fix the error.</p>
-<ul>
-<li>Another common problem occurs when initiating objects with
-<code>NA</code> values and then trying to fill them with
-<code>numeric</code> values. This is because <code>NA</code> is logical
-which screws up the automatic differentiation due to the mismatching
-types. To avoid this, always initiate with <code>numeric</code> or
-<code>NaN</code> values. For example, don’t do</li>
-</ul>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+</div>
+<div class="section level4">
+<h4 id="initialising-with-na">Initialising with <code>NA</code><a class="anchor" aria-label="anchor" href="#initialising-with-na"></a>
+</h4>
+<p>A common problem occurs when initialising objects with
+<code>NA</code> values and then filling them with <code>numeric</code>
+values. <code>NA</code> is logical, which causes type mismatches that
+break automatic differentiation. Always initialise with
+<code>numeric</code> or <code>NaN</code> values instead. For example,
+avoid</p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">X</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span>dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co"># which is the same as</span></span>
 <span><span class="va">X</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="cn">NA</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>but rather</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<p>and use</p>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">X</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="cn">NaN</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co"># or</span></span>
 <span><span class="va">X</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fl">0</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>to avoid the error.</p>
-<ul>
-<li>If you create an array and fill with something parameter-dependent,
-you should also do:</li>
-</ul>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+</div>
+<div class="section level4">
+<h4 id="wrapping-arrays-in-ad">Wrapping arrays in <code>AD()</code><a class="anchor" aria-label="anchor" href="#wrapping-arrays-in-ad"></a>
+</h4>
+<p>If you create an array and fill it with something
+parameter-dependent, wrap it in <code><a href="https://rdrr.io/pkg/RTMB/man/AD.html" class="external-link">AD()</a></code>:</p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/AD.html" class="external-link">AD</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="va">...</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>This makes sure that <code>X</code> is an AD object from the
-beginning and classes are compatible.</p>
-<p>Wrapping things in <code><a href="https://rdrr.io/pkg/RTMB/man/AD.html" class="external-link">AD()</a></code> is generally a good idea to fix
-the above error, as it does not introduce considerable overhead when not
-necessary.</p>
-<ul>
-<li><p>Importantly, you cannot use <code>if</code> statements <strong>on
-the parameter itself</strong> as these are not differentiable. If you do
-so, <code>RTMB</code> will fail and probably does not produce a helpful
-error message. The problem here results from <code>RTMB</code> building
-the <em>tape</em> (computational graph) of the function at the initial
-parameter value. When you have <code>if</code> statements, the resulting
-gradient will be different from the one at a different parameter value.
-If <code>if</code> statements do not involve parameters, they will
-typically be fine because the branch is fixed during the
-optimisation.</p></li>
-<li><p>If you need a non-standard probability distribution, existing
-implementations will probably fail because they are not compatible with
-the way AD is implemented in <code>RTMB</code>. In this case you can
-check whether the distribution you are looking for is available in <a href="https://janolefi.github.io/RTMBdist/" class="external-link"><code>RTMBdist</code></a>,
-which provides a library of <code>AD</code>-compatible distributions
-that can be used inside likelihood functions.</p></li>
-<li><p>There are some unfortunate side effects of <code>R</code>‘s ’byte
-compiler’ (enabled by default in <code>R</code>). So if you encounter an
-error not matching the previous ones, try disabling the byte compiler
-with</p></li>
-</ul>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<p>This ensures <code>X</code> is an AD object from the start and that
+classes are compatible. Wrapping in <code><a href="https://rdrr.io/pkg/RTMB/man/AD.html" class="external-link">AD()</a></code> is generally a
+good idea to resolve the above error, as it introduces no meaningful
+overhead when not needed.</p>
+</div>
+<div class="section level4">
+<h4 id="no-if-statements-on-parameters">No <code>if</code> statements on parameters<a class="anchor" aria-label="anchor" href="#no-if-statements-on-parameters"></a>
+</h4>
+<p>You cannot use <code>if</code> statements <strong>on parameters
+directly</strong>, as these are not differentiable. <code>RTMB</code>
+builds the <em>tape</em> (computational graph) at the initial parameter
+value, so <code>if</code> branches depending on a parameter will produce
+gradients that are wrong elsewhere. <code>RTMB</code> will fail, likely
+without a helpful error message. <code>if</code> statements that do not
+involve parameters are typically fine, since the branch is fixed
+throughout optimisation.</p>
+</div>
+<div class="section level4">
+<h4 id="byte-compiler-side-effects">Byte compiler side effects<a class="anchor" aria-label="anchor" href="#byte-compiler-side-effects"></a>
+</h4>
+<p>Some unfortunate side effects of <code>R</code>’s byte compiler
+(enabled by default) can interfere with <code>RTMB</code>. If you
+encounter an error not covered above, try disabling it with</p>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">compiler</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/compiler/compile.html" class="external-link">enableJIT</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 3</span></span></code></pre></div>
-<p>and see if the error is resolved.</p>
-<ul>
-<li>
-<code>expm::expm()</code> does not work with AD. Use
-<code><a href="https://rdrr.io/pkg/Matrix/man/expm-methods.html" class="external-link">Matrix::expm()</a></code> instead.</li>
-</ul>
-<p>For more information on <code>RTMB</code>, check out its <a href="https://CRAN.R-project.org/package=RTMB" class="external-link">documentation</a> or the
+<!-- #### `expm::expm()` incompatibility -->
+<!-- `expm::expm()` does not work with AD. Use `Matrix::expm()` instead. -->
+</div>
+<div class="section level4">
+<h4 id="further-reading">Further reading<a class="anchor" aria-label="anchor" href="#further-reading"></a>
+</h4>
+<p>For more information on <code>RTMB</code>, see its <a href="https://CRAN.R-project.org/package=RTMB" class="external-link">documentation</a> or the
 <a href="https://groups.google.com/g/tmb-users" class="external-link">TMB users Google
 group</a>.</p>
 <blockquote>

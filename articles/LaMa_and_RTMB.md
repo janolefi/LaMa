@@ -318,38 +318,30 @@ plot(pres_step, hist = TRUE)
 
 ![](LaMa_and_RTMB_files/figure-html/pres-1.png)
 
-### `RTMB` tips and issues
+## Tips and common issues
 
-#### Tips
+There are some commonly occuring issues with `RTMB` to keep in mind. I
+list the main ones I have encountered here – please let me know if you
+encounter more so they can be added.
 
-When using the forward algorithm, it is usually a good idea to run:
+#### Non-standard distributions
 
-``` r
-RTMB::TapeConfig(matmul = "plain")
-```
+If you need a non-standard probability distribution, existing
+implementations will likely fail due to AD incompatibility. Check
+whether the distribution is available in
+[`RTMBdist`](https://janolefi.github.io/RTMBdist/), which provides a
+library of AD-compatible distributions for use inside likelihood
+functions.
 
-This changes how `RTMB` internally represents matrix multiplications and
-can speed up the forward algorithm considerably.
+#### Operator overloading
 
-If you want to use non-standard probability distributions, check-out the
-`R` package [`RTMBdist`](https://janolefi.github.io/RTMBdist/) which
-provides a library of `AD`-compatible distributions that can be used
-inside likelihood functions.
-
-#### Common issues
-
-There are some problems with `RTMB` one has to keep in mind. I list the
-main ones I have encountered here but please tell me if you encounter
-more, such that they can be added.
-
-- A typical issue with `RTMB` is that some operators might need to be
-  overloaded to allow for automatic differentiation which cannot be done
-  by default. In typical model setups `LaMa` functions do this
-  themselves, but if you go a very individualistic route and get an
-  error like
+A typical issue is that some operators may need to be overloaded to
+allow for automatic differentiation. In typical model setups `LaMa`
+functions handle this automatically, but if you take a more
+individualistic route and encounter an error like
 
 ``` r
-stop("Invalid argument to 'advector' (lost class attribute?)")
+  stop("Invalid argument to 'advector' (lost class attribute?)")
 ```
 
 you might have to overload the operator yourself. To do this put
@@ -368,11 +360,12 @@ prevails also add
 
 which should hopefully fix the error.
 
-- Another common problem occurs when initiating objects with `NA` values
-  and then trying to fill them with `numeric` values. This is because
-  `NA` is logical which screws up the automatic differentiation due to
-  the mismatching types. To avoid this, always initiate with `numeric`
-  or `NaN` values. For example, don’t do
+#### Initialising with `NA`
+
+A common problem occurs when initialising objects with `NA` values and
+then filling them with `numeric` values. `NA` is logical, which causes
+type mismatches that break automatic differentiation. Always initialise
+with `numeric` or `NaN` values instead. For example, avoid
 
 ``` r
 X = array(dim = c(1,2,3))
@@ -380,7 +373,7 @@ X = array(dim = c(1,2,3))
 X = array(NA, dim = c(1,2,3))
 ```
 
-but rather
+and use
 
 ``` r
 X = array(NaN, dim = c(1,2,3))
@@ -388,56 +381,44 @@ X = array(NaN, dim = c(1,2,3))
 X = array(0, dim = c(1,2,3))
 ```
 
-to avoid the error.
+#### Wrapping arrays in `AD()`
 
-- If you create an array and fill with something parameter-dependent,
-  you should also do:
+If you create an array and fill it with something parameter-dependent,
+wrap it in [`AD()`](https://rdrr.io/pkg/RTMB/man/AD.html):
 
 ``` r
 X <- AD(array(...))
 ```
 
-This makes sure that `X` is an AD object from the beginning and classes
-are compatible.
+This ensures `X` is an AD object from the start and that classes are
+compatible. Wrapping in [`AD()`](https://rdrr.io/pkg/RTMB/man/AD.html)
+is generally a good idea to resolve the above error, as it introduces no
+meaningful overhead when not needed.
 
-Wrapping things in [`AD()`](https://rdrr.io/pkg/RTMB/man/AD.html) is
-generally a good idea to fix the above error, as it does not introduce
-considerable overhead when not necessary.
+#### No `if` statements on parameters
 
-- Importantly, you cannot use `if` statements **on the parameter
-  itself** as these are not differentiable. If you do so, `RTMB` will
-  fail and probably does not produce a helpful error message. The
-  problem here results from `RTMB` building the *tape* (computational
-  graph) of the function at the initial parameter value. When you have
-  `if` statements, the resulting gradient will be different from the one
-  at a different parameter value. If `if` statements do not involve
-  parameters, they will typically be fine because the branch is fixed
-  during the optimisation.
+You cannot use `if` statements **on parameters directly**, as these are
+not differentiable. `RTMB` builds the *tape* (computational graph) at
+the initial parameter value, so `if` branches depending on a parameter
+will produce gradients that are wrong elsewhere. `RTMB` will fail,
+likely without a helpful error message. `if` statements that do not
+involve parameters are typically fine, since the branch is fixed
+throughout optimisation.
 
-- If you need a non-standard probability distribution, existing
-  implementations will probably fail because they are not compatible
-  with the way AD is implemented in `RTMB`. In this case you can check
-  whether the distribution you are looking for is available in
-  [`RTMBdist`](https://janolefi.github.io/RTMBdist/), which provides a
-  library of `AD`-compatible distributions that can be used inside
-  likelihood functions.
+#### Byte compiler side effects
 
-- There are some unfortunate side effects of `R`‘s ’byte compiler’
-  (enabled by default in `R`). So if you encounter an error not matching
-  the previous ones, try disabling the byte compiler with
+Some unfortunate side effects of `R`’s byte compiler (enabled by
+default) can interfere with `RTMB`. If you encounter an error not
+covered above, try disabling it with
 
 ``` r
 compiler::enableJIT(0)
 #> [1] 3
 ```
 
-and see if the error is resolved.
+#### Further reading
 
-- `expm::expm()` does not work with AD. Use
-  [`Matrix::expm()`](https://rdrr.io/pkg/Matrix/man/expm-methods.html)
-  instead.
-
-For more information on `RTMB`, check out its
+For more information on `RTMB`, see its
 [documentation](https://CRAN.R-project.org/package=RTMB) or the [TMB
 users Google group](https://groups.google.com/g/tmb-users).
 

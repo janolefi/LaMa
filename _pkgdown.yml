@@ -1,5 +1,19 @@
 url: https://janolefi.github.io/LaMa/
+
 template:
   bootstrap: 5
   math-rendering: katex
 
+articles:
+- title: "Articles"
+  contents:
+  - Intro_to_LaMa
+  - LaMa_and_RTMB
+  - Inhomogeneous_HMMs
+  - Periodic_HMMs
+  - Longitudinal_data
+  - Penalised_splines
+  - Continuous_time_HMMs
+  - MMMPPs
+  - State_space_models
+  - HSMMs

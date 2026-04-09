@@ -27,3 +27,6 @@ navbar:
         href: articles/MMMPPs.html
       - text: 9 State space models
         href: articles/State_space_models.html
+      - text: 10 Hidden semi-Markov models
+        href: articles/HSMMs.html
+        

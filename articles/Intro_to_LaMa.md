@@ -1,4 +1,4 @@
-# Introduction to LaMa
+# 1 Introduction to LaMa
 
 The `R` package `LaMa` provides convenient functions for fitting a
 variety of **latent Markov models** ([Mews, Koslik, and Langrock
@@ -205,7 +205,7 @@ system.time(
   mod <- nlm(nll, par, x = x)
 )
 #>    user  system elapsed 
-#>   0.126   0.006   0.132
+#>   0.114   0.019   0.134
 ```
 
 We see that implementation of the forward algorithm in C++ leads to

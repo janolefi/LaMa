@@ -223,7 +223,7 @@ system.time(
   opt <- nlm(nll, par, x = x)
 )
 #>    user  system elapsed 
-#>   0.123   0.007   0.130
+#>   0.125   0.008   0.132
 ```
 
 We see that implementation of the forward algorithm in C++ leads to
@@ -298,7 +298,7 @@ plot(pres, hist = TRUE)
 In this case, our model looks really good – which it should because it
 is correctly specified.
 
-> Continue reading with [**2 Automatic differentiation via
+> Continue reading with [**Automatic differentiation via
 > RTMB**](https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html).
 
 ## References

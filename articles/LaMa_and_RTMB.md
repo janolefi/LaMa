@@ -341,7 +341,7 @@ functions handle this automatically, but if you take a more
 individualistic route and encounter an error like
 
 ``` r
-  stop("Invalid argument to 'advector' (lost class attribute?)")
+stop("Invalid argument to 'advector' (lost class attribute?)")
 ```
 
 you might have to overload the operator yourself. To do this put

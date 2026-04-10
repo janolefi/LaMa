@@ -211,7 +211,7 @@ plot(pres, hist = TRUE)
 
 In this case, our model looks really good -- which it should because it is correctly specified.
 
-> Continue reading with [**2 Automatic differentiation via RTMB**](https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html).
+> Continue reading with [**Automatic differentiation via RTMB**](https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html).
 
 
 ## References

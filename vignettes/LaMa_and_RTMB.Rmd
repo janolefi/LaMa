@@ -485,7 +485,7 @@ If you need a non-standard probability distribution, existing implementations wi
 A typical issue is that some operators may need to be overloaded to allow for automatic differentiation. In typical model setups `LaMa` functions handle this automatically, but if you take a more individualistic route and encounter an error like
 
 ```{r error, eval = FALSE}
-  stop("Invalid argument to 'advector' (lost class attribute?)")
+stop("Invalid argument to 'advector' (lost class attribute?)")
 ```
 you might have to overload the operator yourself. To do this put
 ```{r overloading}

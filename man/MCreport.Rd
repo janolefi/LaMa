@@ -32,7 +32,7 @@ If not provided, computed internally using \code{sdreport}. Only used for models
 A list structured like the original parameter list used in the \link[RTMB]{MakeADFun} call (potentially including additional \code{REPORT}ed quantities). Each entry is a list with \code{nSamples} entries.
 }
 \description{
-Efficient Monte Carlo sampling of parameters (and \code{REPORT}ed quantities) from the approximate posterior of an \code{RTMB} model.
+Efficient Monte Carlo sampling of parameters (and \code{REPORT}ed quantities) from the approximate posterior of an \code{(R)TMB} model.
 See \code{\link[TMB]{sdreport}} for details on posterior variance-covariance in random effects models.
 }
 \details{

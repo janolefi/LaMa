@@ -73,7 +73,7 @@ append_report_suffix <- function(report_names, par_names, suffix = ".report") {
 
 #' Sample parameters from approximate Gaussian posterior distribution
 #' 
-#' Efficient Monte Carlo sampling of parameters (and \code{REPORT}ed quantities) from the approximate posterior of an \code{RTMB} model.
+#' Efficient Monte Carlo sampling of parameters (and \code{REPORT}ed quantities) from the approximate posterior of an \code{(R)TMB} model.
 #' See \code{\link[TMB]{sdreport}} for details on posterior variance-covariance in random effects models.
 #'
 #' @details
@@ -167,12 +167,20 @@ MCreport <- function(obj,
   include_allprobs <- isTRUE(dots$include_allprobs)
   if(include_allprobs) excl <- setdiff(excl, "allprobs")
   
+  isRTMB <- ifelse(obj$env$DLL == "RTMB", TRUE, FALSE)
+  
   if(random) {
     if(is.null(Q)) {
       # model with random effects -> use joint precision approx from TMB
       message("Computing joint precision...")
-      Q <- sdreport(obj, getJointPrecision = TRUE,
-                    skip.delta.method = TRUE, getReportCovariance = FALSE)$jointPrecision
+      if(isRTMB) {
+        Q <- RTMB::sdreport(obj, getJointPrecision = TRUE, skip.delta.method = TRUE,
+                            getReportCovariance = FALSE)$jointPrecision
+      } else {
+        Q <- TMB::sdreport(obj, getJointPrecision = TRUE, skip.delta.method = TRUE,
+                           getReportCovariance = FALSE)$jointPrecision
+      }
+      
     } else {
       # check if Q is sparse matrix
       if(!inherits(Q, "sparseMatrix")) {

@@ -1,7 +1,7 @@
 # Sample parameters from approximate Gaussian posterior distribution
 
 Efficient Monte Carlo sampling of parameters (and `REPORT`ed quantities)
-from the approximate posterior of an `RTMB` model. See
+from the approximate posterior of an `(R)TMB` model. See
 [`sdreport`](https://rdrr.io/pkg/TMB/man/sdreport.html) for details on
 posterior variance-covariance in random effects models.
 

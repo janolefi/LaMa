@@ -87,7 +87,7 @@ tpm <- function(
       tpm_g(Eta = Eta, byrow = byrow, ref = ref, ad = ad, report = report)
     )
   }
-  if(!is.null(Z) && is.matrix(Z)) {
+  if(!is.null(Z) && length(dim(Z)) == 2) {
     if(!is.matrix(beta)) {
       stop("If a design matrix is provided, beta must be a matrix of coefficients.")
     }

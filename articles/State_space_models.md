@@ -106,7 +106,7 @@ system.time(
   mod <- nlm(nll, par, y = y, bm = bm, m = m)
 )
 #>    user  system elapsed 
-#>   1.365   2.511   1.006
+#>   1.316   2.431   0.961
 ```
 
 ### Results

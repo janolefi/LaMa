@@ -82,7 +82,7 @@ tpm <- function(
   }
   
   # potentially escape to tpm_g if matrix of linear predictors or design matrix is provided
-  if(!is.null(Eta) && is.matrix(Eta)) {
+  if(!is.null(Eta) && length(dim(Eta)) == 2) {
     return(
       tpm_g(Eta = Eta, byrow = byrow, ref = ref, ad = ad, report = report)
     )

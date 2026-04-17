@@ -28,8 +28,7 @@ Imports:
     mgcv,
     MASS,
     numDeriv,
-    RTMBdist (>= 1.0.3),
-    TMB
+    RTMBdist (>= 1.0.4)
 LinkingTo: 
     Rcpp, 
     RcppArmadillo

@@ -278,6 +278,7 @@ tpm_g = function(Z, beta,
       Eta <- Z %*% t(beta) # linear predictor matrix
     }
     
+    Eta <- as.matrix(Eta)
     Gamma <- tpm_g3_cpp(Eta, N, ref, byrow) # C++ version
     
   } else if(ad) {

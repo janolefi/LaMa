@@ -257,16 +257,17 @@ tpm_g = function(Z, beta,
 
   # if ad is not explicitly provided, check if delta is an advector
   if(is.null(ad)){
-    if(is.null(Eta)) {
-      # check if delta has any of the allowed classes
-      if(!any(class(beta) %in% c("advector", "numeric", "matrix", "array"))){
-        stop("beta needs to be either a matrix or advector.")
-      }
-    } else{
-      if(!inherits(Eta, c("advector", "numeric", "matrix", "array"))) {
-        stop("Eta needs to be either a matrix or advector.")
-      }
-    }
+    # if(is.null(Eta)) {
+    #   # check if delta has any of the allowed classes
+    #   if(!any(class(beta) %in% c("advector", "numeric", "matrix", "array"))){
+    #     stop("beta needs to be either a matrix or advector.")
+    #   }
+    # } else{
+    #   if(!inherits(Eta, c("advector", "numeric", "matrix", "array"))) {
+    #     stop("Eta needs to be either a matrix or advector.")
+    #   }
+    # }
+    
     # determine whether to use AD
     ad <- ad_context()
   }

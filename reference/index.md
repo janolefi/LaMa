@@ -2,6 +2,9 @@
 
 ## All functions
 
+- [`LaMaColors()`](https://janolefi.github.io/LaMa/reference/LaMaColors.md)
+  : Generate colour palette
+
 - [`MCreport()`](https://janolefi.github.io/LaMa/reference/MCreport.md)
   : Sample parameters from approximate Gaussian posterior distribution
 

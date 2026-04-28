@@ -282,10 +282,10 @@ ad_context <- get("ad_context", envir = asNamespace("RTMB"), inherits = FALSE)
 
 
 
-#' Generate colour palette
+#' Generate a colour-blind-friendly palette
 #'
 #' @param ncolors Number of colours to return; at most 
-#' @returns A colour palette of 7 colors
+#' @returns A colour palette of length \code{ncolors}
 #' @export
 #'
 #' @examples

@@ -2,7 +2,7 @@
 % Please edit documentation in R/helper_functions.R
 \name{LaMaColors}
 \alias{LaMaColors}
-\title{Generate colour palette}
+\title{Generate a colour-blind-friendly palette}
 \usage{
 LaMaColors(ncolors)
 }
@@ -10,10 +10,10 @@ LaMaColors(ncolors)
 \item{ncolors}{Number of colours to return; at most}
 }
 \value{
-A colour palette of 7 colors
+A colour palette of length \code{ncolors}
 }
 \description{
-Generate colour palette
+Generate a colour-blind-friendly palette
 }
 \examples{
 cb <- LaMaColors(3)

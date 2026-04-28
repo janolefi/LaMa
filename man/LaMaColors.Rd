@@ -7,7 +7,7 @@
 LaMaColors(ncolors)
 }
 \arguments{
-\item{ncolors}{Number of colours to return; at most}
+\item{ncolors}{Number of colours to return; at most 10}
 }
 \value{
 A colour palette of length \code{ncolors}

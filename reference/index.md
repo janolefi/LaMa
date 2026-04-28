@@ -3,7 +3,7 @@
 ## All functions
 
 - [`LaMaColors()`](https://janolefi.github.io/LaMa/reference/LaMaColors.md)
-  : Generate colour palette
+  : Generate a colour-blind-friendly palette
 
 - [`MCreport()`](https://janolefi.github.io/LaMa/reference/MCreport.md)
   : Sample parameters from approximate Gaussian posterior distribution

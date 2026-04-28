@@ -1,6 +1,6 @@
-# Generate colour palette
+# Generate a colour-blind-friendly palette
 
-Generate colour palette
+Generate a colour-blind-friendly palette
 
 ## Usage
 
@@ -12,15 +12,14 @@ LaMaColors(ncolors)
 
 - ncolors:
 
-  Number of colours to return; at most
+  Number of colours to return; at most 10
 
 ## Value
 
-A colour palette of 7 colors
+A colour palette of length `ncolors`
 
 ## Examples
 
 ``` r
 cb <- LaMaColors(3)
-#> Error in LaMaColors(3): could not find function "LaMaColors"
 ```

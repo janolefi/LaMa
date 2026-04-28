@@ -279,3 +279,22 @@ safe_chol_inv_sparse <- function(M, silent = 1, max_attempts = 50) {
 
 # getting ad_context from RTMB (not exported)
 ad_context <- get("ad_context", envir = asNamespace("RTMB"), inherits = FALSE)
+
+
+
+#' Generate colour palette
+#'
+#' @param ncolors Number of colours to return; at most 
+#' @returns A colour palette of 7 colors
+#' @export
+#'
+#' @examples
+#' cb <- LaMaColors(3)
+LaMaColors <- function(ncolors) {
+  if(ncolors < 1) stop("ncolors must be at least 1")
+  if(ncolors > 10) stop("At most 10 colors can be provided")
+  c(
+    "#E69F00", "#56B4E9", "#009E73", "#CC79A7", "#F0E442",
+    "#0072B2", "#D55E00", "#6B4A9B", "#E8614A", "#008B99"
+  )[seq_len(ncolors)]
+}

@@ -47,6 +47,6 @@ Koslik, J. O., Feldmann, C. C., Mews, S., Michels, R., & Langrock, R. (2023). In
 
 Other stationary distribution functions: 
 \code{\link{stationary}()},
-\code{\link{stationary_cont}()}
+\code{\link{stationary_ct}()}
 }
 \concept{stationary distribution functions}

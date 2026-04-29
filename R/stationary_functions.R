@@ -184,17 +184,21 @@ stationary_p = function(Gamma, t = NULL, ad = NULL){
 #' @param Q infinitesimal generator matrix of dimension \code{c(N,N)} or array of such matrices of dimension \code{c(N,N,nTracks)} if the stationary distribution should be computed for several matrices at once
 #'
 #' @return either a single stationary distribution of the continuous-time Markov chain (vector of length \code{N}) or a matrix of stationary distributions of dimension \code{c(nTracks,N)} with one stationary distribution in each row
-#' @export
-#' @import RTMB
+#' 
+#' @name stationary_ct
 #'
 #' @examples
 #' # single matrix
 #' Q = generator(c(-2,-2))
-#' Pi = stationary_cont(Q)
+#' Pi = stationary_ct(Q)
 #' # multiple matrices
 #' Q = array(Q, dim = c(2,2,10))
-#' Pi = stationary_cont(Q)
-stationary_cont = function(Q){
+#' Pi = stationary_ct(Q)
+
+#' @rdname stationary_ct
+#' @export
+#' @import RTMB
+stationary_ct = function(Q){
   "[<-" <- ADoverload("[<-") # overloading assignment operators, currently necessary
   "c" <- ADoverload("c")
   "diag<-" <- ADoverload("diag<-")
@@ -218,6 +222,13 @@ stationary_cont = function(Q){
   }
   
   Pi
+}
+
+#' @rdname stationary_ct
+#' @export
+#' @import RTMB
+stationary_cont <- function(Q){
+  stationary_ct(Q)
 }
 
 

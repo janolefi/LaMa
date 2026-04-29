@@ -31,7 +31,7 @@ Delta = stationary(Gamma)
 \code{\link{tpm}} to create a transition probabilty matrix using the multinomial logistic link (softmax)
 
 Other stationary distribution functions: 
-\code{\link{stationary_cont}()},
+\code{\link{stationary_ct}()},
 \code{\link{stationary_p}()}
 }
 \concept{stationary distribution functions}

@@ -149,7 +149,7 @@ system.time(
   mod <- nlm(nll, par, x = x, N = 3, agsizes = agsizes, stepmax = 2)
 )
 #>    user  system elapsed 
-#>   0.830   0.084   0.915
+#>   0.835   0.076   0.910
 ```
 
 Fitting HSMMs is rather slow (even using C++) as we translate the
@@ -245,7 +245,7 @@ system.time(
                     agsizes = agsizes, iterlim = 500)
 )
 #>    user  system elapsed 
-#>   4.074   0.012   4.086
+#>   4.096   0.007   4.104
 ```
 
 ### Results

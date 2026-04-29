@@ -62,7 +62,7 @@ multiple transition matrices based on a cyclic variable or design matrix
 
 Other stationary distribution functions:
 [`stationary()`](https://janolefi.github.io/LaMa/reference/stationary.md),
-[`stationary_cont()`](https://janolefi.github.io/LaMa/reference/stationary_cont.md)
+[`stationary_ct()`](https://janolefi.github.io/LaMa/reference/stationary_ct.md)
 
 ## Examples
 

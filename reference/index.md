@@ -198,7 +198,8 @@
 - [`stationary()`](https://janolefi.github.io/LaMa/reference/stationary.md)
   : Compute the stationary distribution of a homogeneous Markov chain
 
-- [`stationary_cont()`](https://janolefi.github.io/LaMa/reference/stationary_cont.md)
+- [`stationary_ct()`](https://janolefi.github.io/LaMa/reference/stationary_ct.md)
+  [`stationary_cont()`](https://janolefi.github.io/LaMa/reference/stationary_ct.md)
   : Compute the stationary distribution of a continuous-time Markov
   chain
 

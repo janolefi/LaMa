@@ -34,7 +34,7 @@ transition probabilty matrix using the multinomial logistic link
 (softmax)
 
 Other stationary distribution functions:
-[`stationary_cont()`](https://janolefi.github.io/LaMa/reference/stationary_cont.md),
+[`stationary_ct()`](https://janolefi.github.io/LaMa/reference/stationary_ct.md),
 [`stationary_p()`](https://janolefi.github.io/LaMa/reference/stationary_p.md)
 
 ## Examples

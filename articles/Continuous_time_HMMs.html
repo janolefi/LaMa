@@ -205,7 +205,7 @@ exponentials.</p>
 <span>  <span class="va">mu</span> <span class="op">=</span> <span class="va">par</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">]</span></span>
 <span>  <span class="va">sigma</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">par</span><span class="op">[</span><span class="va">N</span><span class="op">+</span><span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">]</span><span class="op">)</span></span>
 <span>  <span class="va">Q</span> <span class="op">=</span> <span class="fu"><a href="../reference/generator.html">generator</a></span><span class="op">(</span><span class="va">par</span><span class="op">[</span><span class="fl">2</span><span class="op">*</span><span class="va">N</span><span class="op">+</span><span class="fl">1</span><span class="op">:</span><span class="op">(</span><span class="va">N</span><span class="op">*</span><span class="op">(</span><span class="va">N</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">]</span><span class="op">)</span> <span class="co"># generator matrix</span></span>
-<span>  <span class="va">Pi</span> <span class="op">=</span> <span class="fu"><a href="../reference/stationary_cont.html">stationary_cont</a></span><span class="op">(</span><span class="va">Q</span><span class="op">)</span> <span class="co"># stationary dist of CT Markov chain</span></span>
+<span>  <span class="va">Pi</span> <span class="op">=</span> <span class="fu"><a href="../reference/stationary_ct.html">stationary_cont</a></span><span class="op">(</span><span class="va">Q</span><span class="op">)</span> <span class="co"># stationary dist of CT Markov chain</span></span>
 <span>  <span class="va">Qube</span> <span class="op">=</span> <span class="fu"><a href="../reference/tpm_ct.html">tpm_cont</a></span><span class="op">(</span><span class="va">Q</span>, <span class="va">timediff</span><span class="op">)</span> <span class="co"># this computes exp(Q*timediff)</span></span>
 <span>  <span class="va">allprobs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, nrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="va">N</span><span class="op">)</span></span>
 <span>  <span class="va">ind</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span></span>
@@ -229,7 +229,7 @@ exponentials.</p>
 <span>  <span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm</a></span><span class="op">(</span><span class="va">nll</span>, <span class="va">par</span>, timediff <span class="op">=</span> <span class="va">timediff</span>, x <span class="op">=</span> <span class="va">x</span>, N <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.300   0.322   0.319</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.314   0.322   0.326</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="results">Results<a class="anchor" aria-label="anchor" href="#results"></a>
@@ -307,7 +307,7 @@ state to transition to, as explained in the beginning.</p>
 <span>  <span class="va">mod2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm</a></span><span class="op">(</span><span class="va">nll</span>, <span class="va">par</span>, timediff <span class="op">=</span> <span class="va">timediff</span>, x <span class="op">=</span> <span class="va">x</span>, N <span class="op">=</span> <span class="fl">3</span>, stepmax <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   2.263   3.229   1.832</span></span>
+<span><span class="co">#&gt;   1.799   2.711   1.507</span></span>
 <span><span class="co"># without restricting stepmax, we run into numerical problems</span></span></code></pre></div>
 </div>
 <div class="section level3">

@@ -13,3 +13,4 @@ src/*.dll
 # Ignore documentation files
 inst/doc
 docs/
+.positai

@@ -86,7 +86,9 @@ A few points should be made here:
 
 - The likelihood is a function of the parameters to be estimated *only* while data and other parameters are not passed as an argument at this stage. This is something to get used to (I know), but just the way `RTMB` works.
 
-- The `getAll()` function is very useful. It unpacks both the `par` and the `dat` list, making all elements available without the `$` operator. At this stage, `nll` just takes the dat object from the global environment.
+- The `getAll()` function is very useful. It unpacks both the `par` and the `dat` list, making all elements available without the `$` operator.
+
+> **Important:** `nll` reads `dat` directly from the global environment at the time `MakeADFun()` is called, which *bakes* a snapshot of `dat` into the compiled objective function. Any changes to `dat` after that point will have **no effect** on the optimisation. Always finalise `dat` before calling `MakeADFun()`.
 
 - Parameter transformations are still necessary: all parameters in `par` should be unconstrained and transformed to their natural scale inside the likelihood.
 
@@ -94,12 +96,7 @@ A few points should be made here:
 
 - For simple parameter transformations, `ADREPORT()` is also great. It calculates standard deviations for `ADREPORT()`ed quantities, based on the delta method. Just note that the delta method is not advisable for complex non-linear and multivariate transformations.
 
-Having defined the negative log-likelihood, we can now create the automatically differentiable objective function. This needs a little explanation: At this point, `RTMB` takes `nll` and generates its own (very fast) version of it, including a gradient. `MakeADFun()` now also grabs whatever is saved as `dat` in the global environment and *bakes* it into the objective function. Therefore, changes to `dat` after this point will have no effect on the optimisation result. We set `silent = TRUE` to suppress printing of the optimisation process.
-
-```{r TapeConfig, include=FALSE}
-old <- RTMB::TapeConfig()
-RTMB::TapeConfig(matmul = "plain") # speeds up forward algorithm
-```
+Having defined the negative log-likelihood, we can now create the automatically differentiable objective function. At this point, `RTMB` takes `nll` and generates its own (very fast) version of it, including a gradient. We set `silent = TRUE` to suppress printing of the optimisation process.
 
 ```{r ADfunction, message = FALSE}
 obj = MakeADFun(nll, par, silent = TRUE) # creating the AD objective function
@@ -304,10 +301,6 @@ plot(pres_step, hist = TRUE)
 <!--          y1 = Delta[,2]+1.96*Deltasd[,2], col = "deepskyblue") -->
 <!-- axis(1, at = seq(0,24,by=4), labels = seq(0,24,by=4)) -->
 <!-- ``` -->
-
-```{r restore_tapeConfig, include = FALSE}
-RTMB::TapeConfig(old) # restoring old config
-```
 
 <!-- ### Penalized splines -->
 

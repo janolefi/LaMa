@@ -132,7 +132,7 @@ We return $-1$ times the log-likelihood such that it can be numerically minimise
 nll = function(par, x){
   # 1) Transition probability matrix
   Gamma = tpm(par[1:2]) # multinomial logistic link (softmax)
-  # 2) Stationaty distribution for this matrix
+  # 2) Stationary distribution for this matrix
   delta = stationary(Gamma) # will be used as initial
   # Parameter transformations for unconstrained optimisation
   mu = par[3:4] # no transformation needed
@@ -146,6 +146,8 @@ nll = function(par, x){
 ```
 
 We can now fit the model to data by defining a vector of initial parameter values on the transformed scale and calling `nlm()` to numerically maximise the likelihood. The initial parameters are not chosen too well here, but the estimation procedure still converges to the correct values. In practice, it is advisable to try several different sets of initial parameters to ensure convergence to the global maximum.
+
+The `tpm()` function uses the multinomial logistic (softmax) link to map unconstrained real-valued parameters to valid transition probabilities. To initialise near a specific off-diagonal probability $p$, we therefore supply $\text{logit}(p) = \log(p / (1-p))$, i.e. `qlogis(p)`, as the starting value. Here we start near 0.05 for both off-diagonal entries — not too far from the truth but intentionally imperfect:
 
 ```{r model, warning=FALSE}
 par = c(logitGamma = qlogis(c(0.05, 0.05)),

@@ -165,7 +165,7 @@ second state.</p>
 <div class="section level3">
 <h3 id="writing-the-negative-log-likelihood-function">Writing the negative log-likelihood function<a class="anchor" aria-label="anchor" href="#writing-the-negative-log-likelihood-function"></a>
 </h3>
-<p>The likelihood of a stationary MMPP for waiting times <span class="math inline">x_1, \dots, x_n</span> is (<span class="citation">Meier-Hellstern (<a href="#ref-meier1987fitting">1987</a>)</span>, <span class="citation">Langrock, Borchers, and Skaug (<a href="#ref-langrock2013markov">2013</a>)</span>) <span class="math display">
+<p>The likelihood of a stationary MMPP for waiting times <span class="math inline">x_1, \dots, x_n</span> is (<span class="citation">Meier-Hellstern (<a href="#ref-meier1987fitting">1987</a>)</span>, <span class="citation">Langrock et al. (<a href="#ref-langrock2013markov">2013</a>)</span>) <span class="math display">
 L(\theta) = \pi \Bigl(\prod_{i=1}^n
 \exp\bigl((Q-\Lambda)x_i\bigr)\Lambda \Bigr)1,
 </span> where <span class="math inline">Q</span> is the generator matrix
@@ -204,7 +204,7 @@ state-dependent density matrices to be <span class="math inline">\Lambda</span>.
 <span>  <span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm</a></span><span class="op">(</span><span class="va">nll</span>, <span class="va">par</span>, timediff <span class="op">=</span> <span class="va">timediff</span>, N <span class="op">=</span> <span class="fl">2</span>, stepmax <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.318   0.301   0.316</span></span>
+<span><span class="co">#&gt;   0.255   0.352   0.311</span></span>
 <span><span class="co"># we often need the stepmax, as the matrix exponential can be numerically unstable</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -343,7 +343,7 @@ one element-wise with the state-dependent rates.</p>
 <span>  <span class="va">mod2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm</a></span><span class="op">(</span><span class="va">nllMark</span>, <span class="va">par</span>, y <span class="op">=</span> <span class="va">marks</span>, timediff <span class="op">=</span> <span class="va">timediff</span>, N <span class="op">=</span> <span class="fl">3</span>, stepmax <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   3.201   4.497   2.579</span></span></code></pre></div>
+<span><span class="co">#&gt;   3.608   6.561   3.400</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="results-1">Results<a class="anchor" aria-label="anchor" href="#results-1"></a>
@@ -369,7 +369,7 @@ one element-wise with the state-dependent rates.</p>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-dobrow2016introduction" class="csl-entry">
 Dobrow, Robert P. 2016. <em>Introduction to Stochastic Processes with
 r</em>. John Wiley &amp; Sons.

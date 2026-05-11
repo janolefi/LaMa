@@ -18,6 +18,7 @@ out how this works! We begin by loading the `LaMa` package, which
 automatically loads `RTMB` as well.
 
 ``` r
+
 library(LaMa)
 #> Loading required package: RTMB
 ```
@@ -28,6 +29,7 @@ Tyrannosaurus rex, living 66 million years ago, and we aim to understand
 its behavioural process using HMMs.
 
 ``` r
+
 head(trex, 5)
 #>   tod      step     angle state
 #> 1   9 0.3252437        NA     1
@@ -56,6 +58,7 @@ strictly necessary but provides a neat way of wrapping everything needed
 for the model fit.
 
 ``` r
+
 par = list(
   log_mu = log(c(0.3, 1)),      # initial means for step length (log-transformed)
   log_sigma = log(c(0.2, 0.7)), # initial sds for step length (log-transformed)
@@ -74,6 +77,7 @@ parameter vectors is gone! We define the negative log-likelihood
 function in a similar fashion to basic numerical ML:
 
 ``` r
+
 nll = function(par) {
   getAll(par, dat) # makes everything contained available without $
   Gamma = tpm(eta) # computes transition probability matrix from unconstrained eta
@@ -103,8 +107,13 @@ A few points should be made here:
 
 - The [`getAll()`](https://rdrr.io/pkg/RTMB/man/TMB-interface.html)
   function is very useful. It unpacks both the `par` and the `dat` list,
-  making all elements available without the `$` operator. At this stage,
-  `nll` just takes the dat object from the global environment.
+  making all elements available without the `$` operator.
+
+> **Important:** `nll` reads `dat` directly from the global environment
+> at the time `MakeADFun()` is called, which *bakes* a snapshot of `dat`
+> into the compiled objective function. Any changes to `dat` after that
+> point will have **no effect** on the optimisation. Always finalise
+> `dat` before calling `MakeADFun()`.
 
 - Parameter transformations are still necessary: all parameters in `par`
   should be unconstrained and transformed to their natural scale inside
@@ -125,21 +134,20 @@ A few points should be made here:
   transformations.
 
 Having defined the negative log-likelihood, we can now create the
-automatically differentiable objective function. This needs a little
-explanation: At this point, `RTMB` takes `nll` and generates its own
-(very fast) version of it, including a gradient. `MakeADFun()` now also
-grabs whatever is saved as `dat` in the global environment and *bakes*
-it into the objective function. Therefore, changes to `dat` after this
-point will have no effect on the optimisation result. We set
-`silent = TRUE` to suppress printing of the optimisation process.
+automatically differentiable objective function. At this point, `RTMB`
+takes `nll` and generates its own (very fast) version of it, including a
+gradient. We set `silent = TRUE` to suppress printing of the
+optimisation process.
 
 ``` r
+
 obj = MakeADFun(nll, par, silent = TRUE) # creating the AD objective function
 ```
 
 Let’s check out `obj`:
 
 ``` r
+
 names(obj)
 #>  [1] "par"          "fn"           "gr"           "he"           "hessian"     
 #>  [6] "method"       "retape"       "env"          "report"       "simulate"    
@@ -153,6 +161,7 @@ functions without any argument, we get the corresponding values at the
 initial parameter vector.
 
 ``` r
+
 obj$par
 #>     log_mu     log_mu  log_sigma  log_sigma        eta        eta 
 #> -1.2039728  0.0000000 -1.6094379 -0.3566749 -2.0000000 -2.0000000
@@ -173,12 +182,14 @@ current Hessian based on previous gradient evaluations, compared to
 using full Newton-Raphson.
 
 ``` r
+
 opt = nlminb(obj$par, obj$fn, obj$gr) # minimisation
 ```
 
 We can check out the estimated parameter and function value by
 
 ``` r
+
 opt$par
 #>     log_mu     log_mu  log_sigma  log_sigma        eta        eta 
 #> -1.1923951  0.9185717 -1.6018327  0.3993241 -1.6519372 -1.5641927
@@ -199,6 +210,7 @@ scale, we don’t have to do the backtransformation manually. We can just
 run the reporting:
 
 ``` r
+
 mod = report(obj) # runs the reporting from the negative log-likelihood once
 (delta = mod$delta) # stationary distribution
 #>        S1        S2 
@@ -227,6 +239,7 @@ reported manually by the user specifying the likelihood. Having all the
 parameters, we can plot the decoded time series
 
 ``` r
+
 # manually
 mod$states = viterbi(mod$delta, mod$Gamma, mod$allprobs)
 
@@ -246,6 +259,7 @@ legend("topright", col = color, lwd = 1, legend = c("state 1", "state 2"), bty =
 or the estimated state-dependent distributions.
 
 ``` r
+
 hist(trex$step, prob = TRUE, breaks = 40, 
      bor = "white", main = "", xlab = "step length")
 for(j in 1:2) curve(delta[j] * dgamma2(x, mu[j], sigma[j]), 
@@ -262,6 +276,7 @@ errors for our unconstrained parameters and everything we
 [`ADREPORT()`](https://rdrr.io/pkg/RTMB/man/TMB-interface.html)ed. 
 
 ``` r
+
 sdr = sdreport(obj)
 ```
 
@@ -270,6 +285,7 @@ We can then get an overview of the estimated parameters and
 quantities as well as their standard errors by
 
 ``` r
+
 summary(sdr) # see ?summary.sdreport for more info
 #>             Estimate  Std. Error
 #> log_mu    -1.1923951 0.011461828
@@ -288,6 +304,7 @@ To get the estimated parameters or their standard errors in list format,
 type
 
 ``` r
+
 # estimated parameter in list format
 as.list(sdr, "Estimate")
 # standard errors in list format
@@ -299,6 +316,7 @@ and to get the estimates and standard errors for
 quantities in list format, type
 
 ``` r
+
 # adreported parameters as list
 as.list(sdr, "Estimate", report = TRUE)
 # their standard errors
@@ -309,6 +327,7 @@ Lastly, the automatic reporting with `LaMa` and `RTMB` together makes
 calculating pseudo-residuals really convenient:
 
 ``` r
+
 pres_step = pseudo_res(obs = trex$step, # observation sequence
                        dist = "gamma2", # which parametric CDF to use
                        par = list(mean = mu, sd = sigma), # estimated pars for that CDF
@@ -341,12 +360,14 @@ functions handle this automatically, but if you take a more
 individualistic route and encounter an error like
 
 ``` r
+
 stop("Invalid argument to 'advector' (lost class attribute?)")
 ```
 
 you might have to overload the operator yourself. To do this put
 
 ``` r
+
 "[<-" <- ADoverload("[<-")
 ```
 
@@ -354,6 +375,7 @@ as the first line of your likelihood function. If the error still
 prevails also add
 
 ``` r
+
 "c" <- ADoverload("c")
 "diag<-" <- ADoverload("diag<-")
 ```
@@ -368,6 +390,7 @@ type mismatches that break automatic differentiation. Always initialise
 with `numeric` or `NaN` values instead. For example, avoid
 
 ``` r
+
 X = array(dim = c(1,2,3))
 # which is the same as
 X = array(NA, dim = c(1,2,3))
@@ -376,6 +399,7 @@ X = array(NA, dim = c(1,2,3))
 and use
 
 ``` r
+
 X = array(NaN, dim = c(1,2,3))
 # or
 X = array(0, dim = c(1,2,3))
@@ -387,6 +411,7 @@ If you create an array and fill it with something parameter-dependent,
 wrap it in [`AD()`](https://rdrr.io/pkg/RTMB/man/AD.html):
 
 ``` r
+
 X <- AD(array(...))
 ```
 
@@ -412,6 +437,7 @@ default) can interfere with `RTMB`. If you encounter an error not
 covered above, try disabling it with
 
 ``` r
+
 compiler::enableJIT(0)
 #> [1] 3
 ```

@@ -31,6 +31,7 @@ processes, see Dobrow ([2016](#ref-dobrow2016introduction)).
 ## Example 1: Markov-modulated Poisson processes
 
 ``` r
+
 # loading the package
 library(LaMa)
 #> Loading required package: RTMB
@@ -42,6 +43,7 @@ We choose to have a considerably higher rate and shorter stays of the
 underlying Markov chain in state 2, i.e. state 2 is **bursty**.
 
 ``` r
+
 # state-dependent rates
 lambda = c(2, 15)
 # generator matrix of the underlying Markov chain
@@ -51,6 +53,7 @@ Q = matrix(c(-0.5,0.5,2,-2), nrow = 2, byrow = TRUE)
 ### Simulating an MMPP
 
 ``` r
+
 set.seed(123)
 
 k = 200 # number of state switches
@@ -78,6 +81,7 @@ arrival_times = sort(arrival_times)
 Let’s visualise the simulated MMPP
 
 ``` r
+
 n = length(arrival_times)
 color = c("orange", "deepskyblue")
 plot(arrival_times[1:100], rep(0.5,100), type = "h", bty = "n", ylim = c(0,1), 
@@ -94,14 +98,14 @@ the Markov chain is in the second state.
 ### Writing the negative log-likelihood function
 
 The likelihood of a stationary MMPP for waiting times x_1, \dots, x_n is
-(Meier-Hellstern ([1987](#ref-meier1987fitting)), Langrock, Borchers,
-and Skaug ([2013](#ref-langrock2013markov))) L(\theta) = \pi
-\Bigl(\prod\_{i=1}^n \exp\bigl((Q-\Lambda)x_i\bigr)\Lambda \Bigr)1,
-where Q is the generator matrix of the continuous-time Markov chain,
-\Lambda is a diagonal matrix of state-dependent Poisson intensities, \pi
-is the stationary distribution of the continuous-time Markov chain, and
-1 is a column vector of ones. For more details on continuous-time Markov
-chains, see the vignette *continuous-time HMMs* or also Dobrow
+(Meier-Hellstern ([1987](#ref-meier1987fitting)), Langrock et al.
+([2013](#ref-langrock2013markov))) L(\theta) = \pi \Bigl(\prod\_{i=1}^n
+\exp\bigl((Q-\Lambda)x_i\bigr)\Lambda \Bigr)1, where Q is the generator
+matrix of the continuous-time Markov chain, \Lambda is a diagonal matrix
+of state-dependent Poisson intensities, \pi is the stationary
+distribution of the continuous-time Markov chain, and 1 is a column
+vector of ones. For more details on continuous-time Markov chains, see
+the vignette *continuous-time HMMs* or also Dobrow
 ([2016](#ref-dobrow2016introduction)).
 
 We can easily calculate the log of the above expression using the
@@ -112,6 +116,7 @@ identity (i.e.) the first row of the `allprobs` matrix to be one and all
 other matrices of state-dependent density matrices to be \Lambda.
 
 ``` r
+
 nll = function(par, timediff, N){
   lambda = exp(par[1:N]) # state specific rates
   Q = generator(par[N+1:(N*(N-1))])
@@ -126,6 +131,7 @@ nll = function(par, timediff, N){
 ### Fitting an MMPP to the data
 
 ``` r
+
 par = log(c(2, 15, # lambda
             2, 0.5)) # off-diagonals of Q
 
@@ -135,13 +141,14 @@ system.time(
   mod <- nlm(nll, par, timediff = timediff, N = 2, stepmax = 10)
 )
 #>    user  system elapsed 
-#>   0.318   0.301   0.316
+#>   0.255   0.352   0.311
 # we often need the stepmax, as the matrix exponential can be numerically unstable
 ```
 
 ### Results
 
 ``` r
+
 (lambda = exp(mod$estimate[1:2]))
 #> [1]  1.949689 15.083121
 (Q = generator(mod$estimate[3:4]))
@@ -165,6 +172,7 @@ both the **arrival times** (because sick patients visit more often) and
 the **biomarkers**.
 
 ``` r
+
 # state-dependent rates
 lambda = c(1, 5, 20)
 # generator matrix of the underlying Markov chain
@@ -191,6 +199,7 @@ We now show how to simulate an MMMPP and additionally how to generalise
 to more than two hidden states.
 
 ``` r
+
 set.seed(123)
 k = 200 # number of state switches
 trans_times = s = rep(NA, k) # time points where the chain transitions
@@ -224,6 +233,7 @@ arrival_times = sort(arrival_times)
 Let’s visualise the simulated MM**M**PP
 
 ``` r
+
 n = length(arrival_times)
 plot(arrival_times[1:100], marks[1:100], pch = 16, bty = "n", 
      ylim = c(-9,9), xlab = "arrival times", ylab = "marks")
@@ -253,6 +263,7 @@ densities for the marks (as usual for HMMs) and then multiplying each
 row except the first one element-wise with the state-dependent rates.
 
 ``` r
+
 nllMark = function(par, y, timediff, N){
   lambda = exp(par[1:N]) # state specific rates
   mu = par[N+1:N]
@@ -270,6 +281,7 @@ nllMark = function(par, y, timediff, N){
 ### Fitting an MM**M**PP to the data
 
 ``` r
+
 par = c(loglambda = log(c(1, 5, 20)), # lambda
         mu = c(-5, 0, 5), # mu
         logsigma = log(c(2, 1, 2)), # sigma
@@ -280,12 +292,13 @@ system.time(
   mod2 <- nlm(nllMark, par, y = marks, timediff = timediff, N = 3, stepmax = 5)
 )
 #>    user  system elapsed 
-#>   3.201   4.497   2.579
+#>   3.608   6.561   3.400
 ```
 
 ### Results
 
 ``` r
+
 N = 3
 (lambda = exp(mod2$estimate[1:N]))
 #> [1]  0.9646715  4.8640550 19.5008965

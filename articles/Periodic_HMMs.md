@@ -19,6 +19,7 @@ often more interpretable and very important in statistical ecology,
 hence we discuss it separately.
 
 ``` r
+
 # loading the package
 library(LaMa)
 #> Loading required package: RTMB
@@ -44,6 +45,7 @@ using
 [`stationary_p()`](https://janolefi.github.io/LaMa/reference/stationary_p.md).
 
 ``` r
+
 # parameters
 mu = c(4, 14)   # state-dependent means
 sigma = c(3, 5) # state-dependent standard deviations
@@ -63,12 +65,14 @@ plot(Delta[,1], type = "b", lwd = 2, pch = 16, col = color[1], bty = "n",
 ![](Periodic_HMMs_files/figure-html/parameters-1.png)
 
 ``` r
+
 # only plotting one state, as the other probability is just 1-delta
 ```
 
 ### Simulating data
 
 ``` r
+
 # simulation
 tod = rep(1:48, 50) # time of day variable, 50 days
 n = length(tod)
@@ -91,6 +95,7 @@ boxplot(x ~ tod, xlab = "time of day")
 ![](Periodic_HMMs_files/figure-html/data-1.png)
 
 ``` r
+
 # we see a periodic pattern in the data
 par(oldpar)
 ```
@@ -107,6 +112,7 @@ compute the periodically stationary start by using
 with the additional argument that specifies which time point to compute.
 
 ``` r
+
 nll = function(par, x, tod){
   beta = matrix(par[1:10], nrow = 2) # matrix of coefficients
   Gamma = tpm_p(tod = 1:48, L = 48, beta = beta, degree = 2) # calculating all L tpms
@@ -124,6 +130,7 @@ nll = function(par, x, tod){
 ### Fitting an HMM to the data
 
 ``` r
+
 par = c(beta = c(-1,-2, rep(0, 8)), # starting values state process
         mu = c(4, 14), # initial state-dependent means
         logsigma = c(log(3),log(5))) # initial state-dependent sds
@@ -131,7 +138,7 @@ system.time(
   mod <- nlm(nll, par, x = x, tod = tod)
 )
 #>    user  system elapsed 
-#>   0.877   0.016   0.893
+#>   0.948   0.018   0.966
 ```
 
 ### Visualising results
@@ -142,6 +149,7 @@ Again, we use
 to transform the parameters.
 
 ``` r
+
 # transform parameters to working
 beta_hat = matrix(mod$estimate[1:10], nrow = 2)
 Gamma_hat = tpm_p(tod = 1:48, L = 48, beta = beta_hat, degree = 2)
@@ -170,6 +178,7 @@ plot(Delta_hat[,1], type = "b", lwd = 2, pch = 16, col = color[1], bty = "n",
 ![](Periodic_HMMs_files/figure-html/visualization-1.png)
 
 ``` r
+
 par(oldpar)
 ```
 
@@ -189,6 +198,7 @@ First let’s call
 itself:
 
 ``` r
+
 tod = 1:24 # cyclic time of day variable
 Z = cosinor(tod, period = c(24, 12)) # design matrix
 Z = cbind(intercept = 1, Z)
@@ -210,6 +220,7 @@ your model involves other covariates than time of day, say temperature
 with a formula:
 
 ``` r
+
 data = data.frame(tod = rep(1:24, 2), 
                   temp = rnorm(48, 20, 5))
 modmat = make_matrices(~ temp * cosinor(tod, 24), data)
@@ -228,6 +239,7 @@ using [`tpm_g()`](https://janolefi.github.io/LaMa/reference/tpm_g.md) or
 [`tpm_p()`](https://janolefi.github.io/LaMa/reference/tpm_p.md):
 
 ``` r
+
 # coefficient matrix
 (beta = matrix(c(-2,-2, runif(2*(ncol(Z)-1))), nrow = 2))
 #>      [,1]      [,2]      [,3]       [,4]      [,5]      [,6]

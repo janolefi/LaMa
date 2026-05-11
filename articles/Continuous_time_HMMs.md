@@ -42,6 +42,7 @@ equations**, but for more details see Dobrow
 ### Setting parameters for simulation
 
 ``` r
+
 # loading the package
 library(LaMa)
 #> Loading required package: RTMB
@@ -53,6 +54,7 @@ Exp(0.5) distribution, i.e. it exhibits longer dwell times than state 2
 with rate 1.
 
 ``` r
+
 # generator matrix Q:
 Q = matrix(c(-0.5, 0.5, 1, -1), 
            nrow = 2, byrow = TRUE)
@@ -72,6 +74,7 @@ process with rate \lambda=1, but this choice is arbitrary. For more
 details on Poisson point processes, see the MM(M)PP vignette.
 
 ``` r
+
 set.seed(123)
 
 k = 200 # number of state switches
@@ -96,6 +99,7 @@ for(t in 2:k){
 Let’s visualise the simulated continuous-time HMM:
 
 ``` r
+
 color = c("orange", "deepskyblue")
 
 n = length(obs_times)
@@ -128,6 +132,7 @@ unconstrained parameter vector and
 compute all matrix exponentials.
 
 ``` r
+
 nll = function(par, timediff, x, N){
   mu = par[1:N]
   sigma = exp(par[N+1:N])
@@ -146,6 +151,7 @@ nll = function(par, timediff, x, N){
 ### Fitting a continuous-time HMM to the data
 
 ``` r
+
 par = c(mu = c(5, 15), # state-dependent means
         logsigma = c(log(3), log(5)), # state-dependent sds
         qs = c(log(1), log(0.5))) # off-diagonals of Q
@@ -156,12 +162,13 @@ system.time(
   mod <- nlm(nll, par, timediff = timediff, x = x, N = 2)
 )
 #>    user  system elapsed 
-#>   0.314   0.322   0.326
+#>   0.247   0.410   0.337
 ```
 
 ### Results
 
 ``` r
+
 N = 2
 # mu
 round(mod$estimate[1:N],2)
@@ -181,6 +188,7 @@ round(Q,3)
 ### Setting parameters for simulation
 
 ``` r
+
 # generator matrix Q:
 Q = matrix(c(-0.5,0.2,0.3,
              1,-2, 1,
@@ -197,6 +205,7 @@ The simulation is very similar but we now also have to draw which state
 to transition to, as explained in the beginning.
 
 ``` r
+
 set.seed(123)
 
 k = 200 # number of state switches
@@ -223,6 +232,7 @@ for(t in 2:k){
 ### Fitting a 3-state continuous-time HMM to the data
 
 ``` r
+
 par = c(mu = c(5, 10, 25), # state-dependent means
         logsigma = c(log(2), log(2), log(6)), # state-dependent sds
         qs = rep(0, 6)) # off-diagonals of Q
@@ -233,13 +243,14 @@ system.time(
   mod2 <- nlm(nll, par, timediff = timediff, x = x, N = 3, stepmax = 10)
 )
 #>    user  system elapsed 
-#>   1.799   2.711   1.507
+#>   1.365   2.847   1.404
 # without restricting stepmax, we run into numerical problems
 ```
 
 ### Results
 
 ``` r
+
 N = 3
 # mu
 round(mod2$estimate[1:N],2)

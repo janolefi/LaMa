@@ -22,12 +22,14 @@ You can install the released package version from
 [CRAN](https://CRAN.R-project.org) with:
 
 ``` r
+
 install.packages("LaMa")
 ```
 
 or the development version from Github:
 
 ``` r
+
 remotes::install_github("janolefi/LaMa")
 ```
 
@@ -72,6 +74,7 @@ To these data, we fit a simple 2-state HMM with state-dependent gamma
 distributions for the step lengths.
 
 ``` r
+
 library(LaMa)
 #> Loading required package: RTMB
 
@@ -93,6 +96,7 @@ which computes the stationary distribution of the Markov chain and
 which calculates the log-likelihood via the forward algorithm.
 
 ``` r
+
 nll = function(par, step){
   # parameter transformations for unconstrained optimisation
   Gamma = tpm(par[1:2]) # rowwise softmax
@@ -113,6 +117,7 @@ optimise the above function using
 [`nlm()`](https://rdrr.io/r/stats/nlm.html):
 
 ``` r
+
 par = c(-2,-2,             # initial tpm params (logit-scale)
         log(c(0.3, 2.5)),  # initial means for step length (log-transformed)
         log(c(0.2, 1.5)))  # initial sds for step length (log-transformed)
@@ -133,6 +138,7 @@ parameters using
 we can visualise the results:
 
 ``` r
+
 # transform parameters to working
 (Gamma = tpm(mod$estimate[1:2]))
 #>           S1        S2

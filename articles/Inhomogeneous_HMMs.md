@@ -64,12 +64,14 @@ popular HMM packages like `moveHMM` or `momentuHMM` return the parameter
 matrix such that the t.p.m. needs to be filled by row.
 
 ``` r
+
 # loading the package
 library(LaMa)
 #> Loading required package: RTMB
 ```
 
 ``` r
+
 # parameters
 mu = c(5, 20)   # state-dependent means
 sigma = c(4, 5) # state-dependent standard deviations
@@ -102,12 +104,14 @@ plot(zseq, Gamma_seq[2,1,], type = "l", lwd = 3, bty = "n", ylim = c(0,1),
 ![](Inhomogeneous_HMMs_files/figure-html/parameters-1.png)
 
 ``` r
+
 par(oldpar)
 ```
 
 Let’s now simulate synthetic data from the above specified model.
 
 ``` r
+
 s = rep(NA, n)
 s[1] = sample(1:2, 1, prob = delta) # sampling first state from initial distr.
 for(t in 2:n){
@@ -133,6 +137,7 @@ Here we specify the likelihood function and pretend we know the
 polynomial degree of the effect of z on the transition probabilities.
 
 ``` r
+
 nll = function(par, x, Z){
   beta = matrix(par[1:6], nrow = 2) # matrix of coefficients
   Gamma = tpm_g(Z[-1,], beta) # excluding the first covariate value -> n-1 tpms
@@ -151,6 +156,7 @@ nll = function(par, x, Z){
 ### Fitting an HMM to the data
 
 ``` r
+
 par = c(beta = c(-2, -2, rep(0,4)), # initialising with homogeneous tpm
         logitdelta = 0, # starting value for initial distribution
         mu = c(4, 14), # initial state-dependent means
@@ -160,7 +166,7 @@ system.time(
 
 )
 #>    user  system elapsed 
-#>   0.723   0.016   0.740
+#>   0.792   0.012   0.804
 ```
 
 Really fast!
@@ -173,6 +179,7 @@ Again, we use
 to transform the parameters.
 
 ``` r
+
 # transform parameters to working
 beta_hat = matrix(mod$estimate[1:6], nrow = 2)
 Gamma_hat = tpm_g(Z = Z[-1,], beta_hat)
@@ -204,6 +211,7 @@ legend("topright", col = c(color[1], color[2], "black"), lwd = 3, bty = "n",
 
 ``` r
 
+
 oldpar = par(mfrow = c(1,2))
 plot(zseq, Gamma_seq[1,2,], type = "l", lwd = 3, bty = "n", ylim = c(0,1), 
      xlab = "z", ylab = "gamma_12_hat", col = color[1])
@@ -214,6 +222,7 @@ plot(zseq, Gamma_seq[2,1,], type = "l", lwd = 3, bty = "n", ylim = c(0,1),
 ![](Inhomogeneous_HMMs_files/figure-html/visualization-2.png)
 
 ``` r
+
 par(mfrow = c(1,1))
 plot(zseq, Prob[,1], type = "l", lwd = 3, bty = "n", ylim = c(0,1), xlab = "z", 
      ylab = "Pr(state 1)", col = color[1])
@@ -222,6 +231,7 @@ plot(zseq, Prob[,1], type = "l", lwd = 3, bty = "n", ylim = c(0,1), xlab = "z",
 ![](Inhomogeneous_HMMs_files/figure-html/visualization-3.png)
 
 ``` r
+
 par(oldpar)
 ```
 
@@ -243,6 +253,7 @@ here is that `beta` now contains the regression coefficients for the
 state-dependent regressions.
 
 ``` r
+
 sigma = c(1, 1) # state-dependent standard deviations (homoscedasticity)
 
 # parameter matrix
@@ -266,6 +277,7 @@ In the simulation code, the state-dependent mean now is not fixed
 anymore, but changes according to the covariate values in `Z`.
 
 ``` r
+
 s = x = rep(NA, n)
 s[1] = sample(1:2, 1, prob = delta)
 x[1] = rnorm(1, beta[s[1],]%*%c(1, Z[1,]), # state-dependent regression
@@ -288,6 +300,7 @@ points(z[which(s==2)], x[which(s==2)], pch = 16, col = color[2])
 ![](Inhomogeneous_HMMs_files/figure-html/data2-1.png)
 
 ``` r
+
 par(oldpar)
 ```
 
@@ -299,6 +312,7 @@ in the loop calculating the state-dependent probabilities. The code
 state.
 
 ``` r
+
 nllMSR = function(par, x, Z){
   Gamma = tpm(par[1:2]) # homogeneous tpm
   delta = stationary(Gamma) # stationary Markov chain
@@ -316,6 +330,7 @@ nllMSR = function(par, x, Z){
 ### Fitting a Markov-switching regression model
 
 ``` r
+
 par = c(logitgamma = c(-2, -3),      # starting values state process
         beta = c(8, 10, rep(0,4)),   # starting values for regression
         logsigma = c(log(1),log(1))) # starting values for sigma
@@ -323,7 +338,7 @@ system.time(
   mod_reg <- nlm(nllMSR, par, x = x, Z = Z)
 )
 #>    user  system elapsed 
-#>   0.267   0.037   0.304
+#>   0.318   0.028   0.346
 ```
 
 ### Visualising results
@@ -333,6 +348,7 @@ parameters and add the two estimated state-specific regressions to the
 scatter plot.
 
 ``` r
+
 Gamma_hat_reg = tpm(mod_reg$estimate[1:2]) # calculating all tpms
 delta_hat_reg = stationary(Gamma_hat_reg)
 beta_hat_reg = matrix(mod_reg$estimate[2+1:(2*2+2)], nrow = 2)

@@ -54,6 +54,7 @@ boundary of the support (0 and 24). We then append both resulting
 matrices to the `dat` list.
 
 ``` r
+
 library(LaMa)
 #> Loading required package: RTMB
 
@@ -68,6 +69,7 @@ head(trex)
 ```
 
 ``` r
+
 modmat = make_matrices(~ s(tod, bs = "cp"), # formula
                        data = data.frame(tod = 1:24), # data
                        knots = list(tod = c(0, 24))) # where to wrap the cyclic basis
@@ -83,6 +85,7 @@ can conveniently do using
 [`penalty()`](https://janolefi.github.io/LaMa/reference/penalty.md).
 
 ``` r
+
 pnll = function(par) {
   getAll(par, dat)
   # cbinding intercept and spline coefs, because intercept is not penalised
@@ -116,6 +119,7 @@ penalised likelihood function to do penalised ML for a **fixed** penalty
 strength `lambda`.
 
 ``` r
+
 par = list(logmu = log(c(0.3, 2.5)), # state-dependent mean step
            logsigma = log(c(0.3, 2)), # state-dependent sd step
            logkappa = log(c(0.1, 2)), # state-dependent concentration angle
@@ -182,6 +186,7 @@ There are some rules to follow when using
     using the `psname` argument.
 
 ``` r
+
 system.time(
   mod1 <- qreml(pnll, par, dat, random = "betaSpline")
 )
@@ -198,7 +203,7 @@ system.time(
 #> outer 11 - lambda: 0.309 0.116 
 #> outer 12 - lambda: 0.309 0.114
 #>    user  system elapsed 
-#>   8.343   3.389   8.036
+#>   8.173   3.527   7.756
 ```
 
 The `mod` object is now a list that contains everything that is reported
@@ -211,6 +216,7 @@ plot the estimated transition probabilities as a smooth function of time
 of day.
 
 ``` r
+
 Delta = mod1$Delta
 
 tod_seq = seq(0, 24, length = 100)
@@ -228,6 +234,7 @@ legend("topleft", lwd = 2, lty = c(1,3), bty = "n",
 ![](Penalised_splines_files/figure-html/results%20qreml-1.png)
 
 ``` r
+
 plot(Delta[,2], type = "b", lwd = 2, pch = 16, xlab = "time of day", ylab = "Pr(active)", 
      col = "deepskyblue", bty = "n", xaxt = "n")
 axis(1, at = seq(0,24,by=4), labels = seq(0,24,by=4))
@@ -245,6 +252,7 @@ very extreme values, making direct analysis difficult. Hence, for our
 analysis we consider the logarithm of ODBA as our observed process.
 
 ``` r
+
 head(nessi)
 #>         ODBA   logODBA state
 #> 1 0.03775025 -3.276763     2
@@ -263,6 +271,7 @@ Clearly, there are at least three behavioural states in the data, and we
 start by fitting a simple 3-state Gaussian HMM with likelihood function:
 
 ``` r
+
 nll = function(par){
     getAll(par, dat)
     sigma = exp(logsigma) # exp because strictly positive
@@ -279,6 +288,7 @@ nll = function(par){
 We then fit the model as explained in the vignette *LaMa and RTMB*.
 
 ``` r
+
 # initial parameter list
 par = list(mu = c(-4.5, -3.5, -2.5),
            logsigma = log(rep(0.5, 3)),
@@ -322,6 +332,7 @@ standardised such that they integrate to one, which is needed for
 density estimation.
 
 ``` r
+
 # providing initial means and sds to initialise spline coefficients
 par0 = list(logODBA = list(mean = c(-4, -3.3, -2.8), sd = c(0.3, 0.2, 0.5)))
 
@@ -362,6 +373,7 @@ the [`penalty()`](https://janolefi.github.io/LaMa/reference/penalty.md)
 function.
 
 ``` r
+
 pnll = function(par){
   getAll(par, dat)
   # regular stationary HMM stuff
@@ -386,6 +398,7 @@ list anymore, as all the information is contained in the design matrix
 `Z`.
 
 ``` r
+
 par = list(beta = beta, # spline coefficients prepared by smooth_dens_construct()
            eta = rep(-2, 6)) # initial transition matrix on logit scale
 
@@ -416,7 +429,7 @@ system.time(
 #> Converged
 #> Final model fit with lambda: 1.033 1.01 1.744
 #>    user  system elapsed 
-#>  17.901   4.301  17.347
+#>  17.004   4.442  16.296
 ```
 
 After fitting the model, we can easily visualise the smooth densities
@@ -426,6 +439,7 @@ reported quantities because
 automatically runs the reporting after model fitting.
 
 ``` r
+
 sDens = Z_p %*% t(mod2$alpha) # all three state-dependent densities on a grid
 
 hist(nessi$logODBA, prob = TRUE, breaks = 50, bor = "white", main = "", xlab = "log(ODBA)")
@@ -458,6 +472,7 @@ s\_{\sigma}^{(i)}(\text{oil}\_t), \quad i = 1,2, not covering other
 potential explanatory covariates for the sake of simplicity.
 
 ``` r
+
 data(energy, package = "MSwM")
 head(energy)
 #>      Price      Oil      Gas     Coal   EurDol Ibex35   Demand
@@ -473,6 +488,7 @@ Similar to the first example, we can prepare the model matrices using
 [`make_matrices()`](https://janolefi.github.io/LaMa/reference/make_matrices.md):
 
 ``` r
+
 modmat = make_matrices(~ s(Oil, k = 12, bs = "ps"), energy)
 Z = modmat$Z # design matrix
 S = modmat$S # penalty matrix (list)
@@ -498,6 +514,7 @@ only pass the list of length one. It does not matter to
 we pass a list of length one or just one matrix.
 
 ``` r
+
 pnll = function(par) {
   getAll(par, dat)
   Gamma = tpm(eta) # computing the tpm
@@ -524,6 +541,7 @@ previous two examples. We specify initial parameters and include an
 intial penalty strength parameter in the `dat` list.
 
 ``` r
+
 # initial parameter list
 par = list(eta = rep(-4, 2), # state process intercepts
            beta0 = c(2, 5), # state-dependent mean intercepts
@@ -565,7 +583,7 @@ system.time(
 #> Converged
 #> Final model fit with lambda: 22.588 7.212 8.278 4.169
 #>    user  system elapsed 
-#>  16.065   5.447  15.335
+#>  15.544   5.684  14.659
 ```
 
 Having fitted the model, we can visualise the results. We first decode
@@ -576,6 +594,7 @@ price values and use [`predict()`](https://rdrr.io/r/stats/predict.html)
 to build the associated interpolating design matrix.
 
 ``` r
+
 xseq = seq(min(energy$Oil), max(energy$Oil), length = 200) # sequence for prediction
 Z_p = predict(modmat, newdata = data.frame(Oil = xseq)) # prediction design matrix
 
@@ -611,9 +630,9 @@ segments(x0 = 1:(nrow(energy)-1), x1 = 2:nrow(energy),
 
 ## References
 
-Koslik, Jan-Ole. 2024. “Efficient Smoothness Selection for Nonparametric
-Markov-Switching Models via Quasi Restricted Maximum Likelihood.”
+Koslik, Jan-Ole. 2024. *Efficient Smoothness Selection for Nonparametric
+Markov-Switching Models via Quasi Restricted Maximum Likelihood*.
 <https://arxiv.org/abs/2411.11498>.
 
 Wood, Simon. 2017. *Generalized Additive Models: An Introduction with
-r*. chapman; hall/CRC.
+r*. Chapman; hall/CRC.

@@ -94,7 +94,7 @@ HSMMs can be estimated conveniently via approximating them by HMMs with
 an extended state space. Each state of the HSMMs is represented by a
 state aggregate of several states and the transition probabilities
 within each aggregate are designed carefully to represent the chosen
-dwell-time distribution. For more details see <span class="citation">Langrock and Zucchini (<a href="#ref-langrock2011hidden">2011</a>)</span> or <span class="citation">Zucchini, MacDonald, and Langrock (<a href="#ref-zucchini">2016</a>)</span>. Due to this approximate inference
+dwell-time distribution. For more details see <span class="citation">Langrock and Zucchini (<a href="#ref-langrock2011hidden">2011</a>)</span> or <span class="citation">Zucchini et al. (<a href="#ref-zucchini">2016</a>)</span>. Due to this approximate inference
 procedure, such models can again be fitted by numerically maximising the
 (approximate) likelihood which can be evaluated using the forward
 algorithm.</p>
@@ -216,7 +216,7 @@ distributions is covered.</p>
 <span>  <span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm</a></span><span class="op">(</span><span class="va">nll</span>, <span class="va">par</span>, x <span class="op">=</span> <span class="va">x</span>, N <span class="op">=</span> <span class="fl">3</span>, agsizes <span class="op">=</span> <span class="va">agsizes</span>, stepmax <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.835   0.076   0.910</span></span></code></pre></div>
+<span><span class="co">#&gt;   1.008   0.061   1.067</span></span></code></pre></div>
 <p>Fitting HSMMs is rather slow (even using C++) as we translate the
 additional model complexity into a higher computational overhead (31
 states here).</p>
@@ -246,7 +246,7 @@ states here).</p>
 hidden semi-Markov models. For this purpose we use the movement track of
 an Arctic muskox contained in the <code>R</code> package
 <code>PHSMM</code>. Originally these data were collected by <span class="citation">Beumer et al. (<a href="#ref-beumer2020application">2020</a>)</span> and have already been
-analysed by <span class="citation">Pohle, Adam, and Beumer (<a href="#ref-pohle2022flexible">2022</a>)</span>.</p>
+analysed by <span class="citation">Pohle et al. (<a href="#ref-pohle2022flexible">2022</a>)</span>.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">PHSMM</span><span class="op">)</span></span>
 <span><span class="va">data</span> <span class="op">=</span> <span class="va">muskox</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">1000</span>, <span class="op">]</span> <span class="co"># only using first 1000 observations for speed</span></span>
@@ -305,7 +305,7 @@ interpretability using <code><a href="../reference/gamma2.html">dgamma2()</a></c
 <span>                    agsizes <span class="op">=</span> <span class="va">agsizes</span>, iterlim <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   4.096   0.007   4.104</span></span></code></pre></div>
+<span><span class="co">#&gt;   4.433   0.010   4.445</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="results-1">Results<a class="anchor" aria-label="anchor" href="#results-1"></a>
@@ -345,13 +345,11 @@ distributions:</p>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="refs" class="references csl-bib-body hanging-indent">
 <div id="ref-beumer2020application" class="csl-entry">
-Beumer, Larissa T, Jennifer Pohle, Niels M Schmidt, Marianna Chimienti,
-Jean-Pierre Desforges, Lars H Hansen, Roland Langrock, Stine Højlund
-Pedersen, Mikkel Stelvig, and Floris M van Beest. 2020. <span>“An
-Application of Upscaled Optimal Foraging Theory Using Hidden Markov
-Modelling: Year-Round Behavioural Variation in a Large Arctic
+Beumer, Larissa T, Jennifer Pohle, Niels M Schmidt, et al. 2020.
+<span>“An Application of Upscaled Optimal Foraging Theory Using Hidden
+Markov Modelling: Year-Round Behavioural Variation in a Large Arctic
 Herbivore.”</span> <em>Movement Ecology</em> 8: 1–16.
 </div>
 <div id="ref-langrock2011hidden" class="csl-entry">

@@ -167,9 +167,18 @@ argument at this stage. This is something to get used to (I know), but
 just the way <code>RTMB</code> works.</p></li>
 <li><p>The <code><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">getAll()</a></code> function is very useful. It unpacks
 both the <code>par</code> and the <code>dat</code> list, making all
-elements available without the <code>$</code> operator. At this stage,
-<code>nll</code> just takes the dat object from the global
-environment.</p></li>
+elements available without the <code>$</code> operator.</p></li>
+</ul>
+<blockquote>
+<p><strong>Important:</strong> <code>nll</code> reads <code>dat</code>
+directly from the global environment at the time
+<code>MakeADFun()</code> is called, which <em>bakes</em> a snapshot of
+<code>dat</code> into the compiled objective function. Any changes to
+<code>dat</code> after that point will have <strong>no effect</strong>
+on the optimisation. Always finalise <code>dat</code> before calling
+<code>MakeADFun()</code>.</p>
+</blockquote>
+<ul>
 <li><p>Parameter transformations are still necessary: all parameters in
 <code>par</code> should be unconstrained and transformed to their
 natural scale inside the likelihood.</p></li>
@@ -185,13 +194,9 @@ note that the delta method is not advisable for complex non-linear and
 multivariate transformations.</p></li>
 </ul>
 <p>Having defined the negative log-likelihood, we can now create the
-automatically differentiable objective function. This needs a little
-explanation: At this point, <code>RTMB</code> takes <code>nll</code> and
-generates its own (very fast) version of it, including a gradient.
-<code>MakeADFun()</code> now also grabs whatever is saved as
-<code>dat</code> in the global environment and <em>bakes</em> it into
-the objective function. Therefore, changes to <code>dat</code> after
-this point will have no effect on the optimisation result. We set
+automatically differentiable objective function. At this point,
+<code>RTMB</code> takes <code>nll</code> and generates its own (very
+fast) version of it, including a gradient. We set
 <code>silent = TRUE</code> to suppress printing of the optimisation
 process.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">

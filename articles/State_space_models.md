@@ -30,12 +30,14 @@ which implies y_t \mid g_t \sim N(0, (\beta e^{g_t / 2})^2).
 We start by simulating data from the above specified model:
 
 ``` r
+
 # loading the package
 library(LaMa)
 #> Loading required package: RTMB
 ```
 
 ``` r
+
 beta = 2 # baseline standard deviation
 phi = 0.95 # AR parameter of the log-volatility process
 sigma = 0.5 # variability of the log-volatility process
@@ -64,6 +66,7 @@ mtext("standard deviation", side=4, line=3, at = -30)
 ![](State_space_models_files/figure-html/data-1.png)
 
 ``` r
+
 par(oldpar)
 ```
 
@@ -78,6 +81,7 @@ likelihood below corresponds to a basic HMM likelihood with a large
 number of states.
 
 ``` r
+
 nll = function(par, y, bm, m){
   phi = plogis(par[1])
   sigma = exp(par[2])
@@ -98,6 +102,7 @@ nll = function(par, y, bm, m){
 ### Fitting an SSM to the data
 
 ``` r
+
 par = c(qlogis(0.95), log(0.3), log(1))
 bm = 5 # relevant range of underlying volatility (-5,5)
 m = 100 # number of approximating states
@@ -106,12 +111,13 @@ system.time(
   mod <- nlm(nll, par, y = y, bm = bm, m = m)
 )
 #>    user  system elapsed 
-#>   1.334   2.402   0.957
+#>   1.409   2.631   1.036
 ```
 
 ### Results
 
 ``` r
+
 ## parameter estimates
 (phi = plogis(mod$estimate[1]))
 #> [1] 0.9516567
@@ -155,6 +161,7 @@ mtext("g", side=4, line=3, at = -30)
 ![](State_space_models_files/figure-html/results-1.png)
 
 ``` r
+
 par(oldpar)
 ```
 

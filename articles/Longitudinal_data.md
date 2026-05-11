@@ -34,12 +34,14 @@ demonstrate how to use this option.
 We generate K separate tracks, all from the exact same model:
 
 ``` r
+
 # loading the package
 library(LaMa)
 #> Loading required package: RTMB
 ```
 
 ``` r
+
 # parameters are shared across individuals
 mu = c(15, 60) # state-dependent means
 sigma = c(10, 40) # state-dependent standard deviations
@@ -77,6 +79,7 @@ calculates the sum of indivual likelihood contributions, each starting
 in the respective initial distribution (which we pool here).
 
 ``` r
+
 # fast version using trackInd in forward()
 nll_pool = function(par, x, trackID){
   Gamma = tpm(par[1:2])
@@ -119,6 +122,7 @@ version using
 looping over individuals in `R`.
 
 ``` r
+
 # initial parameter vector
 par = c(logitgamma = c(-1,-1), # off-diagonals of Gamma (on logit scale)
         mu = c(15, 60), # state-dependent means
@@ -129,14 +133,14 @@ system.time(
   mod <- nlm(nll_pool, par, x = x, trackID = trackID)
 )
 #>    user  system elapsed 
-#>   0.387   0.014   0.400
+#>   0.423   0.010   0.434
 
 # slow version
 system.time(
   mod <- nlm(nll_pool_slow, par, x = x, K = K)
 )
 #>    user  system elapsed 
-#>   3.050   0.042   3.092
+#>   3.626   0.041   3.667
 ```
 
 In this example, looping over individuals in `R` already leads to five
@@ -157,6 +161,7 @@ probabilities.
 ### Generating data
 
 ``` r
+
 K = 5 # number of individuals, for example different animals
 
 # state-dependent parameters are shared across individuals
@@ -198,6 +203,7 @@ can assume stationarity and compute the stationary initial distribution
 for each track respectively.
 
 ``` r
+
 # fast version using trackInd in forward()
 nll_partial = function(par, x, z, trackID){
   # individual-specific tpms
@@ -216,6 +222,7 @@ nll_partial = function(par, x, z, trackID){
 ### Estimating the model
 
 ``` r
+
 # again defining all the indices where a new track begins
 trackID = rep(1:K, each = n)
 
@@ -228,5 +235,5 @@ system.time(
   mod_partial <- nlm(nll_partial, par, x = x, z = z, trackID = trackID)
 )
 #>    user  system elapsed 
-#>   0.389   0.005   0.394
+#>   0.476   0.004   0.480
 ```

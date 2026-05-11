@@ -19,7 +19,7 @@ space. Each state of the HSMMs is represented by a state aggregate of
 several states and the transition probabilities within each aggregate
 are designed carefully to represent the chosen dwell-time distribution.
 For more details see Langrock and Zucchini
-([2011](#ref-langrock2011hidden)) or Zucchini, MacDonald, and Langrock
+([2011](#ref-langrock2011hidden)) or Zucchini et al.
 ([2016](#ref-zucchini)). Due to this approximate inference procedure,
 such models can again be fitted by numerically maximising the
 (approximate) likelihood which can be evaluated using the forward
@@ -40,12 +40,14 @@ state, the conditional transition probability matrix called \Omega and
 the parameters of the state-dependent process.
 
 ``` r
+
 # loading the package
 library(LaMa)
 #> Loading required package: RTMB
 ```
 
 ``` r
+
 lambda = c(7, 4, 4)
 omega = matrix(c(0, 0.7, 0.3,
                  0.5, 0, 0.5,
@@ -70,6 +72,7 @@ transition probabilities. The state-dependent process is drawn
 conditional on the current state.
 
 ``` r
+
 set.seed(123)
 
 k = 50 # number of stays
@@ -117,6 +120,7 @@ dwell-time distributions. These should be chosen such that most of the
 support of the state-specific dwell-time distributions is covered.
 
 ``` r
+
 nll = function(par, x, N, agsizes){
   mu = par[1:N]
   sigma = exp(par[N+1:N])
@@ -138,6 +142,7 @@ nll = function(par, x, N, agsizes){
 ### Fitting an HSMM (as an approximating HMM) to the data
 
 ``` r
+
 # initial values
 par = c(10, 40, 100, log(c(5, 20, 50)), # state-dependent
                log(c(7,4,4)), # dwell time means
@@ -149,7 +154,7 @@ system.time(
   mod <- nlm(nll, par, x = x, N = 3, agsizes = agsizes, stepmax = 2)
 )
 #>    user  system elapsed 
-#>   0.835   0.076   0.910
+#>   1.008   0.061   1.067
 ```
 
 Fitting HSMMs is rather slow (even using C++) as we translate the
@@ -159,6 +164,7 @@ states here).
 ### Results
 
 ``` r
+
 N = 3
 (mu = mod$estimate[1:N])
 #> [1]  10.16569  39.06161 107.66034
@@ -180,9 +186,10 @@ semi-Markov models. For this purpose we use the movement track of an
 Arctic muskox contained in the `R` package `PHSMM`. Originally these
 data were collected by Beumer et al.
 ([2020](#ref-beumer2020application)) and have already been analysed by
-Pohle, Adam, and Beumer ([2022](#ref-pohle2022flexible)).
+Pohle et al. ([2022](#ref-pohle2022flexible)).
 
 ``` r
+
 library(PHSMM)
 data = muskox[1:1000, ] # only using first 1000 observations for speed
 head(data)
@@ -209,6 +216,7 @@ interpretability using
 [`dgamma2()`](https://janolefi.github.io/LaMa/reference/gamma2.md).
 
 ``` r
+
 nll_muskox = function(par, step, N, agsizes){
   # parameter transformation from working to natural
   mu = exp(par[1:N]) # step mean
@@ -232,6 +240,7 @@ nll_muskox = function(par, step, N, agsizes){
 ### Fitting an HSMM (as an approximating HMM) to the muskox data
 
 ``` r
+
 # intial values
 par = c(log(c(4, 50, 300, 4, 50, 300)), # state-dependent mean and sd
                log(c(3,3,5)), # dwell time means
@@ -245,7 +254,7 @@ system.time(
                     agsizes = agsizes, iterlim = 500)
 )
 #>    user  system elapsed 
-#>   4.096   0.007   4.104
+#>   4.433   0.010   4.445
 ```
 
 ### Results
@@ -253,6 +262,7 @@ system.time(
 We retransform the parameters for interpretation
 
 ``` r
+
 par = mod_muskox$estimate; N = 3
 (mu = exp(par[1:N])) # step mean
 #> [1]   4.408141  55.517263 306.514625
@@ -275,6 +285,7 @@ We can easily visualise the estimated state-specific dwell-time
 distributions:
 
 ``` r
+
 oldpar = par(mfrow = c(1,3))
 for(j in 1:N){
   plot(1:agsizes[j], dnbinom(1:agsizes[j]-1, mu=mu_dwell[j], size = 1/phi[j]),
@@ -286,17 +297,16 @@ for(j in 1:N){
 ![](HSMMs_files/figure-html/dwell_muskox-1.png)
 
 ``` r
+
 par(oldpar)
 ```
 
 ## References
 
-Beumer, Larissa T, Jennifer Pohle, Niels M Schmidt, Marianna Chimienti,
-Jean-Pierre Desforges, Lars H Hansen, Roland Langrock, Stine Højlund
-Pedersen, Mikkel Stelvig, and Floris M van Beest. 2020. “An Application
-of Upscaled Optimal Foraging Theory Using Hidden Markov Modelling:
-Year-Round Behavioural Variation in a Large Arctic Herbivore.” *Movement
-Ecology* 8: 1–16.
+Beumer, Larissa T, Jennifer Pohle, Niels M Schmidt, et al. 2020. “An
+Application of Upscaled Optimal Foraging Theory Using Hidden Markov
+Modelling: Year-Round Behavioural Variation in a Large Arctic
+Herbivore.” *Movement Ecology* 8: 1–16.
 
 Langrock, Roland, and Walter Zucchini. 2011. “Hidden Markov Models with
 Arbitrary State Dwell-Time Distributions.” *Computational Statistics &

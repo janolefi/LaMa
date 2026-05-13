@@ -36,14 +36,13 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/Intro_to_LaMa.html">1 Introduction to LaMa</a></li>
     <li><a class="dropdown-item" href="../articles/LaMa_and_RTMB.html">2 Automatic differentiation</a></li>
-    <li><a class="dropdown-item" href="../articles/Inhomogeneous_HMMs.html">3 Covariate effects</a></li>
-    <li><a class="dropdown-item" href="../articles/Periodic_HMMs.html">4 Periodic HMMs</a></li>
-    <li><a class="dropdown-item" href="../articles/Longitudinal_data.html">5 Longitudinal data</a></li>
-    <li><a class="dropdown-item" href="../articles/Penalised_splines.html">6 Penalised splines</a></li>
-    <li><a class="dropdown-item" href="../articles/Continuous_time_HMMs.html">7 Continuous-time HMMs</a></li>
-    <li><a class="dropdown-item" href="../articles/MMMPPs.html">8 Markov modulated Poisson processes</a></li>
-    <li><a class="dropdown-item" href="../articles/State_space_models.html">9 State space models</a></li>
-    <li><a class="dropdown-item" href="../articles/HSMMs.html">10 Hidden semi-Markov models</a></li>
+    <li><a class="dropdown-item" href="../articles/Extensions.html">3 Model extensions</a></li>
+    <li><a class="dropdown-item" href="../articles/Longitudinal_data.html">4 Longitudinal data</a></li>
+    <li><a class="dropdown-item" href="../articles/Penalised_splines.html">5 Penalised splines</a></li>
+    <li><a class="dropdown-item" href="../articles/Continuous_time_HMMs.html">6 Continuous-time HMMs</a></li>
+    <li><a class="dropdown-item" href="../articles/MMMPPs.html">7 Markov modulated Poisson processes</a></li>
+    <li><a class="dropdown-item" href="../articles/State_space_models.html">8 State space models</a></li>
+    <li><a class="dropdown-item" href="../articles/HSMMs.html">9 Hidden semi-Markov models</a></li>
   </ul>
 </li>
       </ul>
@@ -203,14 +202,14 @@ individuals in <code>R</code>.</p>
 <span>  <span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm</a></span><span class="op">(</span><span class="va">nll_pool</span>, <span class="va">par</span>, x <span class="op">=</span> <span class="va">x</span>, trackID <span class="op">=</span> <span class="va">trackID</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.381   0.022   0.402</span></span>
+<span><span class="co">#&gt;   0.386   0.014   0.400</span></span>
 <span></span>
 <span><span class="co"># slow version</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
 <span>  <span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm</a></span><span class="op">(</span><span class="va">nll_pool_slow</span>, <span class="va">par</span>, x <span class="op">=</span> <span class="va">x</span>, K <span class="op">=</span> <span class="va">K</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   3.051   0.047   3.098</span></span></code></pre></div>
+<span><span class="co">#&gt;   3.023   0.045   3.068</span></span></code></pre></div>
 <p>In this example, looping over individuals in <code>R</code> already
 leads to five times longer the estimation time, but this can be much
 more severe for more complicated models.</p>
@@ -301,7 +300,7 @@ for each track respectively.</p>
 <span>  <span class="va">mod_partial</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm</a></span><span class="op">(</span><span class="va">nll_partial</span>, <span class="va">par</span>, x <span class="op">=</span> <span class="va">x</span>, z <span class="op">=</span> <span class="va">z</span>, trackID <span class="op">=</span> <span class="va">trackID</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.391   0.003   0.393</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.388   0.005   0.393</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

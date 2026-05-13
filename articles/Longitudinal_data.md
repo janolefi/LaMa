@@ -135,14 +135,14 @@ system.time(
   mod <- nlm(nll_pool, par, x = x, trackID = trackID)
 )
 #>    user  system elapsed 
-#>   0.381   0.022   0.402
+#>   0.386   0.014   0.400
 
 # slow version
 system.time(
   mod <- nlm(nll_pool_slow, par, x = x, K = K)
 )
 #>    user  system elapsed 
-#>   3.051   0.047   3.098
+#>   3.023   0.045   3.068
 ```
 
 In this example, looping over individuals in `R` already leads to five
@@ -237,5 +237,5 @@ system.time(
   mod_partial <- nlm(nll_partial, par, x = x, z = z, trackID = trackID)
 )
 #>    user  system elapsed 
-#>   0.391   0.003   0.393
+#>   0.388   0.005   0.393
 ```

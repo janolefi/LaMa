@@ -36,14 +36,13 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/Intro_to_LaMa.html">1 Introduction to LaMa</a></li>
     <li><a class="dropdown-item" href="../articles/LaMa_and_RTMB.html">2 Automatic differentiation</a></li>
-    <li><a class="dropdown-item" href="../articles/Inhomogeneous_HMMs.html">3 Covariate effects</a></li>
-    <li><a class="dropdown-item" href="../articles/Periodic_HMMs.html">4 Periodic HMMs</a></li>
-    <li><a class="dropdown-item" href="../articles/Longitudinal_data.html">5 Longitudinal data</a></li>
-    <li><a class="dropdown-item" href="../articles/Penalised_splines.html">6 Penalised splines</a></li>
-    <li><a class="dropdown-item" href="../articles/Continuous_time_HMMs.html">7 Continuous-time HMMs</a></li>
-    <li><a class="dropdown-item" href="../articles/MMMPPs.html">8 Markov modulated Poisson processes</a></li>
-    <li><a class="dropdown-item" href="../articles/State_space_models.html">9 State space models</a></li>
-    <li><a class="dropdown-item" href="../articles/HSMMs.html">10 Hidden semi-Markov models</a></li>
+    <li><a class="dropdown-item" href="../articles/Extensions.html">3 Model extensions</a></li>
+    <li><a class="dropdown-item" href="../articles/Longitudinal_data.html">4 Longitudinal data</a></li>
+    <li><a class="dropdown-item" href="../articles/Penalised_splines.html">5 Penalised splines</a></li>
+    <li><a class="dropdown-item" href="../articles/Continuous_time_HMMs.html">6 Continuous-time HMMs</a></li>
+    <li><a class="dropdown-item" href="../articles/MMMPPs.html">7 Markov modulated Poisson processes</a></li>
+    <li><a class="dropdown-item" href="../articles/State_space_models.html">8 State space models</a></li>
+    <li><a class="dropdown-item" href="../articles/HSMMs.html">9 Hidden semi-Markov models</a></li>
   </ul>
 </li>
       </ul>
@@ -257,7 +256,7 @@ call using the <code>psname</code> argument.</li>
 <span><span class="co">#&gt; outer 11 - lambda: 0.309 0.116 </span></span>
 <span><span class="co">#&gt; outer 12 - lambda: 0.309 0.114</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   8.619   3.414   8.318</span></span></code></pre></div>
+<span><span class="co">#&gt;   8.425   3.363   8.083</span></span></code></pre></div>
 <p>The <code>mod</code> object is now a list that contains everything
 that is reported by the likelihood function, but also the
 <code>RTMB</code> object created in the process. After fitting the
@@ -454,7 +453,7 @@ the design matrix <code>Z</code>.</p>
 <span><span class="co">#&gt; Converged</span></span>
 <span><span class="co">#&gt; Final model fit with lambda: 1.033 1.01 1.744</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  18.846   4.326  18.308</span></span></code></pre></div>
+<span><span class="co">#&gt;  18.536   4.335  18.014</span></span></code></pre></div>
 <p>After fitting the model, we can easily visualise the smooth densities
 using the prepared prediction objects. We already have access to all
 reported quantities because <code><a href="../reference/qreml.html">qreml()</a></code> automatically runs the
@@ -587,7 +586,7 @@ intial penalty strength parameter in the <code>dat</code> list.</p>
 <span><span class="co">#&gt; Converged</span></span>
 <span><span class="co">#&gt; Final model fit with lambda: 22.588 7.212 8.278 4.169</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  17.199   5.457  16.464</span></span></code></pre></div>
+<span><span class="co">#&gt;  16.102   5.509  15.421</span></span></code></pre></div>
 <p>Having fitted the model, we can visualise the results. We first
 decode the most probable state sequence and then plot the estimated
 state-dependent densities as a function of the oil price, as well as the

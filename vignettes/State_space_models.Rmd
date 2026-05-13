@@ -22,6 +22,10 @@ knitr::opts_chunk$set(
 )
 ```
 
+<div style="background-color:#fff3cd; border-left:5px solid #ffc107; padding:10px 15px; margin:15px 0;">
+This vignette has not yet been updated to work with RTMB
+</div>
+
 > Before diving into this vignette, we recommend reading the vignette [**Introduction to LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html).
 
 This vignette shows how to fit state-space models which can be interpreted as generalisation of HMMs to continuous state spaces. Several approaches exist to fitting such models, but @langrock2011some showed that very **general state-space models** can be fitted via approximate maximum likelihood estimation, when the continuous state space is **finely discretised**. This is equivalent to numerical integration over the state process using midpoint quadrature.

@@ -168,6 +168,14 @@ curve(delta[1]*dgamma2(x, mu[1], sigma[1]) + delta[2]*dgamma2(x, mu[2], sigma[2]
 legend("top", lwd = 2, col = color, legend = c("state 1", "state 2"), bty = "n")
 ```
 
+Note that because we have used `report()`, `mod` now has class "LaMaModel", which permits the use of `AIC()` and `BIC()`:
+
+```{r AICBIC}
+AIC(mod)
+BIC(mod)
+```
+
+
 We can also use the `sdreport()` function to directly give us standard errors for our unconstrained parameters and everything we `ADREPORT()`ed. 
 ```{r sdreport}
 sdr = sdreport(obj)

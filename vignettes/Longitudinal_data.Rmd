@@ -24,6 +24,10 @@ knitr::opts_chunk$set(
 options(rmarkdown.html_vignette.check_title = FALSE)
 ```
 
+<div style="background-color:#fff3cd; border-left:5px solid #ffc107; padding:10px 15px; margin:15px 0;">
+This vignette has not yet been updated to work with RTMB
+</div>
+
 > Before diving into this vignette, we recommend reading the vignettes [**Introduction to LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html) and [**Inhomogeneous HMMs**](https://janolefi.github.io/LaMa/articles/Inhomogeneous_HMMs.html).
 
 In real-data applications, one will often be faced by a data set consisting of several measurement tracks, that can reasonably be assumed to be mutually independent. Examples for such a longitudinal structure include GPS tracks of several individuals (or several tracks (e.g. days) of one individual), or when analysing sports data, one will often be faced by time series for separate games. In such settings, the researcher of course has to decide whether to pool parameters across tracks or not. Here, we will provide brief examples for complete and partial pooling.

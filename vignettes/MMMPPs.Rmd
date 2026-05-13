@@ -22,6 +22,10 @@ knitr::opts_chunk$set(
 )
 ```
 
+<div style="background-color:#fff3cd; border-left:5px solid #ffc107; padding:10px 15px; margin:15px 0;">
+This vignette has not yet been updated to work with RTMB
+</div>
+
 > Before diving into this vignette, we recommend reading the vignettes [**Introduction to LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html) and [**Continuous-time HMMs**](https://janolefi.github.io/LaMa/articles/Continuous_time_HMMs.html).
 
 `LaMa` can also be used to fit so-called **Markov-modulated Poisson processes**. These are doubly stochastic Poisson point processes where the intensity is directed by an underlying continuous-time Markov chain. Such processes are useful for modelling **arrival times**, for example of calls in a call center, or patients in the hospital. The main difference compared to continuous-time HMMs is the arrival or observation **times** themselves **carry information** on the **latent state process**. To capture this information, we need to model them explicitly as random-variables.

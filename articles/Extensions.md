@@ -290,7 +290,7 @@ system.time(
   opt <- nlminb(obj_cov$par, obj_cov$fn, obj_cov$gr)
 )
 #>    user  system elapsed 
-#>   0.038   0.000   0.038
+#>   0.037   0.000   0.037
 mod_cov <- report(obj_cov) # reporting from fitted model
 ```
 
@@ -461,9 +461,9 @@ nll_msr = function(par) {
 ``` r
 
 par = list(
-  eta = rep(-2, 2),                        # starting values state process
+  eta = c(-3, -2),                          # starting values state process
   beta = cbind(c(10, 10), matrix(0, 2, 2)), # starting values for regression
-  log_sigma = c(log(1), log(1))            # starting values for sigma
+  log_sigma = c(log(1), log(1))             # starting values for sigma
 )
 dat = list(
   x = x,
@@ -489,13 +489,15 @@ delta_hat_reg = mod_msr$delta
 sigma_hat_reg = mod_msr$sigma
 beta_hat_reg = mod_msr$beta
 
+states = viterbi(mod = mod_msr)
+
 # we have some label switching
-plot(z, x, pch = 16, bty = "n", xlab = "z", ylab = "x", col = color[s])
+plot(z, x, pch = 16, bty = "n", xlab = "z", ylab = "x", col = color[states])
 points(z, x, pch = 20)
 curve(beta_hat_reg[1,1] + beta_hat_reg[1,2]*x + beta_hat_reg[1,3]*x^2, 
-      add = TRUE, lwd = 4, col = color[2])
-curve(beta_hat_reg[2,1] + beta_hat_reg[2,2]*x + beta_hat_reg[2,3]*x^2, 
       add = TRUE, lwd = 4, col = color[1])
+curve(beta_hat_reg[2,1] + beta_hat_reg[2,2]*x + beta_hat_reg[2,3]*x^2, 
+      add = TRUE, lwd = 4, col = color[2])
 ```
 
 ![](Extensions_files/figure-html/visualization3-1.png)

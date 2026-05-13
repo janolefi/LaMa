@@ -20,6 +20,8 @@ knitr::opts_chunk$set(
   fig.dim = c(8, 6),
   out.width = "85%"
 )
+
+options(rmarkdown.html_vignette.check_title = FALSE)
 ```
 
 <div style="background-color:#fff3cd; border-left:5px solid #ffc107; padding:10px 15px; margin:15px 0;">

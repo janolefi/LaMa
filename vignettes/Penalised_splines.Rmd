@@ -20,6 +20,8 @@ knitr::opts_chunk$set(
   error = TRUE
 )
 
+options(rmarkdown.html_vignette.check_title = FALSE)
+
 # check if MSwM is installed and if not install
 if(!require("MSwM")){
   options(repos = c(CRAN = "https://cloud.r-project.org"))

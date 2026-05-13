@@ -17,6 +17,8 @@ knitr::opts_chunk$set(
   fig.align = "center",
   error = TRUE
 )
+
+options(rmarkdown.html_vignette.check_title = FALSE)
 ```
 
 > Before diving into this vignette, we recommend reading the vignette [**Introduction to LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html).

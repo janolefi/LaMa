@@ -13,20 +13,18 @@ navbar:
         href: articles/Intro_to_LaMa.html
       - text: 2 Automatic differentiation
         href: articles/LaMa_and_RTMB.html
-      - text: 3 Covariate effects
-        href: articles/Inhomogeneous_HMMs.html
-      - text: 4 Periodic HMMs
-        href: articles/Periodic_HMMs.html
-      - text: 5 Longitudinal data
+      - text: 3 Model extensions
+        href: articles/Extensions.html
+      - text: 4 Longitudinal data
         href: articles/Longitudinal_data.html
-      - text: 6 Penalised splines
+      - text: 5 Penalised splines
         href: articles/Penalised_splines.html
-      - text: 7 Continuous-time HMMs
+      - text: 6 Continuous-time HMMs
         href: articles/Continuous_time_HMMs.html
-      - text: 8 Markov modulated Poisson processes
+      - text: 7 Markov modulated Poisson processes
         href: articles/MMMPPs.html
-      - text: 9 State space models
+      - text: 8 State space models
         href: articles/State_space_models.html
-      - text: 10 Hidden semi-Markov models
+      - text: 9 Hidden semi-Markov models
         href: articles/HSMMs.html
         

@@ -1,5 +1,5 @@
 ---
-title: "Hidden semi-Markov models"
+title: "9 Hidden semi-Markov models"
 author: "Jan-Ole Fischer"
 output: rmarkdown::html_vignette
 # output: pdf_document

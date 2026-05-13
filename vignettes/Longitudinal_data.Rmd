@@ -1,5 +1,5 @@
 ---
-title: "5 Longitudinal data"
+title: "4 Longitudinal data"
 author: "Jan-Ole Fischer"
 output: rmarkdown::html_vignette
 # output: pdf_document

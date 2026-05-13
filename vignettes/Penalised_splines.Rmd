@@ -1,5 +1,5 @@
 ---
-title: "6 Penalised splines"
+title: "5 Penalised splines"
 author: "Jan-Ole Fischer"
 output: rmarkdown::html_vignette
 # output: pdf_document

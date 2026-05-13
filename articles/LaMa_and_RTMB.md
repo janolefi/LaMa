@@ -271,6 +271,20 @@ legend("top", lwd = 2, col = color, legend = c("state 1", "state 2"), bty = "n")
 
 ![](LaMa_and_RTMB_files/figure-html/statedepdist-1.png)
 
+Note that because we have used
+[`report()`](https://janolefi.github.io/LaMa/reference/report.md), `mod`
+now has class “LaMaModel”, which permits the use of
+[`AIC()`](https://rdrr.io/r/stats/AIC.html) and
+[`BIC()`](https://rdrr.io/r/stats/AIC.html):
+
+``` r
+
+AIC(mod)
+#> [1] 21706.25
+BIC(mod)
+#> [1] 21749.51
+```
+
 We can also use the `sdreport()` function to directly give us standard
 errors for our unconstrained parameters and everything we
 [`ADREPORT()`](https://rdrr.io/pkg/RTMB/man/TMB-interface.html)ed. 

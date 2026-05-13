@@ -1,5 +1,7 @@
 # Hidden semi-Markov models
 
+This vignette has not yet been updated to work with RTMB
+
 > Before diving into this vignette, we recommend reading the vignette
 > [**Introduction to
 > LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html).
@@ -154,7 +156,7 @@ system.time(
   mod <- nlm(nll, par, x = x, N = 3, agsizes = agsizes, stepmax = 2)
 )
 #>    user  system elapsed 
-#>   1.008   0.061   1.067
+#>   0.843   0.077   0.920
 ```
 
 Fitting HSMMs is rather slow (even using C++) as we translate the
@@ -254,7 +256,7 @@ system.time(
                     agsizes = agsizes, iterlim = 500)
 )
 #>    user  system elapsed 
-#>   4.433   0.010   4.445
+#>   4.090   0.015   4.106
 ```
 
 ### Results

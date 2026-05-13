@@ -1,5 +1,7 @@
 # 8 Markov-modulated (marked) Poisson processes
 
+This vignette has not yet been updated to work with RTMB
+
 > Before diving into this vignette, we recommend reading the vignettes
 > [**Introduction to
 > LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html)
@@ -141,7 +143,7 @@ system.time(
   mod <- nlm(nll, par, timediff = timediff, N = 2, stepmax = 10)
 )
 #>    user  system elapsed 
-#>   0.255   0.352   0.311
+#>   0.311   0.302   0.314
 # we often need the stepmax, as the matrix exponential can be numerically unstable
 ```
 
@@ -292,7 +294,7 @@ system.time(
   mod2 <- nlm(nllMark, par, y = marks, timediff = timediff, N = 3, stepmax = 5)
 )
 #>    user  system elapsed 
-#>   3.608   6.561   3.400
+#>   3.738   5.478   3.083
 ```
 
 ### Results

@@ -1,5 +1,7 @@
 # 7 Continuous-time HMMs
 
+This vignette has not yet been updated to work with RTMB
+
 > Before diving into this vignette, we recommend reading the vignette
 > [**Introduction to
 > LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html).
@@ -162,7 +164,7 @@ system.time(
   mod <- nlm(nll, par, timediff = timediff, x = x, N = 2)
 )
 #>    user  system elapsed 
-#>   0.247   0.410   0.337
+#>   0.320   0.297   0.316
 ```
 
 ### Results
@@ -243,7 +245,7 @@ system.time(
   mod2 <- nlm(nll, par, timediff = timediff, x = x, N = 3, stepmax = 10)
 )
 #>    user  system elapsed 
-#>   1.365   2.847   1.404
+#>   2.186   3.386   1.860
 # without restricting stepmax, we run into numerical problems
 ```
 

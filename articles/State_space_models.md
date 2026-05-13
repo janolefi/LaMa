@@ -1,5 +1,7 @@
 # 9 State-space models
 
+This vignette has not yet been updated to work with RTMB
+
 > Before diving into this vignette, we recommend reading the vignette
 > [**Introduction to
 > LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html).
@@ -111,7 +113,7 @@ system.time(
   mod <- nlm(nll, par, y = y, bm = bm, m = m)
 )
 #>    user  system elapsed 
-#>   1.409   2.631   1.036
+#>   1.290   2.402   0.949
 ```
 
 ### Results

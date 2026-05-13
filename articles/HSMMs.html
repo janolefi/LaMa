@@ -75,6 +75,9 @@ Fischer</h4>
 
     
     
+<div style="background-color:#fff3cd; border-left:5px solid #ffc107; padding:10px 15px; margin:15px 0;">
+<p>This vignette has not yet been updated to work with RTMB</p>
+</div>
 <blockquote>
 <p>Before diving into this vignette, we recommend reading the vignette
 <a href="https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html"><strong>Introduction
@@ -216,7 +219,7 @@ distributions is covered.</p>
 <span>  <span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm</a></span><span class="op">(</span><span class="va">nll</span>, <span class="va">par</span>, x <span class="op">=</span> <span class="va">x</span>, N <span class="op">=</span> <span class="fl">3</span>, agsizes <span class="op">=</span> <span class="va">agsizes</span>, stepmax <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.008   0.061   1.067</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.843   0.077   0.920</span></span></code></pre></div>
 <p>Fitting HSMMs is rather slow (even using C++) as we translate the
 additional model complexity into a higher computational overhead (31
 states here).</p>
@@ -305,7 +308,7 @@ interpretability using <code><a href="../reference/gamma2.html">dgamma2()</a></c
 <span>                    agsizes <span class="op">=</span> <span class="va">agsizes</span>, iterlim <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   4.433   0.010   4.445</span></span></code></pre></div>
+<span><span class="co">#&gt;   4.090   0.015   4.106</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="results-1">Results<a class="anchor" aria-label="anchor" href="#results-1"></a>

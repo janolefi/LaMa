@@ -1,5 +1,7 @@
 # 5 Longitudinal data
 
+This vignette has not yet been updated to work with RTMB
+
 > Before diving into this vignette, we recommend reading the vignettes
 > [**Introduction to
 > LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html)
@@ -133,14 +135,14 @@ system.time(
   mod <- nlm(nll_pool, par, x = x, trackID = trackID)
 )
 #>    user  system elapsed 
-#>   0.423   0.010   0.434
+#>   0.388   0.016   0.403
 
 # slow version
 system.time(
   mod <- nlm(nll_pool_slow, par, x = x, K = K)
 )
 #>    user  system elapsed 
-#>   3.626   0.041   3.667
+#>   3.076   0.043   3.118
 ```
 
 In this example, looping over individuals in `R` already leads to five
@@ -235,5 +237,5 @@ system.time(
   mod_partial <- nlm(nll_partial, par, x = x, z = z, trackID = trackID)
 )
 #>    user  system elapsed 
-#>   0.476   0.004   0.480
+#>   0.383   0.008   0.390
 ```

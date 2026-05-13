@@ -3,16 +3,15 @@ pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
   Continuous_time_HMMs: Continuous_time_HMMs.html
+  Extensions: Extensions.html
   HSMMs: HSMMs.html
-  Inhomogeneous_HMMs: Inhomogeneous_HMMs.html
   Intro_to_LaMa: Intro_to_LaMa.html
   LaMa_and_RTMB: LaMa_and_RTMB.html
   Longitudinal_data: Longitudinal_data.html
   MMMPPs: MMMPPs.html
   Penalised_splines: Penalised_splines.html
-  Periodic_HMMs: Periodic_HMMs.html
   State_space_models: State_space_models.html
-last_built: 2026-05-11T11:59Z
+last_built: 2026-05-13T09:00Z
 urls:
   reference: https://janolefi.github.io/LaMa/reference
   article: https://janolefi.github.io/LaMa/articles

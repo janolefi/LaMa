@@ -143,7 +143,7 @@ system.time(
   mod <- nlm(nll, par, timediff = timediff, N = 2, stepmax = 10)
 )
 #>    user  system elapsed 
-#>   0.342   0.289   0.323
+#>   0.326   0.277   0.308
 # we often need the stepmax, as the matrix exponential can be numerically unstable
 ```
 
@@ -294,7 +294,7 @@ system.time(
   mod2 <- nlm(nllMark, par, y = marks, timediff = timediff, N = 3, stepmax = 5)
 )
 #>    user  system elapsed 
-#>   3.697   5.584   3.102
+#>   3.551   5.152   2.913
 ```
 
 ### Results

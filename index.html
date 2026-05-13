@@ -90,13 +90,12 @@
 <ol style="list-style-type: decimal">
 <li><a href="https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html">Introduction to LaMa</a></li>
 <li><a href="https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html">Automatic differentiation</a></li>
-<li><a href="https://janolefi.github.io/LaMa/articles/Inhomogeneous_HMMs.html">Covariate effects</a></li>
-<li><a href="https://janolefi.github.io/LaMa/articles/Periodic_HMM.html">Periodic HMMs</a></li>
+<li><a href="https://janolefi.github.io/LaMa/articles/Extensions.html">Model extensions</a></li>
 <li><a href="https://janolefi.github.io/LaMa/articles/Longitudinal_data.html">Longitudinal data</a></li>
 <li><a href="https://janolefi.github.io/LaMa/articles/Penalised_splines.html">Penalised splines</a></li>
 </ol>
 <p>Other latent Markov model classes:</p>
-<ol start="7" style="list-style-type: decimal">
+<ol start="6" style="list-style-type: decimal">
 <li><a href="https://janolefi.github.io/LaMa/articles/Continuous_time_HMMs.html">Continuous-time HMMs</a></li>
 <li><a href="https://janolefi.github.io/LaMa/articles/MMMPPs.html">Markov-modulated Poisson processes</a></li>
 <li><a href="https://janolefi.github.io/LaMa/articles/State_space_models.html">State-space models</a></li>
@@ -142,7 +141,7 @@
 <span>  <span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm</a></span><span class="op">(</span><span class="va">nll</span>, <span class="va">par</span>, step <span class="op">=</span> <span class="va">trex</span><span class="op">$</span><span class="va">step</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.356   0.014   0.379</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.361   0.012   0.376</span></span></code></pre></div>
 <p>Really fast for 10.000 data points!</p>
 <p>After tranforming the working (unconstrained) parameters to natural parameters using <code><a href="reference/tpm.html">tpm()</a></code> and <code><a href="reference/stationary.html">stationary()</a></code>, we can visualise the results:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">

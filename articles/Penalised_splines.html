@@ -5,13 +5,13 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>6 Penalised splines • LaMa</title>
+<title>5 Penalised splines • LaMa</title>
 <!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="6 Penalised splines">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="5 Penalised splines">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -64,7 +64,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>6 Penalised splines</h1>
+      <h1>5 Penalised splines</h1>
                         <h4 data-toc-skip class="author">Jan-Ole
 Fischer</h4>
             
@@ -257,7 +257,7 @@ call using the <code>psname</code> argument.</li>
 <span><span class="co">#&gt; outer 11 - lambda: 0.309 0.116 </span></span>
 <span><span class="co">#&gt; outer 12 - lambda: 0.309 0.114</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   8.689   3.336   8.312</span></span></code></pre></div>
+<span><span class="co">#&gt;   8.619   3.414   8.318</span></span></code></pre></div>
 <p>The <code>mod</code> object is now a list that contains everything
 that is reported by the likelihood function, but also the
 <code>RTMB</code> object created in the process. After fitting the
@@ -454,7 +454,7 @@ the design matrix <code>Z</code>.</p>
 <span><span class="co">#&gt; Converged</span></span>
 <span><span class="co">#&gt; Final model fit with lambda: 1.033 1.01 1.744</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  18.624   4.306  18.076</span></span></code></pre></div>
+<span><span class="co">#&gt;  18.846   4.326  18.308</span></span></code></pre></div>
 <p>After fitting the model, we can easily visualise the smooth densities
 using the prepared prediction objects. We already have access to all
 reported quantities because <code><a href="../reference/qreml.html">qreml()</a></code> automatically runs the
@@ -587,7 +587,7 @@ intial penalty strength parameter in the <code>dat</code> list.</p>
 <span><span class="co">#&gt; Converged</span></span>
 <span><span class="co">#&gt; Final model fit with lambda: 22.588 7.212 8.278 4.169</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  17.162   5.492  16.469</span></span></code></pre></div>
+<span><span class="co">#&gt;  17.199   5.457  16.464</span></span></code></pre></div>
 <p>Having fitted the model, we can visualise the results. We first
 decode the most probable state sequence and then plot the estimated
 state-dependent densities as a function of the oil price, as well as the

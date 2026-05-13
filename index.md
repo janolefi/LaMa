@@ -46,24 +46,22 @@ HMMs, from simple to complex:
     LaMa](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html)
 2.  [Automatic
     differentiation](https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html)
-3.  [Covariate
-    effects](https://janolefi.github.io/LaMa/articles/Inhomogeneous_HMMs.html)
-4.  [Periodic
-    HMMs](https://janolefi.github.io/LaMa/articles/Periodic_HMM.html)
-5.  [Longitudinal
+3.  [Model
+    extensions](https://janolefi.github.io/LaMa/articles/Extensions.html)
+4.  [Longitudinal
     data](https://janolefi.github.io/LaMa/articles/Longitudinal_data.html)
-6.  [Penalised
+5.  [Penalised
     splines](https://janolefi.github.io/LaMa/articles/Penalised_splines.html)
 
 Other latent Markov model classes:
 
-7.  [Continuous-time
+6.  [Continuous-time
     HMMs](https://janolefi.github.io/LaMa/articles/Continuous_time_HMMs.html)
-8.  [Markov-modulated Poisson
+7.  [Markov-modulated Poisson
     processes](https://janolefi.github.io/LaMa/articles/MMMPPs.html)
-9.  [State-space
+8.  [State-space
     models](https://janolefi.github.io/LaMa/articles/State_space_models.html)
-10. [Hidden semi-Markov
+9.  [Hidden semi-Markov
     models](https://janolefi.github.io/LaMa/articles/HSMMs.html)
 
 ## Introductory example: Homogeneous HMM
@@ -126,7 +124,7 @@ system.time(
   mod <- nlm(nll, par, step = trex$step)
 )
 #>    user  system elapsed 
-#>   0.356   0.014   0.379
+#>   0.361   0.012   0.376
 ```
 
 Really fast for 10.000 data points!

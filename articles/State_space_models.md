@@ -1,4 +1,4 @@
-# 9 State-space models
+# 8 State-space models
 
 This vignette has not yet been updated to work with RTMB
 
@@ -113,7 +113,7 @@ system.time(
   mod <- nlm(nll, par, y = y, bm = bm, m = m)
 )
 #>    user  system elapsed 
-#>   1.290   2.402   0.949
+#>   1.312   2.426   0.956
 ```
 
 ### Results

@@ -1,4 +1,4 @@
-# Hidden semi-Markov models
+# 9 Hidden semi-Markov models
 
 This vignette has not yet been updated to work with RTMB
 
@@ -156,7 +156,7 @@ system.time(
   mod <- nlm(nll, par, x = x, N = 3, agsizes = agsizes, stepmax = 2)
 )
 #>    user  system elapsed 
-#>   0.843   0.077   0.920
+#>   0.853   0.063   0.916
 ```
 
 Fitting HSMMs is rather slow (even using C++) as we translate the
@@ -256,7 +256,7 @@ system.time(
                     agsizes = agsizes, iterlim = 500)
 )
 #>    user  system elapsed 
-#>   4.090   0.015   4.106
+#>   4.035   0.015   4.050
 ```
 
 ### Results

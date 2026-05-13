@@ -1,4 +1,4 @@
-# 5 Longitudinal data
+# 4 Longitudinal data
 
 This vignette has not yet been updated to work with RTMB
 
@@ -135,14 +135,14 @@ system.time(
   mod <- nlm(nll_pool, par, x = x, trackID = trackID)
 )
 #>    user  system elapsed 
-#>   0.388   0.016   0.403
+#>   0.381   0.022   0.402
 
 # slow version
 system.time(
   mod <- nlm(nll_pool_slow, par, x = x, K = K)
 )
 #>    user  system elapsed 
-#>   3.076   0.043   3.118
+#>   3.051   0.047   3.098
 ```
 
 In this example, looping over individuals in `R` already leads to five
@@ -237,5 +237,5 @@ system.time(
   mod_partial <- nlm(nll_partial, par, x = x, z = z, trackID = trackID)
 )
 #>    user  system elapsed 
-#>   0.383   0.008   0.390
+#>   0.391   0.003   0.393
 ```

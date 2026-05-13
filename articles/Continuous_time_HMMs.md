@@ -1,4 +1,4 @@
-# 7 Continuous-time HMMs
+# 6 Continuous-time HMMs
 
 This vignette has not yet been updated to work with RTMB
 
@@ -164,7 +164,7 @@ system.time(
   mod <- nlm(nll, par, timediff = timediff, x = x, N = 2)
 )
 #>    user  system elapsed 
-#>   0.320   0.297   0.316
+#>   0.314   0.310   0.319
 ```
 
 ### Results
@@ -245,7 +245,7 @@ system.time(
   mod2 <- nlm(nll, par, timediff = timediff, x = x, N = 3, stepmax = 10)
 )
 #>    user  system elapsed 
-#>   2.186   3.386   1.860
+#>   2.260   3.323   1.863
 # without restricting stepmax, we run into numerical problems
 ```
 

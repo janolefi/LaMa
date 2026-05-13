@@ -1,4 +1,4 @@
-# 6 Penalised splines
+# 5 Penalised splines
 
 > Before diving into this vignette, we recommend reading the vignettes
 > **Introduction to LaMa**, **Inhomogeneous HMMs**, **Periodic HMMs**
@@ -203,7 +203,7 @@ system.time(
 #> outer 11 - lambda: 0.309 0.116 
 #> outer 12 - lambda: 0.309 0.114
 #>    user  system elapsed 
-#>   8.689   3.336   8.312
+#>   8.619   3.414   8.318
 ```
 
 The `mod` object is now a list that contains everything that is reported
@@ -429,7 +429,7 @@ system.time(
 #> Converged
 #> Final model fit with lambda: 1.033 1.01 1.744
 #>    user  system elapsed 
-#>  18.624   4.306  18.076
+#>  18.846   4.326  18.308
 ```
 
 After fitting the model, we can easily visualise the smooth densities
@@ -583,7 +583,7 @@ system.time(
 #> Converged
 #> Final model fit with lambda: 22.588 7.212 8.278 4.169
 #>    user  system elapsed 
-#>  17.162   5.492  16.469
+#>  17.199   5.457  16.464
 ```
 
 Having fitted the model, we can visualise the results. We first decode

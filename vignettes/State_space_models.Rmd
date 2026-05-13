@@ -4,7 +4,7 @@ author: "Jan-Ole Fischer"
 output: rmarkdown::html_vignette
 # output: pdf_document
 vignette: >
-  %\VignetteIndexEntry{State space models}
+  %\VignetteIndexEntry{State-space models}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 bibliography: refs.bib

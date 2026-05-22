@@ -273,16 +273,19 @@ is also extremely quick:
 
 ``` r
 
+N = 2
+
 par = list(
-  beta = cbind(rep(-2, 2), matrix(0, 2, 2)), # initialising with slopes = 0
-  logit_delta = 0,                           # starting value for initial distribution
-  mu = c(4, 14),                             # initial state-dependent means
-  log_sigma = c(log(3), log(5))              # initial state-dependent sds
+  beta = cbind(rep(-2, N*(N-1)), 
+               matrix(0, N*(N-1), 2)),   # initialising with slopes = 0
+  logit_delta = rep(0, N-1),             # starting value for initial distribution
+  mu = seq(4, 14, length = N),           # initial state-dependent means
+  log_sigma = log(seq(3,5, length = N))  # initial state-dependent sds
 )
-dat <- list(
+dat = list(
   x = x, 
   Z = Z,
-  N = 2
+  N = N
 )
 
 obj_cov = MakeADFun(nll_cov, par, silent = TRUE)
@@ -290,7 +293,7 @@ system.time(
   opt <- nlminb(obj_cov$par, obj_cov$fn, obj_cov$gr)
 )
 #>    user  system elapsed 
-#>   0.037   0.000   0.037
+#>   0.041   0.000   0.040
 mod_cov <- report(obj_cov) # reporting from fitted model
 ```
 

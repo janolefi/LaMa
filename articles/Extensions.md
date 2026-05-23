@@ -293,7 +293,7 @@ system.time(
   opt <- nlminb(obj_cov$par, obj_cov$fn, obj_cov$gr)
 )
 #>    user  system elapsed 
-#>   0.041   0.000   0.040
+#>   0.036   0.000   0.036
 mod_cov <- report(obj_cov) # reporting from fitted model
 ```
 
@@ -575,8 +575,8 @@ variable.
 ``` r
 
 par = list(
-  log_mu = log(c(0.3, 1)),      # initial means for step length
-  log_sigma = log(c(0.2, 0.7)), # initial sds for step length
+  log_mu = log(c(0.3, 1)),                # initial means for step length
+  log_sigma = log(c(0.2, 0.7)),           # initial sds for step length
   beta = cbind(c(-2,-2), matrix(0, 2, 2)) # initial t.p.m. parameters
 )    
 

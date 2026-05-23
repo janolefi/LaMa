@@ -1,67 +1,75 @@
 # 4 Longitudinal data
 
-This vignette has not yet been updated to work with RTMB
-
 > Before diving into this vignette, we recommend reading the vignettes
 > [**Introduction to
 > LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html)
-> and [**Inhomogeneous
-> HMMs**](https://janolefi.github.io/LaMa/articles/Inhomogeneous_HMMs.html).
-
-In real-data applications, one will often be faced by a data set
-consisting of several measurement tracks, that can reasonably be assumed
-to be mutually independent. Examples for such a longitudinal structure
-include GPS tracks of several individuals (or several tracks (e.g. days)
-of one individual), or when analysing sports data, one will often be
-faced by time series for separate games. In such settings, the
-researcher of course has to decide whether to pool parameters across
-tracks or not. Here, we will provide brief examples for complete and
-partial pooling.
-
-In the situations above, the likelihood function will look slightly
-different. In case of K independent tracks, we have L(\theta) =
-\prod\_{k=1}^K L_k(\theta), where L_k(\theta) is the usual HMM
-likelihood for the k-th track. Thus the log-likelihood becomes a sum
-over K tracks, which we can calculate in a loop. When K is even
-moderately large, performing this loop in `R` already leads to severe
-slowdowns in likelihood evaluation times. Thus, the forward algorithms
-in `LaMa` allow for the likelihood formulation above, when the indices
-at which separate tracks begin are specified. Here, we shortly
-demonstrate how to use this option.
-
-## Complete pooling
-
-### Generating data
-
-We generate K separate tracks, all from the exact same model:
+> and [**Automatic differentiation via
+> RTMB**](https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html).
 
 ``` r
 
-# loading the package
 library(LaMa)
 #> Loading required package: RTMB
 ```
 
+In real-data applications, one will often be faced with a data set
+consisting of several measurement tracks that can reasonably be assumed
+to be mutually independent. Examples of such a longitudinal structure
+include GPS tracks of several individuals (or several tracks, e.g. days,
+of one individual), or when analysing sports data, time series for
+separate games. In such settings, the researcher must decide whether to
+pool parameters across tracks or not. Here, we provide brief examples
+for complete and partial pooling.
+
+When the data consists of K independent tracks, the joint likelihood is
+L(\theta) = \prod\_{k=1}^K L_k(\theta), where L_k(\theta) is the usual
+HMM likelihood for the k-th track, so the log-likelihood is a sum over K
+tracks. In `LaMa`, this is handled efficiently by passing a `trackID`
+vector to
+[`forward()`](https://janolefi.github.io/LaMa/reference/forward.md),
+which specifies the track index of each observation. The forward
+algorithm then resets to the initial distribution at the start of each
+new track and sums up the individual log-likelihood contributions
+automatically. Importantly, always using the `trackID` argument rather
+than calling
+[`forward()`](https://janolefi.github.io/LaMa/reference/forward.md)
+separately for each track ensures that the automatic reporting mechanism
+inside
+[`forward()`](https://janolefi.github.io/LaMa/reference/forward.md) — on
+which
+[`viterbi()`](https://janolefi.github.io/LaMa/reference/viterbi.md),
+[`stateprobs()`](https://janolefi.github.io/LaMa/reference/stateprobs.md),
+and other downstream functions rely — works correctly.
+
+## Complete pooling
+
+With complete pooling, all parameters are shared across individuals.
+
+### Generating data
+
+We generate K separate tracks from the same model:
+
 ``` r
 
-# parameters are shared across individuals
-mu = c(15, 60) # state-dependent means
+# parameters shared across individuals
+mu = c(15, 60)    # state-dependent means
 sigma = c(10, 40) # state-dependent standard deviations
-Gamma = matrix(c(0.95, 0.05, 0.15, 0.85), nrow = 2, byrow = TRUE) # t.p.m.
-delta = stationary(Gamma) # stationary distribution
+Gamma = matrix(c(0.95, 0.05,
+                 0.15, 0.85), nrow = 2, byrow = TRUE)
+delta = stationary(Gamma)
 
-# simulation of all tracks
 set.seed(123)
-K = 200 # number of individuals, for example different animals
-n = 50 # observations per animal only (but many animals)
+K = 200 # number of individuals
+N = 2   # number of states
+n = 50  # observations per individual
 
-s = x = rep(NA, n*K)
+s = x = rep(NA, n * K)
 for(k in 1:K){
   sk = xk = rep(NA, n)
   sk[1] = sample(1:2, 1, prob = delta)
   xk[1] = rnorm(1, mu[sk[1]], sigma[sk[1]])
   for(t in 2:n){
-    sk[t] = sample(1:2, 1, prob = Gamma[sk[t-1],]) 
+    sk[t] = sample(1:2, 1, prob = Gamma[sk[t-1],])
     xk[t] = rnorm(1, mu[sk[t]], sigma[sk[t]])
   }
   s[(k-1)*n + 1:n] = sk
@@ -73,123 +81,104 @@ trackID = rep(1:K, each = n)
 
 ### Writing the negative log-likelihood function
 
-To calculate the joint log-likelihood of the independent tracks, we
-slightly modify the standard negative log-likelihood function by adding
-the additional argument `trackID`.
-[`forward()`](https://janolefi.github.io/LaMa/reference/forward.md) now
-calculates the sum of indivual likelihood contributions, each starting
-in the respective initial distribution (which we pool here).
+The likelihood function is almost identical to the single-track case —
+the only difference is passing `trackID` as an additional argument to
+[`forward()`](https://janolefi.github.io/LaMa/reference/forward.md):
 
 ``` r
 
-# fast version using trackInd in forward()
-nll_pool = function(par, x, trackID){
-  Gamma = tpm(par[1:2])
+nll_pool = function(par) {
+  getAll(par, dat)
+  Gamma = tpm(eta)
   delta = stationary(Gamma)
-  mu = par[3:4]
-  sigma = exp(par[5:6])
-  allprobs = matrix(1, length(x), 2)
-  for(j in 1:2) allprobs[,j] = dnorm(x, mu[j], sigma[j])
-  
-  # here we add trackInd as an argument to forward()
+  mu = exp(log_mu); REPORT(mu)
+  sigma = exp(log_sigma); REPORT(sigma)
+  allprobs = matrix(1, length(x), N)
+  for(j in 1:N) allprobs[,j] = dnorm(x, mu[j], sigma[j])
   -forward(delta, Gamma, allprobs, trackID)
-}
-
-# slow alternative looping over individuals in R
-nll_pool_slow = function(par, x, K){
-  n = length(x) / K
-  Gamma = tpm(par[1:2])
-  delta = stationary(Gamma)
-  mu = par[3:4]
-  sigma = exp(par[5:6])
-  allprobs = matrix(1, length(x), 2)
-  for(j in 1:2) allprobs[,j] = dnorm(x, mu[j], sigma[j])
-  
-  # here we just loop over individuals in R
-  l = 0
-  for(k in 1:K){
-    l = l + forward(delta, Gamma, allprobs[(k-1)*n + 1:n,])
-  }
-  -l
 }
 ```
 
 ### Estimating the model
 
-Now we estimate the model with complete pooling. We compare the fast
-version using
-[`forward()`](https://janolefi.github.io/LaMa/reference/forward.md) with
-`trackID` with the slow version also using
-[`forward()`](https://janolefi.github.io/LaMa/reference/forward.md) but
-looping over individuals in `R`.
+``` r
+
+par = list(
+  eta = rep(-2, N*(N-1)),    # initial t.p.m. parameters (logit scale)
+  log_mu = log(c(15, 60)),   # initial state-dependent means (log scale)
+  log_sigma = log(c(10, 40)) # initial state-dependent sds (log scale)
+)
+
+dat = list(
+  x = x,
+  trackID = trackID,
+  N = N
+)
+
+obj_pool = MakeADFun(nll_pool, par, silent = TRUE)
+system.time(
+  opt_pool <- nlminb(obj_pool$par, obj_pool$fn, obj_pool$gr)
+)
+#>    user  system elapsed 
+#>   0.175   0.001   0.177
+mod_pool = report(obj_pool)
+```
+
+We can inspect the estimated parameters, which should be close to the
+true values used in the simulation:
 
 ``` r
 
-# initial parameter vector
-par = c(logitgamma = c(-1,-1), # off-diagonals of Gamma (on logit scale)
-        mu = c(15, 60), # state-dependent means
-        logsigma = c(log(10),log(40))) # state-dependent sds
-
-# fast version:
-system.time(
-  mod <- nlm(nll_pool, par, x = x, trackID = trackID)
-)
-#>    user  system elapsed 
-#>   0.449   0.015   0.464
-
-# slow version
-system.time(
-  mod <- nlm(nll_pool_slow, par, x = x, K = K)
-)
-#>    user  system elapsed 
-#>   3.732   0.040   3.773
+mod_pool$mu     # true: 15, 60
+#> [1] 15.00258 59.10962
+mod_pool$sigma  # true: 10, 40
+#> [1]  9.913063 39.856396
+mod_pool$Gamma  # true: c(0.95, 0.05, 0.15, 0.85)
+#>           S1         S2
+#> S1 0.9500705 0.04992952
+#> S2 0.1450977 0.85490231
 ```
-
-In this example, looping over individuals in `R` already leads to five
-times longer the estimation time, but this can be much more severe for
-more complicated models.
 
 ## Partial pooling
 
-If some parameters of our model are individual-specific, while the rest
-is shared, we speak of partial pooling. We demonstrate this here for 5
-individuals with their own transition probability matrices. We could
-estimate a separate transition probability matrix for each individual,
-but here we opt for a more parsimonious approach, where the transition
-probabilities depend on an external, individual-specific covariate. We
-will estimate the effect of this covariate on the transition
+If some parameters are individual-specific while the rest are shared, we
+speak of partial pooling. We demonstrate this for K = 5 individuals
+whose transition probability matrices depend on an individual-level
+covariate, while the state-dependent observation parameters remain
+shared. We estimate the effect of this covariate on the transition
 probabilities.
 
 ### Generating data
 
 ``` r
 
-K = 5 # number of individuals, for example different animals
+K = 5   # number of individuals
+N = 2   # number of states
+n = 200 # observations per individual
 
-# state-dependent parameters are shared across individuals
+# state-dependent parameters shared across individuals
 mu = c(15, 60)
 sigma = c(10, 40)
 
-# but we define a tpm for each individual depending on covariates
+# individual-specific tpms depending on a covariate (e.g. age)
 set.seed(123)
-z = rnorm(K) # covariate (e.g. age)
-beta = matrix(c(-2,-2, 1, -1), nrow = 2)
-# we calculate 5 tpms depending on individual-specific covariates:
-Gamma = tpm_g(z, beta)
-# each individual starts in its stationary distribution:
-Delta = matrix(NA, K, 2)
-for(k in 1:K){ Delta[k,] = stationary(Gamma[,,k]) }
+z = rnorm(K)
+beta = matrix(c(-2, -2, 1, -1), nrow = N*(N-1))
 
-# simulation of all tracks
+# compute K individual-specific tpms
+Gamma = tpm(beta, matrix(z, ncol = 1))
+# stationary() on an array returns a c(K, N) matrix of stationary distributions
+Delta = stationary(Gamma)
+
+# simulate all tracks
 set.seed(123)
-n = 200 # observations per animal only (but many animals)
-s = x = rep(NA, n*K)
+s = x = rep(NA, n * K)
 for(k in 1:K){
   sk = xk = rep(NA, n)
-  sk[1] = sample(1:2, 1, prob = Delta[k, ])
+  sk[1] = sample(1:2, 1, prob = Delta[k,])
   xk[1] = rnorm(1, mu[sk[1]], sigma[sk[1]])
   for(t in 2:n){
-    sk[t] = sample(1:2, 1, prob = Gamma[sk[t-1],,k]) 
+    sk[t] = sample(1:2, 1, prob = Gamma[sk[t-1],,k])
     xk[t] = rnorm(1, mu[sk[t]], sigma[sk[t]])
   }
   s[(k-1)*n + 1:n] = sk
@@ -199,24 +188,30 @@ for(k in 1:K){
 
 ### Writing the negative log-likelihood function
 
-Now we write the corresponding negative log-likehood function that
-incorporates the above structure. As each track has a fixed t.p.m., we
-can assume stationarity and compute the stationary initial distribution
-for each track respectively.
+Each individual has its own constant transition probability matrix,
+determined by its covariate value. We compute all K individual-specific
+tpms at once using
+[`tpm()`](https://janolefi.github.io/LaMa/reference/tpm.md). When passed
+an array of transition matrices of dimension `c(N,N,K)`,
+[`stationary()`](https://janolefi.github.io/LaMa/reference/stationary.md)
+returns a matrix of dimension `c(K,N)` with the stationary distribution
+for each tpm in its rows. Both are then passed to
+[`forward()`](https://janolefi.github.io/LaMa/reference/forward.md)
+together with `trackID`.
 
 ``` r
 
-# fast version using trackInd in forward()
-nll_partial = function(par, x, z, trackID){
-  # individual-specific tpms
-  beta = matrix(par[1:4], nrow = 2)
-  Gamma = tpm_g(z, beta)
-  Delta = t(sapply(1:k, function(k) stationary(Gamma[,,k])))
-  mu = par[5:6]
-  sigma = exp(par[7:8])
-  allprobs = matrix(1, length(x), 2)
-  for(j in 1:2) allprobs[,j] = dnorm(x, mu[j], sigma[j])
-  # just handing a Delta matrix and Gamma array for all individuals to forward()
+nll_partial = function(par) {
+  getAll(par, dat)
+  Gamma = tpm(beta, matrix(z, ncol = 1)) # array of K individual-specific tpms
+  Delta = stationary(Gamma) # when passed an array, returns a matrix of dim c(K, N),
+                            # each row being the stationary distribution for one tpm
+  mu = exp(log_mu); REPORT(mu)
+  sigma = exp(log_sigma); REPORT(sigma)
+  REPORT(beta)
+  allprobs = matrix(1, length(x), N)
+  for(j in 1:N) allprobs[,j] = dnorm(x, mu[j], sigma[j])
+  # Delta matrix and Gamma array supply individual-specific starts and tpms
   -forward(Delta, Gamma, allprobs, trackID)
 }
 ```
@@ -225,17 +220,205 @@ nll_partial = function(par, x, z, trackID){
 
 ``` r
 
-# again defining all the indices where a new track begins
 trackID = rep(1:K, each = n)
 
-# initial parameter vector
-par = c(beta = c(-2, -2, 0, 0), # beta
-        mu = c(15, 60), # state-dependent means
-        log(10), log(40)) # state-dependent sds
+par = list(
+  beta = matrix(c(-2, -2, 0, 0), nrow = N*(N-1)), # regression coefficients for tpm
+  log_mu = log(c(15, 60)),                         # initial state-dependent means
+  log_sigma = log(c(10, 40))                       # initial state-dependent sds
+)
 
+dat = list(
+  x = x,
+  z = z,
+  trackID = trackID,
+  N = N
+)
+
+obj_partial = MakeADFun(nll_partial, par, silent = TRUE)
 system.time(
-  mod_partial <- nlm(nll_partial, par, x = x, z = z, trackID = trackID)
+  opt_partial <- nlminb(obj_partial$par, obj_partial$fn, obj_partial$gr)
 )
 #>    user  system elapsed 
-#>   0.475   0.005   0.480
+#>   0.020   0.000   0.019
+mod_partial = report(obj_partial)
 ```
+
+The estimated regression coefficients for the transition probabilities
+and the shared state-dependent parameters:
+
+``` r
+
+mod_partial$beta   # true: c(-2, -2, 1, -1)
+#>           [,1]       [,2]
+#> [1,] -2.055222  0.6029733
+#> [2,] -2.088381 -1.2557279
+mod_partial$mu     # true: 15, 60
+#> [1] 15.70795 57.88094
+mod_partial$sigma  # true: 10, 40
+#> [1] 10.33312 41.92609
+```
+
+## Random effects
+
+In the partial pooling example above, we estimated a separate transition
+probability matrix for each individual based on a fixed covariate. An
+alternative and often more parsimonious approach is to treat the
+individual-level variation in transition probabilities as arising from
+**Gaussian random effects**. Instead of estimating K independent
+transition structures, we model each individual’s linear predictor as a
+deviation from a shared population-level intercept:
+\text{logit}(\gamma\_{ij}^{(k)}) = \beta_0^{(ij)} + u\_{ij}^{(k)}, \quad
+u\_{ij}^{(k)} \overset{\text{iid}}{\sim} N\bigl(0,
+\sigma_u^{(ij)}\bigr), for each off-diagonal element (i \neq j) and each
+individual k = 1, \dots, K. The population-level intercept
+\beta_0^{(ij)} captures the average switching tendency, while
+\sigma_u^{(ij)} quantifies how much individuals vary around it. The
+number of state-process parameters is 2 \times N(N-1) — two intercepts
+and two standard deviations for a two-state model — regardless of how
+many individuals are in the data.
+
+To fit this model we need to integrate out the random effects from the
+joint likelihood. `RTMB` handles this automatically when the random
+effects are declared via the `random` argument of `MakeADFun()`.
+
+### Generating data
+
+``` r
+
+set.seed(123)
+K = 50    # number of individuals
+N = 2     # number of states
+n = 100   # observations per individual
+
+# Shared state-dependent parameters
+mu = c(15, 60)
+sigma = c(10, 40)
+
+# Population-level intercepts and individual random effects
+beta_0 = c(-2, -2)  # one per off-diagonal element
+sigma_u = c(1, 1)   # one per off-diagonal element
+
+u_true = matrix(rnorm(K * N*(N-1), 0, rep(sigma_u, each = K)),
+                nrow = K, ncol = N*(N-1))
+
+# K individual-specific tpms and their stationary distributions
+Gamma_true = array(NA, c(N, N, K))
+for(k in 1:K) Gamma_true[,,k] = tpm(beta_0 + u_true[k,])
+Delta_true = stationary(Gamma_true)
+
+# Simulate all tracks
+s = x = rep(NA, n * K)
+for(k in 1:K){
+  sk = xk = rep(NA, n)
+  sk[1] = sample(1:2, 1, prob = Delta_true[k,])
+  xk[1] = rnorm(1, mu[sk[1]], sigma[sk[1]])
+  for(t in 2:n){
+    sk[t] = sample(1:2, 1, prob = Gamma_true[sk[t-1],,k])
+    xk[t] = rnorm(1, mu[sk[t]], sigma[sk[t]])
+  }
+  s[(k-1)*n + 1:n] = sk
+  x[(k-1)*n + 1:n] = xk
+}
+
+trackID = rep(1:K, each = n)
+```
+
+### Writing the joint negative log-likelihood
+
+The joint negative log-likelihood includes both the data likelihood (via
+[`forward()`](https://janolefi.github.io/LaMa/reference/forward.md)) and
+the Gaussian prior on the random effects:
+
+``` r
+
+jnll_re = function(par) {
+  getAll(par, dat)
+
+  # Random effect standard deviations
+  sigma_u = exp(log_sigma_u); REPORT(sigma_u); ADREPORT(sigma_u)
+
+  # Gaussian prior on u: u[,ij] ~ N(0, sigma_u[ij])
+  jnll = 0
+  for(ij in 1:(N*(N-1))) {
+    jnll = jnll - sum(dnorm(u[,ij], 0, sigma_u[ij], log = TRUE))
+  }
+
+  # Individual-specific tpms from population intercept + random effect
+  Gamma = AD(array(0, c(N, N, K)))
+  for(k in 1:K) Gamma[,,k] = tpm(beta_0 + u[k,])
+  Delta = stationary(Gamma)
+
+  # Observation model
+  mu = exp(log_mu); REPORT(mu)
+  sigma = exp(log_sigma); REPORT(sigma)
+  allprobs = matrix(1, length(x), N)
+  for(j in 1:N) allprobs[,j] = dnorm(x, mu[j], sigma[j])
+
+  jnll - forward(Delta, Gamma, allprobs, trackID)
+}
+```
+
+### Estimating the model
+
+The random effects matrix `u` is declared via `random = "u"`, telling
+`RTMB` to integrate it out. The optimiser only sees the marginal
+(random-effects-free) likelihood as a function of the fixed-effect
+parameters `beta_0`, `log_sigma_u`, `log_mu`, and `log_sigma`.
+
+``` r
+
+par = list(
+  beta_0 = rep(-2, N*(N-1)),      # population-level intercepts
+  log_sigma_u = log(c(1, 1)),     # log-SDs of random effects
+  u = matrix(0, K, N*(N-1)),      # random effects (integrated out)
+  log_mu = log(c(15, 60)),        # initial state-dependent means
+  log_sigma = log(c(10, 40))      # initial state-dependent sds
+)
+
+dat = list(
+  x = x,
+  trackID = trackID,
+  K = K,
+  N = N
+)
+
+obj_re = MakeADFun(jnll_re, par, random = "u", silent = TRUE)
+system.time(
+  opt_re <- nlminb(obj_re$par, obj_re$fn, obj_re$gr)
+)
+#>    user  system elapsed 
+#>   3.985   0.023   4.009
+mod_re = report(obj_re)
+```
+
+The estimated standard deviations of the random effects tell us how much
+the transition probabilities vary across individuals. We can check the
+key population-level estimates against the true values used in the
+simulation:
+
+``` r
+
+mod_re$sigma_u  # true: 1, 1
+#> [1] 1.073841 0.934637
+mod_re$mu       # true: 15, 60
+#> [1] 14.62212 60.00429
+mod_re$sigma    # true: 10, 40
+#> [1]  9.937914 39.891970
+```
+
+Standard errors for all fixed effects and
+[`ADREPORT()`](https://rdrr.io/pkg/RTMB/man/TMB-interface.html)ed
+quantities are available via `sdreport()`:
+
+``` r
+
+sdr_re = sdreport(obj_re)
+summary(sdr_re, "report") # sigma_u with SEs
+#>         Estimate Std. Error
+#> sigma_u 1.073841  0.1693166
+#> sigma_u 0.934637  0.1572146
+```
+
+> Continue reading with [**Penalised
+> splines**](https://janolefi.github.io/LaMa/articles/Penalised_splines.html).

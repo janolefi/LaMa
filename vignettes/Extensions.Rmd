@@ -442,8 +442,8 @@ As usual, we set initial parameter values. In the dat list, we include the trigo
 
 ```{r parameters seasonal}
 par = list(
-  log_mu = log(c(0.3, 1)),      # initial means for step length
-  log_sigma = log(c(0.2, 0.7)), # initial sds for step length
+  log_mu = log(c(0.3, 1)),                # initial means for step length
+  log_sigma = log(c(0.2, 0.7)),           # initial sds for step length
   beta = cbind(c(-2,-2), matrix(0, 2, 2)) # initial t.p.m. parameters
 )    
 

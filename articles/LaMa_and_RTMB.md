@@ -462,5 +462,5 @@ For more information on `RTMB`, see its
 [documentation](https://CRAN.R-project.org/package=RTMB) or the [TMB
 users Google group](https://groups.google.com/g/tmb-users).
 
-> Continue reading with [**Penalised
-> splines**](https://janolefi.github.io/LaMa/articles/Penalised_splines.html).
+> Continue reading with
+> [**Extensions**](https://janolefi.github.io/LaMa/articles/Extensions.html).

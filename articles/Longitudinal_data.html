@@ -185,7 +185,7 @@ argument to <code><a href="../reference/forward.html">forward()</a></code>:</p>
 <span>  <span class="va">opt_pool</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></span><span class="op">(</span><span class="va">obj_pool</span><span class="op">$</span><span class="va">par</span>, <span class="va">obj_pool</span><span class="op">$</span><span class="va">fn</span>, <span class="va">obj_pool</span><span class="op">$</span><span class="va">gr</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.184   0.000   0.184</span></span>
+<span><span class="co">#&gt;   0.193   0.000   0.193</span></span>
 <span><span class="va">mod_pool</span> <span class="op">=</span> <span class="fu"><a href="../reference/report.html">report</a></span><span class="op">(</span><span class="va">obj_pool</span><span class="op">)</span></span></code></pre></div>
 <p>We can inspect the estimated parameters, which should be close to the
 true values used in the simulation:</p>
@@ -439,7 +439,7 @@ likelihood as a function of the fixed-effect parameters
 <span>  <span class="va">opt_re</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></span><span class="op">(</span><span class="va">obj_re</span><span class="op">$</span><span class="va">par</span>, <span class="va">obj_re</span><span class="op">$</span><span class="va">fn</span>, <span class="va">obj_re</span><span class="op">$</span><span class="va">gr</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   4.383   0.028   4.412</span></span>
+<span><span class="co">#&gt;   4.459   0.025   4.483</span></span>
 <span><span class="va">mod_re</span> <span class="op">=</span> <span class="fu"><a href="../reference/report.html">report</a></span><span class="op">(</span><span class="va">obj_re</span><span class="op">)</span></span></code></pre></div>
 <p>The estimated standard deviations of the random effects tell us how
 much the transition probabilities vary across individuals. We can check

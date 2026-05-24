@@ -204,7 +204,7 @@ system.time(
   opt <- nlminb(obj$par, obj$fn, obj$gr)
 )
 #>    user  system elapsed 
-#>   0.336   0.000   0.336
+#>   0.335   0.000   0.335
 mod = report(obj)
 ```
 
@@ -232,11 +232,7 @@ colour each arrival by its inferred state.
 
 ``` r
 
-allprobs_dec = matrix(rep(mod$lambda, length(timediff) + 1),
-                      nrow = length(timediff) + 1, ncol = N, byrow = TRUE)
-allprobs_dec[1,] = 1
-Qube_dec = tpm_ct(mod$Q, timediff, mod$lambda)
-states = viterbi(mod$Pi, Qube_dec, allprobs_dec)
+states = viterbi(mod = mod)
 
 plot(arrival_times[1:100], rep(0.5, 100), type = "h", bty = "n",
      ylim = c(0, 1), yaxt = "n", col = color[states[1:100]],
@@ -377,7 +373,7 @@ system.time(
   opt2 <- nlminb(obj2$par, obj2$fn, obj2$gr)
 )
 #>    user  system elapsed 
-#>   1.054   0.000   1.055
+#>   0.987   0.000   0.988
 mod2 = report(obj2)
 ```
 
@@ -438,11 +434,7 @@ information to assign the latent state.
 
 ``` r
 
-allprobs_dec2 = matrix(1, n, N)
-for (j in 1:N) allprobs_dec2[, j] = dnorm(marks, mod2$mu[j], mod2$sigma[j])
-allprobs_dec2[-1,] = allprobs_dec2[-1,] * matrix(mod2$lambda, n - 1, N, byrow = TRUE)
-Qube_dec2 = tpm_ct(mod2$Q, timediff, mod2$lambda)
-states2 = viterbi(mod2$Pi, Qube_dec2, allprobs_dec2)
+states2 = viterbi(mod = mod2)
 
 plot(arrival_times[1:100], marks[1:100], pch = 16, bty = "n",
      col = color[states2[1:100]],

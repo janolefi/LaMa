@@ -218,7 +218,7 @@ system.time(
   opt <- nlminb(obj$par, obj$fn, obj$gr)
 )
 #>    user  system elapsed 
-#>    0.12    0.00    0.12
+#>   0.118   0.000   0.118
 mod = report(obj)
 ```
 
@@ -270,16 +270,15 @@ legend("right", lwd = 2, col = color, bty = "n",
 ![](Continuous_time_HMMs_files/figure-html/tpm_curves-1.png)
 
 We can also decode the most probable hidden state sequence using
-[`viterbi()`](https://janolefi.github.io/LaMa/reference/viterbi.md),
-passing the same `allprobs` matrix and interval-specific `Qube` as used
-in the likelihood.
+[`viterbi()`](https://janolefi.github.io/LaMa/reference/viterbi.md).
+Because
+[`forward()`](https://janolefi.github.io/LaMa/reference/forward.md)
+automatically stores `delta`, `Qube`, and `allprobs` in the model
+report, we can pass the report object directly.
 
 ``` r
 
-allprobs = matrix(1, n, N)
-for (j in 1:N) allprobs[, j] = dnorm(x, mod$mu[j], mod$sigma[j])
-Qube_vit = tpm_ct(mod$Q, timediff)
-states = viterbi(stationary_ct(mod$Q), Qube_vit, allprobs)
+states = viterbi(mod = mod)
 
 plot(obs_times[1:50], x[1:50], pch = 16, bty = "n",
      col = color[states[1:50]],
@@ -374,7 +373,7 @@ system.time(
   opt2 <- nlminb(obj2$par, obj2$fn, obj2$gr)
 )
 #>    user  system elapsed 
-#>   0.271   0.000   0.270
+#>   0.255   0.000   0.255
 mod2 = report(obj2)
 ```
 
@@ -403,10 +402,7 @@ round(1 / diag(-mod2$Q), 2) # estimated mean dwell times; true: 2, 0.5, 1
 ``` r
 
 color3 = LaMaColors(3)
-allprobs2 = matrix(1, length(obs_times), N)
-for (j in 1:N) allprobs2[, j] = dnorm(x, mod2$mu[j], mod2$sigma[j])
-Qube_vit2 = tpm_ct(mod2$Q, timediff)
-states2 = viterbi(stationary_ct(mod2$Q), Qube_vit2, allprobs2)
+states2 = viterbi(mod = mod2)
 
 plot(obs_times[1:50], x[1:50], pch = 16, bty = "n",
      col = color3[states2[1:50]],

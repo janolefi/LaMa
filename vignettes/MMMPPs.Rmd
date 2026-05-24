@@ -24,7 +24,7 @@ knitr::opts_chunk$set(
 options(rmarkdown.html_vignette.check_title = FALSE)
 ```
 
-> Before diving into this vignette, we recommend reading the vignettes [**Introduction to LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html) and [**Continuous-time HMMs**](https://janolefi.github.io/LaMa/articles/Continuous_time_HMMs.html).
+> Before diving into this vignette, we recommend reading the vignettes [**Introduction to LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html), [**Automatic differentiation via RTMB**](https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html), and [**Continuous-time HMMs**](https://janolefi.github.io/LaMa/articles/Continuous_time_HMMs.html).
 
 ```{r setup}
 library(LaMa)

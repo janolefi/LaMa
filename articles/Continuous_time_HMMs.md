@@ -186,11 +186,11 @@ nll = function(par) {
   sigma = exp(log_sigma); REPORT(sigma)
   Q = generator(log_qs); REPORT(Q)  # maps unconstrained params -> valid Q
   Pi = stationary_ct(Q)             # stationary distribution of the CTMC
-  Gamma_t = tpm_ct(Q, timediff)     # exp(Q * dt) for each time difference
+  Qube = tpm_ct(Q, timediff)     # exp(Q * dt) for each time difference
   allprobs = matrix(1, length(x), N)
   ind = which(!is.na(x))
   for(j in 1:N) allprobs[ind, j] = dnorm(x[ind], mu[j], sigma[j])
-  -forward(Pi, Gamma_t, allprobs)
+  -forward(Pi, Qube, allprobs)
 }
 ```
 
@@ -218,7 +218,7 @@ system.time(
   opt <- nlminb(obj$par, obj$fn, obj$gr)
 )
 #>    user  system elapsed 
-#>   0.125   0.001   0.125
+#>   0.118   0.000   0.118
 mod = report(obj)
 ```
 
@@ -245,6 +245,50 @@ round(1 / diag(-mod$Q), 2) # estimated mean dwell times; true: 2, 1
 #>   S1   S2 
 #> 2.09 1.10
 ```
+
+The transition probability curves \gamma\_{ij}(\Delta t) show how
+quickly the process mixes as the lag grows. At \Delta t = 0 the matrix
+is the identity; as \Delta t \to \infty both off-diagonal entries
+converge to the stationary probability of the destination state (dashed
+lines), reflecting full mixing.
+
+``` r
+
+dt_seq = seq(0, 10, length.out = 300)
+Qube_seq = tpm_ct(mod$Q, dt_seq)
+Pi_ct = stationary_ct(mod$Q)
+
+plot(dt_seq, Qube_seq[1, 2, ], type = "l", lwd = 2, col = color[1], bty = "n",
+     xlab = expression(Delta*t), ylab = "transition probability", ylim = c(0, 1))
+lines(dt_seq, Qube_seq[2, 1, ], lwd = 2, col = color[2])
+abline(h = Pi_ct[2], lty = 2, col = color[1])  # long-run limit of gamma_12
+abline(h = Pi_ct[1], lty = 2, col = color[2])  # long-run limit of gamma_21
+legend("right", lwd = 2, col = color, bty = "n",
+       legend = c(expression(gamma[12](Delta*t)), expression(gamma[21](Delta*t))))
+```
+
+![](Continuous_time_HMMs_files/figure-html/tpm_curves-1.png)
+
+We can also decode the most probable hidden state sequence using
+[`viterbi()`](https://janolefi.github.io/LaMa/reference/viterbi.md),
+passing the same `allprobs` matrix and interval-specific `Qube` as used
+in the likelihood.
+
+``` r
+
+allprobs = matrix(1, n, N)
+for (j in 1:N) allprobs[, j] = dnorm(x, mod$mu[j], mod$sigma[j])
+Qube_vit = tpm_ct(mod$Q, timediff)
+states = viterbi(stationary_ct(mod$Q), Qube_vit, allprobs)
+
+plot(obs_times[1:50], x[1:50], pch = 16, bty = "n",
+     col = color[states[1:50]],
+     xlab = "observation times", ylab = "x", ylim = c(-5, 25))
+legend("topright", pch = 16, col = color,
+       legend = paste("state", 1:N), box.lwd = 0)
+```
+
+![](Continuous_time_HMMs_files/figure-html/state_decoding-1.png)
 
 ## Example 2: three states
 
@@ -330,7 +374,7 @@ system.time(
   opt2 <- nlminb(obj2$par, obj2$fn, obj2$gr)
 )
 #>    user  system elapsed 
-#>   0.284   0.000   0.285
+#>   0.266   0.000   0.266
 mod2 = report(obj2)
 ```
 
@@ -355,6 +399,23 @@ round(1 / diag(-mod2$Q), 2) # estimated mean dwell times; true: 2, 0.5, 1
 #>   S1   S2   S3 
 #> 1.13 0.29 1.30
 ```
+
+``` r
+
+color3 = LaMaColors(3)
+allprobs2 = matrix(1, length(obs_times), N)
+for (j in 1:N) allprobs2[, j] = dnorm(x, mod2$mu[j], mod2$sigma[j])
+Qube_vit2 = tpm_ct(mod2$Q, timediff)
+states2 = viterbi(stationary_ct(mod2$Q), Qube_vit2, allprobs2)
+
+plot(obs_times[1:50], x[1:50], pch = 16, bty = "n",
+     col = color3[states2[1:50]],
+     xlab = "observation times", ylab = "x", ylim = c(-5, 40))
+legend("topright", pch = 16, col = color3,
+       legend = paste("state", 1:N), box.lwd = 0)
+```
+
+![](Continuous_time_HMMs_files/figure-html/state_decoding2-1.png)
 
 > Continue reading with [**Markov-modulated Poisson
 > processes**](https://janolefi.github.io/LaMa/articles/MMMPPs.html).

@@ -2,7 +2,9 @@
 
 > Before diving into this vignette, we recommend reading the vignettes
 > [**Introduction to
-> LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html)
+> LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html),
+> [**Automatic differentiation via
+> RTMB**](https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html),
 > and [**Continuous-time
 > HMMs**](https://janolefi.github.io/LaMa/articles/Continuous_time_HMMs.html).
 
@@ -202,7 +204,7 @@ system.time(
   opt <- nlminb(obj$par, obj$fn, obj$gr)
 )
 #>    user  system elapsed 
-#>   0.338   0.000   0.338
+#>   0.436   0.000   0.436
 mod = report(obj)
 ```
 
@@ -375,7 +377,7 @@ system.time(
   opt2 <- nlminb(obj2$par, obj2$fn, obj2$gr)
 )
 #>    user  system elapsed 
-#>   1.028   0.000   1.029
+#>   1.211   0.000   1.211
 mod2 = report(obj2)
 ```
 

@@ -212,13 +212,10 @@ legend("right", lwd = 2, col = color, bty = "n",
        legend = c(expression(gamma[12](Delta*t)), expression(gamma[21](Delta*t))))
 ```
 
-We can also decode the most probable hidden state sequence using `viterbi()`, passing the same `allprobs` matrix and interval-specific `Qube` as used in the likelihood.
+We can also decode the most probable hidden state sequence using `viterbi()`. Because `forward()` automatically stores `delta`, `Qube`, and `allprobs` in the model report, we can pass the report object directly.
 
 ```{r state_decoding}
-allprobs = matrix(1, n, N)
-for (j in 1:N) allprobs[, j] = dnorm(x, mod$mu[j], mod$sigma[j])
-Qube_vit = tpm_ct(mod$Q, timediff)
-states = viterbi(stationary_ct(mod$Q), Qube_vit, allprobs)
+states = viterbi(mod = mod)
 
 plot(obs_times[1:50], x[1:50], pch = 16, bty = "n",
      col = color[states[1:50]],
@@ -319,10 +316,7 @@ round(1 / diag(-mod2$Q), 2) # estimated mean dwell times; true: 2, 0.5, 1
 
 ```{r state_decoding2}
 color3 = LaMaColors(3)
-allprobs2 = matrix(1, length(obs_times), N)
-for (j in 1:N) allprobs2[, j] = dnorm(x, mod2$mu[j], mod2$sigma[j])
-Qube_vit2 = tpm_ct(mod2$Q, timediff)
-states2 = viterbi(stationary_ct(mod2$Q), Qube_vit2, allprobs2)
+states2 = viterbi(mod = mod2)
 
 plot(obs_times[1:50], x[1:50], pch = 16, bty = "n",
      col = color3[states2[1:50]],

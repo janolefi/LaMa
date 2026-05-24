@@ -35,13 +35,13 @@ if(!require("scales")){
 
 <!-- *Before reading this vignette, it is advised that you read the vignettes "Introduction to LaMa", "Inhomogeneous HMMs", "periodic HMMs" and "LaMa and RTMB".* -->
 
-> Before diving into this vignette, we recommend reading the vignettes **Introduction to LaMa**, **Inhomogeneous HMMs**, **Periodic HMMs** and **LaMa and RTMB**.
+> Before diving into this vignette, we recommend reading the vignettes [**Introduction to LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html), [**Automatic differentiation via RTMB**](https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html) and [**Extensions**](https://janolefi.github.io/LaMa/articles/Extensions.html).
 
 This vignette explores how `LaMa` can be used to fit models involving nonparametric components, represented by **penalised splines**. The main idea here is that it may be useful to represent some relationships in our model by smooth functions for which the functional form is not pre-specified, but flexibly estimated from the data. For HMM-like models, this is particularly valuable, as the latent nature of the state process makes modelling choices more difficult. For example, choosing an appropriate parametric family for the state-dependent distributions may be difficult as we cannot do state-specific EDA before fitting the model. Also very difficult is the dependence of transition probabilities on covariates as the transitions are not directly observed. Hence, the obvious alternative is to model these kind of relationships flexibly using splines but imposing a penalty on the smoothness of the estimated functions. This leads us to **penalised splines**.
 
 `LaMa` contains helper functions that build **design** and **penalty matrices** for given formulas (using `mgcv` under the hood) and also functions to estimate models involving penalised splines in a random effects framework. For the latter to work, the **penalised negative log-likelihood** needs to be compatible with the R package `RTMB` to allow for **automatic differentiation (AD)**. For more information on `RTMB`, see the vignette *LaMa and RTMB* or check out its [documentation](https://CRAN.R-project.org/package=RTMB). For more information on penalised splines, we recommend @wood2017generalized.
 
-### Smooth transition probabilities
+## Smooth transition probabilities
 
 We will start by investigating a 2-state HMM for the `trex` data set, containing hourly step lengths and turning angles of a Tyrannosaurus rex living 66 million years ago. The transition probabilities are modelled as smooth functions of the time of day using **cyclic P-Splines**. The relationship can be summarised as
 
@@ -50,7 +50,7 @@ $$
 $$
 where $s_{ij}(t)$ is a smooth periodic function of time of day. We model the T-rex's **step lengths** and **turning angles** using state-dependent **gamma** and **von Mises** distributions.
 
-To ease with model specification, `LaMa` provides the function `make_matrices()` which creates **design** and **penalty** matrices for regression settings based on the R package `mgcv`. The user only needs to specify the right side of a formula using `mgcv` syntax and provide data. Here, we use `s(tod, by = "cp")` to create the matrices for cyclic P-splines (`cp`). This results in a cubic B-Spline basis, that is wrapped at boundary of the support (0 and 24). We then append both resulting matrices to the `dat` list.
+To ease with model specification, `LaMa` provides the function `make_matrices()` which creates **design** and **penalty** matrices for regression settings based on the R package `mgcv`. The user only needs to specify the right side of a formula using `mgcv` syntax and provide data. Here, we use `s(tod, bs = "cp")` to create the matrices for cyclic P-splines (`cp`). This results in a cubic B-Spline basis, that is wrapped at boundary of the support (0 and 24). We then append both resulting matrices to the `dat` list.
 
 ```{r LaMa}
 library(LaMa)
@@ -58,10 +58,6 @@ library(LaMa)
 head(trex)
 ```
 
-```{r TapeConfig, include=FALSE}
-old <- RTMB::TapeConfig()
-RTMB::TapeConfig(matmul = "plain") # speeds up forward algorithm
-```
 
 ```{r tod2}
 modmat = make_matrices(~ s(tod, bs = "cp"), # formula
@@ -71,13 +67,13 @@ Z = modmat$Z # spline design matrix
 S = modmat$S # penalty matrix
 ```
 
-We can now specify the **penalised negative log-likelihood function**. The transition probability matrix can be computed the regular way using `tpm_g()`. In the last line we need to add the curvature penalty based on `S`, which we can conveniently do using `penalty()`.
+We can now specify the **penalised negative log-likelihood function**. The transition probability matrix can be computed the regular way using `tpm()`. In the last line we need to add the curvature penalty based on `S`, which we can conveniently do using `penalty()`.
 
 ```{r mllk3}
 pnll = function(par) {
   getAll(par, dat)
   # cbinding intercept and spline coefs, because intercept is not penalised
-  Gamma = tpm_g(Z, cbind(beta0, betaSpline))
+  Gamma = tpm(cbind(beta0, betaSpline), Z)
   # computing all periodically stationary distributions for easy access later
   Delta = stationary_p(Gamma); REPORT(Delta)
   # parameter transformations
@@ -90,7 +86,7 @@ pnll = function(par) {
   for(j in 1:N){
     allprobs[ind,j] = dgamma2(step[ind],mu[j],sigma[j]) * dvm(angle[ind],0,kappa[j])
   }
-  -forward_g(Delta[tod[1],], Gamma[,,tod], allprobs) + # regular forward algorithm
+  -forward(Delta[tod[1],], Gamma[,,tod], allprobs) + # regular forward algorithm
     penalty(betaSpline, S, lambda) # this does all the penalisation work
 }
 ```
@@ -134,28 +130,57 @@ system.time(
   mod1 <- qreml(pnll, par, dat, random = "betaSpline")
 )
 ```
-The `mod` object is now a list that contains everything that is reported by the likelihood function, but also the `RTMB` object created in the process. After fitting the model, we can use `predict()` with the `modmat` object we created earlier to build a new interpolating design matrix using the exact same basis expansion specified above. This allows us to plot the estimated transition probabilities as a smooth function of time of day. 
-<!-- Uncertainty quantification can be based on the Hessian of the penalised likelihood function, returned as `Hessian_conditional` in the `mod` object. To easily relist the sampled parameter vector to the original named-list structure, the function `relist_par()` is contained in the `mod` object. -->
+The `mod` object is now a list that contains everything that is reported by the likelihood function, but also the `RTMB` object created in the process. After fitting the model, we can use `predict()` with the `modmat` object we created earlier to build a new interpolating design matrix using the exact same basis expansion specified above. This allows us to plot the estimated transition probabilities as a smooth function of time of day. We use `MCreport()` to draw samples from the approximate normal distribution of the MLE and propagate uncertainty into the plotted quantities.
 
 ```{r results qreml, fig.width = 9, fig.height = 5}
-Delta = mod1$Delta
+color = LaMaColors(2)
 
 tod_seq = seq(0, 24, length = 100)
 Z_p = predict(modmat, data.frame(tod = tod_seq))
 
-Gamma_plot = tpm_g(Z_p, mod1$beta) # interpolating transition probs
+# MC samples: with report = TRUE, REPORT()ed quantities are sampled directly
+samples = MCreport(mod1$obj, report = TRUE)
 
-plot(tod_seq, Gamma_plot[1,2,], type = "l", lwd = 2, ylim = c(0,1),
-     xlab = "time of day", ylab = "transition probability", bty = "n")
-lines(tod_seq, Gamma_plot[2,1,], lwd = 2, lty = 3)
-legend("topleft", lwd = 2, lty = c(1,3), bty = "n",
+# transition probability samples on the plotting grid
+g12 = sapply(samples$beta, function(b) tpm(b, Z_p)[1,2,])
+g21 = sapply(samples$beta, function(b) tpm(b, Z_p)[2,1,])
+g12.q = apply(g12, 1, quantile, probs = c(0.025, 0.975))
+g21.q = apply(g21, 1, quantile, probs = c(0.025, 0.975))
+
+# Delta[,2] samples available directly via report = TRUE
+Delta2.samples = sapply(samples$Delta, function(d) d[,2])
+Delta2.q = apply(Delta2.samples, 1, quantile, probs = c(0.025, 0.975))
+
+# MLE quantities
+Gamma_plot = tpm(mod1$beta, Z_p)
+Delta = mod1$Delta
+
+oldpar = par(mfrow = c(1, 2))
+
+# transition probabilities with 95% confidence bands
+plot(NA, bty = "n", ylim = c(0, 1), xlim = c(0, 24),
+     xlab = "time of day", ylab = "transition probability")
+polygon(c(tod_seq, rev(tod_seq)), c(g12.q[1,], rev(g12.q[2,])),
+        col = adjustcolor(color[1], 0.3), border = NA)
+lines(tod_seq, Gamma_plot[1,2,], lwd = 2, col = color[1])
+polygon(c(tod_seq, rev(tod_seq)), c(g21.q[1,], rev(g21.q[2,])),
+        col = adjustcolor(color[2], 0.3), border = NA)
+lines(tod_seq, Gamma_plot[2,1,], lwd = 2, col = color[2])
+legend("topleft", lwd = 2, col = color, bty = "n",
        legend = c(expression(gamma[12]^(t)), expression(gamma[21]^(t))))
-plot(Delta[,2], type = "b", lwd = 2, pch = 16, xlab = "time of day", ylab = "Pr(active)", 
+
+# periodically stationary distribution with 95% confidence band
+plot(Delta[,2], type = "b", lwd = 2, pch = 16, ylim = c(0, 1),
+     xlab = "time of day", ylab = "Pr(active)",
      col = "deepskyblue", bty = "n", xaxt = "n")
-axis(1, at = seq(0,24,by=4), labels = seq(0,24,by=4))
+polygon(c(1:24, 24:1), c(Delta2.q[1,], rev(Delta2.q[2,])),
+        col = adjustcolor("deepskyblue", 0.3), border = NA)
+axis(1, at = seq(0, 24, by = 4), labels = seq(0, 24, by = 4))
+
+par(oldpar)
 ```
 
-### Smooth density estimation
+## Smooth density estimation
 
 To demonstrate nonparametric estimation of the state-dependent densities, we will consider the `nessi` data set. It contains acceleration data of the Loch Ness Monster, specifically the **overall dynamic body acceleration (ODBA)**. 
 ODBA is strictly positive with some very extreme values, making direct analysis difficult. Hence, for our analysis we consider the logarithm of ODBA as our observed process.
@@ -200,10 +225,10 @@ obj = MakeADFun(nll, par, silent = TRUE)
 opt = nlminb(obj$par, obj$fn, obj$gr)
 
 # reporting to get calculated quantities
-mod = obj$report()
+mod = report(obj)
 
 # visualising the results
-color = c("orange", "deepskyblue", "seagreen3")
+color = LaMaColors(3)
 hist(nessi$logODBA, prob = TRUE, breaks = 50, bor = "white",
      main = "", xlab = "log(ODBA)")
 for(j in 1:3) curve(mod$delta[j] * dnorm(x, mod$mu[j], mod$sigma[j]), 
@@ -237,7 +262,7 @@ xseq = modmat$xseq$logODBA # prediction sequence of logODBA values
 ```
 
 Then, we can specify the penalised negative log-likelihood function. The six lines in the middle are needed for P-Spline-based density estimation. 
-The coefficient matrix `beta` provided by `buildSmoothDens()` has one column less than the number of basis functions, which is also printed when calling `buildSmoothDens()`. This is because the last column, i.e. the last coefficient for each state, needs to be fixed to zero for **identifiability** which we do by using `cbind(beta, 0)`. 
+The coefficient matrix `beta` provided by `smooth_dens_construct()` has one column less than the number of basis functions, which is also printed when calling `buildSmoothDens()`. This is because the last column, i.e. the last coefficient for each state, needs to be fixed to zero for **identifiability** which we do by using `cbind(beta, 0)`. 
 Then, we transform the unconstrained parameter matrix to non-negative weights that sum to one (called `alpha`) for each state using the inverse multinomial logistic link (softmax). 
 The columns of the `allprobs` matrix are then computed as linear combinations of the columns of `Z` and the weights `alpha`. Lastly, we penalise the unconstrained coefficients `beta` (not the constrained `alpha`'s) using the `penalty()` function.
 
@@ -289,7 +314,7 @@ lines(xseq, colSums(mod2$delta * t(sDens)), col = "black", lwd = 2, lty = 2)
 The P-Spline model results in a very good fit to the empirical distribution. This is because the first state has a skewed distribution, the second state has a high kurtosis and the third state has a funny right tail. The P-Spline model can capture all of these features where the parametric model failed to do so.
 
 
-### Markov-switching GAMLSS
+## Markov-switching GAMLSS
 
 Lastly, we want to demonstrate how one can easily fit Markov-switching regression models where the state-dependent means and potentially other parameters depend on covariates via smooth functions. For this, we consider the `energy` data set contained in the R package `MSwM`. 
 It comprises 1784 daily observations of energy prices (in Cents per kWh) in Spain which we want to explain using the daily oil prices (in Euros per barrel) also provided in the data. Specifically, we consider a 2-state MS-GAMLSS defined by
@@ -315,7 +340,7 @@ S = modmat$S # penalty matrix (list)
 ```
 
 Then, we specify the penalised negative log-likelihood function. It differs from the first example as the state-dependent distributions, as opposed to the state process parameters, depend on the covariate. 
-Additionally, we now have two completely separated spline-coefficient matrices/ random effects called `betaSpline` and `alphaSpline` for the state-dependent means and standard deviations respectively.
+Additionally, we now have two separate spline-coefficient matrices called `betaSpline` and `alphaSpline` for the state-dependent means and standard deviations respectively.
 Thus, we need to pass them as a list to the `penalty()` function. 
 
 We also pass the penalty matrix list `S` that is provided by `make_matrices()`. This could potentially be a list of length two if the two spline coefficient matrices were penalised differently (e.g. by us using a different spline basis). In this case, however, they are the same and we only pass the list of length one. It does not matter to `penalty()` if we pass a list of length one or just one matrix.
@@ -378,7 +403,7 @@ Sigma_plot = exp(Z_p %*% t(mod3$alpha))
 
 library(scales) # to make colors semi-transparent
 
-par(mfrow = c(1,2))
+oldpar = par(mfrow = c(1,2))
 
 # state-dependent distribution as a function of oil price
 plot(energy$Oil, energy$Price, pch = 20, bty = "n", col = alpha(color[energy$states], 0.1),
@@ -395,14 +420,11 @@ legend("topright", bty = "n", legend = paste("state", 1:2), col = color, lwd = 3
 plot(NA, xlim = c(0, nrow(energy)), ylim = c(1,10), bty = "n",
      xlab = "time", ylab = "energy price")
 segments(x0 = 1:(nrow(energy)-1), x1 = 2:nrow(energy),
-         y0 = energy$Price[-nrow(energy)], y1 = energy$Price[-1], 
+         y0 = energy$Price[-nrow(energy)], y1 = energy$Price[-1],
          col = color[energy$states[-1]], lwd = 0.5)
-
+par(oldpar)
 ```
 
-```{r restore_tapeConfig, include = FALSE}
-RTMB::TapeConfig(old) # restoring old config
-```
 
 ## References
 

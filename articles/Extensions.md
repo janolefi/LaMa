@@ -105,7 +105,7 @@ sigma = mod_multi$sigma
 kappa = mod_multi$kappa
 
 # defining color vector
-color = c("orange", "deepskyblue")
+color = LaMaColors(2)
 
 oldpar = par(mfrow = c(1,2))
 
@@ -293,7 +293,7 @@ system.time(
   opt <- nlminb(obj_cov$par, obj_cov$fn, obj_cov$gr)
 )
 #>    user  system elapsed 
-#>   0.036   0.000   0.036
+#>   0.037   0.000   0.038
 mod_cov <- report(obj_cov) # reporting from fitted model
 ```
 

@@ -1,8 +1,12 @@
 # 5 Penalised splines
 
 > Before diving into this vignette, we recommend reading the vignettes
-> **Introduction to LaMa**, **Inhomogeneous HMMs**, **Periodic HMMs**
-> and **LaMa and RTMB**.
+> [**Introduction to
+> LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html),
+> [**Automatic differentiation via
+> RTMB**](https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html)
+> and
+> [**Extensions**](https://janolefi.github.io/LaMa/articles/Extensions.html).
 
 This vignette explores how `LaMa` can be used to fit models involving
 nonparametric components, represented by **penalised splines**. The main
@@ -30,7 +34,7 @@ allow for **automatic differentiation (AD)**. For more information on
 information on penalised splines, we recommend Wood
 ([2017](#ref-wood2017generalized)).
 
-### Smooth transition probabilities
+## Smooth transition probabilities
 
 We will start by investigating a 2-state HMM for the `trex` data set,
 containing hourly step lengths and turning angles of a Tyrannosaurus rex
@@ -48,7 +52,7 @@ To ease with model specification, `LaMa` provides the function
 which creates **design** and **penalty** matrices for regression
 settings based on the R package `mgcv`. The user only needs to specify
 the right side of a formula using `mgcv` syntax and provide data. Here,
-we use `s(tod, by = "cp")` to create the matrices for cyclic P-splines
+we use `s(tod, bs = "cp")` to create the matrices for cyclic P-splines
 (`cp`). This results in a cubic B-Spline basis, that is wrapped at
 boundary of the support (0 and 24). We then append both resulting
 matrices to the `dat` list.
@@ -79,9 +83,9 @@ S = modmat$S # penalty matrix
 
 We can now specify the **penalised negative log-likelihood function**.
 The transition probability matrix can be computed the regular way using
-[`tpm_g()`](https://janolefi.github.io/LaMa/reference/tpm_g.md). In the
-last line we need to add the curvature penalty based on `S`, which we
-can conveniently do using
+[`tpm()`](https://janolefi.github.io/LaMa/reference/tpm.md). In the last
+line we need to add the curvature penalty based on `S`, which we can
+conveniently do using
 [`penalty()`](https://janolefi.github.io/LaMa/reference/penalty.md).
 
 ``` r
@@ -89,7 +93,7 @@ can conveniently do using
 pnll = function(par) {
   getAll(par, dat)
   # cbinding intercept and spline coefs, because intercept is not penalised
-  Gamma = tpm_g(Z, cbind(beta0, betaSpline))
+  Gamma = tpm(cbind(beta0, betaSpline), Z)
   # computing all periodically stationary distributions for easy access later
   Delta = stationary_p(Gamma); REPORT(Delta)
   # parameter transformations
@@ -102,7 +106,7 @@ pnll = function(par) {
   for(j in 1:N){
     allprobs[ind,j] = dgamma2(step[ind],mu[j],sigma[j]) * dvm(angle[ind],0,kappa[j])
   }
-  -forward_g(Delta[tod[1],], Gamma[,,tod], allprobs) + # regular forward algorithm
+  -forward(Delta[tod[1],], Gamma[,,tod], allprobs) + # regular forward algorithm
     penalty(betaSpline, S, lambda) # this does all the penalisation work
 }
 ```
@@ -203,7 +207,7 @@ system.time(
 #> outer 11 - lambda: 0.309 0.116 
 #> outer 12 - lambda: 0.309 0.114
 #>    user  system elapsed 
-#>   7.957   3.499   7.523
+#>   8.041   3.410   7.510
 ```
 
 The `mod` object is now a list that contains everything that is reported
@@ -213,36 +217,69 @@ process. After fitting the model, we can use
 object we created earlier to build a new interpolating design matrix
 using the exact same basis expansion specified above. This allows us to
 plot the estimated transition probabilities as a smooth function of time
-of day.
+of day. We use
+[`MCreport()`](https://janolefi.github.io/LaMa/reference/MCreport.md) to
+draw samples from the approximate normal distribution of the MLE and
+propagate uncertainty into the plotted quantities.
 
 ``` r
 
-Delta = mod1$Delta
+color = LaMaColors(2)
 
 tod_seq = seq(0, 24, length = 100)
 Z_p = predict(modmat, data.frame(tod = tod_seq))
 
-Gamma_plot = tpm_g(Z_p, mod1$beta) # interpolating transition probs
+# MC samples: with report = TRUE, REPORT()ed quantities are sampled directly
+samples = MCreport(mod1$obj, report = TRUE)
+#> Evaluating Hessian...
+#> Computing reported quantities...
 
-plot(tod_seq, Gamma_plot[1,2,], type = "l", lwd = 2, ylim = c(0,1),
-     xlab = "time of day", ylab = "transition probability", bty = "n")
-lines(tod_seq, Gamma_plot[2,1,], lwd = 2, lty = 3)
-legend("topleft", lwd = 2, lty = c(1,3), bty = "n",
+# transition probability samples on the plotting grid
+g12 = sapply(samples$beta, function(b) tpm(b, Z_p)[1,2,])
+g21 = sapply(samples$beta, function(b) tpm(b, Z_p)[2,1,])
+g12.q = apply(g12, 1, quantile, probs = c(0.025, 0.975))
+g21.q = apply(g21, 1, quantile, probs = c(0.025, 0.975))
+
+# Delta[,2] samples available directly via report = TRUE
+Delta2.samples = sapply(samples$Delta, function(d) d[,2])
+Delta2.q = apply(Delta2.samples, 1, quantile, probs = c(0.025, 0.975))
+
+# MLE quantities
+Gamma_plot = tpm(mod1$beta, Z_p)
+Delta = mod1$Delta
+
+oldpar = par(mfrow = c(1, 2))
+
+# transition probabilities with 95% confidence bands
+plot(NA, bty = "n", ylim = c(0, 1), xlim = c(0, 24),
+     xlab = "time of day", ylab = "transition probability")
+polygon(c(tod_seq, rev(tod_seq)), c(g12.q[1,], rev(g12.q[2,])),
+        col = adjustcolor(color[1], 0.3), border = NA)
+lines(tod_seq, Gamma_plot[1,2,], lwd = 2, col = color[1])
+polygon(c(tod_seq, rev(tod_seq)), c(g21.q[1,], rev(g21.q[2,])),
+        col = adjustcolor(color[2], 0.3), border = NA)
+lines(tod_seq, Gamma_plot[2,1,], lwd = 2, col = color[2])
+legend("topleft", lwd = 2, col = color, bty = "n",
        legend = c(expression(gamma[12]^(t)), expression(gamma[21]^(t))))
+
+# periodically stationary distribution with 95% confidence band
+plot(Delta[,2], type = "b", lwd = 2, pch = 16, ylim = c(0, 1),
+     xlab = "time of day", ylab = "Pr(active)",
+     col = "deepskyblue", bty = "n", xaxt = "n")
+polygon(c(1:24, 24:1), c(Delta2.q[1,], rev(Delta2.q[2,])),
+        col = adjustcolor("deepskyblue", 0.3), border = NA)
+axis(1, at = seq(0, 24, by = 4), labels = seq(0, 24, by = 4))
 ```
 
 ![](Penalised_splines_files/figure-html/results%20qreml-1.png)
 
 ``` r
 
-plot(Delta[,2], type = "b", lwd = 2, pch = 16, xlab = "time of day", ylab = "Pr(active)", 
-     col = "deepskyblue", bty = "n", xaxt = "n")
-axis(1, at = seq(0,24,by=4), labels = seq(0,24,by=4))
+
+par(oldpar)
 ```
 
-![](Penalised_splines_files/figure-html/results%20qreml-2.png)
-
-### Smooth density estimation
+## Smooth density estimation
 
 To demonstrate nonparametric estimation of the state-dependent
 densities, we will consider the `nessi` data set. It contains
@@ -304,10 +341,10 @@ obj = MakeADFun(nll, par, silent = TRUE)
 opt = nlminb(obj$par, obj$fn, obj$gr)
 
 # reporting to get calculated quantities
-mod = obj$report()
+mod = report(obj)
 
 # visualising the results
-color = c("orange", "deepskyblue", "seagreen3")
+color = LaMaColors(3)
 hist(nessi$logODBA, prob = TRUE, breaks = 50, bor = "white",
      main = "", xlab = "log(ODBA)")
 for(j in 1:3) curve(mod$delta[j] * dnorm(x, mod$mu[j], mod$sigma[j]), 
@@ -359,14 +396,15 @@ xseq = modmat$xseq$logODBA # prediction sequence of logODBA values
 Then, we can specify the penalised negative log-likelihood function. The
 six lines in the middle are needed for P-Spline-based density
 estimation. The coefficient matrix `beta` provided by
-`buildSmoothDens()` has one column less than the number of basis
-functions, which is also printed when calling `buildSmoothDens()`. This
-is because the last column, i.e. the last coefficient for each state,
-needs to be fixed to zero for **identifiability** which we do by using
-`cbind(beta, 0)`. Then, we transform the unconstrained parameter matrix
-to non-negative weights that sum to one (called `alpha`) for each state
-using the inverse multinomial logistic link (softmax). The columns of
-the `allprobs` matrix are then computed as linear combinations of the
+[`smooth_dens_construct()`](https://janolefi.github.io/LaMa/reference/smooth_dens_construct.md)
+has one column less than the number of basis functions, which is also
+printed when calling `buildSmoothDens()`. This is because the last
+column, i.e. the last coefficient for each state, needs to be fixed to
+zero for **identifiability** which we do by using `cbind(beta, 0)`.
+Then, we transform the unconstrained parameter matrix to non-negative
+weights that sum to one (called `alpha`) for each state using the
+inverse multinomial logistic link (softmax). The columns of the
+`allprobs` matrix are then computed as linear combinations of the
 columns of `Z` and the weights `alpha`. Lastly, we penalise the
 unconstrained coefficients `beta` (not the constrained `alpha`’s) using
 the [`penalty()`](https://janolefi.github.io/LaMa/reference/penalty.md)
@@ -429,7 +467,7 @@ system.time(
 #> Converged
 #> Final model fit with lambda: 1.033 1.01 1.744
 #>    user  system elapsed 
-#>  16.574   4.400  15.838
+#>  16.488   4.377  15.795
 ```
 
 After fitting the model, we can easily visualise the smooth densities
@@ -455,7 +493,7 @@ the second state has a high kurtosis and the third state has a funny
 right tail. The P-Spline model can capture all of these features where
 the parametric model failed to do so.
 
-### Markov-switching GAMLSS
+## Markov-switching GAMLSS
 
 Lastly, we want to demonstrate how one can easily fit Markov-switching
 regression models where the state-dependent means and potentially other
@@ -497,10 +535,10 @@ S = modmat$S # penalty matrix (list)
 Then, we specify the penalised negative log-likelihood function. It
 differs from the first example as the state-dependent distributions, as
 opposed to the state process parameters, depend on the covariate.
-Additionally, we now have two completely separated spline-coefficient
-matrices/ random effects called `betaSpline` and `alphaSpline` for the
-state-dependent means and standard deviations respectively. Thus, we
-need to pass them as a list to the
+Additionally, we now have two separate spline-coefficient matrices
+called `betaSpline` and `alphaSpline` for the state-dependent means and
+standard deviations respectively. Thus, we need to pass them as a list
+to the
 [`penalty()`](https://janolefi.github.io/LaMa/reference/penalty.md)
 function.
 
@@ -583,7 +621,7 @@ system.time(
 #> Converged
 #> Final model fit with lambda: 22.588 7.212 8.278 4.169
 #>    user  system elapsed 
-#>  15.255   5.581  14.331
+#>  15.356   5.656  14.438
 ```
 
 Having fitted the model, we can visualise the results. We first decode
@@ -605,7 +643,7 @@ Sigma_plot = exp(Z_p %*% t(mod3$alpha))
 
 library(scales) # to make colors semi-transparent
 
-par(mfrow = c(1,2))
+oldpar = par(mfrow = c(1,2))
 
 # state-dependent distribution as a function of oil price
 plot(energy$Oil, energy$Price, pch = 20, bty = "n", col = alpha(color[energy$states], 0.1),
@@ -622,11 +660,16 @@ legend("topright", bty = "n", legend = paste("state", 1:2), col = color, lwd = 3
 plot(NA, xlim = c(0, nrow(energy)), ylim = c(1,10), bty = "n",
      xlab = "time", ylab = "energy price")
 segments(x0 = 1:(nrow(energy)-1), x1 = 2:nrow(energy),
-         y0 = energy$Price[-nrow(energy)], y1 = energy$Price[-1], 
+         y0 = energy$Price[-nrow(energy)], y1 = energy$Price[-1],
          col = color[energy$states[-1]], lwd = 0.5)
 ```
 
 ![](Penalised_splines_files/figure-html/energy_results-1.png)
+
+``` r
+
+par(oldpar)
+```
 
 ## References
 

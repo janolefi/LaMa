@@ -78,9 +78,9 @@ Fischer</h4>
 <!-- *Before reading this vignette, it is advised that you read the vignettes "Introduction to LaMa", "Inhomogeneous HMMs", "periodic HMMs" and "LaMa and RTMB".* -->
 <blockquote>
 <p>Before diving into this vignette, we recommend reading the vignettes
-<strong>Introduction to LaMa</strong>, <strong>Inhomogeneous
-HMMs</strong>, <strong>Periodic HMMs</strong> and <strong>LaMa and
-RTMB</strong>.</p>
+<a href="https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html"><strong>Introduction
+to LaMa</strong></a>, <a href="https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html"><strong>Automatic
+differentiation via RTMB</strong></a> and <a href="https://janolefi.github.io/LaMa/articles/Extensions.html"><strong>Extensions</strong></a>.</p>
 </blockquote>
 <p>This vignette explores how <code>LaMa</code> can be used to fit
 models involving nonparametric components, represented by
@@ -107,9 +107,9 @@ log-likelihood</strong> needs to be compatible with the R package
 (AD)</strong>. For more information on <code>RTMB</code>, see the
 vignette <em>LaMa and RTMB</em> or check out its <a href="https://CRAN.R-project.org/package=RTMB" class="external-link">documentation</a>. For
 more information on penalised splines, we recommend <span class="citation">Wood (<a href="#ref-wood2017generalized">2017</a>)</span>.</p>
-<div class="section level3">
-<h3 id="smooth-transition-probabilities">Smooth transition probabilities<a class="anchor" aria-label="anchor" href="#smooth-transition-probabilities"></a>
-</h3>
+<div class="section level2">
+<h2 id="smooth-transition-probabilities">Smooth transition probabilities<a class="anchor" aria-label="anchor" href="#smooth-transition-probabilities"></a>
+</h2>
 <p>We will start by investigating a 2-state HMM for the
 <code>trex</code> data set, containing hourly step lengths and turning
 angles of a Tyrannosaurus rex living 66 million years ago. The
@@ -129,7 +129,7 @@ function <code><a href="../reference/make_matrices.html">make_matrices()</a></co
 regression settings based on the R package <code>mgcv</code>. The user
 only needs to specify the right side of a formula using
 <code>mgcv</code> syntax and provide data. Here, we use
-<code>s(tod, by = "cp")</code> to create the matrices for cyclic
+<code>s(tod, bs = "cp")</code> to create the matrices for cyclic
 P-splines (<code>cp</code>). This results in a cubic B-Spline basis,
 that is wrapped at boundary of the support (0 and 24). We then append
 both resulting matrices to the <code>dat</code> list.</p>
@@ -153,14 +153,14 @@ both resulting matrices to the <code>dat</code> list.</p>
 <span><span class="va">S</span> <span class="op">=</span> <span class="va">modmat</span><span class="op">$</span><span class="va">S</span> <span class="co"># penalty matrix</span></span></code></pre></div>
 <p>We can now specify the <strong>penalised negative log-likelihood
 function</strong>. The transition probability matrix can be computed the
-regular way using <code><a href="../reference/tpm_g.html">tpm_g()</a></code>. In the last line we need to add
+regular way using <code><a href="../reference/tpm.html">tpm()</a></code>. In the last line we need to add
 the curvature penalty based on <code>S</code>, which we can conveniently
 do using <code><a href="../reference/penalty.html">penalty()</a></code>.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pnll</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">par</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">getAll</a></span><span class="op">(</span><span class="va">par</span>, <span class="va">dat</span><span class="op">)</span></span>
 <span>  <span class="co"># cbinding intercept and spline coefs, because intercept is not penalised</span></span>
-<span>  <span class="va">Gamma</span> <span class="op">=</span> <span class="fu"><a href="../reference/tpm_g.html">tpm_g</a></span><span class="op">(</span><span class="va">Z</span>, <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">beta0</span>, <span class="va">betaSpline</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">Gamma</span> <span class="op">=</span> <span class="fu"><a href="../reference/tpm.html">tpm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">beta0</span>, <span class="va">betaSpline</span><span class="op">)</span>, <span class="va">Z</span><span class="op">)</span></span>
 <span>  <span class="co"># computing all periodically stationary distributions for easy access later</span></span>
 <span>  <span class="va">Delta</span> <span class="op">=</span> <span class="fu"><a href="../reference/stationary_p.html">stationary_p</a></span><span class="op">(</span><span class="va">Gamma</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">REPORT</a></span><span class="op">(</span><span class="va">Delta</span><span class="op">)</span></span>
 <span>  <span class="co"># parameter transformations</span></span>
@@ -173,7 +173,7 @@ do using <code><a href="../reference/penalty.html">penalty()</a></code>.</p>
 <span>  <span class="kw">for</span><span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">)</span><span class="op">{</span></span>
 <span>    <span class="va">allprobs</span><span class="op">[</span><span class="va">ind</span>,<span class="va">j</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="../reference/gamma2.html">dgamma2</a></span><span class="op">(</span><span class="va">step</span><span class="op">[</span><span class="va">ind</span><span class="op">]</span>,<span class="va">mu</span><span class="op">[</span><span class="va">j</span><span class="op">]</span>,<span class="va">sigma</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="../reference/vm.html">dvm</a></span><span class="op">(</span><span class="va">angle</span><span class="op">[</span><span class="va">ind</span><span class="op">]</span>,<span class="fl">0</span>,<span class="va">kappa</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span></span>
 <span>  <span class="op">}</span></span>
-<span>  <span class="op">-</span><span class="fu"><a href="../reference/forward_g.html">forward_g</a></span><span class="op">(</span><span class="va">Delta</span><span class="op">[</span><span class="va">tod</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,<span class="op">]</span>, <span class="va">Gamma</span><span class="op">[</span>,,<span class="va">tod</span><span class="op">]</span>, <span class="va">allprobs</span><span class="op">)</span> <span class="op">+</span> <span class="co"># regular forward algorithm</span></span>
+<span>  <span class="op">-</span><span class="fu"><a href="../reference/forward.html">forward</a></span><span class="op">(</span><span class="va">Delta</span><span class="op">[</span><span class="va">tod</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,<span class="op">]</span>, <span class="va">Gamma</span><span class="op">[</span>,,<span class="va">tod</span><span class="op">]</span>, <span class="va">allprobs</span><span class="op">)</span> <span class="op">+</span> <span class="co"># regular forward algorithm</span></span>
 <span>    <span class="fu"><a href="../reference/penalty.html">penalty</a></span><span class="op">(</span><span class="va">betaSpline</span>, <span class="va">S</span>, <span class="va">lambda</span><span class="op">)</span> <span class="co"># this does all the penalisation work</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>We also have to append a <code>lambda</code> vector to our
@@ -257,7 +257,7 @@ call using the <code>psname</code> argument.</li>
 <span><span class="co">#&gt; outer 11 - lambda: 0.309 0.116 </span></span>
 <span><span class="co">#&gt; outer 12 - lambda: 0.309 0.114</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   7.957   3.499   7.523</span></span></code></pre></div>
+<span><span class="co">#&gt;   8.041   3.410   7.510</span></span></code></pre></div>
 <p>The <code>mod</code> object is now a list that contains everything
 that is reported by the likelihood function, but also the
 <code>RTMB</code> object created in the process. After fitting the
@@ -265,31 +265,63 @@ model, we can use <code><a href="https://rdrr.io/r/stats/predict.html" class="ex
 object we created earlier to build a new interpolating design matrix
 using the exact same basis expansion specified above. This allows us to
 plot the estimated transition probabilities as a smooth function of time
-of day.
-<!-- Uncertainty quantification can be based on the Hessian of the penalised likelihood function, returned as `Hessian_conditional` in the `mod` object. To easily relist the sampled parameter vector to the original named-list structure, the function `relist_par()` is contained in the `mod` object. --></p>
+of day. We use <code><a href="../reference/MCreport.html">MCreport()</a></code> to draw samples from the
+approximate normal distribution of the MLE and propagate uncertainty
+into the plotted quantities.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">Delta</span> <span class="op">=</span> <span class="va">mod1</span><span class="op">$</span><span class="va">Delta</span></span>
+<code class="sourceCode R"><span><span class="va">color</span> <span class="op">=</span> <span class="fu"><a href="../reference/LaMaColors.html">LaMaColors</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">tod_seq</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">24</span>, length <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
 <span><span class="va">Z_p</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">modmat</span>, <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>tod <span class="op">=</span> <span class="va">tod_seq</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">Gamma_plot</span> <span class="op">=</span> <span class="fu"><a href="../reference/tpm_g.html">tpm_g</a></span><span class="op">(</span><span class="va">Z_p</span>, <span class="va">mod1</span><span class="op">$</span><span class="va">beta</span><span class="op">)</span> <span class="co"># interpolating transition probs</span></span>
+<span><span class="co"># MC samples: with report = TRUE, REPORT()ed quantities are sampled directly</span></span>
+<span><span class="va">samples</span> <span class="op">=</span> <span class="fu"><a href="../reference/MCreport.html">MCreport</a></span><span class="op">(</span><span class="va">mod1</span><span class="op">$</span><span class="va">obj</span>, report <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Evaluating Hessian...</span></span>
+<span><span class="co">#&gt; Computing reported quantities...</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">tod_seq</span>, <span class="va">Gamma_plot</span><span class="op">[</span><span class="fl">1</span>,<span class="fl">2</span>,<span class="op">]</span>, type <span class="op">=</span> <span class="st">"l"</span>, lwd <span class="op">=</span> <span class="fl">2</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span>,</span>
-<span>     xlab <span class="op">=</span> <span class="st">"time of day"</span>, ylab <span class="op">=</span> <span class="st">"transition probability"</span>, bty <span class="op">=</span> <span class="st">"n"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">tod_seq</span>, <span class="va">Gamma_plot</span><span class="op">[</span><span class="fl">2</span>,<span class="fl">1</span>,<span class="op">]</span>, lwd <span class="op">=</span> <span class="fl">2</span>, lty <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html" class="external-link">legend</a></span><span class="op">(</span><span class="st">"topleft"</span>, lwd <span class="op">=</span> <span class="fl">2</span>, lty <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">3</span><span class="op">)</span>, bty <span class="op">=</span> <span class="st">"n"</span>,</span>
-<span>       legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="va">gamma</span><span class="op">[</span><span class="fl">12</span><span class="op">]</span><span class="op">^</span><span class="op">(</span><span class="va">t</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="va">gamma</span><span class="op">[</span><span class="fl">21</span><span class="op">]</span><span class="op">^</span><span class="op">(</span><span class="va">t</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># transition probability samples on the plotting grid</span></span>
+<span><span class="va">g12</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">samples</span><span class="op">$</span><span class="va">beta</span>, <span class="kw">function</span><span class="op">(</span><span class="va">b</span><span class="op">)</span> <span class="fu"><a href="../reference/tpm.html">tpm</a></span><span class="op">(</span><span class="va">b</span>, <span class="va">Z_p</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span>,<span class="fl">2</span>,<span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">g21</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">samples</span><span class="op">$</span><span class="va">beta</span>, <span class="kw">function</span><span class="op">(</span><span class="va">b</span><span class="op">)</span> <span class="fu"><a href="../reference/tpm.html">tpm</a></span><span class="op">(</span><span class="va">b</span>, <span class="va">Z_p</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span>,<span class="fl">1</span>,<span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">g12.q</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">g12</span>, <span class="fl">1</span>, <span class="va">quantile</span>, probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.025</span>, <span class="fl">0.975</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">g21.q</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">g21</span>, <span class="fl">1</span>, <span class="va">quantile</span>, probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.025</span>, <span class="fl">0.975</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Delta[,2] samples available directly via report = TRUE</span></span>
+<span><span class="va">Delta2.samples</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">samples</span><span class="op">$</span><span class="va">Delta</span>, <span class="kw">function</span><span class="op">(</span><span class="va">d</span><span class="op">)</span> <span class="va">d</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">Delta2.q</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">Delta2.samples</span>, <span class="fl">1</span>, <span class="va">quantile</span>, probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.025</span>, <span class="fl">0.975</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># MLE quantities</span></span>
+<span><span class="va">Gamma_plot</span> <span class="op">=</span> <span class="fu"><a href="../reference/tpm.html">tpm</a></span><span class="op">(</span><span class="va">mod1</span><span class="op">$</span><span class="va">beta</span>, <span class="va">Z_p</span><span class="op">)</span></span>
+<span><span class="va">Delta</span> <span class="op">=</span> <span class="va">mod1</span><span class="op">$</span><span class="va">Delta</span></span>
+<span></span>
+<span><span class="va">oldpar</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># transition probabilities with 95% confidence bands</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="cn">NA</span>, bty <span class="op">=</span> <span class="st">"n"</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">24</span><span class="op">)</span>,</span>
+<span>     xlab <span class="op">=</span> <span class="st">"time of day"</span>, ylab <span class="op">=</span> <span class="st">"transition probability"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/polygon.html" class="external-link">polygon</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">tod_seq</span>, <span class="fu"><a href="https://rdrr.io/r/base/rev.html" class="external-link">rev</a></span><span class="op">(</span><span class="va">tod_seq</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">g12.q</span><span class="op">[</span><span class="fl">1</span>,<span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/r/base/rev.html" class="external-link">rev</a></span><span class="op">(</span><span class="va">g12.q</span><span class="op">[</span><span class="fl">2</span>,<span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>        col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/adjustcolor.html" class="external-link">adjustcolor</a></span><span class="op">(</span><span class="va">color</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="fl">0.3</span><span class="op">)</span>, border <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">tod_seq</span>, <span class="va">Gamma_plot</span><span class="op">[</span><span class="fl">1</span>,<span class="fl">2</span>,<span class="op">]</span>, lwd <span class="op">=</span> <span class="fl">2</span>, col <span class="op">=</span> <span class="va">color</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/polygon.html" class="external-link">polygon</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">tod_seq</span>, <span class="fu"><a href="https://rdrr.io/r/base/rev.html" class="external-link">rev</a></span><span class="op">(</span><span class="va">tod_seq</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">g21.q</span><span class="op">[</span><span class="fl">1</span>,<span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/r/base/rev.html" class="external-link">rev</a></span><span class="op">(</span><span class="va">g21.q</span><span class="op">[</span><span class="fl">2</span>,<span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>        col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/adjustcolor.html" class="external-link">adjustcolor</a></span><span class="op">(</span><span class="va">color</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="fl">0.3</span><span class="op">)</span>, border <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">tod_seq</span>, <span class="va">Gamma_plot</span><span class="op">[</span><span class="fl">2</span>,<span class="fl">1</span>,<span class="op">]</span>, lwd <span class="op">=</span> <span class="fl">2</span>, col <span class="op">=</span> <span class="va">color</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html" class="external-link">legend</a></span><span class="op">(</span><span class="st">"topleft"</span>, lwd <span class="op">=</span> <span class="fl">2</span>, col <span class="op">=</span> <span class="va">color</span>, bty <span class="op">=</span> <span class="st">"n"</span>,</span>
+<span>       legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="va">gamma</span><span class="op">[</span><span class="fl">12</span><span class="op">]</span><span class="op">^</span><span class="op">(</span><span class="va">t</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="va">gamma</span><span class="op">[</span><span class="fl">21</span><span class="op">]</span><span class="op">^</span><span class="op">(</span><span class="va">t</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># periodically stationary distribution with 95% confidence band</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">Delta</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span>, type <span class="op">=</span> <span class="st">"b"</span>, lwd <span class="op">=</span> <span class="fl">2</span>, pch <span class="op">=</span> <span class="fl">16</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>     xlab <span class="op">=</span> <span class="st">"time of day"</span>, ylab <span class="op">=</span> <span class="st">"Pr(active)"</span>,</span>
+<span>     col <span class="op">=</span> <span class="st">"deepskyblue"</span>, bty <span class="op">=</span> <span class="st">"n"</span>, xaxt <span class="op">=</span> <span class="st">"n"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/polygon.html" class="external-link">polygon</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">24</span>, <span class="fl">24</span><span class="op">:</span><span class="fl">1</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">Delta2.q</span><span class="op">[</span><span class="fl">1</span>,<span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/r/base/rev.html" class="external-link">rev</a></span><span class="op">(</span><span class="va">Delta2.q</span><span class="op">[</span><span class="fl">2</span>,<span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>        col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/adjustcolor.html" class="external-link">adjustcolor</a></span><span class="op">(</span><span class="st">"deepskyblue"</span>, <span class="fl">0.3</span><span class="op">)</span>, border <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/axis.html" class="external-link">axis</a></span><span class="op">(</span><span class="fl">1</span>, at <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">24</span>, by <span class="op">=</span> <span class="fl">4</span><span class="op">)</span>, labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">24</span>, by <span class="op">=</span> <span class="fl">4</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Penalised_splines_files/figure-html/results%20qreml-1.png" class="r-plt" alt="" width="85%" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">Delta</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span>, type <span class="op">=</span> <span class="st">"b"</span>, lwd <span class="op">=</span> <span class="fl">2</span>, pch <span class="op">=</span> <span class="fl">16</span>, xlab <span class="op">=</span> <span class="st">"time of day"</span>, ylab <span class="op">=</span> <span class="st">"Pr(active)"</span>, </span>
-<span>     col <span class="op">=</span> <span class="st">"deepskyblue"</span>, bty <span class="op">=</span> <span class="st">"n"</span>, xaxt <span class="op">=</span> <span class="st">"n"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/axis.html" class="external-link">axis</a></span><span class="op">(</span><span class="fl">1</span>, at <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">24</span>,by<span class="op">=</span><span class="fl">4</span><span class="op">)</span>, labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">24</span>,by<span class="op">=</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="Penalised_splines_files/figure-html/results%20qreml-2.png" class="r-plt" alt="" width="85%" style="display: block; margin: auto;"></p>
+<code class="sourceCode R"><span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">oldpar</span><span class="op">)</span></span></code></pre></div>
 </div>
-<div class="section level3">
-<h3 id="smooth-density-estimation">Smooth density estimation<a class="anchor" aria-label="anchor" href="#smooth-density-estimation"></a>
-</h3>
+<div class="section level2">
+<h2 id="smooth-density-estimation">Smooth density estimation<a class="anchor" aria-label="anchor" href="#smooth-density-estimation"></a>
+</h2>
 <p>To demonstrate nonparametric estimation of the state-dependent
 densities, we will consider the <code>nessi</code> data set. It contains
 acceleration data of the Loch Ness Monster, specifically the
@@ -342,10 +374,10 @@ RTMB</em>.</p>
 <span><span class="va">opt</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></span><span class="op">(</span><span class="va">obj</span><span class="op">$</span><span class="va">par</span>, <span class="va">obj</span><span class="op">$</span><span class="va">fn</span>, <span class="va">obj</span><span class="op">$</span><span class="va">gr</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># reporting to get calculated quantities</span></span>
-<span><span class="va">mod</span> <span class="op">=</span> <span class="va">obj</span><span class="op">$</span><span class="fu">report</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">mod</span> <span class="op">=</span> <span class="fu"><a href="../reference/report.html">report</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># visualising the results</span></span>
-<span><span class="va">color</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"orange"</span>, <span class="st">"deepskyblue"</span>, <span class="st">"seagreen3"</span><span class="op">)</span></span>
+<span><span class="va">color</span> <span class="op">=</span> <span class="fu"><a href="../reference/LaMaColors.html">LaMaColors</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">nessi</span><span class="op">$</span><span class="va">logODBA</span>, prob <span class="op">=</span> <span class="cn">TRUE</span>, breaks <span class="op">=</span> <span class="fl">50</span>, bor <span class="op">=</span> <span class="st">"white"</span>,</span>
 <span>     main <span class="op">=</span> <span class="st">""</span>, xlab <span class="op">=</span> <span class="st">"log(ODBA)"</span><span class="op">)</span></span>
 <span><span class="kw">for</span><span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/graphics/curve.html" class="external-link">curve</a></span><span class="op">(</span><span class="va">mod</span><span class="op">$</span><span class="va">delta</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">mod</span><span class="op">$</span><span class="va">mu</span><span class="op">[</span><span class="va">j</span><span class="op">]</span>, <span class="va">mod</span><span class="op">$</span><span class="va">sigma</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span>, </span>
@@ -389,8 +421,8 @@ needed for density estimation.</p>
 <p>Then, we can specify the penalised negative log-likelihood function.
 The six lines in the middle are needed for P-Spline-based density
 estimation. The coefficient matrix <code>beta</code> provided by
-<code>buildSmoothDens()</code> has one column less than the number of
-basis functions, which is also printed when calling
+<code><a href="../reference/smooth_dens_construct.html">smooth_dens_construct()</a></code> has one column less than the number
+of basis functions, which is also printed when calling
 <code>buildSmoothDens()</code>. This is because the last column,
 i.e. the last coefficient for each state, needs to be fixed to zero for
 <strong>identifiability</strong> which we do by using
@@ -454,7 +486,7 @@ the design matrix <code>Z</code>.</p>
 <span><span class="co">#&gt; Converged</span></span>
 <span><span class="co">#&gt; Final model fit with lambda: 1.033 1.01 1.744</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  16.574   4.400  15.838</span></span></code></pre></div>
+<span><span class="co">#&gt;  16.488   4.377  15.795</span></span></code></pre></div>
 <p>After fitting the model, we can easily visualise the smooth densities
 using the prepared prediction objects. We already have access to all
 reported quantities because <code><a href="../reference/qreml.html">qreml()</a></code> automatically runs the
@@ -472,9 +504,9 @@ the second state has a high kurtosis and the third state has a funny
 right tail. The P-Spline model can capture all of these features where
 the parametric model failed to do so.</p>
 </div>
-<div class="section level3">
-<h3 id="markov-switching-gamlss">Markov-switching GAMLSS<a class="anchor" aria-label="anchor" href="#markov-switching-gamlss"></a>
-</h3>
+<div class="section level2">
+<h2 id="markov-switching-gamlss">Markov-switching GAMLSS<a class="anchor" aria-label="anchor" href="#markov-switching-gamlss"></a>
+</h2>
 <p>Lastly, we want to demonstrate how one can easily fit
 Markov-switching regression models where the state-dependent means and
 potentially other parameters depend on covariates via smooth functions.
@@ -510,11 +542,10 @@ of simplicity.</p>
 <p>Then, we specify the penalised negative log-likelihood function. It
 differs from the first example as the state-dependent distributions, as
 opposed to the state process parameters, depend on the covariate.
-Additionally, we now have two completely separated spline-coefficient
-matrices/ random effects called <code>betaSpline</code> and
-<code>alphaSpline</code> for the state-dependent means and standard
-deviations respectively. Thus, we need to pass them as a list to the
-<code><a href="../reference/penalty.html">penalty()</a></code> function.</p>
+Additionally, we now have two separate spline-coefficient matrices
+called <code>betaSpline</code> and <code>alphaSpline</code> for the
+state-dependent means and standard deviations respectively. Thus, we
+need to pass them as a list to the <code><a href="../reference/penalty.html">penalty()</a></code> function.</p>
 <p>We also pass the penalty matrix list <code>S</code> that is provided
 by <code><a href="../reference/make_matrices.html">make_matrices()</a></code>. This could potentially be a list of
 length two if the two spline coefficient matrices were penalised
@@ -587,7 +618,7 @@ intial penalty strength parameter in the <code>dat</code> list.</p>
 <span><span class="co">#&gt; Converged</span></span>
 <span><span class="co">#&gt; Final model fit with lambda: 22.588 7.212 8.278 4.169</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  15.255   5.581  14.331</span></span></code></pre></div>
+<span><span class="co">#&gt;  15.356   5.656  14.438</span></span></code></pre></div>
 <p>Having fitted the model, we can visualise the results. We first
 decode the most probable state sequence and then plot the estimated
 state-dependent densities as a function of the oil price, as well as the
@@ -605,7 +636,7 @@ interpolating design matrix.</p>
 <span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://scales.r-lib.org" class="external-link">scales</a></span><span class="op">)</span> <span class="co"># to make colors semi-transparent</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">oldpar</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># state-dependent distribution as a function of oil price</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">energy</span><span class="op">$</span><span class="va">Oil</span>, <span class="va">energy</span><span class="op">$</span><span class="va">Price</span>, pch <span class="op">=</span> <span class="fl">20</span>, bty <span class="op">=</span> <span class="st">"n"</span>, col <span class="op">=</span> <span class="fu"><a href="https://scales.r-lib.org/reference/alpha.html" class="external-link">alpha</a></span><span class="op">(</span><span class="va">color</span><span class="op">[</span><span class="va">energy</span><span class="op">$</span><span class="va">states</span><span class="op">]</span>, <span class="fl">0.1</span><span class="op">)</span>,</span>
@@ -622,9 +653,11 @@ interpolating design matrix.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="cn">NA</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">energy</span><span class="op">)</span><span class="op">)</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">10</span><span class="op">)</span>, bty <span class="op">=</span> <span class="st">"n"</span>,</span>
 <span>     xlab <span class="op">=</span> <span class="st">"time"</span>, ylab <span class="op">=</span> <span class="st">"energy price"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/segments.html" class="external-link">segments</a></span><span class="op">(</span>x0 <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">energy</span><span class="op">)</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span>, x1 <span class="op">=</span> <span class="fl">2</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">energy</span><span class="op">)</span>,</span>
-<span>         y0 <span class="op">=</span> <span class="va">energy</span><span class="op">$</span><span class="va">Price</span><span class="op">[</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">energy</span><span class="op">)</span><span class="op">]</span>, y1 <span class="op">=</span> <span class="va">energy</span><span class="op">$</span><span class="va">Price</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>, </span>
+<span>         y0 <span class="op">=</span> <span class="va">energy</span><span class="op">$</span><span class="va">Price</span><span class="op">[</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">energy</span><span class="op">)</span><span class="op">]</span>, y1 <span class="op">=</span> <span class="va">energy</span><span class="op">$</span><span class="va">Price</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>,</span>
 <span>         col <span class="op">=</span> <span class="va">color</span><span class="op">[</span><span class="va">energy</span><span class="op">$</span><span class="va">states</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, lwd <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Penalised_splines_files/figure-html/energy_results-1.png" class="r-plt" alt="" width="85%" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">oldpar</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>

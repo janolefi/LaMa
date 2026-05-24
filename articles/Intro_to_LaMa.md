@@ -119,7 +119,7 @@ for(t in 2:n){
 # drawing the observation conditional on the states
 x = rnorm(n, mu[s], sigma[s]) # independent given the state sequence
 
-color = c("orange", "deepskyblue")
+color = LaMaColors(2)
 plot(x[1:200], bty = "n", pch = 20, ylab = "x", 
      col = color[s[1:200]])
 ```
@@ -236,7 +236,7 @@ system.time(
   opt <- nlm(nll, par, x = x)
 )
 #>    user  system elapsed 
-#>   0.118   0.013   0.131
+#>   0.128   0.004   0.132
 ```
 
 We see that implementation of the forward algorithm in C++ leads to

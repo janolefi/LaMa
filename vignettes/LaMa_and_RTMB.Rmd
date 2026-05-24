@@ -151,7 +151,7 @@ mod$states = viterbi(mod$delta, mod$Gamma, mod$allprobs)
 mod$states = viterbi(mod = mod)
 
 # defining color vector
-color = c("orange", "deepskyblue")
+color = LaMaColors(2)
 
 plot(trex$step[1:200], type = "h", xlab = "time", ylab = "step length", 
      col = color[mod$states[1:200]], bty = "n")

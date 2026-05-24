@@ -99,7 +99,7 @@ sigma = mod_multi$sigma
 kappa = mod_multi$kappa
 
 # defining color vector
-color = c("orange", "deepskyblue")
+color = LaMaColors(2)
 
 oldpar = par(mfrow = c(1,2))
 

@@ -98,7 +98,7 @@ for(t in 2:n){
 # drawing the observation conditional on the states
 x = rnorm(n, mu[s], sigma[s]) # independent given the state sequence
 
-color = c("orange", "deepskyblue")
+color = LaMaColors(2)
 plot(x[1:200], bty = "n", pch = 20, ylab = "x", 
      col = color[s[1:200]])
 ```

@@ -36,7 +36,7 @@ optionally \code{trackID}. When using \code{RTMB::MakeADFun} or \code{\link{qrem
 \code{\link{forward}} in the likelihood, these are reported automatically after model fitting
 and the object returned by \code{RTMB::report()} or \code{\link{qreml}} can be passed directly.}
 
-\item{forecast}{logical, indicating if forecast probabilities \eqn{\Pr(\text{State}_t = j \mid X_1, ..., X_t)} should be calculated instead.}
+\item{forecast}{logical, indicating if forecast probabilities \eqn{\Pr(\text{State}_t = j \mid X_1, ..., X_{t-1})} should be calculated instead.}
 }
 \value{
 matrix of conditional state probabilities of dimension \code{c(nObs, nStates)}

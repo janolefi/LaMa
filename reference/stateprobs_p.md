@@ -70,7 +70,7 @@ stateprobs_p(
 - forecast:
 
   logical, indicating if forecast probabilities \\\Pr(S_t = j \mid X_1,
-  ..., X_t)\\ should be calculated instead.
+  ..., X\_{t-1})\\ should be calculated instead.
 
 ## Value
 

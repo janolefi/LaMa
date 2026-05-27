@@ -64,7 +64,7 @@ stateprobs(
 - forecast:
 
   logical, indicating if forecast probabilities \\\Pr(\text{State}\_t =
-  j \mid X_1, ..., X_t)\\ should be calculated instead.
+  j \mid X_1, ..., X\_{t-1})\\ should be calculated instead.
 
 ## Value
 

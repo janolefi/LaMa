@@ -62,7 +62,7 @@ par = list(logitGamma = c(-2,-2),
            logSigma = log(c(0.3, 0.5)),
            logKappa = log(c(0.2, 1)))
            
-obj = MakeADFun(nll, par)
+obj = MakeADFun(nll, par, silent = TRUE)
 opt = nlminb(obj$par, obj$fn, obj$gr)
 
 mod = report(obj)

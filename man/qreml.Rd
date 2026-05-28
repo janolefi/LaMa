@@ -142,7 +142,7 @@ pnll = function(par) {
 }
 
 # model fitting
-mod = qreml(pnll, par, dat, random = "betaspline")
+mod = qreml(pnll, par, dat, random = "betaspline", silent = 2)
 }
 \references{
 Koslik, J. O. (2024). Efficient smoothness selection for nonparametric Markov-switching models via quasi restricted maximum likelihood. arXiv preprint arXiv:2411.11498.

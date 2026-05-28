@@ -127,57 +127,8 @@
 <span class="r-in"><span>           logSigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.3</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>           logKappa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span>           </span></span>
-<span class="r-in"><span><span class="va">obj</span> <span class="op">=</span> <span class="fu">MakeADFun</span><span class="op">(</span><span class="va">nll</span>, <span class="va">par</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">obj</span> <span class="op">=</span> <span class="fu">MakeADFun</span><span class="op">(</span><span class="va">nll</span>, <span class="va">par</span>, silent <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">opt</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></span><span class="op">(</span><span class="va">obj</span><span class="op">$</span><span class="va">par</span>, <span class="va">obj</span><span class="op">$</span><span class="va">fn</span>, <span class="va">obj</span><span class="op">$</span><span class="va">gr</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  1346.261 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  327.3472 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  200.2404 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  215.4124 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  65.44812 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  55.5835 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  89.48845 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  50.01703 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  19.29538 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  48.04218 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  12.58283 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  8.252805 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  12.50345 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  27.17566 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  21.5893 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  18.1972 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  26.14859 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  8.841267 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  13.26384 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  8.94153 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  3.621365 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  9.520088 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  5.015184 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  7.817317 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  15.53745 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  6.502823 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  9.099285 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  2.16175 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  8.943538 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.765158 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  3.67778 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  1.449207 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  3.683187 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  4.210138 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  2.460138 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  2.917419 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  1.790974 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.8606995 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  1.553886 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.5824252 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.2281493 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.0414528 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.02232808 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.0191833 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.02028886 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.009637611 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.003269403 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  0.0006318679 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer mgc:  7.4312e-05 </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">mod</span> <span class="op">=</span> <span class="fu"><a href="report.html">report</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>

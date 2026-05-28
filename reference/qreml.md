@@ -283,50 +283,5 @@ pnll = function(par) {
 }
 
 # model fitting
-mod = qreml(pnll, par, dat, random = "betaspline")
-#> Creating AD function
-#> Initialising with lambda: 10 10
-#> outer 1 - lambda: 5.545 5.001 
-#> outer 2 - lambda: 3.289 3.001 
-#> outer 3 - lambda: 2.081 2.091 
-#> outer 4 - lambda: 1.406 1.599 
-#> outer 5 - lambda: 1.018 1.293 
-#> outer 6 - lambda: 0.79 1.08 
-#> outer 7 - lambda: 0.654 0.92 
-#> outer 8 - lambda: 0.573 0.794 
-#> outer 9 - lambda: 0.525 0.69 
-#> outer 10 - lambda: 0.497 0.602 
-#> outer 11 - lambda: 0.48 0.526 
-#> outer 12 - lambda: 0.471 0.46 
-#> outer 13 - lambda: 0.467 0.403 
-#> outer 14 - lambda: 0.465 0.353 
-#> outer 15 - lambda: 0.465 0.31 
-#> outer 16 - lambda: 0.466 0.272 
-#> outer 17 - lambda: 0.467 0.24 
-#> outer 18 - lambda: 0.469 0.214 
-#> outer 19 - lambda: 0.472 0.191 
-#> outer 20 - lambda: 0.474 0.172 
-#> outer 21 - lambda: 0.476 0.157 
-#> outer 22 - lambda: 0.478 0.144 
-#> outer 23 - lambda: 0.48 0.134 
-#> outer 24 - lambda: 0.481 0.126 
-#> outer 25 - lambda: 0.483 0.119 
-#> outer 26 - lambda: 0.484 0.114 
-#> outer 27 - lambda: 0.485 0.109 
-#> outer 28 - lambda: 0.486 0.106 
-#> outer 29 - lambda: 0.487 0.103 
-#> outer 30 - lambda: 0.488 0.101 
-#> outer 31 - lambda: 0.488 0.099 
-#> outer 32 - lambda: 0.489 0.097 
-#> outer 33 - lambda: 0.489 0.097 
-#> outer 34 - lambda: 0.489 0.096 
-#> outer 35 - lambda: 0.49 0.095 
-#> outer 36 - lambda: 0.49 0.094 
-#> outer 37 - lambda: 0.49 0.094 
-#> outer 38 - lambda: 0.49 0.093 
-#> outer 39 - lambda: 0.49 0.093 
-#> outer 40 - lambda: 0.49 0.093 
-#> outer 41 - lambda: 0.49 0.093 
-#> Converged
-#> Final model fit with lambda: 0.49 0.093
+mod = qreml(pnll, par, dat, random = "betaspline", silent = 2)
 ```

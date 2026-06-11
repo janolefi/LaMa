@@ -4,17 +4,17 @@ A variety of [**latent Markov
 models**](https://journals.sagepub.com/doi/abs/10.1177/1471082X251355681),
 including **hidden Markov models** (HMMs), **hidden semi-Markov models**
 (HSMMs), **state-space models** (SSMs) and **continuous-time** variants
-can be formulated and estimated within the same framework via directly
-maximising the likelihood function using the so-called **forward
-algorithm**. Applied researchers often need custom models that standard
-software does not easily support. Writing tailored `R` code offers
-flexibility but suffers from slow estimation speeds. This `R` package
+can be formulated and fitted within the same framework by directly
+maximising the likelihood function calculated using the so-called
+**forward algorithm**. Applied researchers often need custom models that
+standard software does not easily support. Writing tailored `R` code
+offers flexibility but suffers from slow estimation speeds. `LaMa`
 solves these issues by providing easy-to-use building-blocks for common
-tasks like the forward algorithm. These functions can be combined into
-custom models in a Lego-type approach, offering very fast estimation
-speeds. In its most recent iteration, `LaMa` allows for automatic
-differentiation with the `RTMB` package which drastically increases
-speed and accuracy even more.
+tasks, which can be combined into custom models in a Lego-type approach,
+offering very fast estimation speeds. `LaMa` now also allows for
+automatic differentiation with the `RTMB` package, which drastically
+increases speed and accuracy even more and allows for rich random
+effects structures.
 
 ## Installation
 
@@ -124,7 +124,7 @@ system.time(
   mod <- nlm(nll, par, step = trex$step)
 )
 #>    user  system elapsed 
-#>   0.361   0.012   0.376
+#>   0.354   0.011   0.367
 ```
 
 Really fast for 10.000 data points!

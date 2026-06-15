@@ -86,8 +86,13 @@ par = c(-2,-2,            # initial tpm params (logit-scale)
 mod = nlm(nll, par, step = trex$step[1:1000])
 }
 \references{
-Zucchini, W., MacDonald, I.L., & Langrock, R. (2016). \emph{Hidden Markov Models for
-  Time Series: An Introduction Using R} (2nd ed.). Chapman & Hall/CRC.
+Zucchini, W., MacDonald, I.L., & Langrock, R. (2016). 
+\emph{Hidden Markov Models for Time Series: An Introduction Using R} 
+(2nd ed.). Chapman & Hall/CRC.
+
+Mews, Koslik, & Langrock (2025). 
+How to build your latent Markov model: The role of time and space. 
+Statistical Modelling, 25(6), 481--507.
 }
 \seealso{
 Other forward algorithms: 

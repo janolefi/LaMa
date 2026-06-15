@@ -5,8 +5,14 @@
 #' Calculates the log-likelihood of a sequence of observations under a hidden Markov model
 #' using the \strong{forward algorithm} (Zucchini, MacDonald & Langrock, 2016).
 #'
-#' @references Zucchini, W., MacDonald, I.L., & Langrock, R. (2016). \emph{Hidden Markov Models for
-#'   Time Series: An Introduction Using R} (2nd ed.). Chapman & Hall/CRC.
+#' @references 
+#' Zucchini, W., MacDonald, I.L., & Langrock, R. (2016). 
+#' \emph{Hidden Markov Models for Time Series: An Introduction Using R} 
+#' (2nd ed.). Chapman & Hall/CRC.
+#'
+#' Mews, Koslik, & Langrock (2025). 
+#' How to build your latent Markov model: The role of time and space. 
+#' Statistical Modelling, 25(6), 481--507.
 #'
 #' @family forward algorithms
 #'
@@ -413,8 +419,14 @@ forward <- function(delta,
 #'
 #' Calculates the log-likelihood of a sequence of observations under a hidden Markov model with time-varying transition probabilities using the \strong{forward algorithm} (Zucchini, MacDonald & Langrock, 2016).
 #'
-#' @references Zucchini, W., MacDonald, I.L., & Langrock, R. (2016). \emph{Hidden Markov Models for
-#'   Time Series: An Introduction Using R} (2nd ed.). Chapman & Hall/CRC.
+#' @references 
+#' Zucchini, W., MacDonald, I.L., & Langrock, R. (2016). 
+#' \emph{Hidden Markov Models for Time Series: An Introduction Using R} 
+#' (2nd ed.). Chapman & Hall/CRC.
+#'
+#' Mews, Koslik, & Langrock (2025). 
+#' How to build your latent Markov model: The role of time and space. 
+#' Statistical Modelling, 25(6), 481--507.
 #'
 #' @family forward algorithms
 #' 

@@ -357,7 +357,12 @@ dgmrf2 = function(x,
 #' expressing the transition probability matrix as a periodic function of the time of day using \code{\link{tpm_p}} or \code{\link{cosinor}}, the probability distribution of time spent in a state can be computed analytically.
 #' This function computes said distribution, either for a specific time point (conditioning on transitioning into the state at that time point) or for the overall distribution (conditioning on transitioning into the state at any time point).
 #'
-#' @references Koslik, J. O., Feldmann, C. C., Mews, S., Michels, R., & Langrock, R. (2023). Inference on the state process of periodically inhomogeneous hidden Markov models for animal behavior. arXiv preprint arXiv:2312.14583.
+#' @references 
+#' When using this function, please cite:
+#' 
+#' Koslik, J. O., Feldmann, C. C., Mews, S., Michels, R., & Langrock, R. (2025). 
+#' Inference on the state process of periodically inhomogeneous hidden Markov models for animal behavior. 
+#' The Annals of Applied Statistics, 19(4), 2724--2737.
 #'
 #' @param x vector of (non-negative) dwell times to compute the dwell-time distribution for
 #' @param Gamma array of \code{L} unique transition probability matrices of a periodically inhomogeneous Markov chain, with dimensions \code{c(N,N,L)}, where \code{N} is the number of states and \code{L} is the cycle length

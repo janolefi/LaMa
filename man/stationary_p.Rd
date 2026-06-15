@@ -40,7 +40,11 @@ delta = stationary_p(Gamma, 4)
 Delta = stationary_p(Gamma)
 }
 \references{
-Koslik, J. O., Feldmann, C. C., Mews, S., Michels, R., & Langrock, R. (2023). Inference on the state process of periodically inhomogeneous hidden Markov models for animal behavior. arXiv preprint arXiv:2312.14583.
+When using this function, please cite:
+
+Koslik, J. O., Feldmann, C. C., Mews, S., Michels, R., & Langrock, R. (2025). 
+Inference on the state process of periodically inhomogeneous hidden Markov models for animal behavior. 
+The Annals of Applied Statistics, 19(4), 2724--2737.
 }
 \seealso{
 \code{\link{tpm_p}} and \code{\link{tpm_g}} to create multiple transition matrices based on a cyclic variable or design matrix

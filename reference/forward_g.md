@@ -105,6 +105,9 @@ Zucchini, W., MacDonald, I.L., & Langrock, R. (2016). *Hidden Markov
 Models for Time Series: An Introduction Using R* (2nd ed.). Chapman &
 Hall/CRC.
 
+Mews, Koslik, & Langrock (2025). How to build your latent Markov model:
+The role of time and space. Statistical Modelling, 25(6), 481–507.
+
 ## See also
 
 Other forward algorithms:

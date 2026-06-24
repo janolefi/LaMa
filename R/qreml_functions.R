@@ -1365,27 +1365,39 @@ qreml <- function(pnll, # penalized negative log-likelihood function
     bigS <- build_bigS(Lambdas[[k]])
     bigS <- (bigS + t(bigS)) / 2 # force symmetric 
     
-    H <- J + bigS # Hessian = J + S_lambda
+    H <- J - bigS # penalised Hessian = Hessian + S_lambda (since logL - penalty)
+    # H <- J + bigS # Hessian = J + S_lambda
     # H <- (H + t(H)) / 2 # force symmetric Hessian
     
-    # R <- tryCatch(chol(H), error = function(e) NULL)
-    # if (is.null(R)) {
-    #   if(silent == 0) cat("stabilising Hessian for inversion\n")
-    #   eps <- 1e-8 * mean(diag(H))
-    #   H <- H + diag(eps, nrow(H))
-    #   R <- chol(H)
-    # }
+    # Wood (2017) Thm 1: lambda* > 0 is guaranteed if Hessian is PD.
+    # Test PD via a Cholesky attempt (factor discarded); repair if it fails.
+    if (inherits(H, "sparseMatrix")) {
+      ok <- !is.null(tryCatch(Matrix::Cholesky(H), error = function(e) NULL))
+      if (!ok) {
+        if (silent == 0) cat("Hessian not PD; adding jitter\n")
+        H <- H + Matrix::Diagonal(nrow(H), 1e-8 * mean(Matrix::diag(H)))
+      }
+    } else {
+      ok <- !is.null(tryCatch(chol(H), error = function(e) NULL))
+      if (!ok) {
+        if (silent == 0) cat("Hessian not PD; projecting to nearest PD\n")
+        H <- as.matrix(Matrix::nearPD(H)$mat)
+      }
+    }
     
-    H_inv <- safe_chol_inv(H) # chol2inv(R)
-    
-    # rebuild penalised Hessin pd for inversion
-    J_pd <- H - bigS
+    J_pd  <- H + bigS              # rebuild J_lambda from (possibly repaired) H
+    J_inv <- safe_chol_inv(J_pd)   # the only inverse actually used downstream
+    # H_inv <- Matrix::chol2inv(R)
     
     # # check if positive definite
     # if(!is.positive.definite(H)) {
     #   if(silent == 0) cat("replacing Hessian with nearest PD\n")
-    #   H <- nearPD(H)$mat # if not, find nearest PD matrix
+    #   H <- Matrix::nearPD(H)$mat # if not, find nearest PD matrix
     # }
+    
+    # rebuild penalised Hessin pd for inversion
+    # J_pd <- H - bigS
+    # J_pd <- H + bigS
     
     # inverting current Hessian
     # try Cholesky
@@ -1399,7 +1411,7 @@ qreml <- function(pnll, # penalized negative log-likelihood function
     # }
     
     # compute inverse
-    J_inv <- safe_chol_inv(J_pd) # chol2inv(R)
+    # J_inv <- safe_chol_inv(J_pd) # chol2inv(R)
 
     # J_inv <- tryCatch(solve(J_pd), error = function(e) NULL)
     # if(is.null(J_inv)) J_inv <- MASS::ginv(J_pd) # if problem, pseudo-inverse

@@ -207,7 +207,7 @@ system.time(
 #> outer 11 - lambda: 0.309 0.116 
 #> outer 12 - lambda: 0.309 0.114
 #>    user  system elapsed 
-#>   8.018   3.439   7.514
+#>   8.469   3.449   7.989
 ```
 
 The `mod` object is now a list that contains everything that is reported
@@ -451,23 +451,23 @@ system.time(
 )
 #> Creating AD function
 #> Initialising with lambda: 10 10 10
-#> outer 1 - lambda: 4.213 3.833 4.836 
-#> outer 2 - lambda: 2.309 1.937 3.045 
-#> outer 3 - lambda: 1.604 1.332 2.338 
-#> outer 4 - lambda: 1.305 1.127 2.028 
-#> outer 5 - lambda: 1.166 1.053 1.883 
-#> outer 6 - lambda: 1.099 1.026 1.812 
-#> outer 7 - lambda: 1.065 1.016 1.777 
-#> outer 8 - lambda: 1.048 1.012 1.76 
-#> outer 9 - lambda: 1.04 1.01 1.75 
-#> outer 10 - lambda: 1.035 1.01 1.747 
-#> outer 11 - lambda: 1.034 1.01 1.745 
-#> outer 12 - lambda: 1.033 1.01 1.745 
-#> outer 13 - lambda: 1.033 1.01 1.744
+#> outer 1 - lambda: 4.227 3.837 4.852 
+#> outer 2 - lambda: 2.326 1.943 3.061 
+#> outer 3 - lambda: 1.623 1.338 2.355 
+#> outer 4 - lambda: 1.326 1.133 2.046 
+#> outer 5 - lambda: 1.189 1.059 1.902 
+#> outer 6 - lambda: 1.124 1.031 1.832 
+#> outer 7 - lambda: 1.092 1.021 1.798 
+#> outer 8 - lambda: 1.077 1.017 1.784 
+#> outer 9 - lambda: 1.068 1.015 1.776 
+#> outer 10 - lambda: 1.064 1.015 1.769 
+#> outer 11 - lambda: 1.063 1.015 1.767 
+#> outer 12 - lambda: 1.062 1.015 1.766 
+#> outer 13 - lambda: 1.062 1.015 1.765
 #> Converged
-#> Final model fit with lambda: 1.033 1.01 1.744
+#> Final model fit with lambda: 1.062 1.015 1.765
 #>    user  system elapsed 
-#>  16.743   4.402  16.029
+#>  16.925   4.500  16.151
 ```
 
 After fitting the model, we can easily visualise the smooth densities
@@ -599,29 +599,30 @@ system.time(
 )
 #> Creating AD function
 #> Initialising with lambda: 1000 1000 1000 1000
-#> outer 1 - lambda: 466.896 374.247 432.358 329.654 
-#> outer 2 - lambda: 250.283 143.698 200.372 113.051 
-#> outer 3 - lambda: 126.064 57.828 99.173 42.157 
-#> outer 4 - lambda: 72.846 26.191 56.901 18.27 
-#> outer 5 - lambda: 48.019 14.491 35.924 9.766 
-#> outer 6 - lambda: 35.991 10.081 24.159 6.518 
-#> outer 7 - lambda: 29.871 8.365 17.317 5.192 
-#> outer 8 - lambda: 26.631 7.684 13.359 4.626 
-#> outer 9 - lambda: 24.863 7.41 11.104 4.375 
-#> outer 10 - lambda: 23.88 7.297 9.836 4.263 
+#> outer 1 - lambda: 467.043 374.341 432.55 329.665 
+#> outer 2 - lambda: 250.35 143.737 200.469 113.054 
+#> outer 3 - lambda: 126.091 57.843 99.212 42.159 
+#> outer 4 - lambda: 72.858 26.197 56.919 18.27 
+#> outer 5 - lambda: 48.024 14.493 35.934 9.767 
+#> outer 6 - lambda: 35.993 10.082 24.165 6.518 
+#> outer 7 - lambda: 29.872 8.366 17.321 5.192 
+#> outer 8 - lambda: 26.632 7.685 13.361 4.626 
+#> outer 9 - lambda: 24.864 7.41 11.105 4.375 
+#> outer 10 - lambda: 23.881 7.297 9.836 4.263 
 #> outer 11 - lambda: 23.325 7.25 9.13 4.213 
 #> outer 12 - lambda: 23.007 7.23 8.74 4.189 
-#> outer 13 - lambda: 22.822 7.22 8.525 4.178 
-#> outer 14 - lambda: 22.719 7.216 8.406 4.173 
-#> outer 15 - lambda: 22.655 7.214 8.342 4.171 
-#> outer 16 - lambda: 22.618 7.213 8.305 4.17 
-#> outer 17 - lambda: 22.598 7.213 8.286 4.169 
-#> outer 18 - lambda: 22.589 7.212 8.279 4.169 
-#> outer 19 - lambda: 22.588 7.212 8.278 4.169
+#> outer 13 - lambda: 22.823 7.22 8.525 4.178 
+#> outer 14 - lambda: 22.717 7.216 8.407 4.173 
+#> outer 15 - lambda: 22.656 7.214 8.341 4.171 
+#> outer 16 - lambda: 22.625 7.213 8.306 4.169 
+#> outer 17 - lambda: 22.61 7.213 8.296 4.169 
+#> outer 18 - lambda: 22.597 7.212 8.281 4.169 
+#> outer 19 - lambda: 22.59 7.212 8.274 4.169 
+#> outer 20 - lambda: 22.589 7.212 8.272 4.169
 #> Converged
-#> Final model fit with lambda: 22.588 7.212 8.278 4.169
+#> Final model fit with lambda: 22.589 7.212 8.272 4.169
 #>    user  system elapsed 
-#>  15.528   5.626  14.583
+#>  17.213   5.832  16.263
 ```
 
 Having fitted the model, we can visualise the results. We first decode

@@ -1,7 +1,7 @@
 Package: LaMa
 Type: Package
 Title: Fast Numerical Maximum Likelihood Estimation for Latent Markov Models 
-Version: 2.1.1
+Version: 2.1.2
 Authors@R: c(
     person(given = "Jan-Ole", family = "Fischer", 
           email = "jan-ole.fischer@mailbox.org",

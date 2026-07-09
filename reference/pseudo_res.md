@@ -164,7 +164,7 @@ pres = pseudo_res(obs, cdf, par, stateprobs)
 
 
 ### Full model fit example ###
-step = trex$step[1:200]
+step = trex$step[1:500]
 
 nll = function(par){
   getAll(par)
@@ -180,12 +180,12 @@ nll = function(par){
 
 par = list(logitGamma = c(-2,-2), 
            logMu = log(c(0.3, 2.5)), 
-           logSigma = log(c(0.3, 0.5)))
+           logSigma = log(c(0.3, 1.5)))
            
 obj = MakeADFun(nll, par, silent = TRUE)
 opt = nlminb(obj$par, obj$fn, obj$gr)
 
-mod = obj$report()
+mod = report(obj)
 
 pres = pseudo_res(step,      # observation sequence
                   "gamma2",  # parametric family that was used

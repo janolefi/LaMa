@@ -74,7 +74,7 @@ standard deviations are not possible.
 ## Examples
 
 ``` r
-step <- trex$step[1:1000] # subsetting trex data
+step <- trex$step[1:2000] # subsetting trex data
 N <- 2                    # 2 states
 
 # custom likelihood
@@ -90,9 +90,9 @@ nll <- function(par) {
 }
 
 # initial parameters in named list
-par0 <- list(eta = rep(-2,2), 
-             log_mu = log(c(0.3, 1)), 
-             log_sigma = log(c(0.2, 0.7)))
+par0 <- list(eta = rep(-1.5,2), 
+             log_mu = log(c(0.3, 2.5)), 
+             log_sigma = log(c(0.3, 1.5)))
     
 # constructing AD object        
 obj <- MakeADFun(nll, par0, silent = TRUE)

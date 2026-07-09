@@ -206,7 +206,7 @@ example in models with local state dependence — the default
 <span>  <span class="va">opt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></span><span class="op">(</span><span class="va">obj</span><span class="op">$</span><span class="va">par</span>, <span class="va">obj</span><span class="op">$</span><span class="va">fn</span>, <span class="va">obj</span><span class="op">$</span><span class="va">gr</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.659   0.000   0.660</span></span>
+<span><span class="co">#&gt;   0.645   0.000   0.645</span></span>
 <span><span class="va">mod</span> <span class="op">=</span> <span class="fu"><a href="../reference/report.html">report</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -307,7 +307,7 @@ marginalises over it internally.</p>
 <span>  <span class="va">opt_lap</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></span><span class="op">(</span><span class="va">obj_lap</span><span class="op">$</span><span class="va">par</span>, <span class="va">obj_lap</span><span class="op">$</span><span class="va">fn</span>, <span class="va">obj_lap</span><span class="op">$</span><span class="va">gr</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.196   0.002   0.198</span></span>
+<span><span class="co">#&gt;   0.188   0.002   0.191</span></span>
 <span><span class="va">mod_lap</span> <span class="op">=</span> <span class="fu"><a href="../reference/report.html">report</a></span><span class="op">(</span><span class="va">obj_lap</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_lap</span><span class="op">$</span><span class="va">phi</span>    <span class="co"># true: 0.95</span></span>
@@ -369,7 +369,7 @@ Models.”</span> PhD thesis, University of Göttingen.
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

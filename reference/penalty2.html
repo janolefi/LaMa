@@ -128,8 +128,8 @@ If these are seperate random effects, each with its own name, they need to be pa
 <span class="r-in"><span><span class="va">data</span> <span class="op">=</span> <span class="va">trex</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">1000</span>,<span class="op">]</span> <span class="co"># subset</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># initial parameter list</span></span></span>
-<span class="r-in"><span><span class="va">par</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>logmu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.3</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span>, <span class="co"># step mean</span></span></span>
-<span class="r-in"><span>           logsigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="fl">0.7</span><span class="op">)</span><span class="op">)</span>, <span class="co"># step sd</span></span></span>
+<span class="r-in"><span><span class="va">par</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>logmu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.3</span>, <span class="fl">2.5</span><span class="op">)</span><span class="op">)</span>, <span class="co"># step mean</span></span></span>
+<span class="r-in"><span>           logsigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.3</span>, <span class="fl">1.5</span><span class="op">)</span><span class="op">)</span>, <span class="co"># step sd</span></span></span>
 <span class="r-in"><span>           beta0 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span>,<span class="op">-</span><span class="fl">2</span><span class="op">)</span>, <span class="co"># state process intercept</span></span></span>
 <span class="r-in"><span>           betaspline <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">18</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span> <span class="co"># state process spline coefs</span></span></span>
 <span class="r-in"><span>          </span></span>
@@ -166,11 +166,11 @@ If these are seperate random effects, each with its own name, they need to be pa
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Creating AD function</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Initialising with lambda: 10 10</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer 1 - lambda: 5.545 5.001 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 2 - lambda: 3.289 3.001 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer 2 - lambda: 3.288 3.001 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer 3 - lambda: 2.081 2.091 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer 4 - lambda: 1.406 1.599 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer 5 - lambda: 1.018 1.293 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 6 - lambda: 0.79 1.08 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer 6 - lambda: 0.789 1.08 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer 7 - lambda: 0.654 0.92 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer 8 - lambda: 0.573 0.794 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer 9 - lambda: 0.525 0.69 </span>
@@ -181,7 +181,7 @@ If these are seperate random effects, each with its own name, they need to be pa
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer 14 - lambda: 0.465 0.353 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer 15 - lambda: 0.465 0.31 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer 16 - lambda: 0.466 0.272 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 17 - lambda: 0.467 0.24 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer 17 - lambda: 0.467 0.241 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer 18 - lambda: 0.469 0.214 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer 19 - lambda: 0.472 0.191 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer 20 - lambda: 0.474 0.172 </span>
@@ -199,11 +199,9 @@ If these are seperate random effects, each with its own name, they need to be pa
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer 32 - lambda: 0.489 0.097 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer 33 - lambda: 0.489 0.096 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> outer 34 - lambda: 0.489 0.095 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 35 - lambda: 0.49 0.094 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 36 - lambda: 0.49 0.094 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 37 - lambda: 0.49 0.094 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer 35 - lambda: 0.489 0.095 </span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Converged</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Final model fit with lambda: 0.49 0.094</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Final model fit with lambda: 0.489 0.095</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
@@ -216,7 +214,7 @@ If these are seperate random effects, each with its own name, they need to be pa
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

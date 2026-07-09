@@ -104,8 +104,8 @@ penalty(re, S, lambda)
 data = trex[1:1000,] # subset
 
 # initial parameter list
-par = list(logmu = log(c(0.3, 1)), # step mean
-           logsigma = log(c(0.2, 0.7)), # step sd
+par = list(logmu = log(c(0.3, 2.5)), # step mean
+           logsigma = log(c(0.3, 1.5)), # step sd
            beta0 = c(-2,-2), # state process intercept
            betaspline = matrix(rep(0, 18), nrow = 2)) # state process spline coefs
           
@@ -142,11 +142,11 @@ mod = qreml(pnll, par, dat, random = "betaspline")
 #> Creating AD function
 #> Initialising with lambda: 10 10
 #> outer 1 - lambda: 5.545 5.001 
-#> outer 2 - lambda: 3.289 3.001 
+#> outer 2 - lambda: 3.288 3.001 
 #> outer 3 - lambda: 2.081 2.091 
 #> outer 4 - lambda: 1.406 1.599 
 #> outer 5 - lambda: 1.018 1.293 
-#> outer 6 - lambda: 0.79 1.08 
+#> outer 6 - lambda: 0.789 1.08 
 #> outer 7 - lambda: 0.654 0.92 
 #> outer 8 - lambda: 0.573 0.794 
 #> outer 9 - lambda: 0.525 0.69 
@@ -157,7 +157,7 @@ mod = qreml(pnll, par, dat, random = "betaspline")
 #> outer 14 - lambda: 0.465 0.353 
 #> outer 15 - lambda: 0.465 0.31 
 #> outer 16 - lambda: 0.466 0.272 
-#> outer 17 - lambda: 0.467 0.24 
+#> outer 17 - lambda: 0.467 0.241 
 #> outer 18 - lambda: 0.469 0.214 
 #> outer 19 - lambda: 0.472 0.191 
 #> outer 20 - lambda: 0.474 0.172 
@@ -175,10 +175,8 @@ mod = qreml(pnll, par, dat, random = "betaspline")
 #> outer 32 - lambda: 0.489 0.097 
 #> outer 33 - lambda: 0.489 0.096 
 #> outer 34 - lambda: 0.489 0.095 
-#> outer 35 - lambda: 0.49 0.094 
-#> outer 36 - lambda: 0.49 0.094 
-#> outer 37 - lambda: 0.49 0.094 
+#> outer 35 - lambda: 0.489 0.095 
 #> Converged
-#> Final model fit with lambda: 0.49 0.094
+#> Final model fit with lambda: 0.489 0.095
 # }
 ```

@@ -121,7 +121,7 @@
 #' 
 #' 
 #' ### Full model fit example ###
-#' step = trex$step[1:200]
+#' step = trex$step[1:500]
 #' 
 #' nll = function(par){
 #'   getAll(par)
@@ -137,12 +137,12 @@
 #' 
 #' par = list(logitGamma = c(-2,-2), 
 #'            logMu = log(c(0.3, 2.5)), 
-#'            logSigma = log(c(0.3, 0.5)))
+#'            logSigma = log(c(0.3, 1.5)))
 #'            
 #' obj = MakeADFun(nll, par, silent = TRUE)
 #' opt = nlminb(obj$par, obj$fn, obj$gr)
 #' 
-#' mod = obj$report()
+#' mod = report(obj)
 #' 
 #' pres = pseudo_res(step,      # observation sequence
 #'                   "gamma2",  # parametric family that was used
@@ -302,8 +302,8 @@ pseudo_res <- function(obs,
 #' 
 #' par = list(logitGamma = c(-2,-2), 
 #'            logMu = log(c(0.3, 2.5)), 
-#'            logSigma = log(c(0.3, 0.5)),
-#'            logKappa = log(c(0.2, 1)))
+#'            logSigma = log(c(0.3, 1.5)),
+#'            logKappa = log(c(0.1, 1.7)))
 #'            
 #' obj = MakeADFun(nll, par, silent = TRUE)
 #' opt = nlminb(obj$par, obj$fn, obj$gr)

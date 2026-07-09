@@ -59,8 +59,8 @@ nll = function(par){
 
 par = list(logitGamma = c(-2,-2), 
            logMu = log(c(0.3, 2.5)), 
-           logSigma = log(c(0.3, 0.5)),
-           logKappa = log(c(0.2, 1)))
+           logSigma = log(c(0.3, 1.5)),
+           logKappa = log(c(0.1, 1.7)))
            
 obj = MakeADFun(nll, par, silent = TRUE)
 opt = nlminb(obj$par, obj$fn, obj$gr)

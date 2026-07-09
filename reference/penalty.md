@@ -138,7 +138,7 @@ mod = qreml(pnll, par, dat, random = "betaspline")
 #> outer 3 - lambda: 2.081 2.091 
 #> outer 4 - lambda: 1.406 1.599 
 #> outer 5 - lambda: 1.018 1.293 
-#> outer 6 - lambda: 0.789 1.08 
+#> outer 6 - lambda: 0.79 1.08 
 #> outer 7 - lambda: 0.654 0.92 
 #> outer 8 - lambda: 0.573 0.794 
 #> outer 9 - lambda: 0.525 0.69 
@@ -167,8 +167,15 @@ mod = qreml(pnll, par, dat, random = "betaspline")
 #> outer 32 - lambda: 0.489 0.097 
 #> outer 33 - lambda: 0.489 0.096 
 #> outer 34 - lambda: 0.489 0.095 
-#> outer 35 - lambda: 0.489 0.095 
+#> outer 35 - lambda: 0.49 0.094 
+#> outer 36 - lambda: 0.49 0.094 
+#> outer 37 - lambda: 0.49 0.093 
+#> outer 38 - lambda: 0.49 0.093 
+#> outer 39 - lambda: 0.49 0.093 
+#> outer 40 - lambda: 0.49 0.092 
+#> outer 41 - lambda: 0.49 0.092 
+#> outer 42 - lambda: 0.49 0.092 
 #> Converged
-#> Final model fit with lambda: 0.489 0.095
+#> Final model fit with lambda: 0.49 0.092
 # }
 ```

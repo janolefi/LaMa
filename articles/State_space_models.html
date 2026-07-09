@@ -21,7 +21,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">LaMa</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -206,7 +206,7 @@ example in models with local state dependence — the default
 <span>  <span class="va">opt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></span><span class="op">(</span><span class="va">obj</span><span class="op">$</span><span class="va">par</span>, <span class="va">obj</span><span class="op">$</span><span class="va">fn</span>, <span class="va">obj</span><span class="op">$</span><span class="va">gr</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.645   0.000   0.645</span></span>
+<span><span class="co">#&gt;   0.557   0.000   0.558</span></span>
 <span><span class="va">mod</span> <span class="op">=</span> <span class="fu"><a href="../reference/report.html">report</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -307,7 +307,7 @@ marginalises over it internally.</p>
 <span>  <span class="va">opt_lap</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></span><span class="op">(</span><span class="va">obj_lap</span><span class="op">$</span><span class="va">par</span>, <span class="va">obj_lap</span><span class="op">$</span><span class="va">fn</span>, <span class="va">obj_lap</span><span class="op">$</span><span class="va">gr</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.188   0.002   0.191</span></span>
+<span><span class="co">#&gt;   0.225   0.302   0.186</span></span>
 <span><span class="va">mod_lap</span> <span class="op">=</span> <span class="fu"><a href="../reference/report.html">report</a></span><span class="op">(</span><span class="va">obj_lap</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_lap</span><span class="op">$</span><span class="va">phi</span>    <span class="co"># true: 0.95</span></span>

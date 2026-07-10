@@ -8,9 +8,9 @@ for the skew normal distribution.
 ``` r
 dskewnorm(x, xi = 0, omega = 1, alpha = 0, log = FALSE)
 
-pskewnorm(q, xi = 0, omega = 1, alpha = 0, ...)
+pskewnorm(q, xi = 0, omega = 1, alpha = 0, lower.tail = TRUE, log.p = FALSE)
 
-qskewnorm(p, xi = 0, omega = 1, alpha = 0, ...)
+qskewnorm(p, xi = 0, omega = 1, alpha = 0, lower.tail = TRUE, log.p = FALSE)
 
 rskewnorm(n, xi = 0, omega = 1, alpha = 0)
 ```
@@ -33,15 +33,15 @@ rskewnorm(n, xi = 0, omega = 1, alpha = 0)
 
   skewness parameter, +/- `Inf` is allowed.
 
-- log:
+- log, log.p:
 
   logical; if `TRUE`, probabilities/ densities \\p\\ are returned as
   \\\log(p)\\.
 
-- ...:
+- lower.tail:
 
-  additional parameters to be passed to the `sn` package functions for
-  `pskewnorm` and `qskewnorm`.
+  logical; if `TRUE` (default), probabilities are \\P\[X \le x\]\\,
+  otherwise \\P\[X \> x\]\\.
 
 - p:
 

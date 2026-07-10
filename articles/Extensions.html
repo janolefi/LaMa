@@ -346,7 +346,7 @@ shape. Model fitting is also extremely quick:</p>
 <span>  <span class="va">opt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></span><span class="op">(</span><span class="va">obj_cov</span><span class="op">$</span><span class="va">par</span>, <span class="va">obj_cov</span><span class="op">$</span><span class="va">fn</span>, <span class="va">obj_cov</span><span class="op">$</span><span class="va">gr</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;    0.03    0.00    0.03</span></span>
+<span><span class="co">#&gt;   0.037   0.000   0.036</span></span>
 <span><span class="va">mod_cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/report.html">report</a></span><span class="op">(</span><span class="va">obj_cov</span><span class="op">)</span> <span class="co"># reporting from fitted model</span></span></code></pre></div>
 <p>Let’s plot the fitted model, starting with the estimated
 state-dependent densities. We can obtain approximate global state

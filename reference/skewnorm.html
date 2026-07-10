@@ -55,9 +55,9 @@ the skew normal distribution.</p>
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">dskewnorm</span><span class="op">(</span><span class="va">x</span>, xi <span class="op">=</span> <span class="fl">0</span>, omega <span class="op">=</span> <span class="fl">1</span>, alpha <span class="op">=</span> <span class="fl">0</span>, log <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">pskewnorm</span><span class="op">(</span><span class="va">q</span>, xi <span class="op">=</span> <span class="fl">0</span>, omega <span class="op">=</span> <span class="fl">1</span>, alpha <span class="op">=</span> <span class="fl">0</span>, <span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu">pskewnorm</span><span class="op">(</span><span class="va">q</span>, xi <span class="op">=</span> <span class="fl">0</span>, omega <span class="op">=</span> <span class="fl">1</span>, alpha <span class="op">=</span> <span class="fl">0</span>, lower.tail <span class="op">=</span> <span class="cn">TRUE</span>, log.p <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">qskewnorm</span><span class="op">(</span><span class="va">p</span>, xi <span class="op">=</span> <span class="fl">0</span>, omega <span class="op">=</span> <span class="fl">1</span>, alpha <span class="op">=</span> <span class="fl">0</span>, <span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu">qskewnorm</span><span class="op">(</span><span class="va">p</span>, xi <span class="op">=</span> <span class="fl">0</span>, omega <span class="op">=</span> <span class="fl">1</span>, alpha <span class="op">=</span> <span class="fl">0</span>, lower.tail <span class="op">=</span> <span class="cn">TRUE</span>, log.p <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">rskewnorm</span><span class="op">(</span><span class="va">n</span>, xi <span class="op">=</span> <span class="fl">0</span>, omega <span class="op">=</span> <span class="fl">1</span>, alpha <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -82,12 +82,12 @@ the skew normal distribution.</p>
 <dd><p>skewness parameter, +/- <code>Inf</code> is allowed.</p></dd>
 
 
-<dt id="arg-log">log<a class="anchor" aria-label="anchor" href="#arg-log"></a></dt>
+<dt id="arg-log-log-p">log, log.p<a class="anchor" aria-label="anchor" href="#arg-log-log-p"></a></dt>
 <dd><p>logical; if <code>TRUE</code>, probabilities/ densities \(p\) are returned as \(\log(p)\).</p></dd>
 
 
-<dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>additional parameters to be passed to the <code>sn</code> package functions for <code>pskewnorm</code> and <code>qskewnorm</code>.</p></dd>
+<dt id="arg-lower-tail">lower.tail<a class="anchor" aria-label="anchor" href="#arg-lower-tail"></a></dt>
+<dd><p>logical; if <code>TRUE</code> (default), probabilities are \(P[X \le x]\), otherwise \(P[X &gt; x]\).</p></dd>
 
 
 <dt id="arg-p">p<a class="anchor" aria-label="anchor" href="#arg-p"></a></dt>

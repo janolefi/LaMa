@@ -240,7 +240,7 @@ system.time(
   opt_partial <- nlminb(obj_partial$par, obj_partial$fn, obj_partial$gr)
 )
 #>    user  system elapsed 
-#>   0.019   0.000   0.019
+#>   0.018   0.000   0.018
 mod_partial = report(obj_partial)
 ```
 
@@ -388,7 +388,7 @@ system.time(
   opt_re <- nlminb(obj_re$par, obj_re$fn, obj_re$gr)
 )
 #>    user  system elapsed 
-#>   4.046   0.024   4.071
+#>   4.036   0.017   4.053
 mod_re = report(obj_re)
 ```
 

@@ -157,8 +157,8 @@ rgamma2 = function(n, mean = 1, sd = 1) {
 #' @param xi location parameter
 #' @param omega scale parameter, must be positive.
 #' @param alpha skewness parameter, +/- \code{Inf} is allowed.
-#' @param log logical; if \code{TRUE}, probabilities/ densities \eqn{p} are returned as \eqn{\log(p)}.
-#' @param ... additional parameters to be passed to the \code{sn} package functions for \code{pskewnorm} and \code{qskewnorm}.
+#' @param lower.tail logical; if \code{TRUE} (default), probabilities are \eqn{P[X \le x]}, otherwise \eqn{P[X > x]}.
+#' @param log,log.p logical; if \code{TRUE}, probabilities/ densities \eqn{p} are returned as \eqn{\log(p)}.
 #'
 #' @return
 #' \code{dskewnorm} gives the density, \code{pskewnorm} gives the distribution function, \code{qskewnorm} gives the quantile function, and \code{rskewnorm} generates random deviates.
@@ -181,15 +181,15 @@ dskewnorm <- function(x, xi = 0, omega = 1, alpha = 0, log = FALSE) {
 #' @rdname skewnorm
 #' @export
 #' @importFrom RTMBdist pskewnorm
-pskewnorm <- function(q, xi = 0, omega = 1, alpha = 0, ...) {
-  RTMBdist::pskewnorm(q, xi=xi, omega=omega, alpha=alpha, log=log, ...)
+pskewnorm <- function(q, xi = 0, omega = 1, alpha = 0, lower.tail = TRUE, log.p = FALSE) {
+  RTMBdist::pskewnorm(q, xi=xi, omega=omega, alpha=alpha, lower.tail=lower.tail, log.p=log.p)
 }
 
 #' @rdname skewnorm
 #' @export
 #' @importFrom RTMBdist qskewnorm
-qskewnorm <- function(p, xi = 0, omega = 1, alpha = 0, ...) {
-  RTMBdist::qskewnorm(p, xi=xi, omega=omega, alpha=alpha, ...)
+qskewnorm <- function(p, xi = 0, omega = 1, alpha = 0, lower.tail = TRUE, log.p = FALSE) {
+  RTMBdist::qskewnorm(p, xi=xi, omega=omega, alpha=alpha, lower.tail=lower.tail, log.p=log.p)
 }
 
 #' @rdname skewnorm

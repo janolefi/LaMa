@@ -10,9 +10,9 @@
 \usage{
 dskewnorm(x, xi = 0, omega = 1, alpha = 0, log = FALSE)
 
-pskewnorm(q, xi = 0, omega = 1, alpha = 0, ...)
+pskewnorm(q, xi = 0, omega = 1, alpha = 0, lower.tail = TRUE, log.p = FALSE)
 
-qskewnorm(p, xi = 0, omega = 1, alpha = 0, ...)
+qskewnorm(p, xi = 0, omega = 1, alpha = 0, lower.tail = TRUE, log.p = FALSE)
 
 rskewnorm(n, xi = 0, omega = 1, alpha = 0)
 }
@@ -25,9 +25,9 @@ rskewnorm(n, xi = 0, omega = 1, alpha = 0)
 
 \item{alpha}{skewness parameter, +/- \code{Inf} is allowed.}
 
-\item{log}{logical; if \code{TRUE}, probabilities/ densities \eqn{p} are returned as \eqn{\log(p)}.}
+\item{log, log.p}{logical; if \code{TRUE}, probabilities/ densities \eqn{p} are returned as \eqn{\log(p)}.}
 
-\item{...}{additional parameters to be passed to the \code{sn} package functions for \code{pskewnorm} and \code{qskewnorm}.}
+\item{lower.tail}{logical; if \code{TRUE} (default), probabilities are \eqn{P[X \le x]}, otherwise \eqn{P[X > x]}.}
 
 \item{p}{vector of probabilities}
 

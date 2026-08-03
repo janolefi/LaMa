@@ -99,7 +99,7 @@ forward <- function(delta,
                     ad = NULL
                     ){
   
-  # Check allprobs 
+  # Check allprobs  
   if(!is.matrix(allprobs)) {
     stop("allprobs needs to be a matrix of dimension c(n, N).")
   } 
@@ -110,6 +110,18 @@ forward <- function(delta,
   if (is.array(Gamma) && length(dim(Gamma)) == 3 && (dim(Gamma)[3] == nObs | dim(Gamma)[3] == nObs-1)) {
     return(forward_g(delta, Gamma, allprobs, trackID = trackID,
                      logspace = logspace, bw = bw, report = report, ad = ad))
+  }
+  
+  # check bw
+  if (!is.null(bw)) {
+    if (length(bw) != 1 || is.na(bw) || bw != as.integer(bw) || bw < 2) {
+      stop("bw must be a single integer >= 2 (bandwidth of 1 is degenerate).")
+    }
+    bw <- as.integer(bw)
+    if (bw <= 5) {
+      warning("bw = ", bw, " is very small; the banded approximation may be ",
+              "poor. Consider a larger bandwidth.", call. = FALSE)
+    }
   }
   
   # exit if only one state
@@ -303,11 +315,12 @@ forward <- function(delta,
         # If banded, run this banded version below for remaining blocks
         if(!is.null(bw) & (k < length(ind))) {
           # State distribution needs to be computed to initialise blocks
-          stateDist <- AD(matrix(NaN, nrow = length(ind), ncol = nStates))
-          stateDist[1, ] <- as.numeric(delta_i)
-          for(l in 2:length(ind)) {
-            stateDist[l, ] <- stateDist[l-1, ] %*% Gamma_i
-          }
+          # stateDist <- AD(matrix(NaN, nrow = length(ind), ncol = nStates))
+          # stateDist[1, ] <- as.numeric(delta_i)
+          # for(l in 2:length(ind)) {
+          #   stateDist[l, ] <- stateDist[l-1, ] %*% Gamma_i
+          # }
+          stateDist <- rep(1, nStates) / nStates
           
           startInd <- k + 1
           endInd <- 2 * k
@@ -315,7 +328,8 @@ forward <- function(delta,
         
           for(b in seq_len(nBlocks)) {
             # updating forward variable to get good approximation
-            foo <- stateDist[startInd-k, , drop = FALSE] * allprobs_i[startInd-k, , drop = FALSE]
+            # foo <- stateDist[startInd-k, , drop = FALSE] * allprobs_i[startInd-k, , drop = FALSE]
+            foo <- stateDist * allprobs_i[startInd-k, , drop = FALSE]
             foo <- foo / sum(foo)
             for(t in (startInd-k+1):(startInd - 1)) { 
               foo <- (foo %*% Gamma_i) * allprobs_i[t, , drop = FALSE]
@@ -376,11 +390,13 @@ forward <- function(delta,
         # If banded, run this baned version below for remaining blocks
         if(!is.null(bw) & (k < length(ind))) {
           # state distribution needs to be computed to initialise blocks
-          stateDist <- AD(matrix(NaN, nrow = length(ind), ncol = nStates))
-          stateDist[1, ] <- as.numeric(exp(logdelta_i))
-          for(i in 2:length(ind)) {
-            stateDist[i, ] <- stateDist[i-1, ] %*% Gamma_i
-          }
+          # stateDist <- AD(matrix(NaN, nrow = length(ind), ncol = nStates))
+          # stateDist[1, ] <- as.numeric(exp(logdelta_i))
+          # for(i in 2:length(ind)) {
+          #   stateDist[i, ] <- stateDist[i-1, ] %*% Gamma_i
+          # }
+          stateDist <- rep(1, nStates) / nStates
+          
           
           startInd <- k + 1
           endInd <- 2 * k
@@ -388,7 +404,8 @@ forward <- function(delta,
           # Compute likelihood contribution of each block, independent from all other blocks
           for(b in seq_len(nBlocks)) {
             # updating forward variable to get good approximation
-            logfoo <- log(stateDist[startInd-k, , drop = FALSE]) + logallprobs_i[startInd-k, , drop = FALSE]
+            # logfoo <- log(stateDist[startInd-k, , drop = FALSE]) + logallprobs_i[startInd-k, , drop = FALSE]
+            logfoo <- log(stateDist) + logallprobs_i[startInd-k, , drop = FALSE]
             logsumfoo <- logspace_add(logfoo)
             logfoo <- logfoo - logsumfoo
             for(t in (startInd-k+1):(startInd - 1)) { 
@@ -541,6 +558,18 @@ forward_g <- function(delta,
   } else {
     uID <- 1L
     nTracks <- 1L
+  }
+  
+  # check bw
+  if (!is.null(bw)) {
+    if (length(bw) != 1 || is.na(bw) || bw != as.integer(bw) || bw < 2) {
+      stop("bw must be a single integer >= 2 (bandwidth of 1 is degenerate).")
+    }
+    bw <- as.integer(bw)
+    if (bw <= 5) {
+      warning("bw = ", bw, " is very small; the banded approximation may be ",
+              "poor. Consider a larger bandwidth.", call. = FALSE)
+    }
   }
   
   # if allprobs on log-scale, report exp(allprobs)

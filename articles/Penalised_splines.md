@@ -207,7 +207,7 @@ system.time(
 #> outer 11 - lambda: 0.309 0.116 
 #> outer 12 - lambda: 0.309 0.114
 #>    user  system elapsed 
-#>   8.216   3.394   7.905
+#>   7.782   3.454   7.299
 ```
 
 The `mod` object is now a list that contains everything that is reported
@@ -467,7 +467,7 @@ system.time(
 #> Converged
 #> Final model fit with lambda: 1.062 1.015 1.765
 #>    user  system elapsed 
-#>  18.432   4.511  17.955
+#>  15.913   4.603  15.202
 ```
 
 After fitting the model, we can easily visualise the smooth densities
@@ -622,7 +622,7 @@ system.time(
 #> Converged
 #> Final model fit with lambda: 22.589 7.212 8.272 4.169
 #>    user  system elapsed 
-#>  17.991   5.839  17.338
+#>  15.507   6.003  14.618
 ```
 
 Having fitted the model, we can visualise the results. We first decode

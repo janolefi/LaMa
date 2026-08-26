@@ -218,7 +218,7 @@ system.time(
   opt <- nlminb(obj$par, obj$fn, obj$gr)
 )
 #>    user  system elapsed 
-#>   0.120   0.001   0.119
+#>   0.124   0.000   0.124
 mod = report(obj)
 ```
 
@@ -373,7 +373,7 @@ system.time(
   opt2 <- nlminb(obj2$par, obj2$fn, obj2$gr)
 )
 #>    user  system elapsed 
-#>    0.27    0.00    0.27
+#>   0.259   0.000   0.259
 mod2 = report(obj2)
 ```
 

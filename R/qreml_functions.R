@@ -1544,8 +1544,14 @@ qreml <- function(pnll, # penalized negative log-likelihood function
     }
     
     #### convergence check ####
+    # An iteration whose step had to be halved is not evidence of convergence:
+    # halving shrinks the step by construction, which shrinks both the relative
+    # change in lambda and the work the (warm-started) inner optimiser has to do.
+    # Both convergence tests below would read that as having arrived.
+    converged <- n_halve == 0
+    
     if(conv_crit == "gradient"){
-      if(k > 3 & (mgc < tol | opt$counts[2] < 3)) {
+      if(converged & k > 3 & (mgc < tol | opt$counts[2] < 3)) {
         if(silent < 2){
           message("Converged")
         }
@@ -1555,7 +1561,7 @@ qreml <- function(pnll, # penalized negative log-likelihood function
       # relative change of lambda
       rel_change <- abs((lambda - unlist(Lambdas[[k]])) / unlist(Lambdas[[k]]))
       
-      if(k > 3 & (all(rel_change[convInd_unmapped] < tol) | opt$counts[2] < 3)) {
+      if(converged & k > 3 & (all(rel_change[convInd_unmapped] < tol) | opt$counts[2] < 3)) {
         if(silent < 2){
           message("Converged")
         }

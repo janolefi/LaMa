@@ -16,6 +16,7 @@ qreml(
   smoothing = 1,
   maxiter = 100,
   tol = 1e-04,
+  max_halve = 5,
   method = "BFGS",
   control = list(),
   conv_crit = "relchange",
@@ -62,6 +63,12 @@ Increasing this beyond one will lead to a smoother final model. Can be an intege
 \item{maxiter}{maximum number of iterations in the outer optimisation over the penalty strength parameters.}
 
 \item{tol}{Convergence tolerance for the penalty strength parameters.}
+
+\item{max_halve}{maximum number of step halvings per outer iteration.
+
+After each update of the penalty strength parameters, the restricted log-likelihood is compared to its value in the previous iteration.
+If it decreased, the step (on the log scale) is repeatedly halved until it does not, or until \code{max_halve} halvings have been made.
+This makes the outer iteration monotone and hence more robust. Set to zero to switch step halving off.}
 
 \item{method}{optimisation method to be used by \code{\link[stats:optim]{optim}}. Defaults to \code{"BFGS"}, but might be changed to \code{"L-BFGS-B"} for high-dimensional settings.}
 

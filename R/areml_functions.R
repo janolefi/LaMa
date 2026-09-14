@@ -380,7 +380,12 @@ areml <- function(pnll, # penalised negative log-likelihood function
     lambda <<- unmap_lambda(exp(lsp_try), lambda_map, lambda0)
     Lambda <- reshape_lambda(lambda_lengths, lambda)
 
-    if(silent == 0) cat("\nInner optimisation:", "\n")
+    # naming the penalty strengths here makes the trace unambiguous: the outer
+    # line below reports lambda AFTER the update, so without this the initial fit
+    # and the first updated fit look like the same fit done twice
+    if(silent == 0){
+      cat("\nInner optimisation at", psname, "=", round(exp(lsp_try), 3), "\n")
+    }
     counter_env$count <- 0
 
     # RTMB/TMB caches the objective value at the last parameter vector it was
@@ -604,7 +609,15 @@ areml <- function(pnll, # penalised negative log-likelihood function
     message("Final model fit with ", psname, ": ", paste(round(lambda, 3), collapse = " "))
   }
 
-  final <- fit_at(log(map_lambda(lambda, lambda_map)), cur$opt$par)
+  final_lsp <- log(map_lambda(lambda, lambda_map))
+  # cur is already the converged fit at this lambda whenever no smoothing factor
+  # was applied and the last iterate was the best one, so refitting would repeat
+  # an inner optimisation, a Hessian and a factorisation for nothing
+  if(isTRUE(all.equal(final_lsp, cur$lsp))){
+    final <- cur
+  } else {
+    final <- fit_at(final_lsp, cur$opt$par)
+  }
   mod <- final$mod
   opt <- final$opt
   Lambda <- final$Lambda

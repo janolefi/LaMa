@@ -479,6 +479,7 @@ areml <- function(pnll, # penalised negative log-likelihood function
   ### updating algorithm
   lsp <- log(lambda_mapped)
   mult <- 1 # step multiplier, persistent across iterations, as in mgcv
+  n_success <- 0 # consecutive improving steps
   crit_hist <- rep(NA_real_, maxiter)
   llk_hist <- rep(NA_real_, maxiter)
 
@@ -528,7 +529,14 @@ areml <- function(pnll, # penalised negative log-likelihood function
 
     if(trial$crit <= cur$crit){
       ## improved
-      if(max_step < step_small){
+      accelerated <- FALSE
+      n_success <- n_success + 1
+      # mgcv opens the acceleration only when the step is small. That gate is on
+      # the largest step across ALL penalty strengths, so one parameter still
+      # moving briskly keeps it shut for every other parameter, and one that is
+      # heading for a boundary never gets to accelerate. Two consecutive improving
+      # steps opens it as well.
+      if(max_step < step_small || n_success >= 2){
         # mgcv's acceleration: the step is small and still paying, so try twice
         # as far and keep the doubling if it pays again
         lsp2 <- pmin(lsp + 2 * mult * step, lsp_max)
@@ -537,15 +545,20 @@ areml <- function(pnll, # penalised negative log-likelihood function
           trial <- trial2
           lsp1 <- lsp2
           mult <- mult * 2
+          accelerated <- TRUE
           if(silent == 0) cat("accelerating: step multiplier now", mult, "\n")
         }
-      } else if(mult < 1){
-        # a shortening from an earlier iteration must not become permanent, or
-        # the iteration crawls for the rest of the run: walk the multiplier back
-        # towards the full step now that it is paying again
-        mult <- min(2 * mult, 1)
       }
+      # A shortening from an earlier iteration must never become permanent. This
+      # has to sit outside the branch above: once the multiplier is small the
+      # steps are small too, so control always takes that branch, and if the
+      # doubling there is rejected the multiplier would stay collapsed for the
+      # rest of the run. The iteration then takes far smaller steps than the
+      # plain Fellner-Schall one and a penalty strength heading for a boundary
+      # never gets there.
+      if(!accelerated && mult < 1) mult <- min(2 * mult, 1)
     } else {
+      n_success <- 0
       ## worsened: shorten the step until it pays. mgcv stops at the full step and
       ## accepts a worse one, which here can drift downhill for tens of iterations
       ## at a time, so the step is genuinely backtracked instead.
@@ -584,12 +597,14 @@ areml <- function(pnll, # penalised negative log-likelihood function
        max(abs(diff(crit_hist[(iter-3):iter]))) < tol){
       converged <- TRUE
     }
-    # secondary criterion: the likelihood itself has stopped changing. Unlike in
-    # mgcv this also requires the step to be small: the primary tolerance here is
-    # tight enough that the secondary would otherwise stop the iteration while
-    # the penalty strengths are still moving quickly.
+    # mgcv has a second criterion here, stopping when the log-likelihood changes
+    # by less than 100 * eps relative. That is 1e-5 of the log-likelihood, which
+    # for a model with many observations is a tolerance of a quarter of a nat and
+    # fires while the penalty strengths are still moving. The criterion above is
+    # the one that means something, so the fallback is kept only as a guard
+    # against a completely stalled likelihood.
     if(iter > 1 && max_step < step_small &&
-       abs(llk_hist[iter] - llk_hist[iter-1]) < 1e-5 * abs(llk_hist[iter])){
+       abs(llk_hist[iter] - llk_hist[iter-1]) < 1e-10 * abs(llk_hist[iter])){
       converged <- TRUE
     }
 

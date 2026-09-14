@@ -483,6 +483,9 @@ areml <- function(pnll, # penalised negative log-likelihood function
   llk_hist <- rep(NA_real_, maxiter)
 
   if(silent < 2) message("Initialising with ", psname, ": ", paste(round(lambda, 3), collapse = " "))
+  # one fit at the starting lambda is unavoidable: the first update needs the
+  # penalties and traces evaluated at a converged inner solution
+  if(silent == 0) cat("\nouter 0 - initial fit\n")
 
   cur <- fit_at(lsp, newpar)
   converged <- FALSE
@@ -512,6 +515,14 @@ areml <- function(pnll, # penalised negative log-likelihood function
 
     lsp1 <- pmin(lsp + mult * step, lsp_max)
     max_step <- max(abs(lsp1 - lsp))
+    n_halve <- 0
+
+    # the lambda below is what the fit that follows is done at, so it is printed
+    # before that fit and not after it. Backtracking, if any, then revises it and
+    # each trial names its own lambda.
+    if(silent == 0){
+      cat("\nouter", iter, "- proposed", paste0(psname, ":"), round(exp(lsp1), 3), "\n")
+    }
 
     trial <- fit_at(lsp1, cur$opt$par)
 
@@ -538,7 +549,6 @@ areml <- function(pnll, # penalised negative log-likelihood function
       ## worsened: shorten the step until it pays. mgcv stops at the full step and
       ## accepts a worse one, which here can drift downhill for tens of iterations
       ## at a time, so the step is genuinely backtracked instead.
-      n_halve <- 0
       while(trial$crit > cur$crit && n_halve < max_halve){
         mult <- mult / 2
         n_halve <- n_halve + 1
@@ -558,10 +568,12 @@ areml <- function(pnll, # penalised negative log-likelihood function
     }
     llk_hist[iter] <- -cur$opt$value + cur$mod$pen # unpenalised log-likelihood
 
-    if(silent < 2){
-      if(silent == 0) cat("\n")
+    if(silent == 1){
       cat("outer", iter, "-", paste0(psname, ":"), round(exp(lsp), 3), "\n")
-      if(silent == 0) cat("restricted llk:", round(cur$llk_r, 5), "- max step:", round(max_step, 5), "\n")
+    } else if(silent == 0){
+      if(n_halve > 0) cat("outer", iter, "- accepted", paste0(psname, ":"), round(exp(lsp), 3), "\n")
+      cat("outer", iter, "- restricted llk:", round(cur$llk_r, 5),
+          "- max step:", round(max_step, 5), "\n")
     }
 
     #### convergence check ####

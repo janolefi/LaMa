@@ -17,6 +17,7 @@ areml(
   maxiter = 200,
   tol = 0.1,
   lsp_max = 15,
+  tol_edf = 0.01,
   step_small = 0.05,
   max_halve = 6,
   method = "BFGS",
@@ -56,6 +57,12 @@ Set to zero to remove the floor entirely. Step length is handled separately, by 
 \item{tol}{convergence tolerance: the iteration stops once the restricted log-likelihood has changed by less than \code{tol} over the last four outer iterations and the step is small. Defaults to 0.1, as in \code{mgcv}}
 
 \item{lsp_max}{largest value allowed for \code{log(lambda)}. Defaults to 15, as in \code{mgcv}, i.e. penalty strengths saturate at roughly 3.3e6}
+
+\item{tol_edf}{convergence tolerance on the \strong{effective degrees of freedom}. Defaults to 0.01.
+
+The iteration also stops once no smooth's effective degrees of freedom has changed by more than this between outer iterations.
+This is the criterion that reflects whether the \strong{fitted smooth} is still changing: a penalty strength can slide along a flat ridge for many iterations, moving in relative terms and so keeping a tolerance on \code{lambda} unsatisfied, while neither the restricted likelihood nor the fit itself changes appreciably.
+Set to zero to switch this off and rely on \code{tol} alone.}
 
 \item{step_small}{size of a step in \code{log(lambda)} below which the step multiplier is allowed to double. Defaults to 0.05, as in \code{mgcv}}
 

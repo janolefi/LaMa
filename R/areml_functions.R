@@ -133,6 +133,11 @@ gen_inverse <- function(S) {
 #' @param smoothing optional scaling factor for the final penalty strength parameters. Increasing this beyond one leads to a smoother final model
 #' @param maxiter maximum number of outer iterations
 #' @param tol convergence tolerance: the iteration stops once the restricted log-likelihood has changed by less than \code{tol} over the last four outer iterations and the step is small. Defaults to 0.1, as in \code{mgcv}
+#' @param tol_edf convergence tolerance on the \strong{effective degrees of freedom}. Defaults to 0.01.
+#'
+#' The iteration also stops once no smooth's effective degrees of freedom has changed by more than this between outer iterations.
+#' This is the criterion that reflects whether the \strong{fitted smooth} is still changing: a penalty strength can slide along a flat ridge for many iterations, moving in relative terms and so keeping a tolerance on \code{lambda} unsatisfied, while neither the restricted likelihood nor the fit itself changes appreciably.
+#' Set to zero to switch this off and rely on \code{tol} alone.
 #' @param lsp_max largest value allowed for \code{log(lambda)}. Defaults to 15, as in \code{mgcv}, i.e. penalty strengths saturate at roughly 3.3e6
 #' @param step_small size of a step in \code{log(lambda)} below which the step multiplier is allowed to double. Defaults to 0.05, as in \code{mgcv}
 #' @param max_halve maximum number of times a step that decreases the restricted likelihood is halved before it is accepted anyway. Defaults to 6.
@@ -165,6 +170,7 @@ areml <- function(pnll, # penalised negative log-likelihood function
                   maxiter = 200, # maximum number of outer iterations
                   tol = 0.1, # convergence tolerance on the restricted log-likelihood
                   lsp_max = 15, # largest allowed log(lambda)
+                  tol_edf = 0.01, # convergence tolerance on the effective degrees of freedom
                   step_small = 0.05, # step size below which the multiplier may double
                   max_halve = 6, # how often a worsening step may be halved
                   method = "BFGS", # optimisation method used by optim
@@ -191,6 +197,9 @@ areml <- function(pnll, # penalised negative log-likelihood function
   }
   if(!is.numeric(max_halve) || length(max_halve) != 1 || max_halve < 0){
     stop("'max_halve' needs to be a single non-negative number")
+  }
+  if(!is.numeric(tol_edf) || length(tol_edf) != 1 || tol_edf < 0){
+    stop("'tol_edf' needs to be a single non-negative number")
   }
 
   # setting the argument names because later updated par is returned
@@ -426,11 +435,17 @@ areml <- function(pnll, # penalised negative log-likelihood function
   efs_ratio <- function(state) {
     a <- rep(NA_real_, length(lambda0))
     bSb <- rep(NA_real_, length(lambda0))
+    edf <- numeric(0) # effective degrees of freedom, one per smooth
     l <- 1
     for(i in seq_len(n_re)){
       for(j in seq_len(nrow(re_inds[[i]]))){
         idx <- re_inds[[i]][j, ]
         Jinv <- block_inv(state$fac, idx) # only the block we need
+
+        # free here: the block of the inverse is already formed, and the
+        # effective degrees of freedom are what the convergence test below
+        # actually watches
+        edf <- c(edf, length(idx) - sum(Jinv * block_S(i, j, state$Lambda)))
 
         if(i %in% simple_ind){
           # tr(S_lambda^- S) = rank / lambda for a single penalty matrix
@@ -473,13 +488,14 @@ areml <- function(pnll, # penalised negative log-likelihood function
     # no single step may move a penalty strength by more than a factor 1e6,
     # mirroring the bound mgcv puts on a non-finite ratio
     r <- pmin(pmax(r, 1e-6), 1e6)
-    list(r = r, a = a_m, bSb = bSb_m)
+    list(r = r, a = a_m, bSb = bSb_m, edf = edf)
   }
 
   ### updating algorithm
   lsp <- log(lambda_mapped)
   mult <- 1 # step multiplier, persistent across iterations, as in mgcv
   n_success <- 0 # consecutive improving steps
+  edf_prev <- NULL # effective degrees of freedom of the previous iteration
   crit_hist <- rep(NA_real_, maxiter)
   llk_hist <- rep(NA_real_, maxiter)
 
@@ -509,7 +525,8 @@ areml <- function(pnll, # penalised negative log-likelihood function
 
     if(saveall) allmods[[iter]] <- cur$mod
 
-    step <- log(efs_ratio(cur)$r)
+    ef <- efs_ratio(cur)
+    step <- log(ef$r)
     # downward floor: a penalty strength may not fall by more than a factor alpha
     # in one iteration, which protects the inner optimisation early on
     if(alpha > 0) step <- pmax(step, log(alpha))
@@ -590,6 +607,19 @@ areml <- function(pnll, # penalised negative log-likelihood function
     }
 
     #### convergence check ####
+    # The penalty strengths and the restricted likelihood are both poor proxies
+    # for "the fit has stopped changing": lambda can slide along a flat ridge for
+    # a hundred iterations while the criterion barely moves, and neither tells you
+    # whether the fitted smooth is still moving. The effective degrees of freedom
+    # do, directly, and they come free from the inverse blocks above. Converge
+    # once no smooth's edf has moved by more than tol_edf.
+    edf_now <- ef$edf
+    if(!is.null(edf_prev) && max(abs(edf_now - edf_prev)) < tol_edf){
+      converged <- TRUE
+      if(silent == 0) cat("effective degrees of freedom settled\n")
+    }
+    edf_prev <- edf_now
+
     # on the criterion, not on the penalty strengths: a penalty strength drifting
     # towards a boundary changes the criterion by nothing, so it no longer keeps
     # the iteration alive. The window of four absorbs numerical wobble.

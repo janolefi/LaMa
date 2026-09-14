@@ -18,6 +18,7 @@ areml(
   tol = 0.1,
   lsp_max = 15,
   step_small = 0.05,
+  max_halve = 6,
   method = "BFGS",
   control = list(),
   spHess = FALSE,
@@ -42,12 +43,11 @@ areml(
 
 \item{psname}{optional name given to the penalty strength parameter in \code{dat}. Defaults to \code{"lambda"}}
 
-\item{alpha}{damping of the outer step, a number in [0, 1). Defaults to 0.3. It does two things:
-\itemize{
-  \item a penalty strength cannot \strong{decrease} by more than a factor \code{alpha} in one outer iteration. Reducing a penalty strength too quickly can push the inner optimisation into a local optimum or a numerically awkward region, which matters more here than in a GAM because the likelihood is user-written;
-  \item the step multiplier may be shortened to \code{1 - alpha}, which damps the two-cycles that the plain Fellner-Schall step can fall into.
-}
-\code{alpha = 0} reproduces the \code{mgcv} behaviour, where the base step is never shortened.}
+\item{alpha}{smallest factor by which a penalty strength may \strong{decrease} in one outer iteration, a number in [0, 1). Defaults to 0.3.
+
+Penalty strengths are free to increase as fast as the update proposes, but cannot collapse faster than this per iteration.
+Reducing a penalty strength too quickly can push the inner optimisation into a local optimum or a numerically awkward region, which matters more here than in a GAM because the likelihood is user-written.
+Set to zero to remove the floor entirely. Step length is handled separately, by \code{max_halve} and the adaptive multiplier.}
 
 \item{smoothing}{optional scaling factor for the final penalty strength parameters. Increasing this beyond one leads to a smoother final model}
 
@@ -58,6 +58,10 @@ areml(
 \item{lsp_max}{largest value allowed for \code{log(lambda)}. Defaults to 15, as in \code{mgcv}, i.e. penalty strengths saturate at roughly 3.3e6}
 
 \item{step_small}{size of a step in \code{log(lambda)} below which the step multiplier is allowed to double. Defaults to 0.05, as in \code{mgcv}}
+
+\item{max_halve}{maximum number of times a step that decreases the restricted likelihood is halved before it is accepted anyway. Defaults to 6.
+
+\code{mgcv} never shortens below the full Fellner-Schall step and accepts a worse one instead, which for a user-written likelihood can drift downhill for tens of iterations.}
 
 \item{method}{optimisation method to be used by \code{\link[stats:optim]{optim}}. Defaults to \code{"BFGS"}}
 

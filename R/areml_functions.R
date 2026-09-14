@@ -125,17 +125,19 @@ gen_inverse <- function(S) {
 #' @param map optional map argument, containing factor vectors to indicate parameter sharing or fixing
 #' @param silent integer silencing level: 0 corresponds to full printing of inner and outer iterations, 1 to printing of outer iterations only, and 2 to no printing
 #' @param psname optional name given to the penalty strength parameter in \code{dat}. Defaults to \code{"lambda"}
-#' @param alpha damping of the outer step, a number in [0, 1). Defaults to 0.3. It does two things:
-#' \itemize{
-#'   \item a penalty strength cannot \strong{decrease} by more than a factor \code{alpha} in one outer iteration. Reducing a penalty strength too quickly can push the inner optimisation into a local optimum or a numerically awkward region, which matters more here than in a GAM because the likelihood is user-written;
-#'   \item the step multiplier may be shortened to \code{1 - alpha}, which damps the two-cycles that the plain Fellner-Schall step can fall into.
-#' }
-#' \code{alpha = 0} reproduces the \code{mgcv} behaviour, where the base step is never shortened.
+#' @param alpha smallest factor by which a penalty strength may \strong{decrease} in one outer iteration, a number in [0, 1). Defaults to 0.3.
+#'
+#' Penalty strengths are free to increase as fast as the update proposes, but cannot collapse faster than this per iteration.
+#' Reducing a penalty strength too quickly can push the inner optimisation into a local optimum or a numerically awkward region, which matters more here than in a GAM because the likelihood is user-written.
+#' Set to zero to remove the floor entirely. Step length is handled separately, by \code{max_halve} and the adaptive multiplier.
 #' @param smoothing optional scaling factor for the final penalty strength parameters. Increasing this beyond one leads to a smoother final model
 #' @param maxiter maximum number of outer iterations
 #' @param tol convergence tolerance: the iteration stops once the restricted log-likelihood has changed by less than \code{tol} over the last four outer iterations and the step is small. Defaults to 0.1, as in \code{mgcv}
 #' @param lsp_max largest value allowed for \code{log(lambda)}. Defaults to 15, as in \code{mgcv}, i.e. penalty strengths saturate at roughly 3.3e6
 #' @param step_small size of a step in \code{log(lambda)} below which the step multiplier is allowed to double. Defaults to 0.05, as in \code{mgcv}
+#' @param max_halve maximum number of times a step that decreases the restricted likelihood is halved before it is accepted anyway. Defaults to 6.
+#'
+#' \code{mgcv} never shortens below the full Fellner-Schall step and accepts a worse one instead, which for a user-written likelihood can drift downhill for tens of iterations.
 #' @param method optimisation method to be used by \code{\link[stats:optim]{optim}}. Defaults to \code{"BFGS"}
 #' @param control list of control parameters for \code{\link[stats:optim]{optim}} to use in the inner optimisation
 #' @param spHess logical, if \code{TRUE}, the sparse automatic differentiation Hessian is used for evaluation. The factorisation is dense either way
@@ -164,6 +166,7 @@ areml <- function(pnll, # penalised negative log-likelihood function
                   tol = 0.1, # convergence tolerance on the restricted log-likelihood
                   lsp_max = 15, # largest allowed log(lambda)
                   step_small = 0.05, # step size below which the multiplier may double
+                  max_halve = 6, # how often a worsening step may be halved
                   method = "BFGS", # optimisation method used by optim
                   control = list(), # control list for inner optimisation
                   spHess = FALSE, # evaluate the Hessian sparsely
@@ -185,6 +188,9 @@ areml <- function(pnll, # penalised negative log-likelihood function
   }
   if(!is.numeric(alpha) || length(alpha) != 1 || alpha < 0 || alpha >= 1){
     stop("'alpha' needs to be a single number in [0, 1)")
+  }
+  if(!is.numeric(max_halve) || length(max_halve) != 1 || max_halve < 0){
+    stop("'max_halve' needs to be a single non-negative number")
   }
 
   # setting the argument names because later updated par is returned
@@ -376,6 +382,22 @@ areml <- function(pnll, # penalised negative log-likelihood function
 
     if(silent == 0) cat("\nInner optimisation:", "\n")
     counter_env$count <- 0
+
+    # RTMB/TMB caches the objective value at the last parameter vector it was
+    # evaluated at. optim's very first evaluation is at 'start', which is exactly
+    # where the previous inner fit left off, so without this the first function
+    # value is the one belonging to the PREVIOUS lambda. Being the optimum of a
+    # smaller penalty it is too low, no trial point can beat it, and optim returns
+    # immediately with that stale value: the criterion then looks far better than
+    # it is and the step is accepted on false evidence.
+    # Evaluating once at a nudged parameter vector invalidates the cache, so the
+    # evaluation optim then makes at 'start' is a real one. The value here is
+    # discarded, and the nudge is never used as a starting value.
+    # qreml() never hit this because optimHess() finite differences obj$fn at many
+    # perturbed points and so invalidates the cache as a side effect; obj$he()
+    # never touches obj$fn, which is what exposed it.
+    invisible(try(obj$fn(start + 1e-8 * (1 + abs(start))), silent = TRUE))
+
     opt <- stats::optim(start, obj$fn, newgrad, method = method, control = ctl)
 
     gr <- obj$gr(opt$par) # forces evaluation at opt$par so that report() matches
@@ -452,11 +474,6 @@ areml <- function(pnll, # penalised negative log-likelihood function
   ### updating algorithm
   lsp <- log(lambda_mapped)
   mult <- 1 # step multiplier, persistent across iterations, as in mgcv
-  # mgcv never shortens below the base Fellner-Schall step. Here it sometimes has
-  # to: with a user-written likelihood the base step can settle into a two-cycle,
-  # improving the criterion on one iteration and undoing it on the next. Allowing
-  # the multiplier down to 1 - alpha damps that. alpha = 0 reproduces mgcv exactly.
-  mult_min <- 1 - alpha
   crit_hist <- rep(NA_real_, maxiter)
   llk_hist <- rep(NA_real_, maxiter)
 
@@ -464,6 +481,15 @@ areml <- function(pnll, # penalised negative log-likelihood function
 
   cur <- fit_at(lsp, newpar)
   converged <- FALSE
+
+  # Best iterate seen so far. Once the multiplier is at its floor the step can no
+  # longer be shortened, so a step that worsens the criterion is accepted anyway
+  # (this is mgcv's rule, and the iteration often climbs back out of such a dip).
+  # Keeping the best point means a run that does not climb back out still returns
+  # the best penalty strengths it found rather than wherever it happened to stop.
+  best_lsp <- lsp
+  best_crit <- cur$crit
+  best_iter <- 0
 
   if(!estimate_ps){
     crit_hist[1] <- cur$crit
@@ -485,8 +511,10 @@ areml <- function(pnll, # penalised negative log-likelihood function
     trial <- fit_at(lsp1, cur$opt$par)
 
     if(trial$crit <= cur$crit){
-      ## improved: if the step was small, try twice as far and keep the doubling
+      ## improved
       if(max_step < step_small){
+        # mgcv's acceleration: the step is small and still paying, so try twice
+        # as far and keep the doubling if it pays again
         lsp2 <- pmin(lsp + 2 * mult * step, lsp_max)
         trial2 <- fit_at(lsp2, cur$opt$par)
         if(trial2$crit < trial$crit){
@@ -495,12 +523,21 @@ areml <- function(pnll, # penalised negative log-likelihood function
           mult <- mult * 2
           if(silent == 0) cat("accelerating: step multiplier now", mult, "\n")
         }
+      } else if(mult < 1){
+        # a shortening from an earlier iteration must not become permanent, or
+        # the iteration crawls for the rest of the run: walk the multiplier back
+        # towards the full step now that it is paying again
+        mult <- min(2 * mult, 1)
       }
     } else {
-      ## worsened: shorten the step, down to the damping floor
-      while(trial$crit > cur$crit && mult > mult_min){
-        mult <- max(mult / 2, mult_min)
-        if(silent == 0) cat("criterion increased; step multiplier now", mult, "\n")
+      ## worsened: shorten the step until it pays. mgcv stops at the full step and
+      ## accepts a worse one, which here can drift downhill for tens of iterations
+      ## at a time, so the step is genuinely backtracked instead.
+      n_halve <- 0
+      while(trial$crit > cur$crit && n_halve < max_halve){
+        mult <- mult / 2
+        n_halve <- n_halve + 1
+        if(silent == 0) cat("criterion increased; step multiplier now", signif(mult, 4), "\n")
         lsp1 <- pmin(lsp + mult * step, lsp_max)
         trial <- fit_at(lsp1, cur$opt$par)
       }
@@ -509,6 +546,11 @@ areml <- function(pnll, # penalised negative log-likelihood function
     lsp <- lsp1
     cur <- trial
     crit_hist[iter] <- cur$crit
+    if(cur$crit < best_crit){
+      best_crit <- cur$crit
+      best_lsp <- lsp
+      best_iter <- iter
+    }
     llk_hist[iter] <- -cur$opt$value + cur$mod$pen # unpenalised log-likelihood
 
     if(silent < 2){
@@ -549,6 +591,13 @@ areml <- function(pnll, # penalised negative log-likelihood function
   if(!estimate_ps) iter <- 1
 
   ## final model fit
+  # the best penalty strengths found, which is the last iterate whenever the
+  # criterion improved to the end
+  if(best_iter < iter && silent < 2){
+    message("Restricted likelihood did not improve after iteration ", best_iter,
+            "; returning the best penalty strengths found")
+  }
+  lsp <- best_lsp
   lambda <- unmap_lambda(exp(lsp), lambda_map, lambda0) * smoothing
   if(silent < 2){
     if(any(smoothing != 1)) message("Smoothing factor: ", paste(smoothing, collapse = " "))
@@ -604,6 +653,7 @@ areml <- function(pnll, # penalised negative log-likelihood function
   mod$llk_restricted <- -crit_hist[seq_len(iter)]
   mod$converged <- converged
   mod$iter <- iter
+  mod$best_iter <- best_iter
   mod$hessian_repaired <- final$fac$repaired
 
   # gradient of the restricted log-likelihood with respect to log(lambda):

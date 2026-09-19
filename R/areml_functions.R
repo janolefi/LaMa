@@ -426,7 +426,11 @@ areml <- function(pnll, # penalised negative log-likelihood function
     # restricted log-likelihood; the criterion is its negative, so it is minimised
     llk_r <- -opt$value + logdet_Slambda(Lambda) / 2 - fac$logdet / 2
 
-    list(opt = opt, mod = mod, J = J, fac = fac, Lambda = Lambda,
+    # J itself is not returned: everything downstream works from the factor, and
+    # cur, trial and trial2 can be alive at the same time, so keeping a p x p copy
+    # in each is the avoidable part of the peak memory. It is recomputed once for
+    # the returned model below.
+    list(opt = opt, mod = mod, fac = fac, Lambda = Lambda,
          lsp = lsp_try, llk_r = llk_r, crit = -llk_r, mgc = max(abs(gr)))
   }
 
@@ -620,6 +624,12 @@ areml <- function(pnll, # penalised negative log-likelihood function
     }
     edf_prev <- edf_now
 
+    # each outer iteration allocates several p x p matrices, and any rejected
+    # trial fits become garbage immediately. Collecting here keeps the heap from
+    # growing across iterations, which on a large model is the difference between
+    # a few hundred MB and several GB
+    gc(verbose = FALSE)
+
     # on the criterion, not on the penalty strengths: a penalty strength drifting
     # towards a boundary changes the criterion by nothing, so it no longer keeps
     # the iteration alive. The window of four absorbs numerical wobble.
@@ -719,7 +729,7 @@ areml <- function(pnll, # penalised negative log-likelihood function
 
   if(!is.null(mod$allprobs)) mod$nobs <- nrow(mod$allprobs)
 
-  mod$Hessian_conditional <- final$J
+  mod$Hessian_conditional <- hessian_at(final$opt$par)
   mod$llk_restricted <- -crit_hist[seq_len(iter)]
   mod$converged <- converged
   mod$iter <- iter

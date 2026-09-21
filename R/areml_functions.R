@@ -780,6 +780,16 @@ areml <- function(pnll, # penalised negative log-likelihood function
 
   mod$Hessian_conditional <- hessian_at(final$opt$par)
   mod$llk_restricted <- -crit_hist[seq_len(iter)]
+
+  ## largest decrease of the restricted likelihood over the run
+  # The iteration is meant to be monotone: a worsening step is backtracked, and
+  # only an exhausted backtrack is accepted. This is the number that says whether
+  # that held, and it is the first thing to look at if a fit is suspect.
+  mod$max_drop <- if(iter > 1) max(c(0, diff(crit_hist[seq_len(iter)]))) else 0
+  if(mod$max_drop > 1e-3 * (1 + abs(tail(mod$llk_restricted, 1))) && silent < 2){
+    message("Restricted likelihood decreased by up to ", signif(mod$max_drop, 4),
+            " during the iteration; the step control could not keep it monotone")
+  }
   mod$converged <- converged
   mod$iter <- iter
   mod$best_iter <- best_iter

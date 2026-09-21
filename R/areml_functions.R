@@ -505,7 +505,6 @@ areml <- function(pnll, # penalised negative log-likelihood function
   n_success <- 0 # consecutive improving steps
   edf_prev <- NULL # effective degrees of freedom of the previous iteration
   crit_hist <- rep(NA_real_, maxiter)
-  llk_hist <- rep(NA_real_, maxiter)
 
   if(silent < 2) message("Initialising with ", psname, ": ", paste(round(lambda, 3), collapse = " "))
   # one fit at the starting lambda is unavoidable: the first update needs the
@@ -611,7 +610,6 @@ areml <- function(pnll, # penalised negative log-likelihood function
       best_lsp <- lsp
       best_iter <- iter
     }
-    llk_hist[iter] <- -cur$opt$value + cur$mod$pen # unpenalised log-likelihood
 
     if(silent == 1){
       cat("outer", iter, "-", paste0(psname, ":"), round(exp(lsp), 3), "\n")
@@ -662,17 +660,6 @@ areml <- function(pnll, # penalised negative log-likelihood function
        max(abs(diff(crit_hist[(iter-3):iter]))) < tol){
       converged <- TRUE
     }
-    # mgcv has a second criterion here, stopping when the log-likelihood changes
-    # by less than 100 * eps relative. That is 1e-5 of the log-likelihood, which
-    # for a model with many observations is a tolerance of a quarter of a nat and
-    # fires while the penalty strengths are still moving. The criterion above is
-    # the one that means something, so the fallback is kept only as a guard
-    # against a completely stalled likelihood.
-    if(iter > 1 && max_step < step_small &&
-       abs(llk_hist[iter] - llk_hist[iter-1]) < 1e-10 * abs(llk_hist[iter])){
-      converged <- TRUE
-    }
-
     if(converged){
       if(silent < 2) message("Converged")
       break

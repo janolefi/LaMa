@@ -377,6 +377,10 @@ areml <- function(pnll, # penalised negative log-likelihood function
     out
   }
 
+  # number of coefficients per smooth, the upper limit for that smooth's edf
+  block_dim <- unlist(lapply(seq_len(n_re),
+                             function(i) rep(ncol(re_inds[[i]]), nrow(re_inds[[i]]))))
+
   ## controlling optim
   ctl <- list(maxit = 1000)
   ctl[names(control)] <- control
@@ -519,6 +523,7 @@ areml <- function(pnll, # penalised negative log-likelihood function
   best_lsp <- lsp
   best_crit <- cur$crit
   best_iter <- 0
+  edf_ok_run <- TRUE # reports the first iteration whose edf go out of range
 
   if(!estimate_ps){
     crit_hist[1] <- cur$crit
@@ -623,6 +628,20 @@ areml <- function(pnll, # penalised negative log-likelihood function
     # whether the fitted smooth is still moving. The effective degrees of freedom
     # do, directly, and they come free from the inverse blocks above. Converge
     # once no smooth's edf has moved by more than tol_edf.
+    # The edf are eigenvalue sums of J^-1 H and must lie in [0, block dimension].
+    # Outside that range the data Hessian is indefinite, which means the traces
+    # driving the update are not the quantities the algorithm assumes, so it is
+    # worth saying so at the iteration where it starts rather than only at the
+    # end, after minutes of iterating on them.
+    if(edf_ok_run && any(ef$edf < -1e-3 | ef$edf > block_dim + 1e-3)){
+      edf_ok_run <- FALSE
+      if(silent < 2){
+        message("Iteration ", iter, ": effective degrees of freedom left [0, block ",
+                "dimension] (min ", signif(min(ef$edf), 4), "); the data Hessian is ",
+                "indefinite and the update is running on unreliable traces")
+      }
+    }
+
     edf_now <- ef$edf
     if(!is.null(edf_prev) && max(abs(edf_now - edf_prev)) < tol_edf){
       converged <- TRUE

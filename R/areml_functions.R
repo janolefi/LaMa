@@ -749,6 +749,19 @@ areml <- function(pnll, # penalised negative log-likelihood function
     if(any(Edfs[[i]] < -1e-3 | Edfs[[i]] > q_i + 1e-3)) edf_ok <- FALSE
   }
   mod$edf_valid <- edf_ok
+
+  ## penalty strengths that ended pinned at the upper bound
+  # Such a smooth has been shrunk to its null space: the bound was binding, not
+  # the data. They also make the fit fragile, because a large lambda drives down
+  # the smallest eigenvalue of J and so amplifies any indefiniteness in the data
+  # Hessian into the traces and the effective degrees of freedom.
+  at_bound <- which(log(lambda) >= lsp_max - 1e-8)
+  mod$lambda_at_bound <- at_bound
+  if(length(at_bound) > 0 && silent < 2){
+    message(length(at_bound), " of ", length(lambda), " ", psname,
+            " ended at the upper bound exp(lsp_max) = ", signif(exp(lsp_max), 4),
+            "; those smooths are penalised to their null space")
+  }
   if(!edf_ok){
     lam_span <- range(lambda[lambda > 0])
     warning("Effective degrees of freedom outside [0, block dimension]: the inverse ",

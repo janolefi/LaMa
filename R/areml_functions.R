@@ -531,11 +531,17 @@ areml <- function(pnll, # penalised negative log-likelihood function
 
     ef <- efs_ratio(cur)
     step <- log(ef$r)
-    # downward floor: a penalty strength may not fall by more than a factor alpha
-    # in one iteration, which protects the inner optimisation early on
-    if(alpha > 0) step <- pmax(step, log(alpha))
 
-    lsp1 <- pmin(lsp + mult * step, lsp_max)
+    # Downward floor: a penalty strength may not fall by more than a factor alpha
+    # in one outer iteration, which protects the inner optimisation early on. It
+    # has to be applied to the step actually taken, mult * step, not to the raw
+    # step: with the multiplier at 2 the floor would otherwise be alpha^2, and at
+    # 8 it would be alpha^8, so the guarantee would evaporate exactly when the
+    # iteration is moving fastest. Upward steps are not touched.
+    step_taken <- mult * step
+    if(alpha > 0) step_taken <- pmax(step_taken, log(alpha))
+
+    lsp1 <- pmin(lsp + step_taken, lsp_max)
     max_step <- max(abs(lsp1 - lsp))
     n_halve <- 0
 
@@ -560,7 +566,7 @@ areml <- function(pnll, # penalised negative log-likelihood function
       if(max_step < step_small || n_success >= 2){
         # mgcv's acceleration: the step is small and still paying, so try twice
         # as far and keep the doubling if it pays again
-        lsp2 <- pmin(lsp + 2 * mult * step, lsp_max)
+        lsp2 <- pmin(lsp + pmax(2 * mult * step, if(alpha > 0) log(alpha) else -Inf), lsp_max)
         trial2 <- fit_at(lsp2, cur$opt$par)
         if(trial2$crit < trial$crit){
           trial <- trial2
@@ -587,7 +593,7 @@ areml <- function(pnll, # penalised negative log-likelihood function
         mult <- mult / 2
         n_halve <- n_halve + 1
         if(silent == 0) cat("criterion increased; step multiplier now", signif(mult, 4), "\n")
-        lsp1 <- pmin(lsp + mult * step, lsp_max)
+        lsp1 <- pmin(lsp + pmax(mult * step, if(alpha > 0) log(alpha) else -Inf), lsp_max)
         trial <- fit_at(lsp1, cur$opt$par)
       }
     }

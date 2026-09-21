@@ -727,6 +727,30 @@ areml <- function(pnll, # penalised negative log-likelihood function
   mod$df <- mod$n_fixpar + sum(unlist(Edfs))
   mod$edf <- Edfs
 
+  ## sanity check on the effective degrees of freedom
+  # Each smooth's edf must lie between zero and its number of coefficients: it is
+  # a sum of eigenvalues of J^-1 H, all in [0, 1]. Values outside that range are
+  # not a rounding problem, they mean the inverse Hessian is not trustworthy,
+  # which happens when the penalty strengths span so many orders of magnitude
+  # that J is badly conditioned. A few very large lambda contaminate the blocks
+  # of the inverse belonging to the OTHER smooths, and since the same traces
+  # drive the update, the iteration then converges confidently to a worse point.
+  # mgcv avoids this by reparameterising each penalty block (Wood's similarity
+  # transform); areml does not, so the condition is reported instead.
+  edf_ok <- TRUE
+  for(i in seq_len(n_re)){
+    q_i <- ncol(re_inds[[i]])
+    if(any(Edfs[[i]] < -1e-3 | Edfs[[i]] > q_i + 1e-3)) edf_ok <- FALSE
+  }
+  mod$edf_valid <- edf_ok
+  if(!edf_ok){
+    lam_span <- range(lambda[lambda > 0])
+    warning("Effective degrees of freedom outside [0, block dimension]: the inverse ",
+            "Hessian is unreliable and the fit should not be trusted. The penalty ",
+            "strengths span ", signif(lam_span[1], 3), " to ", signif(lam_span[2], 3),
+            "; refitting with a smaller 'lsp_max' usually resolves it.", call. = FALSE)
+  }
+
   if(!is.null(mod$allprobs)) mod$nobs <- nrow(mod$allprobs)
 
   mod$Hessian_conditional <- hessian_at(final$opt$par)

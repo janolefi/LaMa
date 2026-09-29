@@ -2,7 +2,8 @@
 % Please edit documentation in R/qreml_functions.R
 \name{qreml}
 \alias{qreml}
-\title{Quasi restricted maximum likelihood (qREML) algorithm for models with penalised splines or simple i.i.d. random effects}
+\title{Quasi restricted maximum likelihood (qREML) algorithm for arbitrary 
+statistical models with penalised splines, i.i.d. random effects, or tensorproducts}
 \usage{
 qreml(
   pnll,
@@ -85,21 +86,17 @@ A tolerance in nats is not comparable across models, which is why it is the fall
 \item{saveall}{logical, if \code{TRUE}, then all model objects from each iteration are saved in the final model object}
 }
 \value{
-model object of class \code{"qremlModel"}, so that all methods defined for \code{\link{qreml}} objects apply
+model object of class \code{"qremlModel"}, carrying the fitted quantities, the smoothness selection diagnostics shown by \code{\link{summary.qremlModel}}, and the approximate outer gradient that \code{\link{sdreport_outer}} differences
 }
 \description{
-Fits statistical models involving \strong{penalised splines} or simple \strong{i.i.d. random effects}, i.e. that have penalties of the form
-\deqn{0.5 \sum_{i} \lambda_i b_i^T S_i b_i,}
-by an accelerated version of the extended Fellner-Schall update.
+Efficiently fits models involving quadratic penalties of the form
+\deqn{\sum_{i} \lambda_i b^T S_i b,}
+by combining automatic differentiation via \code{RTMB} with a custom implementation of the extended Fellner-Schall update.
 
-\code{qreml} differs from \code{\link{qreml_old}}, the previous implementation, in how the outer iteration over the penalty strengths is controlled:
-\itemize{
-  \item the update is taken on the log scale with an \strong{adaptive step multiplier} that doubles whenever a small step keeps improving the criterion, which is what makes penalty strengths approaching zero or infinity converge in a sensible number of iterations,
-  \item \strong{convergence is judged on the restricted likelihood} rather than on the relative change of the penalty strengths, so a penalty strength drifting towards a boundary no longer keeps the iteration alive,
-  \item the Hessian is obtained by \strong{automatic differentiation} (\code{obj$he}) rather than by finite differencing the gradient, and is repaired with a rank-revealing pivoted Cholesky,
-  \item only the diagonal blocks of the inverse Hessian that are actually needed are computed, instead of the full inverse.
+Users only need to supply a custom penalised log-likelihood function that calls \code{penalty()} or \code{penalty2()}.
 }
-The step control follows the extended Fellner-Schall implementation in \code{mgcv}.
+\details{
+Step size control follows the extended Fellner-Schall implementation in \code{mgcv} while convergence is judged on the effective degrees of freedom (differing from \code{mgcv}).
 }
 \examples{
 # see ?penalty for a full model-fitting example

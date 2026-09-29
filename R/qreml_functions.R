@@ -62,21 +62,18 @@ gen_inverse <- function(S) {
 }
 
 
-#' Quasi restricted maximum likelihood (qREML) algorithm for models with penalised splines or simple i.i.d. random effects
+#' Quasi restricted maximum likelihood (qREML) algorithm for arbitrary 
+#' statistical models with penalised splines, i.i.d. random effects, or tensorproducts
 #'
 #' @description
-#' Fits statistical models involving \strong{penalised splines} or simple \strong{i.i.d. random effects}, i.e. that have penalties of the form
-#' \deqn{0.5 \sum_{i} \lambda_i b_i^T S_i b_i,}
-#' by an accelerated version of the extended Fellner-Schall update.
-#'
-#' \code{qreml} differs from \code{\link{qreml_old}}, the previous implementation, in how the outer iteration over the penalty strengths is controlled:
-#' \itemize{
-#'   \item the update is taken on the log scale with an \strong{adaptive step multiplier} that doubles whenever a small step keeps improving the criterion, which is what makes penalty strengths approaching zero or infinity converge in a sensible number of iterations,
-#'   \item \strong{convergence is judged on the restricted likelihood} rather than on the relative change of the penalty strengths, so a penalty strength drifting towards a boundary no longer keeps the iteration alive,
-#'   \item the Hessian is obtained by \strong{automatic differentiation} (\code{obj$he}) rather than by finite differencing the gradient, and is repaired with a rank-revealing pivoted Cholesky,
-#'   \item only the diagonal blocks of the inverse Hessian that are actually needed are computed, instead of the full inverse.
-#' }
-#' The step control follows the extended Fellner-Schall implementation in \code{mgcv}.
+#' Efficiently fits models involving quadratic penalties of the form
+#' \deqn{\sum_{i} \lambda_i b^T S_i b,}
+#' by combining automatic differentiation via \code{RTMB} with a custom implementation of the extended Fellner-Schall update.
+#' 
+#' Users only need to supply a custom penalised log-likelihood function that calls \code{penalty()} or \code{penalty2()}.
+#' 
+#' @details
+#' Step size control follows the extended Fellner-Schall implementation in \code{mgcv} while convergence is judged on the effective degrees of freedom (differing from \code{mgcv}).
 #'
 #' @seealso \code{\link{penalty}} and \code{\link{penalty2}} to compute the penalty inside the likelihood function, and \code{\link{qreml}} for the original algorithm
 #'
@@ -120,15 +117,51 @@ gen_inverse <- function(S) {
 #' @param joint_unc logical, if \code{TRUE}, joint \code{RTMB} object is returned allowing for joint uncertainty quantification
 #' @param saveall logical, if \code{TRUE}, then all model objects from each iteration are saved in the final model object
 #'
-#' @return model object of class \code{"qremlModel"}, so that all methods defined for \code{\link{qreml}} objects apply
+#' @return model object of class \code{"qremlModel"}, carrying the fitted quantities, the smoothness selection diagnostics shown by \code{\link{summary.qremlModel}}, and the approximate outer gradient that \code{\link{sdreport_outer}} differences
 #'
 #' @export
 #'
 #' @import RTMB
 #'
 #' @examples
-#' # see ?penalty for a full model-fitting example
-#' # mod = qreml(pnll, par, dat, random = "betaspline")
+#' data = trex[1:1000,] # subset
+#'
+#' # initial parameter list
+#' par = list(logmu = log(c(0.3, 2.5)), # step mean
+#'            logsigma = log(c(0.3, 1.5)), # step sd
+#'            beta0 = c(-2,-2), # state process intercept
+#'            betaspline = matrix(rep(0, 18), nrow = 2)) # state process spline coefs
+#'           
+#' # data object with initial penalty strength lambda
+#' dat = list(step = data$step, # step length
+#'            tod = data$tod, # time of day covariate
+#'            N = 2, # number of states
+#'            lambda = rep(10,2)) # initial penalty strength
+#'
+#' # building model matrices
+#' modmat = make_matrices(~ s(tod, bs = "cp"), 
+#'                        data = data.frame(tod = 1:24), 
+#'                        knots = list(tod = c(0,24))) # wrapping points
+#' dat$Z = modmat$Z # spline design matrix
+#' dat$S = modmat$S # penalty matrix
+#'
+#' # penalised negative log-likelihood function
+#' pnll = function(par) {
+#'   getAll(par, dat) # makes everything contained available without $
+#'   Gamma = tpm_g(Z, cbind(beta0, betaspline), ad = TRUE) # transition probabilities
+#'   delta = stationary_p(Gamma, t = 1, ad = TRUE) # initial distribution
+#'   mu = exp(logmu) # step mean
+#'   sigma = exp(logsigma) # step sd
+#'   # calculating all state-dependent densities
+#'   allprobs = matrix(1, nrow = length(step), ncol = N)
+#'   ind = which(!is.na(step)) # only for non-NA obs.
+#'   for(j in 1:N) allprobs[ind,j] = dgamma2(step[ind],mu[j],sigma[j])
+#'   -forward_g(delta, Gamma[,,tod], allprobs) +
+#'       penalty(betaspline, S, lambda) # this does all the penalization work
+#' }
+#'
+#' # model fitting
+#' mod = qreml_old(pnll, par, dat, random = "betaspline", silent = 2)
 qreml <- function(pnll, # penalised negative log-likelihood function
                   par, # initial parameter list
                   dat, # initial dat object, currently needs to be called dat!
@@ -695,6 +728,17 @@ qreml <- function(pnll, # penalised negative log-likelihood function
   fr <- efs_ratio(final)
   mod$outer_grad <- 0.5 * map_lambda(lambda) * (fr$a - fr$bSb)
   names(mod$outer_grad) <- levels(lambda_map)
+
+  # the same gradient, w.r.t. lambda itself and as a function of it, which is what
+  # sdreport_outer() differences into an outer Hessian. Every call refits the inner
+  # problem, since a and b'Sb are only defined at the conditional mode.
+  mod$outer_gr <- function(x){
+    # started cold, not at opt$par: from the fitted mode optim's relative tolerance
+    # fires before the mode has moved, and the differences taken here are far too
+    # small to survive that, which inflates the outer Hessian
+    fr <- efs_ratio(fit_at(log(x), newpar))
+    0.5 * (fr$a - fr$bSb)
+  }
 
   # removing elements only reported for the update
   mod <- mod[!names(mod) %in% c("Pen", "pen", "S")]

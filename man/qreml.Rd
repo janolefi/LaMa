@@ -97,6 +97,34 @@ Users only need to supply a custom penalised log-likelihood function that calls 
 }
 \details{
 Step size control follows the extended Fellner-Schall implementation in \code{mgcv} while convergence is judged on the effective degrees of freedom (differing from \code{mgcv}).
+
+\strong{The criterion.} The penalty strengths are chosen to maximise the Laplace-approximate restricted log-likelihood
+\deqn{V(\lambda) = \ell_p(\hat{b}; \lambda) + \tfrac{1}{2} \log |S_\lambda|_+ - \tfrac{1}{2} \log |J|,}{V(lambda) = l_p(b; lambda) + 0.5 log|S_lambda|_+ - 0.5 log|J|,}
+where \eqn{\ell_p}{l_p} is the penalised log-likelihood at its mode \eqn{\hat{b}}{b}, \eqn{S_\lambda = \sum_i \lambda_i S_i}{S_lambda = sum_i lambda_i S_i}, \eqn{|\cdot|_+}{|.|_+} denotes the product of the positive eigenvalues, and \eqn{J} is the Hessian of the penalised negative log-likelihood at \eqn{\hat{b}}{b}.
+Every outer iteration refits the inner problem to obtain \eqn{\hat{b}}{b} and \eqn{J}, so one call is a sequence of complete model fits, each warm started at the previous one.
+
+\strong{The update.} The penalty strengths are updated multiplicatively, \eqn{\lambda_i \leftarrow \lambda_i r_i}{lambda_i <- lambda_i r_i}, by the extended Fellner-Schall ratio
+\deqn{r_i = \frac{\mathrm{tr}(S_\lambda^- S_i) - \mathrm{tr}(J^{-1} S_i)}{\hat{b}^T S_i \hat{b}},}{r_i = (tr(S_lambda^- S_i) - tr(J^-1 S_i)) / (b^T S_i b),}
+which equals one exactly where \eqn{\partial V / \partial \lambda_i = 0}{dV/dlambda_i = 0} and otherwise moves \eqn{\lambda_i} in the direction of the gradient, without ever making it negative.
+For a smooth carrying a single penalty the first trace is \eqn{\mathrm{rank}(S_i) / \lambda_i}{rank(S_i) / lambda_i}, obtained once from an eigendecomposition instead of at every iteration.
+Only the diagonal blocks of \eqn{J^{-1}}{J^-1} enter, and these come from the Cholesky factor by triangular solves rather than from a full inverse.
+
+\strong{Step control.} The step is taken in \eqn{\log \lambda}{log(lambda)} and scaled by a multiplier that persists across iterations: it doubles while the criterion keeps improving and is halved, up to \code{max_halve} times, while it does not.
+A step that still worsens the criterion after that many halvings is accepted, which is the only way the iteration can move downhill.
+In addition no penalty strength may fall by more than a factor \code{alpha} in one iteration, and \eqn{\log \lambda}{log(lambda)} is capped at \code{lsp_max}.
+The fit returned is the best iterate seen, not necessarily the last one.
+
+\strong{Convergence.} The iteration stops once no smooth's effective degrees of freedom
+\deqn{\mathrm{edf}_i = K_i - \mathrm{tr}(J^{-1} \lambda_i S_i)}{edf_i = K_i - tr(J^-1 lambda_i S_i)}
+has moved by more than \code{tol_edf} over the last four iterations, provided the step in \eqn{\log \lambda}{log(lambda)} is also small; see \code{tol_edf}.
+Being eigenvalue sums, the effective degrees of freedom must lie in \eqn{[0, K_i]}, and they leave that range only if the data Hessian is indefinite, in which case the traces driving the update are not the quantities the method assumes.
+That is reported rather than repaired, through the returned \code{edf_valid} and a warning, and the criterion then falls back to \code{tol} on the restricted log-likelihood.
+
+\strong{Numerics.} \eqn{J} is the exact automatic differentiation Hessian, which matters because the finite differencing error of \code{\link[stats:optimHess]{optimHess}} is of the same order as the criterion differences the convergence test has to resolve.
+It is factorised by a pivoted Cholesky decomposition after scaling to a unit diagonal; should it not be positive definite, a ridge is added and reported through the returned \code{hessian_repaired}.
+
+\strong{Uncertainty.} The returned \code{outer_hessian()} gives the Hessian of the negative restricted log-likelihood in the penalty strengths, which \code{\link{sdreport_outer}} turns into standard errors.
+Note that these describe the curvature of \eqn{V} only, and treat the approximation to it as exact.
 }
 \examples{
 data = trex[1:2000,] # subset of the data
@@ -144,5 +172,5 @@ Wood, S. N., & Fasiolo, M. (2017). A generalized Fellner-Schall method for smoot
 Koslik, J. O. (2024). Efficient smoothness selection for nonparametric Markov-switching models via quasi restricted maximum likelihood. arXiv preprint arXiv:2411.11498.
 }
 \seealso{
-\code{\link{penalty}} and \code{\link{penalty2}} to compute the penalty inside the likelihood function, and \code{\link{qreml}} for the original algorithm
+\code{\link{penalty}} and \code{\link{penalty2}} to compute the penalty inside the likelihood function, and \code{\link{qreml_old}} for the original algorithm
 }

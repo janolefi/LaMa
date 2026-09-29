@@ -19,17 +19,16 @@ pred_matrix(model_matrices, newdata, what = NULL, exclude = NULL)
 prediction design matrix for \code{newdata} with the same basis as used for \code{model_matrices}
 }
 \description{
-Build the prediction design matrix based on new data and model_matrices object created by \code{\link{make_matrices}}
+\strong{Deprecated.} Use \code{\link[=predict.LaMa_matrices]{predict}} on the object returned by \code{\link{make_matrices}} instead, which does the same thing:
+\code{predict(modmat, newdata)} in place of \code{pred_matrix(modmat, newdata)}.
 }
 \examples{
-# single formula
 modmat = make_matrices(~ s(x), data.frame(x = 1:10))
-Z_p = pred_matrix(modmat, data.frame(x = 1:10 - 0.5))
-# with multiple formulas
-modmat = make_matrices(list(mu ~ s(x), sigma ~ s(x, bs = "ps")), data = data.frame(x = 1:10))
-Z_p = pred_matrix(modmat, data.frame(x = 1:10 - 0.5), what = "mu")
-# nested formula list
-form = list(stream1 = list(mu ~ s(x), sigma ~ s(x, bs = "ps")))
-modmat = make_matrices(form, data = data.frame(x = 1:10))
-Z_p = pred_matrix(modmat, data.frame(x = 1:10 - 0.5), what = c("stream1", "mu"))
+# deprecated:
+# Z_p = pred_matrix(modmat, data.frame(x = 1:10 - 0.5))
+# use instead:
+Z_p = predict(modmat, data.frame(x = 1:10 - 0.5))
+}
+\seealso{
+\code{\link[=predict.LaMa_matrices]{predict}}, which replaces this function
 }

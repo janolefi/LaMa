@@ -414,38 +414,17 @@ process_hid_formulas <- function(formulas,
 #' modmat = make_matrices(form, data = data.frame(x = 1:10))
 #' Z_p = predict(modmat, data.frame(x = 1:10 - 0.5), what = c("stream1", "mu"))
 predict.LaMa_matrices <- function(object, newdata, what = NULL, ...){
-  pred_matrix(object, newdata = newdata, what = what, ...) # ... carries 'exclude'
+  pred_matrix_internal(object, newdata = newdata, what = what, ...) # ... carries 'exclude'
 }
 
 
-#' Build the prediction design matrix based on new data and model_matrices object created by \code{\link{make_matrices}}
-#'
-#' @param model_matrices model_matrices object as returned from \code{\link{make_matrices}}
-#' @param newdata data frame containing the variables in the formula and new data for which to evaluate the basis
-#' @param what optional character string specifying which formula to use for prediction, if \code{object} contains multiple formulas. If \code{NULL}, the first formula is used.
-#' @param exclude optional vector of terms to set to zero in the predicted design matrix. Useful for predicting main effects only when e.g. \code{sd(..., bs = "re")} terms are present. See \code{mgcv::predict.gam} for more details.
-#' @return prediction design matrix for \code{newdata} with the same basis as used for \code{model_matrices}
-#' @export
-#' 
 #' @importFrom mgcv gam
 #' @importFrom mgcv s
 #' @importFrom mgcv predict.gam
-#'
-#' @examples
-#' # single formula
-#' modmat = make_matrices(~ s(x), data.frame(x = 1:10))
-#' Z_p = pred_matrix(modmat, data.frame(x = 1:10 - 0.5))
-#' # with multiple formulas
-#' modmat = make_matrices(list(mu ~ s(x), sigma ~ s(x, bs = "ps")), data = data.frame(x = 1:10))
-#' Z_p = pred_matrix(modmat, data.frame(x = 1:10 - 0.5), what = "mu")
-#' # nested formula list
-#' form = list(stream1 = list(mu ~ s(x), sigma ~ s(x, bs = "ps")))
-#' modmat = make_matrices(form, data = data.frame(x = 1:10))
-#' Z_p = pred_matrix(modmat, data.frame(x = 1:10 - 0.5), what = c("stream1", "mu"))
-pred_matrix = function(model_matrices, 
-                       newdata,
-                       what = NULL,
-                       exclude = NULL) {
+#' @noRd
+## the worker behind predict.LaMa_matrices(); pred_matrix() is a deprecated
+## wrapper around it, so the deprecation warning is not raised by predict()
+pred_matrix_internal <- function(model_matrices, newdata, what = NULL, exclude = NULL) {
   
   if(is.null(model_matrices$gam0)){
     stop("'model_matrices' contains no 'gam0' object; rebuild it with make_matrices()")
@@ -491,6 +470,37 @@ pred_matrix = function(model_matrices,
               newdata = cbind(dummy = 1, newdata), 
               type = "lpmatrix",
               exclude = exclude)
+}
+
+#' Build the prediction design matrix based on new data and model_matrices object created by \code{\link{make_matrices}}
+#'
+#' @description
+#' \strong{Deprecated.} Use \code{\link[=predict.LaMa_matrices]{predict}} on the object returned by \code{\link{make_matrices}} instead, which does the same thing:
+#' \code{predict(modmat, newdata)} in place of \code{pred_matrix(modmat, newdata)}.
+#'
+#' @param model_matrices model_matrices object as returned from \code{\link{make_matrices}}
+#' @param newdata data frame containing the variables in the formula and new data for which to evaluate the basis
+#' @param what optional character string specifying which formula to use for prediction, if \code{object} contains multiple formulas. If \code{NULL}, the first formula is used.
+#' @param exclude optional vector of terms to set to zero in the predicted design matrix. Useful for predicting main effects only when e.g. \code{sd(..., bs = "re")} terms are present. See \code{mgcv::predict.gam} for more details.
+#' @return prediction design matrix for \code{newdata} with the same basis as used for \code{model_matrices}
+#'
+#' @seealso \code{\link[=predict.LaMa_matrices]{predict}}, which replaces this function
+#' @export
+#'
+#' @examples
+#' modmat = make_matrices(~ s(x), data.frame(x = 1:10))
+#' # deprecated:
+#' # Z_p = pred_matrix(modmat, data.frame(x = 1:10 - 0.5))
+#' # use instead:
+#' Z_p = predict(modmat, data.frame(x = 1:10 - 0.5))
+pred_matrix = function(model_matrices, 
+                       newdata,
+                       what = NULL,
+                       exclude = NULL) {
+  .Deprecated("predict", package = "LaMa",
+              msg = paste("'pred_matrix()' is deprecated; use 'predict()' on the object",
+                          "returned by 'make_matrices()' instead."))
+  pred_matrix_internal(model_matrices, newdata = newdata, what = what, exclude = exclude)
 }
 
 

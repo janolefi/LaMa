@@ -266,7 +266,7 @@ absence of arrivals during each gap.</p>
 <span>  <span class="va">opt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></span><span class="op">(</span><span class="va">obj</span><span class="op">$</span><span class="va">par</span>, <span class="va">obj</span><span class="op">$</span><span class="va">fn</span>, <span class="va">obj</span><span class="op">$</span><span class="va">gr</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.297   0.000   0.298</span></span>
+<span><span class="co">#&gt;     0.4     0.0     0.4</span></span>
 <span><span class="va">mod</span> <span class="op">=</span> <span class="fu"><a href="../reference/report.html">report</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -421,7 +421,7 @@ giving the combined MMMPP likelihood.</p>
 <span>  <span class="va">opt2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></span><span class="op">(</span><span class="va">obj2</span><span class="op">$</span><span class="va">par</span>, <span class="va">obj2</span><span class="op">$</span><span class="va">fn</span>, <span class="va">obj2</span><span class="op">$</span><span class="va">gr</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.833   0.000   0.833</span></span>
+<span><span class="co">#&gt;   1.181   0.000   1.181</span></span>
 <span><span class="va">mod2</span> <span class="op">=</span> <span class="fu"><a href="../reference/report.html">report</a></span><span class="op">(</span><span class="va">obj2</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -431,7 +431,7 @@ giving the combined MMMPP likelihood.</p>
 <code class="sourceCode R"><span><span class="va">mod2</span><span class="op">$</span><span class="va">lambda</span>                  <span class="co"># true: 1, 5, 20</span></span>
 <span><span class="co">#&gt; [1]  0.9646738  4.8641071 19.5009530</span></span>
 <span><span class="va">mod2</span><span class="op">$</span><span class="va">mu</span>                      <span class="co"># true: -5, 0, 5</span></span>
-<span><span class="co">#&gt; [1] -5.18540494 -0.09096836  4.80540113</span></span>
+<span><span class="co">#&gt; [1] -5.18540494 -0.09096835  4.80540113</span></span>
 <span><span class="va">mod2</span><span class="op">$</span><span class="va">sigma</span>                   <span class="co"># true: 2, 1, 2</span></span>
 <span><span class="co">#&gt; [1] 1.7931070 0.9644496 2.0093249</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">mod2</span><span class="op">$</span><span class="va">Q</span>, <span class="fl">3</span><span class="op">)</span>             <span class="co"># true: Q as defined above</span></span>

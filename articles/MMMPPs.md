@@ -204,7 +204,7 @@ system.time(
   opt <- nlminb(obj$par, obj$fn, obj$gr)
 )
 #>    user  system elapsed 
-#>   0.297   0.000   0.298
+#>     0.4     0.0     0.4
 mod = report(obj)
 ```
 
@@ -373,7 +373,7 @@ system.time(
   opt2 <- nlminb(obj2$par, obj2$fn, obj2$gr)
 )
 #>    user  system elapsed 
-#>   0.833   0.000   0.833
+#>   1.181   0.000   1.181
 mod2 = report(obj2)
 ```
 
@@ -384,7 +384,7 @@ mod2 = report(obj2)
 mod2$lambda                  # true: 1, 5, 20
 #> [1]  0.9646738  4.8641071 19.5009530
 mod2$mu                      # true: -5, 0, 5
-#> [1] -5.18540494 -0.09096836  4.80540113
+#> [1] -5.18540494 -0.09096835  4.80540113
 mod2$sigma                   # true: 2, 1, 2
 #> [1] 1.7931070 0.9644496 2.0093249
 round(mod2$Q, 3)             # true: Q as defined above

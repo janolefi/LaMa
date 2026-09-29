@@ -91,30 +91,30 @@ gen_inverse <- function(S) {
 #' \strong{Caution:} The ordering of \code{random} needs to match the order of the random effects passed to \code{penalty}.
 #' @param map optional map argument, containing factor vectors to indicate parameter sharing or fixing
 #' @param silent integer silencing level: 0 corresponds to full printing of inner and outer iterations, 1 to printing of outer iterations only, and 2 to no printing
-#' @param psname optional name given to the penalty strength parameter in \code{dat}. Defaults to \code{"lambda"}
-#' @param alpha smallest factor by which a penalty strength may \strong{decrease} in one outer iteration, a number in [0, 1). Defaults to 0.3.
-#'
-#' Penalty strengths are free to increase as fast as the update proposes, but cannot collapse faster than this per iteration.
-#' Reducing a penalty strength too quickly can push the inner optimisation into a local optimum or a numerically awkward region, which matters more here than in a GAM because the likelihood is user-written.
-#' Set to zero to remove the floor entirely. Step length is handled separately, by \code{max_halve} and the adaptive multiplier.
-#' @param smoothing optional scaling factor for the final penalty strength parameters. Increasing this beyond one leads to a smoother final model
-#' @param maxiter maximum number of outer iterations
+#' @param spname optional name given to the penalty strength parameter in \code{dat}. Defaults to \code{"lambda"}
 #' @param tol_edf convergence tolerance on the \strong{effective degrees of freedom}. Defaults to 0.001.
 #' 
 #' This is the primary convergence criterion. The iteration stops once no smooth's effective degrees of freedom has changed by more than \code{tol_edf} across the last four outer iterations, provided the step in \code{log(lambda)} is also small.
 #' The effective degrees of freedom are what say whether the \strong{fitted smooth} is still changing, and unlike a tolerance on the restricted likelihood they mean the same thing on every model, being measured in effective parameters rather than in nats.
 #' The penalty strengths themselves are a poor proxy: \code{lambda} can slide along a flat ridge for many iterations, moving substantially in relative terms, while neither the criterion nor the fit changes appreciably.
+#' @param maxiter maximum number of outer iterations
+#' @param alpha smallest factor by which a penalty strength may \strong{decrease} in one outer iteration, a number in [0, 1). Defaults to 0.1.
+#'
+#' Penalty strengths are free to increase as fast as the update proposes, but cannot collapse faster than this per iteration.
+#' Reducing a penalty strength too quickly can push the inner optimisation into a local optimum or a numerically awkward region, which matters more here than in a GAM because the likelihood is user-written.
+#' Set to zero to remove the floor entirely. Step length is handled separately, by \code{max_halve} and the adaptive multiplier.
 #' @param tol \strong{fallback} convergence tolerance, on the restricted log-likelihood. Defaults to 0.01.
 #'
 #' Used only when the effective degrees of freedom are not trustworthy, i.e.\ when they fall outside \eqn{[0, K_i]}, which happens when the data Hessian is indefinite (see \code{tol_edf} and the returned \code{edf_valid}).
 #' The iteration then stops once the restricted log-likelihood has changed by less than \code{tol} over the last four outer iterations.
 #' A tolerance in nats is not comparable across models, which is why it is the fallback rather than the primary criterion.
+#' @param smoothing optional scaling factor for the final penalty strength parameters. Increasing this beyond one leads to a smoother final model
+#' @param method optimisation method to be used by \code{\link[stats:optim]{optim}}. Defaults to \code{"BFGS"}
 #' @param lsp_max largest value allowed for \code{log(lambda)}. Defaults to 15, as in \code{mgcv}, i.e. penalty strengths saturate at roughly 3.3e6
 #' @param step_small size of a step in \code{log(lambda)} below which the step multiplier is allowed to double. Defaults to 0.05, as in \code{mgcv}
 #' @param max_halve maximum number of times a step that decreases the restricted likelihood is halved before it is accepted anyway. Defaults to 6.
 #'
 #' \code{mgcv} never shortens below the full Fellner-Schall step and accepts a worse one instead, which for a user-written likelihood can drift downhill for tens of iterations.
-#' @param method optimisation method to be used by \code{\link[stats:optim]{optim}}. Defaults to \code{"BFGS"}
 #' @param control list of control parameters for \code{\link[stats:optim]{optim}} to use in the inner optimisation
 #' @param spHess logical, if \code{TRUE}, the sparse automatic differentiation Hessian is used for evaluation. The factorisation is dense either way
 #' @param joint_unc logical, if \code{TRUE}, joint \code{RTMB} object is returned allowing for joint uncertainty quantification
@@ -135,27 +135,27 @@ areml <- function(pnll, # penalised negative log-likelihood function
                   random, # names of parameters in par that are random effects/ penalised
                   map = NULL, # map for fixed effects
                   silent = 1, # print level
-                  psname = "lambda", # name given to the psname parameter in dat
-                  alpha = 0.3, # smallest factor by which lambda may decrease per iteration
-                  smoothing = 1,
-                  maxiter = 200, # maximum number of outer iterations
+                  spname = "lambda", # name given to the smoothing parameter parameter in dat
                   tol_edf = 0.001, # convergence tolerance on the effective degrees of freedom
+                  maxiter = 100, # maximum number of outer iterations
+                  alpha = 0.1, # smallest factor by which lambda may decrease per iteration
                   tol = 0.01, # fallback tolerance on the restricted log-likelihood
+                  smoothing = 1,
+                  method = "BFGS", # optimisation method used by optim
                   lsp_max = 15, # largest allowed log(lambda)
                   step_small = 0.05, # step size below which the multiplier may double
                   max_halve = 6, # how often a worsening step may be halved
-                  method = "BFGS", # optimisation method used by optim
                   control = list(), # control list for inner optimisation
                   spHess = FALSE, # evaluate the Hessian sparsely
                   joint_unc = FALSE, # should joint object be returned?
                   saveall = FALSE) # save all intermediate models?
 {
-  ### input checking
+  ### Input checking
   if(!is.function(pnll)) stop("'pnll' needs to be a function")
   if(!is.list(par)) stop("'par' needs to be a named list")
   if(!is.list(dat)) stop("'dat' needs to be a named list")
-  if(!psname %in% names(dat)){
-    stop(paste0("'dat' needs to contain a vector called '", psname, "' with initial penalty strengths"))
+  if(!spname %in% names(dat)){
+    stop(paste0("'dat' needs to contain a vector called '", spname, "' with initial penalty strengths"))
   }
   if(!is.character(random) || length(random) < 1){
     stop("'random' needs to be a character vector of names of random effects in 'par'")
@@ -181,7 +181,7 @@ areml <- function(pnll, # penalised negative log-likelihood function
   allmods <- list() # list to save all model objects
 
   # initialising penalty strength lambda
-  lambda <- dat[[psname]]
+  lambda <- dat[[spname]]
   lambda0 <- lambda # so that fixed parts can be refilled when 'lambda' is changed
 
   # creating the objective function as wrapper around pnll to pull lambda from local
@@ -195,11 +195,10 @@ areml <- function(pnll, # penalised negative log-likelihood function
 
     # defining function that grabs lambda
     getLambda <- function(x) lambda
-    dat[[psname]] <- DataEval(getLambda, rep(advector(1), 0))
+    dat[[spname]] <- DataEval(getLambda, rep(advector(1), 0))
 
     # assigning dat to whatever it is called in pnll()
     assign(argname_dat, dat, envir = environment())
-
     pnll(par)
   }
 
@@ -210,15 +209,28 @@ areml <- function(pnll, # penalised negative log-likelihood function
     }
     map <- lapply(map, factor)
   }
-  if(is.null(map[[psname]])) map[[psname]] <- factor(seq_along(lambda))
-  lambda_map <- map[[psname]]
+  if(is.null(map[[spname]])) map[[spname]] <- factor(seq_along(lambda))
+  lambda_map <- map[[spname]]
   if(length(lambda_map) != length(lambda)){
-    stop(paste0("Length of map argument for ", psname, " has wrong length."))
+    stop(paste0("Length of map argument for ", spname, " has wrong length."))
   }
-  map <- map[names(map) != psname]
+  map <- map[names(map) != spname]
   if(length(map) == 0) map <- NULL
 
-  lambda_mapped <- map_lambda(lambda, lambda_map)
+  # local versions of the mapping helpers, so only the vector needs passing
+  map_lambda <- function(lambda){ # tied entries collapse to one value per level
+    grp <- split(lambda, lambda_map)
+    if(is.character(lambda)) vapply(grp, paste, character(1), collapse = "&")
+    else vapply(grp, mean, numeric(1))
+  }
+  unmap_lambda <- function(lambda_mapped){ # entries mapped to NA stay fixed
+    lambda <- lambda0
+    free <- !is.na(lambda_map)
+    lambda[free] <- lambda_mapped[as.integer(lambda_map[free])]
+    lambda
+  }
+
+  lambda_mapped <- map_lambda(lambda)
   # with every penalty strength fixed there is nothing for the outer iteration to
   # do, and it must be skipped rather than run once: the step is over an empty
   # vector, which is not a convergence failure
@@ -234,16 +246,16 @@ areml <- function(pnll, # penalised negative log-likelihood function
   # obj$he() is the exact AD Hessian and avoids the finite differencing error in
   # optimHess(), which otherwise sits right on top of the criterion differences
   # the convergence test has to resolve
-  if(spHess){
+  if(spHess){ # sparse option
     Tape <- RTMB::GetTape(obj, name = "ADFun")
     if(silent < 2) message("Constructing sparse Hessian")
     spH <- Tape$jacfun(sparse = TRUE)$jacfun(sparse = TRUE)
     rm(Tape)
     gc()
     hessian_at <- function(p) as.matrix(spH(p))
-  } else if(!is.null(obj$he)){
+  } else if(!is.null(obj$he)){ # regular option
     hessian_at <- function(p) obj$he(p)
-  } else {
+  } else { # fallback
     if(silent < 2) message("obj$he() unavailable, falling back to finite differences")
     hessian_at <- function(p) stats::optimHess(p, obj$fn, obj$gr)
   }
@@ -298,7 +310,13 @@ areml <- function(pnll, # penalised negative log-likelihood function
   re_lengths <- sapply(re_inds, function(x) if(is.vector(x)) 1 else nrow(x))
   lambda_lengths <- n_penalties * re_lengths
   if(length(lambda) != sum(lambda_lengths)){
-    stop(paste0("Length of '", psname, "' does not match the number of penalty strength parameters needed"))
+    stop(paste0("Length of '", spname, "' does not match the number of penalty strength parameters needed"))
+  }
+
+  # splits a lambda vector into one entry per smooth
+  reshape_lambda <- function(lambda){
+    to <- cumsum(lambda_lengths)
+    Map(function(from, to) lambda[from:to], to - lambda_lengths + 1, to)
   }
 
   ## rank and generalised log-determinant of each simple penalty matrix
@@ -314,7 +332,7 @@ areml <- function(pnll, # penalised negative log-likelihood function
   }
 
   ## naming the penalty strengths
-  Lambda0 <- reshape_lambda(lambda_lengths, lambda)
+  Lambda0 <- reshape_lambda(lambda)
   for(ind in seq_along(simple_ind)){
     names(Lambda0[simple_ind][[ind]]) <- seq_along(Lambda0[simple_ind][[ind]])
   }
@@ -363,10 +381,10 @@ areml <- function(pnll, # penalised negative log-likelihood function
   ## one complete evaluation at a given log penalty strength:
   ## inner fit, Hessian, factorisation and criterion
   fit_at <- function(lsp_try, start) {
-    lambda <<- unmap_lambda(exp(lsp_try), lambda_map, lambda0)
-    Lambda <- reshape_lambda(lambda_lengths, lambda)
+    lambda <<- unmap_lambda(exp(lsp_try))
+    Lambda <- reshape_lambda(lambda)
 
-    if(silent == 0) cat("\nInner optimisation at", psname, "=", round(exp(lsp_try), 3), "\n")
+    if(silent == 0) cat("\nInner optimisation at", spname, "=", round(exp(lsp_try), 3), "\n")
     counter_env$count <- 0
 
     # RTMB caches the objective value at the last parameter vector it saw, which is
@@ -436,7 +454,7 @@ areml <- function(pnll, # penalised negative log-likelihood function
   n_success <- 0 # consecutive improving steps
   crit_hist <- rep(NA_real_, maxiter)
 
-  if(silent < 2) message("Initialising with ", psname, ": ", paste(round(lambda, 3), collapse = " "))
+  if(silent < 2) message("Initialising with ", spname, ": ", paste(round(lambda, 3), collapse = " "))
   if(silent == 0) cat("\nouter 0 - initial fit\n")
 
   # one fit at the starting lambda is unavoidable: the first update needs the
@@ -469,7 +487,7 @@ areml <- function(pnll, # penalised negative log-likelihood function
     lsp1 <- take(mult)
     max_step <- max(abs(lsp1 - lsp))
     n_halve <- 0
-    if(silent == 0) cat("\nouter", iter, "- proposed", paste0(psname, ":"), round(exp(lsp1), 3), "\n")
+    if(silent == 0) cat("\nouter", iter, "- proposed", paste0(spname, ":"), round(exp(lsp1), 3), "\n")
 
     trial <- fit_at(lsp1, cur$opt$par)
 
@@ -512,9 +530,9 @@ areml <- function(pnll, # penalised negative log-likelihood function
     }
 
     if(silent == 1){
-      cat("outer", iter, "-", paste0(psname, ":"), round(exp(lsp), 3), "\n")
+      cat("outer", iter, "-", paste0(spname, ":"), round(exp(lsp), 3), "\n")
     } else if(silent == 0){
-      if(n_halve > 0) cat("outer", iter, "- accepted", paste0(psname, ":"), round(exp(lsp), 3), "\n")
+      if(n_halve > 0) cat("outer", iter, "- accepted", paste0(spname, ":"), round(exp(lsp), 3), "\n")
       cat("outer", iter, "- restricted llk:", round(cur$llk_r, 5),
           "- max step:", round(max_step, 5), "\n")
     }
@@ -580,13 +598,13 @@ areml <- function(pnll, # penalised negative log-likelihood function
             "; returning the best penalty strengths found")
   }
   lsp <- best_lsp
-  lambda <- unmap_lambda(exp(lsp), lambda_map, lambda0) * smoothing
+  lambda <- unmap_lambda(exp(lsp)) * smoothing
   if(silent < 2){
     if(any(smoothing != 1)) message("Smoothing factor: ", paste(smoothing, collapse = " "))
-    message("Final model fit with ", psname, ": ", paste(round(lambda, 3), collapse = " "))
+    message("Final model fit with ", spname, ": ", paste(round(lambda, 3), collapse = " "))
   }
 
-  final_lsp <- log(map_lambda(lambda, lambda_map))
+  final_lsp <- log(map_lambda(lambda))
   # cur is already the fit at this lambda unless smoothing was applied or the last
   # iterate was not the best one, so refitting would repeat a fit for nothing
   final <- if(isTRUE(all.equal(final_lsp, cur$lsp))) cur else fit_at(final_lsp, cur$opt$par)
@@ -604,14 +622,14 @@ areml <- function(pnll, # penalised negative log-likelihood function
   if(saveall) mod$allmods <- allmods
 
   names(lambda) <- lambda_names
-  mod[[psname]] <- lambda
-  mod[[paste0("all_", psname)]] <- Lambda
+  mod[[spname]] <- lambda
+  mod[[paste0("all_", spname)]] <- Lambda
 
   parlist <- obj$env$parList(opt$par)
   mod[[argname_par]] <- parlist
   mod[[paste0("relist_", argname_par)]] <- obj$env$parList
-  mod[[paste0("map_", psname)]] <- function(lambda) map_lambda(lambda, lambda_map)
-  mod$psname <- psname
+  mod[[paste0("map_", spname)]] <- map_lambda
+  mod$spname <- spname
   mod$parname <- argname_par
   mod[[paste0(argname_par, "_vec")]] <- opt$par
   mod$llk <- llk
@@ -648,7 +666,7 @@ areml <- function(pnll, # penalised negative log-likelihood function
   at_bound <- which(log(lambda) >= lsp_max - 1e-8)
   mod$lambda_at_bound <- at_bound
   if(length(at_bound) > 0 && silent < 2){
-    message(length(at_bound), " of ", length(lambda), " ", psname,
+    message(length(at_bound), " of ", length(lambda), " ", spname,
             " ended at the upper bound exp(lsp_max) = ", signif(exp(lsp_max), 4),
             "; those smooths are penalised to their null space")
   }
@@ -680,7 +698,7 @@ areml <- function(pnll, # penalised negative log-likelihood function
   # dV/dlog(lambda) = 0.5 * lambda * (a - b'Sb), zero exactly where the update has
   # a fixed point (a = b'Sb, i.e. r = 1)
   fr <- efs_ratio(final)
-  mod$outer_grad <- 0.5 * map_lambda(lambda, lambda_map) * (fr$a - fr$bSb)
+  mod$outer_grad <- 0.5 * map_lambda(lambda) * (fr$a - fr$bSb)
   names(mod$outer_grad) <- levels(lambda_map)
 
   # removing elements only reported for the update
@@ -688,7 +706,7 @@ areml <- function(pnll, # penalised negative log-likelihood function
 
   if(length(tp_ind) == 0 && joint_unc){
     ### constructing joint object
-    parlist$loglambda <- log(mod[[psname]])
+    parlist$loglambda <- log(mod[[spname]])
     logdetS <- numeric(length(S))
     for(i in seq_along(S)) logdetS[i] <- gdeterminant(S[[i]])
 
@@ -698,7 +716,7 @@ areml <- function(pnll, # penalised negative log-likelihood function
       "c" <- ADoverload("c")
       "diag<-" <- ADoverload("diag<-")
 
-      dat[[psname]] <- exp(par$loglambda)
+      dat[[spname]] <- exp(par$loglambda)
       l_p <- -pnll(par[names(par) != "loglambda"])
 
       const <- 0

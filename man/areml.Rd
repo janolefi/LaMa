@@ -11,16 +11,16 @@ areml(
   random,
   map = NULL,
   silent = 1,
-  psname = "lambda",
-  alpha = 0.3,
-  smoothing = 1,
-  maxiter = 200,
+  spname = "lambda",
   tol_edf = 0.001,
+  maxiter = 100,
+  alpha = 0.1,
   tol = 0.01,
+  smoothing = 1,
+  method = "BFGS",
   lsp_max = 15,
   step_small = 0.05,
   max_halve = 6,
-  method = "BFGS",
   control = list(),
   spHess = FALSE,
   joint_unc = FALSE,
@@ -42,17 +42,7 @@ areml(
 
 \item{silent}{integer silencing level: 0 corresponds to full printing of inner and outer iterations, 1 to printing of outer iterations only, and 2 to no printing}
 
-\item{psname}{optional name given to the penalty strength parameter in \code{dat}. Defaults to \code{"lambda"}}
-
-\item{alpha}{smallest factor by which a penalty strength may \strong{decrease} in one outer iteration, a number in [0, 1). Defaults to 0.3.
-
-Penalty strengths are free to increase as fast as the update proposes, but cannot collapse faster than this per iteration.
-Reducing a penalty strength too quickly can push the inner optimisation into a local optimum or a numerically awkward region, which matters more here than in a GAM because the likelihood is user-written.
-Set to zero to remove the floor entirely. Step length is handled separately, by \code{max_halve} and the adaptive multiplier.}
-
-\item{smoothing}{optional scaling factor for the final penalty strength parameters. Increasing this beyond one leads to a smoother final model}
-
-\item{maxiter}{maximum number of outer iterations}
+\item{spname}{optional name given to the penalty strength parameter in \code{dat}. Defaults to \code{"lambda"}}
 
 \item{tol_edf}{convergence tolerance on the \strong{effective degrees of freedom}. Defaults to 0.001.
 
@@ -60,11 +50,23 @@ This is the primary convergence criterion. The iteration stops once no smooth's 
 The effective degrees of freedom are what say whether the \strong{fitted smooth} is still changing, and unlike a tolerance on the restricted likelihood they mean the same thing on every model, being measured in effective parameters rather than in nats.
 The penalty strengths themselves are a poor proxy: \code{lambda} can slide along a flat ridge for many iterations, moving substantially in relative terms, while neither the criterion nor the fit changes appreciably.}
 
+\item{maxiter}{maximum number of outer iterations}
+
+\item{alpha}{smallest factor by which a penalty strength may \strong{decrease} in one outer iteration, a number in [0, 1). Defaults to 0.1.
+
+Penalty strengths are free to increase as fast as the update proposes, but cannot collapse faster than this per iteration.
+Reducing a penalty strength too quickly can push the inner optimisation into a local optimum or a numerically awkward region, which matters more here than in a GAM because the likelihood is user-written.
+Set to zero to remove the floor entirely. Step length is handled separately, by \code{max_halve} and the adaptive multiplier.}
+
 \item{tol}{\strong{fallback} convergence tolerance, on the restricted log-likelihood. Defaults to 0.01.
 
 Used only when the effective degrees of freedom are not trustworthy, i.e.\ when they fall outside \eqn{[0, K_i]}, which happens when the data Hessian is indefinite (see \code{tol_edf} and the returned \code{edf_valid}).
 The iteration then stops once the restricted log-likelihood has changed by less than \code{tol} over the last four outer iterations.
 A tolerance in nats is not comparable across models, which is why it is the fallback rather than the primary criterion.}
+
+\item{smoothing}{optional scaling factor for the final penalty strength parameters. Increasing this beyond one leads to a smoother final model}
+
+\item{method}{optimisation method to be used by \code{\link[stats:optim]{optim}}. Defaults to \code{"BFGS"}}
 
 \item{lsp_max}{largest value allowed for \code{log(lambda)}. Defaults to 15, as in \code{mgcv}, i.e. penalty strengths saturate at roughly 3.3e6}
 
@@ -73,8 +75,6 @@ A tolerance in nats is not comparable across models, which is why it is the fall
 \item{max_halve}{maximum number of times a step that decreases the restricted likelihood is halved before it is accepted anyway. Defaults to 6.
 
 \code{mgcv} never shortens below the full Fellner-Schall step and accepts a worse one instead, which for a user-written likelihood can drift downhill for tens of iterations.}
-
-\item{method}{optimisation method to be used by \code{\link[stats:optim]{optim}}. Defaults to \code{"BFGS"}}
 
 \item{control}{list of control parameters for \code{\link[stats:optim]{optim}} to use in the inner optimisation}
 

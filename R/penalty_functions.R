@@ -503,21 +503,18 @@ summary.qremlModel <- function(object, ...) {
       cat("!", length(object$lambda_at_bound), "of", length(lambdas),
           "smoothing parameters ended at the upper bound\n")
     }
-    # both of the following are judged on the same relative scale: after
-    # convergence the criterion wobbles, and that is not worth a line
-    small <- 1e-3 * (1 + abs(tail(object$llk_restricted, 1)))
-    if(!is.null(object$max_drop)){
-      if(object$max_drop > small){
-        cat("! Restricted likelihood decreased by up to", signif(object$max_drop, 4),
-            "during the iteration\n")
-      }
+    # both of the following are judged against the fit's own 'tol', below which a
+    # change in the criterion counts as negligible: after convergence it wobbles,
+    # and that is not worth a line. isTRUE() so that a fit without 'tol' is quiet
+    small <- object[["tol"]]
+    if(isTRUE(object$max_drop > small)){
+      cat("! Restricted likelihood decreased by up to", signif(object$max_drop, 4),
+          "during the iteration\n")
     }
-    if(!is.null(object$best_iter)){
-      shortfall <- max(object$llk_restricted) - tail(object$llk_restricted, 1)
-      if(shortfall > small){
-        cat(paste0("! Returned the fit at iteration ", object$best_iter,
-                   "; the run ended ", signif(shortfall, 4), " worse than that\n"))
-      }
+    shortfall <- max(object$llk_restricted) - tail(object$llk_restricted, 1)
+    if(isTRUE(shortfall > small)){
+      cat(paste0("! Returned the fit at iteration ", object$best_iter,
+                 "; the run ended ", signif(shortfall, 4), " worse than that\n"))
     }
   }
   
@@ -529,7 +526,7 @@ summary.qremlModel <- function(object, ...) {
                 "beta", "delta", "Gamma", "lambda", "llk", "n_fixpar", "df", "nobs",
                 "llk_restricted", "allmods",
                 # reported in the smoothness selection block above
-                "converged", "iter", "best_iter", "outer_grad", "outer_hessian",
+                "converged", "iter", "best_iter", "outer_grad", "outer_hessian", "tol",
                 "edf_valid",
                 "hessian_repaired", "lambda_at_bound", "max_drop")
   

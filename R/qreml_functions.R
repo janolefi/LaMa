@@ -746,10 +746,11 @@ qreml <- function(pnll, # penalised negative log-likelihood function
   ## the iteration is meant to be monotone -- only an exhausted backtrack is
   ## accepted -- and this is the number that says whether that held
   mod$max_drop <- if(iter > 1) max(c(0, diff(crit_hist[seq_len(iter)]))) else 0
-  if(mod$max_drop > 1e-3 * (1 + abs(tail(mod$llk_restricted, 1))) && silent < 2){
+  if(mod$max_drop > tol && silent < 2){
     message("Restricted likelihood decreased by up to ", signif(mod$max_drop, 4),
             " during the iteration; the step control could not keep it monotone")
   }
+  mod$tol <- tol # the scale on which a change in the criterion is negligible
   mod$converged <- converged
   mod$iter <- iter
   mod$best_iter <- best_iter

@@ -151,7 +151,7 @@ Let’s check out `obj`:
 names(obj)
 #>  [1] "par"          "fn"           "gr"           "he"           "hessian"     
 #>  [6] "method"       "retape"       "env"          "report"       "simulate"    
-#> [11] "force.update"
+#> [11] "force.update" "vectorize"
 ```
 
 It contains the initial parameter `par` (now transformed to a named

@@ -1,4 +1,4 @@
-# Quasi restricted maximum likelihood (qREML) algorithm for models with penalised splines or simple i.i.d. random effects
+# Quasi restricted maximum likelihood (qREML) algorithm, previous version
 
 This algorithm can be used very flexibly to fit statistical models that
 involve **penalised splines** or simple **i.i.d. random effects**, i.e.
@@ -10,7 +10,11 @@ The **qREML** algorithm is typically much faster than REML or marginal
 ML using the full Laplace approximation method, but may be slightly less
 accurate regarding the estimation of the penalty strength parameters.
 
-Under the hood, `qreml` uses the R package `RTMB` for automatic
+`qreml_old` is the previous implementation, kept for reference. Use
+[`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md), which
+estimates the same quantities with a better behaved outer iteration.
+
+Under the hood, `qreml_old` uses the R package `RTMB` for automatic
 differentiation in the inner optimisation. The user has to specify the
 **penalised negative log-likelihood function** `pnll` structured as
 dictated by `RTMB` and use the
@@ -26,14 +30,18 @@ qreml_old(
   dat,
   random,
   map = NULL,
+  silent = 1,
   psname = "lambda",
-  alpha = 0.25,
+  alpha = 0.3,
   smoothing = 1,
   maxiter = 100,
   tol = 1e-04,
-  control = list(reltol = 1e-10, maxit = 1000),
-  silent = 1,
-  joint_unc = TRUE,
+  max_halve = 5,
+  method = "BFGS",
+  control = list(),
+  conv_crit = "relchange",
+  spHess = FALSE,
+  joint_unc = FALSE,
   saveall = FALSE
 )
 ```
@@ -89,6 +97,12 @@ qreml_old(
   estimate the second and third jointly, and estimate the fourth
   separately.
 
+- silent:
+
+  integer silencing level: 0 corresponds to full printing of inner and
+  outer iterations, 1 to printing of outer iterations only, and 2 to no
+  printing.
+
 - psname:
 
   optional name given to the penalty strength parameter in `dat`.
@@ -119,6 +133,23 @@ qreml_old(
 
   Convergence tolerance for the penalty strength parameters.
 
+- max_halve:
+
+  maximum number of step halvings per outer iteration.
+
+  After each update of the penalty strength parameters, the restricted
+  log-likelihood is compared to its value in the previous iteration. If
+  it decreased, the step (on the log scale) is repeatedly halved until
+  it does not, or until `max_halve` halvings have been made. This makes
+  the outer iteration monotone and hence more robust. Set to zero to
+  switch step halving off.
+
+- method:
+
+  optimisation method to be used by
+  [`optim`](https://rdrr.io/r/stats/optim.html). Defaults to `"BFGS"`,
+  but might be changed to `"L-BFGS-B"` for high-dimensional settings.
+
 - control:
 
   list of control parameters for
@@ -129,11 +160,18 @@ qreml_old(
   We advise against changing the default values of `reltol` and `maxit`
   as this can decrease the accuracy of the Laplace approximation.
 
-- silent:
+- conv_crit:
 
-  integer silencing level: 0 corresponds to full printing of inner and
-  outer iterations, 1 to printing of outer iterations only, and 2 to no
-  printing.
+  character, convergence criterion for the penalty strength parameters.
+  Can be `"relchange"` (default) or `"gradient"`.
+
+- spHess:
+
+  logical, if `TRUE`, sparse AD Hessian is used in each outer iteration.
+  If your Hessian is large and sparse (many cross derivatives are 0),
+  this will speed up the computations a lot. If your Hessian is dense,
+  this will slow down the computations slightly and might require
+  significantly more memory.
 
 - joint_unc:
 
@@ -143,12 +181,7 @@ qreml_old(
 - saveall:
 
   logical, if `TRUE`, then all model objects from each iteration are
-  saved in the final model object. \# @param epsilon vector of two
-  values specifying the cycling detection parameters. If the relative
-  change of the new penalty strength to the previous one is larger than
-  `epsilon[1]` but the change to the one before is smaller than
-  `epsilon[2]`, the algorithm will average the two last values to
-  prevent cycling.
+  saved in the final model object.
 
 ## Value
 
@@ -222,11 +255,49 @@ preprint arXiv:2411.11498.
 
 ## See also
 
-[`penalty`](https://janolefi.github.io/LaMa/reference/penalty.md) to
+[`penalty`](https://janolefi.github.io/LaMa/reference/penalty.md) and
+[`penalty2`](https://janolefi.github.io/LaMa/reference/penalty2.md) to
 compute the penalty inside the likelihood function
 
 ## Examples
 
 ``` r
-# no example
+data = trex[1:1000,] # subset
+
+# initial parameter list
+par = list(logmu = log(c(0.3, 2.5)), # step mean
+           logsigma = log(c(0.3, 1.5)), # step sd
+           beta0 = c(-2,-2), # state process intercept
+           betaspline = matrix(rep(0, 18), nrow = 2)) # state process spline coefs
+          
+# data object with initial penalty strength lambda
+dat = list(step = data$step, # step length
+           tod = data$tod, # time of day covariate
+           N = 2, # number of states
+           lambda = rep(10,2)) # initial penalty strength
+
+# building model matrices
+modmat = make_matrices(~ s(tod, bs = "cp"), 
+                       data = data.frame(tod = 1:24), 
+                       knots = list(tod = c(0,24))) # wrapping points
+dat$Z = modmat$Z # spline design matrix
+dat$S = modmat$S # penalty matrix
+
+# penalised negative log-likelihood function
+pnll = function(par) {
+  getAll(par, dat) # makes everything contained available without $
+  Gamma = tpm_g(Z, cbind(beta0, betaspline), ad = TRUE) # transition probabilities
+  delta = stationary_p(Gamma, t = 1, ad = TRUE) # initial distribution
+  mu = exp(logmu) # step mean
+  sigma = exp(logsigma) # step sd
+  # calculating all state-dependent densities
+  allprobs = matrix(1, nrow = length(step), ncol = N)
+  ind = which(!is.na(step)) # only for non-NA obs.
+  for(j in 1:N) allprobs[ind,j] = dgamma2(step[ind],mu[j],sigma[j])
+  -forward_g(delta, Gamma[,,tod], allprobs) +
+      penalty(betaspline, S, lambda) # this does all the penalization work
+}
+
+# model fitting
+mod = qreml_old(pnll, par, dat, random = "betaspline", silent = 2)
 ```

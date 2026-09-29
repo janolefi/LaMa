@@ -314,12 +314,12 @@ legend("topright", col = c("orange", "deepskyblue"), lwd = 2, bty = "n", legend 
   : Calculate pseudo-residuals
 
 - [`qreml()`](https://janolefi.github.io/LaMa/reference/qreml.md) :
-  Quasi restricted maximum likelihood (qREML) algorithm for models with
-  penalised splines or simple i.i.d. random effects
+  Automatic smoothness selection for arbitrary statistical models with
+  penalised splines, simple random effects, or tensorproducts
 
 - [`qreml_old()`](https://janolefi.github.io/LaMa/reference/qreml_old.md)
-  : Quasi restricted maximum likelihood (qREML) algorithm for models
-  with penalised splines or simple i.i.d. random effects
+  : Quasi restricted maximum likelihood (qREML) algorithm, previous
+  version
 
 - [`report()`](https://janolefi.github.io/LaMa/reference/report.md) :
 

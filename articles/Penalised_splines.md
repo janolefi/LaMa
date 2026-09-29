@@ -187,27 +187,24 @@ There are some rules to follow when using
     different name for the penalisation hyperparameter, you have to
     specify it as a character string in the
     [`qreml()`](https://janolefi.github.io/LaMa/reference/qreml.md) call
-    using the `psname` argument.
+    using the `spname` argument.
 
 ``` r
 
 system.time(
   mod1 <- qreml(pnll, par, dat, random = "betaSpline")
 )
-#> outer 1 - lambda: 32.077 31.825 
-#> outer 2 - lambda: 10.571 10.745 
-#> outer 3 - lambda: 3.667 3.974 
-#> outer 4 - lambda: 1.414 1.588 
-#> outer 5 - lambda: 0.671 0.693 
-#> outer 6 - lambda: 0.427 0.347 
-#> outer 7 - lambda: 0.347 0.21 
-#> outer 8 - lambda: 0.321 0.154 
-#> outer 9 - lambda: 0.312 0.13 
-#> outer 10 - lambda: 0.31 0.12 
-#> outer 11 - lambda: 0.309 0.116 
-#> outer 12 - lambda: 0.309 0.114
+#> outer 1 - lambda: 10 10 
+#> outer 2 - lambda: 1 1 
+#> outer 3 - lambda: 0.113 0.1 
+#> outer 4 - lambda: 0.289 0.11 
+#> outer 5 - lambda: 0.308 0.112 
+#> outer 6 - lambda: 0.307 0.112 
+#> outer 7 - lambda: 0.307 0.112 
+#> outer 8 - lambda: 0.307 0.112 
+#> outer 9 - lambda: 0.307 0.112
 #>    user  system elapsed 
-#>   7.782   3.454   7.299
+#>   6.668   0.058   6.726
 ```
 
 The `mod` object is now a list that contains everything that is reported
@@ -451,23 +448,17 @@ system.time(
 )
 #> Creating AD function
 #> Initialising with lambda: 10 10 10
-#> outer 1 - lambda: 4.227 3.837 4.852 
-#> outer 2 - lambda: 2.326 1.943 3.061 
-#> outer 3 - lambda: 1.623 1.338 2.355 
-#> outer 4 - lambda: 1.326 1.133 2.046 
-#> outer 5 - lambda: 1.189 1.059 1.902 
-#> outer 6 - lambda: 1.124 1.031 1.832 
-#> outer 7 - lambda: 1.092 1.021 1.798 
-#> outer 8 - lambda: 1.077 1.017 1.784 
-#> outer 9 - lambda: 1.068 1.015 1.776 
-#> outer 10 - lambda: 1.064 1.015 1.769 
-#> outer 11 - lambda: 1.063 1.015 1.767 
-#> outer 12 - lambda: 1.062 1.015 1.766 
-#> outer 13 - lambda: 1.062 1.015 1.765
+#> outer 1 - lambda: 1.733 1.189 2.623 
+#> outer 2 - lambda: 0.836 0.885 1.46 
+#> outer 3 - lambda: 0.956 0.994 1.653 
+#> outer 4 - lambda: 0.962 0.996 1.661 
+#> outer 5 - lambda: 0.962 0.996 1.661 
+#> outer 6 - lambda: 0.962 0.996 1.661 
+#> outer 7 - lambda: 0.962 0.996 1.661
 #> Converged
-#> Final model fit with lambda: 1.062 1.015 1.765
+#> Final model fit with lambda: 0.962 0.996 1.661
 #>    user  system elapsed 
-#>  15.913   4.603  15.202
+#>  10.154   2.252   9.639
 ```
 
 After fitting the model, we can easily visualise the smooth densities
@@ -599,30 +590,23 @@ system.time(
 )
 #> Creating AD function
 #> Initialising with lambda: 1000 1000 1000 1000
-#> outer 1 - lambda: 467.043 374.341 432.55 329.665 
-#> outer 2 - lambda: 250.35 143.737 200.469 113.054 
-#> outer 3 - lambda: 126.091 57.843 99.212 42.159 
-#> outer 4 - lambda: 72.858 26.197 56.919 18.27 
-#> outer 5 - lambda: 48.024 14.493 35.934 9.767 
-#> outer 6 - lambda: 35.993 10.082 24.165 6.518 
-#> outer 7 - lambda: 29.872 8.366 17.321 5.192 
-#> outer 8 - lambda: 26.632 7.685 13.361 4.626 
-#> outer 9 - lambda: 24.864 7.41 11.105 4.375 
-#> outer 10 - lambda: 23.881 7.297 9.836 4.263 
-#> outer 11 - lambda: 23.325 7.25 9.13 4.213 
-#> outer 12 - lambda: 23.007 7.23 8.74 4.189 
-#> outer 13 - lambda: 22.823 7.22 8.525 4.178 
-#> outer 14 - lambda: 22.717 7.216 8.407 4.173 
-#> outer 15 - lambda: 22.656 7.214 8.341 4.171 
-#> outer 16 - lambda: 22.625 7.213 8.306 4.169 
-#> outer 17 - lambda: 22.61 7.213 8.296 4.169 
-#> outer 18 - lambda: 22.597 7.212 8.281 4.169 
-#> outer 19 - lambda: 22.59 7.212 8.274 4.169 
-#> outer 20 - lambda: 22.589 7.212 8.272 4.169
+#> outer 1 - lambda: 238.423 106.067 189.083 100 
+#> outer 2 - lambda: 23.842 10.607 18.908 10 
+#> outer 3 - lambda: 22.048 5.526 8.122 2.636 
+#> outer 4 - lambda: 22.421 8.804 8.276 5.546 
+#> outer 5 - lambda: 22.769 6.269 8.289 3.539 
+#> outer 6 - lambda: 22.44 8.001 8.239 4.601 
+#> outer 7 - lambda: 22.666 6.697 8.279 3.935 
+#> outer 8 - lambda: 22.504 7.615 8.252 4.315 
+#> outer 9 - lambda: 22.559 7.267 8.26 4.198 
+#> outer 10 - lambda: 22.562 7.243 8.261 4.187 
+#> outer 11 - lambda: 22.563 7.238 8.261 4.184 
+#> outer 12 - lambda: 22.563 7.238 8.261 4.184 
+#> outer 13 - lambda: 22.563 7.238 8.261 4.184
 #> Converged
-#> Final model fit with lambda: 22.589 7.212 8.272 4.169
+#> Final model fit with lambda: 22.563 7.238 8.261 4.184
 #>    user  system elapsed 
-#>  15.507   6.003  14.618
+#>   9.255   0.006   9.261
 ```
 
 Having fitted the model, we can visualise the results. We first decode

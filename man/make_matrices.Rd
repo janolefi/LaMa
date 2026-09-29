@@ -27,12 +27,15 @@ a list of class \code{LaMa_matrices} containing:
 \item{\code{coef}}{list of coefficient vectors filled with zeros of the correct length for each formula, for ease of setting up initial parameters}
 \item{\code{sp0}}{named vector of \strong{initial penalty strengths}, as computed by \code{\link[mgcv]{initial.sp}}, with one entry per penalty matrix and names matching \code{S} (a tensor product contributes one entry per margin, named \code{<smooth>.<margin>}).
 
-It can be passed straight to \code{\link{penalty}} or \code{\link{penalty2}} when each smooth appears once. When a smooth is replicated, e.g. one spline per state or per off-diagonal element of the transition probability matrix, the entries have to be repeated, and \code{lambda} runs over replicates \strong{within} each smooth. A single \code{rep()} over \code{sp0} is therefore only correct for some models: use \code{each = N} if every smooth carries one penalty, \code{times = N} if there is a single tensor product, and neither if the two are mixed. Repeating per smooth always works:
+It can be passed straight to \code{\link{penalty}} or \code{\link{penalty2}} when each smooth appears once. 
+When a smooth is replicated, e.g. one spline per state or per off-diagonal element of the transition probability matrix, the entries have to be repeated, and \code{lambda} runs over replicates \strong{within} each smooth. 
+A single \code{rep()} over \code{sp0} is therefore only correct for some models: use \code{each = N} if every smooth carries one penalty, \code{times = N} if there is a single tensor product, and neither if the two are mixed. Repeating per smooth always works:
 \preformatted{
 n <- sapply(modmat$S, function(x) if(is.matrix(x)) 1 else length(x))
 lambda <- unlist(lapply(split(modmat$sp0, rep(seq_along(n), n)),
                         rep, times = N))
 }}
+\item{\code{formula}}{the formula(s) as supplied, in the same nesting as \code{Z}}
 \item{\code{data}}{the data frame used for the model(s)}
 \item{\code{gam}}{unfitted \code{mgcv::gam} object used for construction of \code{Z} and \code{S} (or list of such objects if \code{formula} is a list). Its \code{X} element is not kept, as it is returned as \code{Z}}
 \item{\code{gam0}}{fitted \code{mgcv::gam} which is used internally to create prediction design matrices (or list of such objects if \code{formula} is a list)}

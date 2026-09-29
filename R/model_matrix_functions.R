@@ -45,9 +45,9 @@ cosinor <- function(x, period = 24) {
 }
 
 ## the shape of a LaMa_matrices object, in one place
-new_LaMa_matrices <- function(Z, S, pardim, coef, sp0, data, gam, gam0, knots) {
+new_LaMa_matrices <- function(Z, S, pardim, coef, sp0, formula, data, gam, gam0, knots) {
   out <- list(Z = Z, S = S, pardim = pardim, coef = coef, sp0 = sp0,
-              data = data, gam = gam, gam0 = gam0, knots = knots)
+              formula = formula, data = data, gam = gam, gam0 = gam0, knots = knots)
   class(out) <- "LaMa_matrices"
   out
 }
@@ -75,7 +75,8 @@ combine_LaMa_matrices <- function(res, data, prefix = FALSE) {
   flat <- function(what) do.call(c, unname(per(what)))
 
   new_LaMa_matrices(Z = per("Z"), S = flat("S"), pardim = per("pardim"),
-                    coef = flat("coef"), sp0 = flat("sp0"), data = data,
+                    coef = flat("coef"), sp0 = flat("sp0"),
+                    formula = per("formula"), data = data,
                     gam = per("gam"), gam0 = per("gam0"), knots = per("knots"))
 }
 
@@ -90,6 +91,7 @@ get_name <- function(fml, idx = NULL) {
 make_matrices_flat <- function(formula, data, knots = NULL) {
   
   process_single <- function(fml, name, knots_sub) {
+    fml_given <- fml # as the user wrote it, for print()
     fml <- expand_cosinor(fml)
     
     # prepare gam model setup
@@ -150,14 +152,14 @@ make_matrices_flat <- function(formula, data, knots = NULL) {
     list(
       Z = Z, S = S, pardim = pardim,
       gam = gam_setup, gam0 = gam_setup0,
-      knots = knots_sub, coef = coef, sp0 = sp0
+      knots = knots_sub, coef = coef, sp0 = sp0, formula = fml_given
     )
   }
   
   if (!inherits(formula, "list")) {
     res <- process_single(formula, get_name(formula), knots) # NULL name -> unprefixed labels
     return(new_LaMa_matrices(res$Z, res$S, res$pardim, res$coef, res$sp0,
-                             data, res$gam, res$gam0, knots))
+                             res$formula, data, res$gam, res$gam0, knots))
   }
   
   # get names
@@ -201,12 +203,15 @@ make_matrices_flat <- function(formula, data, knots = NULL) {
 #' \item{\code{coef}}{list of coefficient vectors filled with zeros of the correct length for each formula, for ease of setting up initial parameters}
 #' \item{\code{sp0}}{named vector of \strong{initial penalty strengths}, as computed by \code{\link[mgcv]{initial.sp}}, with one entry per penalty matrix and names matching \code{S} (a tensor product contributes one entry per margin, named \code{<smooth>.<margin>}).
 #'
-#' It can be passed straight to \code{\link{penalty}} or \code{\link{penalty2}} when each smooth appears once. When a smooth is replicated, e.g. one spline per state or per off-diagonal element of the transition probability matrix, the entries have to be repeated, and \code{lambda} runs over replicates \strong{within} each smooth. A single \code{rep()} over \code{sp0} is therefore only correct for some models: use \code{each = N} if every smooth carries one penalty, \code{times = N} if there is a single tensor product, and neither if the two are mixed. Repeating per smooth always works:
+#' It can be passed straight to \code{\link{penalty}} or \code{\link{penalty2}} when each smooth appears once. 
+#' When a smooth is replicated, e.g. one spline per state or per off-diagonal element of the transition probability matrix, the entries have to be repeated, and \code{lambda} runs over replicates \strong{within} each smooth. 
+#' A single \code{rep()} over \code{sp0} is therefore only correct for some models: use \code{each = N} if every smooth carries one penalty, \code{times = N} if there is a single tensor product, and neither if the two are mixed. Repeating per smooth always works:
 #' \preformatted{
 #' n <- sapply(modmat$S, function(x) if(is.matrix(x)) 1 else length(x))
 #' lambda <- unlist(lapply(split(modmat$sp0, rep(seq_along(n), n)),
 #'                         rep, times = N))
 #' }}
+#' \item{\code{formula}}{the formula(s) as supplied, in the same nesting as \code{Z}}
 #' \item{\code{data}}{the data frame used for the model(s)}
 #' \item{\code{gam}}{unfitted \code{mgcv::gam} object used for construction of \code{Z} and \code{S} (or list of such objects if \code{formula} is a list). Its \code{X} element is not kept, as it is returned as \code{Z}}
 #' \item{\code{gam0}}{fitted \code{mgcv::gam} which is used internally to create prediction design matrices (or list of such objects if \code{formula} is a list)}
@@ -262,6 +267,121 @@ make_matrices <- function(formula, data, knots = NULL){
   }
   make_matrices_flat(formula, data, knots)
 }
+
+#' Repeat initial penalty strengths for replicated smooths
+#'
+#' @description
+#' Expands the \code{sp0} element of a \code{\link{make_matrices}} object into a
+#' \code{lambda} vector for \code{\link{penalty}} or \code{\link{penalty2}}, when each smooth is
+#' used more than once, for example one spline per state or per off-diagonal element of the
+#' transition probability matrix.
+#'
+#' @details
+#' \code{lambda} runs over replicates \strong{within} each smooth, so for a tensor product the
+#' margins vary fastest. A single \code{rep()} over \code{sp0} therefore only gives the right
+#' answer for some models, silently producing the right length but the wrong values for others.
+#' This function repeats each smooth's penalty strengths separately, which is always correct.
+#'
+#' @param model_matrices object of class \code{LaMa_matrices} as returned by \code{\link{make_matrices}}
+#' @param N number of replicates. Either a single number used for every smooth, or one number per
+#' smooth, i.e. per element of \code{model_matrices$S}
+#'
+#' @return named numeric vector of initial penalty strengths, of the length and in the order
+#' expected for \code{lambda}
+#'
+#' @seealso \code{\link{make_matrices}}, which computes \code{sp0}
+#' @export
+#'
+#' @examples
+#' modmat = make_matrices(~ s(x) + ti(x, y), data.frame(x = runif(100), y = runif(100)))
+#' modmat$sp0         # one value per penalty
+#' rep_sp(modmat, 2)  # ready to use as 'lambda' for two replicates of each smooth
+rep_sp <- function(model_matrices, N) {
+  if(!inherits(model_matrices, "LaMa_matrices")){
+    stop("'model_matrices' needs to be an object returned by 'make_matrices()'")
+  }
+  sp0 <- model_matrices$sp0
+  n_pen <- vapply(model_matrices$S, function(s) if(is.matrix(s)) 1L else length(s), 1L)
+  if(length(n_pen) == 0) return(numeric(0))
+  if(length(N) == 1) N <- rep(N, length(n_pen))
+  if(length(N) != length(n_pen)){
+    stop("'N' needs to be a single number or one number per smooth, i.e. of length ",
+         length(n_pen))
+  }
+  if(any(N < 1) || any(N != round(N))) stop("'N' needs to contain positive whole numbers")
+
+  grp <- rep(seq_along(n_pen), n_pen) # which smooth each penalty belongs to
+  # unnamed list, so that unlist() does not qualify the names a second time
+  unlist(lapply(seq_along(n_pen), function(i) {
+    v <- sp0[grp == i]
+    stats::setNames(rep(v, times = N[i]),
+                    paste0(names(v), ".", rep(seq_len(N[i]), each = length(v))))
+  }))
+}
+
+
+#' Print a \code{LaMa_matrices} object
+#'
+#' @param x object of class \code{LaMa_matrices} as returned by \code{\link{make_matrices}}
+#' @param ... ignored
+#'
+#' @return \code{x}, invisibly. Called for its side effect of printing.
+#'
+#' @seealso \code{\link{make_matrices}}
+#' @export
+print.LaMa_matrices <- function(x, ...) {
+  # flatten the formula tree into rows: a stream name has no right-hand side,
+  # a formula has both, and depth drives the indentation
+  rows <- list()
+  walk <- function(f, name, depth) {
+    if(inherits(f, "formula")){
+      has_lhs <- length(f) == 3
+      lhs <- if(has_lhs) deparse(f[[2]]) else if(!is.null(name)) name else ""
+      rhs <- paste(deparse(f[[length(f)]]), collapse = " ")
+      rows[[length(rows) + 1]] <<- list(depth = depth, lhs = lhs,
+                                        rhs = gsub("\\s+", " ", rhs))
+    } else {
+      nms <- names(f)
+      for(i in seq_along(f)){
+        nm <- if(is.null(nms)) NULL else nms[i]
+        if(inherits(f[[i]], "formula")){
+          walk(f[[i]], nm, depth)
+        } else { # a further level of nesting, e.g. one entry per data stream
+          rows[[length(rows) + 1]] <<- list(depth = depth,
+                                            lhs = if(is.null(nm)) paste0("stream", i) else nm,
+                                            rhs = NULL)
+          walk(f[[i]], NULL, depth + 1)
+        }
+      }
+    }
+  }
+  walk(x$formula, NULL, 0)
+
+  cat("Model matrices for\n\n")
+  fml_rows <- vapply(rows, function(r) !is.null(r$rhs), TRUE)
+  # line the tildes up, per indentation level
+  width <- stats::setNames(rep(0L, 10), as.character(0:9))
+  for(r in rows[fml_rows]) width[as.character(r$depth)] <-
+    max(width[as.character(r$depth)], nchar(r$lhs))
+  for(r in rows){
+    pad <- strrep("  ", r$depth + 1)
+    if(is.null(r$rhs)) cat(pad, r$lhs, "\n", sep = "")
+    else if(!nzchar(r$lhs)) cat(pad, "~ ", r$rhs, "\n", sep = "") # right-side only
+    else cat(pad, formatC(r$lhs, width = width[as.character(r$depth)], flag = "-"),
+             " ~ ", r$rhs, "\n", sep = "")
+  }
+
+  cat("\n---\n\n")
+  if(length(x$sp0) == 0){
+    cat("No penalised terms, so no initial penalty strengths.\n")
+  } else {
+    cat("Initial penalty strengths:\n\n")
+    print(signif(x$sp0, 4))
+    cat("\nUse 'rep_sp()' if a smooth is used more than once.\n")
+  }
+  invisible(x)
+}
+
 
 #' Process and standardise formulas for the state process of hidden Markov models
 #'

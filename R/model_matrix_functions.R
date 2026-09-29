@@ -112,6 +112,11 @@ make_matrices_flat <- function(formula, data, knots = NULL) {
     sp_init <- if(length(gam_setup$S)) {
       mgcv::initial.sp(Z, gam_setup$S, gam_setup$off)
     } else numeric(0)
+    # started well above mgcv's guess: the inner fits are better behaved when
+    # constrained initially, and the outer iteration relaxes the penalty from
+    # there. Capped, so that a term whose basis carries a large covariate scale
+    # does not start somewhere absurd
+    sp_init <- pmin(100 * sp_init, 1e5)
 
     S <- list()
     coef <- list()
@@ -201,7 +206,9 @@ make_matrices_flat <- function(formula, data, knots = NULL) {
 #' \item{\code{S}}{list of penalty matrices (with names based on the response terms of the formulas as well as the smooth terms and covariates). For tensorproduct smooths, corresponding entries are themselves lists, containing the \eqn{d} marginal penalty matrices if \eqn{d} is the dimension of the tensor product)}
 #' \item{\code{pardim}}{list of parameter dimensions (fixed and penalised separately) for each formula, for ease of setting up initial parameters}
 #' \item{\code{coef}}{list of coefficient vectors filled with zeros of the correct length for each formula, for ease of setting up initial parameters}
-#' \item{\code{sp0}}{named vector of \strong{initial penalty strengths}, as computed by \code{\link[mgcv]{initial.sp}}, with one entry per penalty matrix and names matching \code{S} (a tensor product contributes one entry per margin, named \code{<smooth>.<margin>}).
+#' \item{\code{sp0}}{named vector of \strong{initial penalty strengths}, with one entry per penalty matrix and names matching \code{S} (a tensor product contributes one entry per margin, named \code{<smooth>.<margin>}).
+#'
+#' These are \code{\link[mgcv]{initial.sp}}'s relative guesses raised by a factor of 100 and capped at \code{1e5}. The factor is deliberate: for the models this package targets, the inner optimisation is better behaved when it starts constrained, and the outer iteration relaxes the penalty from there, whereas an under-penalised first fit can settle in a poor local optimum that later iterations inherit through the warm start. The cap keeps a term whose basis carries a large covariate scale, such as a \code{by =} smooth with a large covariate, from starting absurdly high.
 #'
 #' It can be passed straight to \code{\link{penalty}} or \code{\link{penalty2}} when each smooth appears once. 
 #' When a smooth is replicated, e.g. one spline per state or per off-diagonal element of the transition probability matrix, the entries have to be repeated, and \code{lambda} runs over replicates \strong{within} each smooth. 

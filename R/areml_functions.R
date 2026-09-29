@@ -282,25 +282,20 @@ areml <- function(pnll, # penalised negative log-likelihood function
   mod0 <- obj$report()
   S <- mod0$S
 
-  # finding the indices of the random effects to later index the Hessian
-  re_inds <- list()
-  for(i in seq_len(n_re)){
-    if(is.vector(par[[random[i]]])){
-      re_dim <- c(1, length(par[[random[i]]]))
-    } else if(is.matrix(par[[random[i]]])){
-      re_dim <- dim(par[[random[i]]])
-    } else stop(paste0(random[i], " must be a vector or matrix"))
-
-    byrow <- FALSE
-    if(is.matrix(S[[i]])){
-      if(re_dim[1] == nrow(S[[i]])) byrow <- TRUE
-    } else if(is.list(S[[i]])){
-      if(re_dim[1] == nrow(S[[i]][[1]])) byrow <- TRUE
-    }
-
-    re_inds[[i]] <- matrix(which(names(obj$par) == random[i]), nrow = re_dim[1], ncol = re_dim[2])
-    if(byrow) re_inds[[i]] <- t(re_inds[[i]])
-  }
+  # index of each random effect's coefficients in obj$par, one smooth per row:
+  # re_inds[[i]][j, ] are the coefficients of the j-th smooth
+  re_inds <- lapply(seq_len(n_re), function(i){
+    b <- par[[random[i]]]
+    dims <- if(is.null(dim(b))) c(1, length(b)) else dim(b) # a vector is one smooth
+    if(length(dims) != 2) stop(random[i], " must be a vector or matrix")
+    
+    inds <- matrix(which(names(obj$par) == random[i]), dims[1], dims[2]) # RTMB flattens by column
+    
+    # a smooth has as many coefficients as its penalty matrix has rows; when those
+    # sit in the columns of b, transpose so that rows index smooths either way
+    S_i <- if(is.matrix(S[[i]])) S[[i]] else S[[i]][[1]] # a list of S = tensor product
+    if(dims[1] == nrow(S_i)) t(inds) else inds
+  })
 
   ## how many penalty strengths per random effect: 1 = simple smooth, >1 = tensor product
   n_penalties <- sapply(S, function(x) if(is.matrix(x)) 1 else length(x))

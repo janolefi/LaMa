@@ -15,9 +15,9 @@ areml(
   alpha = 0.3,
   smoothing = 1,
   maxiter = 200,
+  tol_edf = 0.001,
   tol = 0.01,
   lsp_max = 15,
-  tol_edf = 0.001,
   step_small = 0.05,
   max_halve = 6,
   method = "BFGS",
@@ -54,6 +54,12 @@ Set to zero to remove the floor entirely. Step length is handled separately, by 
 
 \item{maxiter}{maximum number of outer iterations}
 
+\item{tol_edf}{convergence tolerance on the \strong{effective degrees of freedom}. Defaults to 0.001.
+
+This is the primary convergence criterion. The iteration stops once no smooth's effective degrees of freedom has changed by more than \code{tol_edf} across the last four outer iterations, provided the step in \code{log(lambda)} is also small.
+The effective degrees of freedom are what say whether the \strong{fitted smooth} is still changing, and unlike a tolerance on the restricted likelihood they mean the same thing on every model, being measured in effective parameters rather than in nats.
+The penalty strengths themselves are a poor proxy: \code{lambda} can slide along a flat ridge for many iterations, moving substantially in relative terms, while neither the criterion nor the fit changes appreciably.}
+
 \item{tol}{\strong{fallback} convergence tolerance, on the restricted log-likelihood. Defaults to 0.01.
 
 Used only when the effective degrees of freedom are not trustworthy, i.e.\ when they fall outside \eqn{[0, K_i]}, which happens when the data Hessian is indefinite (see \code{tol_edf} and the returned \code{edf_valid}).
@@ -61,12 +67,6 @@ The iteration then stops once the restricted log-likelihood has changed by less 
 A tolerance in nats is not comparable across models, which is why it is the fallback rather than the primary criterion.}
 
 \item{lsp_max}{largest value allowed for \code{log(lambda)}. Defaults to 15, as in \code{mgcv}, i.e. penalty strengths saturate at roughly 3.3e6}
-
-\item{tol_edf}{convergence tolerance on the \strong{effective degrees of freedom}. Defaults to 0.001.
-
-This is the primary convergence criterion. The iteration stops once no smooth's effective degrees of freedom has changed by more than \code{tol_edf} across the last four outer iterations, provided the step in \code{log(lambda)} is also small.
-The effective degrees of freedom are what say whether the \strong{fitted smooth} is still changing, and unlike a tolerance on the restricted likelihood they mean the same thing on every model, being measured in effective parameters rather than in nats.
-The penalty strengths themselves are a poor proxy: \code{lambda} can slide along a flat ridge for many iterations, moving substantially in relative terms, while neither the criterion nor the fit changes appreciably.}
 
 \item{step_small}{size of a step in \code{log(lambda)} below which the step multiplier is allowed to double. Defaults to 0.05, as in \code{mgcv}}
 

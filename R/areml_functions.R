@@ -1,97 +1,64 @@
 # Internal helpers for areml() ------------------------------------------------
 
-## Positive definite Cholesky factorisation with repair
-#
-# Follows the strategy used by mgcv's gam.fit5(): the matrix is first checked
-# for indefiniteness via its diagonal, repaired by a ridge whose size is set by
-# the most negative diagonal element, preconditioned to unit diagonal, and then
-# factorised with a *pivoted* Cholesky. Pivoting reports a rank, so a rank
-# deficient matrix is detected rather than merely failing, and the ridge is
-# escalated until the factorisation has full rank.
-#
-# Returns the factor together with everything needed to solve with it later.
+## Cholesky with a ridge repair, as in mgcv's gam.fit5(). Pivoting reports a
+## rank, so indefiniteness is detected rather than just causing a failure.
 pd_chol <- function(J, silent = 1) {
   p <- ncol(J)
   D <- diag(J)
   if(any(!is.finite(D))) stop("non-finite values in Hessian")
 
   repaired <- FALSE
-
-  if(min(D) <= 0) {
-    # a diagonal entry that is only numerically zero is not indefiniteness
-    Dthresh <- max(D) * sqrt(.Machine$double.eps)
-    if(-min(D) < Dthresh) {
-      D[D < Dthresh] <- Dthresh
-    } else {
-      repaired <- TRUE
-    }
+  if(min(D) <= 0){
+    small <- max(D) * sqrt(.Machine$double.eps)
+    if(-min(D) < small) D[D < small] <- small # only numerically zero, not indefinite
+    else repaired <- TRUE
   }
 
-  if(repaired) {
+  if(repaired){
     if(silent == 0) cat("Hessian indefinite; adding ridge\n")
-    # ridge = size of the most negative diagonal, plus a small one set by the
-    # largest. Never a mean, which can itself be negative.
-    Ip <- abs(max(D)) * sqrt(.Machine$double.eps)
-    J <- J + diag(abs(min(D)) + Ip, p)
-    d <- rep(1, p) # no preconditioning once a ridge has been added
+    bump <- abs(max(D)) * sqrt(.Machine$double.eps)
+    J <- J + diag(abs(min(D)) + bump, p) # sized by the most negative diagonal, never a mean
+    d <- rep(1, p) # no preconditioning once a ridge is in
   } else {
-    d <- D^-0.5 # scale to unit diagonal: this is what keeps the factorisation stable
+    d <- D^-0.5 # unit diagonal, for a stable factorisation
     J <- d * t(d * J)
-    Ip <- sqrt(.Machine$double.eps)
+    bump <- sqrt(.Machine$double.eps)
   }
 
   R <- suppressWarnings(chol(J, pivot = TRUE))
-  while(attr(R, "rank") < p) { # escalate until it factorises at full rank
+  while(attr(R, "rank") < p){ # escalate until it factorises at full rank
     repaired <- TRUE
-    J <- J + diag(Ip, p)
-    Ip <- Ip * 100
+    J <- J + diag(bump, p)
+    bump <- bump * 100
     R <- suppressWarnings(chol(J, pivot = TRUE))
   }
 
   piv <- attr(R, "pivot")
-  ipiv <- piv
-  ipiv[piv] <- seq_len(p)
-
-  # log|J|, free from the factor: pivoting does not change the determinant, and
-  # the unit diagonal scaling contributes a known factor
-  logdet <- 2 * sum(log(diag(R))) - 2 * sum(log(d))
+  ipiv <- piv; ipiv[piv] <- seq_len(p)
+  logdet <- 2 * sum(log(diag(R))) - 2 * sum(log(d)) # log|J|, free from the factor
 
   list(R = R, piv = piv, ipiv = ipiv, d = d, logdet = logdet, repaired = repaired)
 }
 
-## Diagonal block of the inverse, without ever forming the full inverse
-#
-# Solves the (already computed) factor against the indicator columns of one
-# smooth's coefficients, which costs one triangular solve pair per penalised
-# coefficient and needs p x length(idx) memory rather than p x p. Everything the
-# update and the effective degrees of freedom need lives in this block.
+## One diagonal block of J^-1, without forming the full inverse: solve the factor
+## against that smooth's indicator columns. Needs p x length(idx), not p x p.
 block_inv <- function(fac, idx) {
-  p <- length(fac$piv)
-  q <- length(idx)
+  p <- length(fac$piv); q <- length(idx)
   E <- matrix(0, p, q)
   E[cbind(idx, seq_len(q))] <- 1
-
-  # J = Dm^-1 Js Dm^-1 with Dm = diag(d), so J^-1 = Dm Js^-1 Dm
-  B <- fac$d * E
+  B <- fac$d * E # J^-1 = Dm Js^-1 Dm, with Dm = diag(d)
   Z <- backsolve(fac$R, forwardsolve(t(fac$R), B[fac$piv, , drop = FALSE]))[fac$ipiv, , drop = FALSE]
-  Z <- fac$d * Z
-  Z[idx, , drop = FALSE]
+  (fac$d * Z)[idx, , drop = FALSE]
 }
 
-## Generalised eigen-decomposition of one penalty block
-#
-# Returns the rank, the generalised log-determinant (product of the non-zero
-# eigenvalues) and the Moore-Penrose inverse. Used once per smooth at setup for
-# simple smooths, and once per iteration for tensor products, always on the
-# small q x q block rather than the full p x p penalty matrix.
+## Rank, generalised log-determinant and Moore-Penrose inverse of one penalty
+## block. Always q x q, never the full p x p penalty.
 gen_inverse <- function(S) {
-  e <- eigen(S, symmetric = TRUE)
-  ev <- e$values
-  keep <- ev > max(ev) * .Machine$double.eps^0.75
-  V <- e$vectors[, keep, drop = FALSE]
-  list(rank = sum(keep),
-       logdet = sum(log(ev[keep])),
-       inv = V %*% (t(V) / ev[keep]))
+  ev <- eigen(S, symmetric = TRUE)
+  keep <- ev$values > max(ev$values) * .Machine$double.eps^0.75
+  V <- ev$vectors[, keep, drop = FALSE]
+  list(rank = sum(keep), logdet = sum(log(ev$values[keep])),
+       inv = V %*% (t(V) / ev$values[keep]))
 }
 
 
@@ -132,16 +99,16 @@ gen_inverse <- function(S) {
 #' Set to zero to remove the floor entirely. Step length is handled separately, by \code{max_halve} and the adaptive multiplier.
 #' @param smoothing optional scaling factor for the final penalty strength parameters. Increasing this beyond one leads to a smoother final model
 #' @param maxiter maximum number of outer iterations
+#' @param tol_edf convergence tolerance on the \strong{effective degrees of freedom}. Defaults to 0.001.
+#' 
+#' This is the primary convergence criterion. The iteration stops once no smooth's effective degrees of freedom has changed by more than \code{tol_edf} across the last four outer iterations, provided the step in \code{log(lambda)} is also small.
+#' The effective degrees of freedom are what say whether the \strong{fitted smooth} is still changing, and unlike a tolerance on the restricted likelihood they mean the same thing on every model, being measured in effective parameters rather than in nats.
+#' The penalty strengths themselves are a poor proxy: \code{lambda} can slide along a flat ridge for many iterations, moving substantially in relative terms, while neither the criterion nor the fit changes appreciably.
 #' @param tol \strong{fallback} convergence tolerance, on the restricted log-likelihood. Defaults to 0.01.
 #'
 #' Used only when the effective degrees of freedom are not trustworthy, i.e.\ when they fall outside \eqn{[0, K_i]}, which happens when the data Hessian is indefinite (see \code{tol_edf} and the returned \code{edf_valid}).
 #' The iteration then stops once the restricted log-likelihood has changed by less than \code{tol} over the last four outer iterations.
 #' A tolerance in nats is not comparable across models, which is why it is the fallback rather than the primary criterion.
-#' @param tol_edf convergence tolerance on the \strong{effective degrees of freedom}. Defaults to 0.001.
-#'
-#' This is the primary convergence criterion. The iteration stops once no smooth's effective degrees of freedom has changed by more than \code{tol_edf} across the last four outer iterations, provided the step in \code{log(lambda)} is also small.
-#' The effective degrees of freedom are what say whether the \strong{fitted smooth} is still changing, and unlike a tolerance on the restricted likelihood they mean the same thing on every model, being measured in effective parameters rather than in nats.
-#' The penalty strengths themselves are a poor proxy: \code{lambda} can slide along a flat ridge for many iterations, moving substantially in relative terms, while neither the criterion nor the fit changes appreciably.
 #' @param lsp_max largest value allowed for \code{log(lambda)}. Defaults to 15, as in \code{mgcv}, i.e. penalty strengths saturate at roughly 3.3e6
 #' @param step_small size of a step in \code{log(lambda)} below which the step multiplier is allowed to double. Defaults to 0.05, as in \code{mgcv}
 #' @param max_halve maximum number of times a step that decreases the restricted likelihood is halved before it is accepted anyway. Defaults to 6.
@@ -172,9 +139,9 @@ areml <- function(pnll, # penalised negative log-likelihood function
                   alpha = 0.3, # smallest factor by which lambda may decrease per iteration
                   smoothing = 1,
                   maxiter = 200, # maximum number of outer iterations
+                  tol_edf = 0.001, # convergence tolerance on the effective degrees of freedom
                   tol = 0.01, # fallback tolerance on the restricted log-likelihood
                   lsp_max = 15, # largest allowed log(lambda)
-                  tol_edf = 0.001, # convergence tolerance on the effective degrees of freedom
                   step_small = 0.05, # step size below which the multiplier may double
                   max_halve = 6, # how often a worsening step may be halved
                   method = "BFGS", # optimisation method used by optim
@@ -399,110 +366,68 @@ areml <- function(pnll, # penalised negative log-likelihood function
     lambda <<- unmap_lambda(exp(lsp_try), lambda_map, lambda0)
     Lambda <- reshape_lambda(lambda_lengths, lambda)
 
-    # naming the penalty strengths here makes the trace unambiguous: the outer
-    # line below reports lambda AFTER the update, so without this the initial fit
-    # and the first updated fit look like the same fit done twice
-    if(silent == 0){
-      cat("\nInner optimisation at", psname, "=", round(exp(lsp_try), 3), "\n")
-    }
+    if(silent == 0) cat("\nInner optimisation at", psname, "=", round(exp(lsp_try), 3), "\n")
     counter_env$count <- 0
 
-    # RTMB/TMB caches the objective value at the last parameter vector it was
-    # evaluated at. optim's very first evaluation is at 'start', which is exactly
-    # where the previous inner fit left off, so without this the first function
-    # value is the one belonging to the PREVIOUS lambda. Being the optimum of a
-    # smaller penalty it is too low, no trial point can beat it, and optim returns
-    # immediately with that stale value: the criterion then looks far better than
-    # it is and the step is accepted on false evidence.
-    # Evaluating once at a nudged parameter vector invalidates the cache, so the
-    # evaluation optim then makes at 'start' is a real one. The value here is
-    # discarded, and the nudge is never used as a starting value.
-    # qreml() never hit this because optimHess() finite differences obj$fn at many
-    # perturbed points and so invalidates the cache as a side effect; obj$he()
-    # never touches obj$fn, which is what exposed it.
+    # RTMB caches the objective value at the last parameter vector it saw, which is
+    # exactly 'start'. Without this nudge optim's first evaluation returns the value
+    # belonging to the PREVIOUS lambda and it stops there.
     invisible(try(obj$fn(start + 1e-8 * (1 + abs(start))), silent = TRUE))
 
     opt <- stats::optim(start, obj$fn, newgrad, method = method, control = ctl)
-
     gr <- obj$gr(opt$par) # forces evaluation at opt$par so that report() matches
     if(silent == 0) cat("iter", counter_env$count, "- inner mgc:", round(max(abs(gr)), 5), "\n")
 
     mod <- obj$report()
     if(silent == 0) cat("evaluating Hessian...\n")
     J <- hessian_at(opt$par)
-    J <- (J + t(J)) / 2 # force symmetric
-    fac <- pd_chol(J, silent)
+    fac <- pd_chol((J + t(J)) / 2, silent) # force symmetric
+    llk_r <- -opt$value + logdet_Slambda(Lambda) / 2 - fac$logdet / 2 # criterion is -llk_r
 
-    # restricted log-likelihood; the criterion is its negative, so it is minimised
-    llk_r <- -opt$value + logdet_Slambda(Lambda) / 2 - fac$logdet / 2
-
-    # J itself is not returned: everything downstream works from the factor, and
-    # cur, trial and trial2 can be alive at the same time, so keeping a p x p copy
-    # in each is the avoidable part of the peak memory. It is recomputed once for
-    # the returned model below.
+    # J is not kept: everything downstream works from the factor, and cur, trial
+    # and trial2 can be alive at once
     list(opt = opt, mod = mod, fac = fac, Lambda = Lambda,
          lsp = lsp_try, llk_r = llk_r, crit = -llk_r, mgc = max(abs(gr)))
   }
 
-  ## the extended Fellner-Schall ratio r, on the mapped scale
-  # lambda_new = lambda * r, i.e. the step in log(lambda) is log(r)
+  ## Fellner-Schall ratio on the mapped scale: lambda_new = lambda * r, so the step
+  ## in log(lambda) is log(r). Also returns the pieces of the outer gradient and the
+  ## effective degrees of freedom, which the same inverse blocks give for free.
   efs_ratio <- function(state) {
-    a <- rep(NA_real_, length(lambda0))
-    bSb <- rep(NA_real_, length(lambda0))
-    edf <- numeric(0) # effective degrees of freedom, one per smooth
-    l <- 1
-    for(i in seq_len(n_re)){
-      for(j in seq_len(nrow(re_inds[[i]]))){
-        idx <- re_inds[[i]][j, ]
-        Jinv <- block_inv(state$fac, idx) # only the block we need
+    a <- bSb <- rep(NA_real_, length(lambda0))
+    edf <- numeric(length(block_dim))
+    l <- 1; bl <- 1
+    for(i in seq_len(n_re)) for(j in seq_len(nrow(re_inds[[i]]))){
+      idx <- re_inds[[i]][j, ]
+      Jinv <- block_inv(state$fac, idx) # only the block we need
+      edf[bl] <- length(idx) - sum(Jinv * block_S(i, j, state$Lambda)); bl <- bl + 1
 
-        # free here: the block of the inverse is already formed, and the
-        # effective degrees of freedom are what the convergence test below
-        # actually watches
-        edf <- c(edf, length(idx) - sum(Jinv * block_S(i, j, state$Lambda)))
-
-        if(i %in% simple_ind){
-          # tr(S_lambda^- S) = rank / lambda for a single penalty matrix
-          a[l] <- ranks[i] / state$Lambda[[i]][j] - sum(Jinv * S[[i]])
-          bSb[l] <- state$mod$Pen[[i]][j]
-          l <- l + 1
-        } else {
-          n_pen <- length(S[[i]])
-          Sinv <- gen_inverse(block_S(i, j, state$Lambda))$inv
-          for(pen in seq_len(n_pen)){
-            a[l + pen - 1] <- sum(Sinv * S[[i]][[pen]]) - sum(Jinv * S[[i]][[pen]])
-          }
-          # penalty2() reports the bare b^t S_k b, without lambda_k
-          bSb[l:(l + n_pen - 1)] <- state$mod$Pen[[i]][[j]]
-          l <- l + n_pen
-        }
+      if(i %in% simple_ind){
+        a[l] <- ranks[i] / state$Lambda[[i]][j] - sum(Jinv * S[[i]]) # tr(S_lambda^- S) = rank/lambda
+        bSb[l] <- state$mod$Pen[[i]][j]
+        l <- l + 1
+      } else {
+        n_pen <- length(S[[i]])
+        Sinv <- gen_inverse(block_S(i, j, state$Lambda))$inv
+        for(k in seq_len(n_pen)) a[l+k-1] <- sum(Sinv * S[[i]][[k]]) - sum(Jinv * S[[i]][[k]])
+        bSb[l:(l+n_pen-1)] <- state$mod$Pen[[i]][[j]] # penalty2() reports b'S_k b, without lambda_k
+        l <- l + n_pen
       }
     }
 
-    # Flooring both keeps the ratio positive, which is what guarantees a positive
-    # penalty strength and means no test on the data Hessian is needed for that.
-    # The floor has to be far below anything meaningful, though: mgcv uses
-    # sqrt(.Machine$double.eps), which here would clamp BOTH quantities for a
-    # strongly penalised smooth whose coefficients have been shrunk to nothing,
-    # giving r = 1 and a penalty strength frozen for good. The ratio of two very
-    # small numbers is still informative, so only positivity is enforced.
-    tiny <- .Machine$double.xmin
-    a <- pmax(tiny, a)
-    bSb <- pmax(tiny, bSb)
+    # only positivity is enforced: mgcv's sqrt(eps) floor would clamp both for a
+    # strongly penalised smooth and freeze its lambda at r = 1
+    a <- pmax(.Machine$double.xmin, a)
+    bSb <- pmax(.Machine$double.xmin, bSb)
 
-    # summing within groups of tied penalty strengths
-    a_m <- bSb_m <- numeric(length(lambda_mapped))
-    for(m in seq_along(lambda_mapped)){
-      ind <- which(lambda_map == levels(lambda_map)[m])
-      a_m[m] <- sum(a[ind])
-      bSb_m[m] <- sum(bSb[ind])
-    }
+    grp <- split(seq_along(a), lambda_map) # indices of each tied group
+    a_m <- vapply(grp, function(ii) sum(a[ii]), 0)
+    bSb_m <- vapply(grp, function(ii) sum(bSb[ii]), 0)
+
     r <- a_m / bSb_m
     r[!is.finite(r)] <- 1e6
-    # no single step may move a penalty strength by more than a factor 1e6,
-    # mirroring the bound mgcv puts on a non-finite ratio
-    r <- pmin(pmax(r, 1e-6), 1e6)
-    list(r = r, a = a_m, bSb = bSb_m, edf = edf)
+    r <- pmin(pmax(r, 1e-6), 1e6) # no step may move lambda by more than a factor 1e6
+    list(r = unname(r), a = unname(a_m), bSb = unname(bSb_m), edf = edf)
   }
 
   ### updating algorithm
@@ -512,22 +437,17 @@ areml <- function(pnll, # penalised negative log-likelihood function
   crit_hist <- rep(NA_real_, maxiter)
 
   if(silent < 2) message("Initialising with ", psname, ": ", paste(round(lambda, 3), collapse = " "))
-  # one fit at the starting lambda is unavoidable: the first update needs the
-  # penalties and traces evaluated at a converged inner solution
   if(silent == 0) cat("\nouter 0 - initial fit\n")
 
+  # one fit at the starting lambda is unavoidable: the first update needs the
+  # penalties and traces at a converged inner solution
   cur <- fit_at(lsp, newpar)
   converged <- FALSE
 
-  # Best iterate seen so far. Once the multiplier is at its floor the step can no
-  # longer be shortened, so a step that worsens the criterion is accepted anyway
-  # (this is mgcv's rule, and the iteration often climbs back out of such a dip).
-  # Keeping the best point means a run that does not climb back out still returns
-  # the best penalty strengths it found rather than wherever it happened to stop.
-  best_lsp <- lsp
+  best_lsp <- lsp # best iterate seen, in case a run ends worse than it once was
   best_crit <- cur$crit
   best_iter <- 0
-  edf_ok_run <- TRUE # reports the first iteration whose edf go out of range
+  edf_ok_run <- TRUE # flips once the edf leave [0, block dimension]
 
   if(!estimate_ps){
     crit_hist[1] <- cur$crit
@@ -541,68 +461,43 @@ areml <- function(pnll, # penalised negative log-likelihood function
     ef <- efs_ratio(cur)
     step <- log(ef$r)
 
-    # Downward floor: a penalty strength may not fall by more than a factor alpha
-    # in one outer iteration, which protects the inner optimisation early on. It
-    # has to be applied to the step actually taken, mult * step, not to the raw
-    # step: with the multiplier at 2 the floor would otherwise be alpha^2, and at
-    # 8 it would be alpha^8, so the guarantee would evaporate exactly when the
-    # iteration is moving fastest. Upward steps are not touched.
-    step_taken <- mult * step
-    if(alpha > 0) step_taken <- pmax(step_taken, log(alpha))
+    # the floor applies to the step actually taken, mult * step: applied to the raw
+    # step it would become alpha^mult, i.e. no guarantee when moving fastest
+    lo <- if(alpha > 0) log(alpha) else -Inf # lambda may not fall faster than alpha
+    take <- function(m) pmin(lsp + pmax(m * step, lo), lsp_max)
 
-    lsp1 <- pmin(lsp + step_taken, lsp_max)
+    lsp1 <- take(mult)
     max_step <- max(abs(lsp1 - lsp))
     n_halve <- 0
-
-    # the lambda below is what the fit that follows is done at, so it is printed
-    # before that fit and not after it. Backtracking, if any, then revises it and
-    # each trial names its own lambda.
-    if(silent == 0){
-      cat("\nouter", iter, "- proposed", paste0(psname, ":"), round(exp(lsp1), 3), "\n")
-    }
+    if(silent == 0) cat("\nouter", iter, "- proposed", paste0(psname, ":"), round(exp(lsp1), 3), "\n")
 
     trial <- fit_at(lsp1, cur$opt$par)
 
-    if(trial$crit <= cur$crit){
-      ## improved
-      accelerated <- FALSE
+    if(trial$crit <= cur$crit){ ## improved
       n_success <- n_success + 1
-      # mgcv opens the acceleration only when the step is small. That gate is on
-      # the largest step across ALL penalty strengths, so one parameter still
-      # moving briskly keeps it shut for every other parameter, and one that is
-      # heading for a boundary never gets to accelerate. Two consecutive improving
-      # steps opens it as well.
+      accelerated <- FALSE
+      # mgcv gates acceleration on the largest step across ALL lambda, so one busy
+      # parameter throttles the rest; two improving steps in a row opens it too
       if(max_step < step_small || n_success >= 2){
-        # mgcv's acceleration: the step is small and still paying, so try twice
-        # as far and keep the doubling if it pays again
-        lsp2 <- pmin(lsp + pmax(2 * mult * step, if(alpha > 0) log(alpha) else -Inf), lsp_max)
+        lsp2 <- take(2 * mult)
         trial2 <- fit_at(lsp2, cur$opt$par)
         if(trial2$crit < trial$crit){
-          trial <- trial2
-          lsp1 <- lsp2
-          mult <- mult * 2
-          accelerated <- TRUE
+          trial <- trial2; lsp1 <- lsp2; mult <- 2 * mult; accelerated <- TRUE
           if(silent == 0) cat("accelerating: step multiplier now", mult, "\n")
         }
       }
-      # A shortening from an earlier iteration must never become permanent. This
-      # has to sit outside the branch above: once the multiplier is small the
-      # steps are small too, so control always takes that branch, and if the
-      # doubling there is rejected the multiplier would stay collapsed for the
-      # rest of the run. The iteration then takes far smaller steps than the
-      # plain Fellner-Schall one and a penalty strength heading for a boundary
-      # never gets there.
+      # must sit outside the branch above: once mult is small the steps are too, so
+      # a rejected doubling would leave it collapsed for the rest of the run
       if(!accelerated && mult < 1) mult <- min(2 * mult, 1)
-    } else {
+    } else { ## worsened
       n_success <- 0
-      ## worsened: shorten the step until it pays. mgcv stops at the full step and
-      ## accepts a worse one, which here can drift downhill for tens of iterations
-      ## at a time, so the step is genuinely backtracked instead.
+      # mgcv accepts a worse step at mult = 1; here that can drift downhill for
+      # tens of iterations, so it is genuinely backtracked
       while(trial$crit > cur$crit && n_halve < max_halve){
         mult <- mult / 2
         n_halve <- n_halve + 1
         if(silent == 0) cat("criterion increased; step multiplier now", signif(mult, 4), "\n")
-        lsp1 <- pmin(lsp + pmax(mult * step, if(alpha > 0) log(alpha) else -Inf), lsp_max)
+        lsp1 <- take(mult)
         trial <- fit_at(lsp1, cur$opt$par)
       }
     }
@@ -646,36 +541,23 @@ areml <- function(pnll, # penalised negative log-likelihood function
     }
 
     edf_hist[, iter] <- ef$edf
+    gc(verbose = FALSE) # each iteration allocates several p x p matrices
 
-    # each outer iteration allocates several p x p matrices, and any rejected
-    # trial fits become garbage immediately. Collecting here keeps the heap from
-    # growing across iterations, which on a large model is the difference between
-    # a few hundred MB and several GB
-    gc(verbose = FALSE)
-
-    # Convergence. Both routes share the same gates -- at least four iterations,
-    # a small step in log(lambda), and stability across a window rather than one
-    # consecutive pair -- so that a single small step cannot end the iteration.
+    # Stop when the fitted smooths have settled. The edf are in effective
+    # parameters, so tol_edf means the same on every model, unlike a tolerance in
+    # nats; lambda is a poor proxy, sliding along a flat ridge for many iterations
+    # while neither criterion nor fit moves. Gates: four iterations, a small step,
+    # and a window rather than one consecutive pair.
     if(iter > 3 && max_step < step_small){
       if(edf_ok_run){
-        # The effective degrees of freedom have settled. This is what says whether
-        # the fitted smooth is still changing, and unlike a tolerance on the
-        # restricted likelihood it means the same thing on every model, being
-        # measured in effective parameters rather than in nats. The penalty
-        # strengths themselves are a poor proxy: lambda can slide along a flat
-        # ridge for many iterations while neither the criterion nor the fit moves.
-        w <- edf_hist[, (iter-3):iter, drop = FALSE]
-        if(max(abs(w[, -1, drop = FALSE] - w[, -ncol(w), drop = FALSE])) < tol_edf){
+        w <- t(edf_hist[, (iter-3):iter, drop = FALSE]) # iterations down the rows
+        if(max(abs(diff(w))) < tol_edf){
           converged <- TRUE
           if(silent == 0) cat("effective degrees of freedom settled\n")
         }
-      } else {
-        # The edf have left [0, block dimension], so they are not a quantity worth
-        # converging on. Fall back on the restricted likelihood.
-        if(max(abs(diff(crit_hist[(iter-3):iter]))) < tol){
-          converged <- TRUE
-          if(silent == 0) cat("restricted likelihood settled (edf unreliable)\n")
-        }
+      } else if(max(abs(diff(crit_hist[(iter-3):iter]))) < tol){
+        converged <- TRUE # fallback: edf unreliable, so use the restricted likelihood
+        if(silent == 0) cat("restricted likelihood settled (edf unreliable)\n")
       }
     }
     if(converged){
@@ -692,9 +574,7 @@ areml <- function(pnll, # penalised negative log-likelihood function
   # a zero-length for() sets its loop variable to NULL, so restore it
   if(!estimate_ps) iter <- 1
 
-  ## final model fit
-  # the best penalty strengths found, which is the last iterate whenever the
-  # criterion improved to the end
+  ## final model fit, at the best penalty strengths found
   if(best_iter < iter && silent < 2){
     message("Restricted likelihood did not improve after iteration ", best_iter,
             "; returning the best penalty strengths found")
@@ -707,14 +587,9 @@ areml <- function(pnll, # penalised negative log-likelihood function
   }
 
   final_lsp <- log(map_lambda(lambda, lambda_map))
-  # cur is already the converged fit at this lambda whenever no smoothing factor
-  # was applied and the last iterate was the best one, so refitting would repeat
-  # an inner optimisation, a Hessian and a factorisation for nothing
-  if(isTRUE(all.equal(final_lsp, cur$lsp))){
-    final <- cur
-  } else {
-    final <- fit_at(final_lsp, cur$opt$par)
-  }
+  # cur is already the fit at this lambda unless smoothing was applied or the last
+  # iterate was not the best one, so refitting would repeat a fit for nothing
+  final <- if(isTRUE(all.equal(final_lsp, cur$lsp))) cur else fit_at(final_lsp, cur$opt$par)
   mod <- final$mod
   opt <- final$opt
   Lambda <- final$Lambda
@@ -742,9 +617,9 @@ areml <- function(pnll, # penalised negative log-likelihood function
   mod$llk <- llk
   mod$n_fixpar <- length(unlist(par[!(names(par) %in% random)]))
 
-  ## effective degrees of freedom, from the same blocks of the inverse
-  # sum_j diag(J^-1 H)_jj over a smooth equals q - sum(J^-1[idx,idx] * S_lambda[idx,idx]),
-  # because S_lambda is block diagonal, so no off-block entry is ever needed
+  ## effective degrees of freedom, from the same inverse blocks: summing
+  ## diag(J^-1 H) over a smooth gives q - sum(J^-1[idx,idx] * S_lambda[idx,idx]),
+  ## since S_lambda is block diagonal and no off-block entry is needed
   Edfs <- Lambda
   for(i in seq_len(n_re)){
     if(i %in% tp_ind) Edfs[[i]] <- numeric(nrow(re_inds[[i]]))
@@ -757,16 +632,10 @@ areml <- function(pnll, # penalised negative log-likelihood function
   mod$df <- mod$n_fixpar + sum(unlist(Edfs))
   mod$edf <- Edfs
 
-  ## sanity check on the effective degrees of freedom
-  # Each smooth's edf must lie between zero and its number of coefficients: it is
-  # a sum of eigenvalues of J^-1 H, all in [0, 1]. Values outside that range are
-  # not a rounding problem, they mean the inverse Hessian is not trustworthy,
-  # which happens when the penalty strengths span so many orders of magnitude
-  # that J is badly conditioned. A few very large lambda contaminate the blocks
-  # of the inverse belonging to the OTHER smooths, and since the same traces
-  # drive the update, the iteration then converges confidently to a worse point.
-  # mgcv avoids this by reparameterising each penalty block (Wood's similarity
-  # transform); areml does not, so the condition is reported instead.
+  ## sanity check: each edf must lie in [0, K_i], being a sum of eigenvalues of
+  ## J^-1 H. Outside that the data Hessian is indefinite and the inverse is not
+  ## trustworthy. Reported rather than repaired: a ridge big enough to fix an
+  ## indefinite H also smooths away the weakly identified directions.
   edf_ok <- TRUE
   for(i in seq_len(n_re)){
     q_i <- ncol(re_inds[[i]])
@@ -774,11 +643,8 @@ areml <- function(pnll, # penalised negative log-likelihood function
   }
   mod$edf_valid <- edf_ok
 
-  ## penalty strengths that ended pinned at the upper bound
-  # Such a smooth has been shrunk to its null space: the bound was binding, not
-  # the data. They also make the fit fragile, because a large lambda drives down
-  # the smallest eigenvalue of J and so amplifies any indefiniteness in the data
-  # Hessian into the traces and the effective degrees of freedom.
+  ## lambda pinned at the upper bound: the smooth is shrunk to its null space
+  ## because the bound was binding, not because the data asked for it
   at_bound <- which(log(lambda) >= lsp_max - 1e-8)
   mod$lambda_at_bound <- at_bound
   if(length(at_bound) > 0 && silent < 2){
@@ -799,10 +665,8 @@ areml <- function(pnll, # penalised negative log-likelihood function
   mod$Hessian_conditional <- hessian_at(final$opt$par)
   mod$llk_restricted <- -crit_hist[seq_len(iter)]
 
-  ## largest decrease of the restricted likelihood over the run
-  # The iteration is meant to be monotone: a worsening step is backtracked, and
-  # only an exhausted backtrack is accepted. This is the number that says whether
-  # that held, and it is the first thing to look at if a fit is suspect.
+  ## the iteration is meant to be monotone -- only an exhausted backtrack is
+  ## accepted -- and this is the number that says whether that held
   mod$max_drop <- if(iter > 1) max(c(0, diff(crit_hist[seq_len(iter)]))) else 0
   if(mod$max_drop > 1e-3 * (1 + abs(tail(mod$llk_restricted, 1))) && silent < 2){
     message("Restricted likelihood decreased by up to ", signif(mod$max_drop, 4),
@@ -813,9 +677,8 @@ areml <- function(pnll, # penalised negative log-likelihood function
   mod$best_iter <- best_iter
   mod$hessian_repaired <- final$fac$repaired
 
-  # gradient of the restricted log-likelihood with respect to log(lambda):
-  # dV/dlog(lambda) = 0.5 * lambda * (a - b^t S b), which is zero exactly where
-  # the multiplicative update has a fixed point (a = b^t S b, i.e. r = 1)
+  # dV/dlog(lambda) = 0.5 * lambda * (a - b'Sb), zero exactly where the update has
+  # a fixed point (a = b'Sb, i.e. r = 1)
   fr <- efs_ratio(final)
   mod$outer_grad <- 0.5 * map_lambda(lambda, lambda_map) * (fr$a - fr$bSb)
   names(mod$outer_grad) <- levels(lambda_map)

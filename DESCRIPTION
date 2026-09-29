@@ -28,13 +28,13 @@ Imports:
     mgcv,
     MASS,
     numDeriv,
-    RTMBdist (>= 1.0.6)
+    RTMBdist (>= 1.1.0)
 LinkingTo: 
     Rcpp, 
     RcppArmadillo
 Depends: 
     R (>= 3.5.0), 
-    RTMB (>= 1.9.0)
+    RTMB (>= 2.0)
 RoxygenNote: 7.3.3
 Suggests: 
     knitr,

@@ -2,8 +2,8 @@
 % Please edit documentation in R/qreml_functions.R
 \name{qreml}
 \alias{qreml}
-\title{Quasi restricted maximum likelihood (qREML) algorithm for arbitrary 
-statistical models with penalised splines, i.i.d. random effects, or tensorproducts}
+\title{Automatic smoothness selection for arbitrary 
+statistical models with penalised splines, simple random effects, or tensorproducts}
 \usage{
 qreml(
   pnll,
@@ -67,7 +67,7 @@ A tolerance in nats is not comparable across models, which is why it is the fall
 
 \item{smoothing}{optional scaling factor for the final penalty strength parameters. Increasing this beyond one leads to a smoother final model}
 
-\item{method}{optimisation method to be used by \code{\link[stats:optim]{optim}}. Defaults to \code{"BFGS"}}
+\item{method}{inner optimisation method to be used by \code{\link[stats:optim]{optim}}. Defaults to \code{"BFGS"}}
 
 \item{lsp_max}{largest value allowed for \code{log(lambda)}. Defaults to 15, as in \code{mgcv}, i.e. penalty strengths saturate at roughly 3.3e6}
 

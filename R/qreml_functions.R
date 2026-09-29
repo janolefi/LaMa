@@ -62,8 +62,8 @@ gen_inverse <- function(S) {
 }
 
 
-#' Quasi restricted maximum likelihood (qREML) algorithm for arbitrary 
-#' statistical models with penalised splines, i.i.d. random effects, or tensorproducts
+#' Automatic smoothness selection for arbitrary 
+#' statistical models with penalised splines, simple random effects, or tensorproducts
 #'
 #' @description
 #' Efficiently fits models involving quadratic penalties of the form
@@ -134,7 +134,7 @@ gen_inverse <- function(S) {
 #' The iteration then stops once the restricted log-likelihood has changed by less than \code{tol} over the last four outer iterations.
 #' A tolerance in nats is not comparable across models, which is why it is the fallback rather than the primary criterion.
 #' @param smoothing optional scaling factor for the final penalty strength parameters. Increasing this beyond one leads to a smoother final model
-#' @param method optimisation method to be used by \code{\link[stats:optim]{optim}}. Defaults to \code{"BFGS"}
+#' @param method inner optimisation method to be used by \code{\link[stats:optim]{optim}}. Defaults to \code{"BFGS"}
 #' @param lsp_max largest value allowed for \code{log(lambda)}. Defaults to 15, as in \code{mgcv}, i.e. penalty strengths saturate at roughly 3.3e6
 #' @param step_small size of a step in \code{log(lambda)} below which the step multiplier is allowed to double. Defaults to 0.05, as in \code{mgcv}
 #' @param max_halve maximum number of times a step that decreases the restricted likelihood is halved before it is accepted anyway. Defaults to 6.
@@ -303,10 +303,11 @@ qreml <- function(pnll, # penalised negative log-likelihood function
   obj <- MakeADFun(func = f, parameters = par, silent = TRUE, map = map)
   newpar <- obj$par
 
-  ## choosing how the Hessian is evaluated
-  # obj$he() is the exact AD Hessian and avoids the finite differencing error in
-  # optimHess(), which otherwise sits right on top of the criterion differences
-  # the convergence test has to resolve
+  ## Choosing how the Hessian is evaluated (3 potential routes)
+  # 1) default: obj$he(); the exact AD Hessian for accuracy
+  # 2) fallback only: optimHess()
+  # 3) sparse Hessian: spHess via RTMB's sparse Hessian route
+  # -> fairly expensive to build but well worth it if model has a sparse Hessian
   if(spHess){ # sparse option
     Tape <- RTMB::GetTape(obj, name = "ADFun")
     if(silent < 2) message("Constructing sparse Hessian")
@@ -321,7 +322,7 @@ qreml <- function(pnll, # penalised negative log-likelihood function
     hessian_at <- function(p) stats::optimHess(p, obj$fn, obj$gr)
   }
 
-  ## gradient printing
+  ## Gradient printing (only when silent == 0)
   counter_env <- new.env()
   counter_env$count <- 0
   if(silent == 0){
@@ -349,9 +350,7 @@ qreml <- function(pnll, # penalised negative log-likelihood function
     b <- par[[random[i]]]
     dims <- if(is.null(dim(b))) c(1, length(b)) else dim(b) # a vector is one smooth
     if(length(dims) != 2) stop(random[i], " must be a vector or matrix")
-    
     inds <- matrix(which(names(obj$par) == random[i]), dims[1], dims[2]) # RTMB flattens by column
-    
     # a smooth has as many coefficients as its penalty matrix has rows; when those
     # sit in the columns of b, transpose so that rows index smooths either way
     S_i <- if(is.matrix(S[[i]])) S[[i]] else S[[i]][[1]] # a list of S = tensor product
@@ -532,20 +531,20 @@ qreml <- function(pnll, # penalised negative log-likelihood function
 
     if(saveall) allmods[[iter]] <- cur$mod
 
-    ef <- efs_ratio(cur)
-    step <- log(ef$r)
+    ef <- efs_ratio(cur) # compute edf ratio quantities
+    step <- log(ef$r) # compute proposed step on log-scale
 
     # the floor applies to the step actually taken, mult * step: applied to the raw
     # step it would become alpha^mult, i.e. no guarantee when moving fastest
     lo <- if(alpha > 0) log(alpha) else -Inf # lambda may not fall faster than alpha
     take <- function(m) pmin(lsp + pmax(m * step, lo), lsp_max)
 
-    lsp1 <- take(mult)
+    lsp1 <- take(mult) # updated smoothing parameters
     max_step <- max(abs(lsp1 - lsp))
     n_halve <- 0
     if(silent == 0) cat("\nouter", iter, "- proposed", paste0(spname, ":"), round(exp(lsp1), 3), "\n")
 
-    trial <- fit_at(lsp1, cur$opt$par)
+    trial <- fit_at(lsp1, cur$opt$par) # trial fit at new smoothing parameters
 
     if(trial$crit <= cur$crit){ ## improved
       n_success <- n_success + 1
@@ -593,13 +592,15 @@ qreml <- function(pnll, # penalised negative log-likelihood function
           "- max step:", round(max_step, 5), "\n")
     }
 
-    #### convergence check ####
-    # The penalty strengths and the restricted likelihood are both poor proxies
-    # for "the fit has stopped changing": lambda can slide along a flat ridge for
-    # a hundred iterations while the criterion barely moves, and neither tells you
-    # whether the fitted smooth is still moving. The effective degrees of freedom
-    # do, directly, and they come free from the inverse blocks above. Converge
+    #### Convergence check ####
+    # Neither the smoothing parameters nor the restricted log-likelihood are good 
+    # proxies for "the fit has stopped changing"; lambda can slide along a flat 
+    # ridge for a hundred iterations while the criterion barely moves.
+    #
+    # The effective degrees of freedom directly tell us whether the fitted model
+    # is still changing and come free from the inverse blocks above. Converge
     # once no smooth's edf has moved by more than tol_edf.
+    #
     # The edf are eigenvalue sums of J^-1 H and must lie in [0, block dimension].
     # Outside that range the data Hessian is indefinite, which means the traces
     # driving the update are not the quantities the algorithm assumes, so it is
@@ -617,11 +618,9 @@ qreml <- function(pnll, # penalised negative log-likelihood function
     edf_hist[, iter] <- ef$edf
     gc(verbose = FALSE) # each iteration allocates several p x p matrices
 
-    # Stop when the fitted smooths have settled. The edf are in effective
-    # parameters, so tol_edf means the same on every model, unlike a tolerance in
-    # nats; lambda is a poor proxy, sliding along a flat ridge for many iterations
-    # while neither criterion nor fit moves. Gates: four iterations, a small step,
-    # and a window rather than one consecutive pair.
+    # Stop when the fitted smooths have settled.
+    # Gates: four iterations, a small step, and a window rather than one 
+    # consecutive pair.
     if(iter > 3 && max_step < step_small){
       if(edf_ok_run){
         w <- t(edf_hist[, (iter-3):iter, drop = FALSE]) # iterations down the rows
@@ -676,8 +675,6 @@ qreml <- function(pnll, # penalised negative log-likelihood function
   pllk <- -opt$value # penalised log-likelihood
   llk <- pllk + mod$pen
 
-  #############################################
-
   mod$obj <- obj
   if(saveall) mod$allmods <- allmods
 
@@ -695,10 +692,10 @@ qreml <- function(pnll, # penalised negative log-likelihood function
   mod$llk <- llk
   mod$n_fixpar <- length(unlist(par[!(names(par) %in% random)]))
 
-  ## effective degrees of freedom, from the same inverse blocks: summing
+  ## Effective degrees of freedom, from the same inverse blocks: summing
   ## diag(J^-1 H) over a smooth gives q - sum(J^-1[idx,idx] * S_lambda[idx,idx]),
   ## since S_lambda is block diagonal and no off-block entry is needed
-  Edfs <- Lambda
+  Edfs <- Lambda # just to copy the nested list structure
   for(i in seq_len(n_re)){
     if(i %in% tp_ind) Edfs[[i]] <- numeric(nrow(re_inds[[i]]))
     for(j in seq_len(nrow(re_inds[[i]]))){
@@ -707,8 +704,8 @@ qreml <- function(pnll, # penalised negative log-likelihood function
       Edfs[[i]][j] <- length(idx) - sum(Jinv * block_S(i, j, Lambda))
     }
   }
-  mod$df <- mod$n_fixpar + sum(unlist(Edfs))
-  mod$edf <- Edfs
+  mod$df <- mod$n_fixpar + sum(unlist(Edfs)) # one number for the full model
+  mod$edf <- Edfs # list of individual edfs
 
   ## sanity check: each edf must lie in [0, K_i], being a sum of eigenvalues of
   ## J^-1 H. Outside that the data Hessian is indefinite and the inverse is not
@@ -717,7 +714,9 @@ qreml <- function(pnll, # penalised negative log-likelihood function
   edf_ok <- TRUE
   for(i in seq_len(n_re)){
     q_i <- ncol(re_inds[[i]])
-    if(any(Edfs[[i]] < -1e-3 | Edfs[[i]] > q_i + 1e-3)) edf_ok <- FALSE
+    if(any(Edfs[[i]] < -1e-3 | Edfs[[i]] > q_i + 1e-3)) {
+      edf_ok <- FALSE
+    } 
   }
   mod$edf_valid <- edf_ok
 
@@ -785,21 +784,24 @@ qreml <- function(pnll, # penalised negative log-likelihood function
   # removing elements only reported for the update
   mod <- mod[!names(mod) %in% c("Pen", "pen", "S")]
 
+  
+  ## If the model is simple (i.e. contains no tensor-products), set up full REML
+  # marginal likelihood which can be used for *joined* uncertainty quantification 
+  # (as opposed to conditional on the fitted smoothing parameters) via sdreport()
   if(length(tp_ind) == 0 && joint_unc){
     ### constructing joint object
     parlist$loglambda <- log(mod[[spname]])
     logdetS <- numeric(length(S))
     for(i in seq_along(S)) logdetS[i] <- gdeterminant(S[[i]])
 
+    # joint negative log-likelihood -> pnll with log normalisation constants 
     jnll <- function(par) {
       environment(pnll) = environment()
       "[<-" <- ADoverload("[<-")
       "c" <- ADoverload("c")
       "diag<-" <- ADoverload("diag<-")
-
       dat[[spname]] <- exp(par$loglambda)
       l_p <- -pnll(par[names(par) != "loglambda"])
-
       const <- 0
       for(i in 1:n_re){
         for(j in 1:nrow(re_inds[[i]])){
@@ -812,12 +814,11 @@ qreml <- function(pnll, # penalised negative log-likelihood function
     }
 
     if(is.null(map)) map <- list(loglambda = lambda_map) else map$loglambda <- lambda_map
-
     mod$obj_joint <- MakeADFun(jnll, parlist,
                                random = names(par)[names(par) != "loglambda"],
                                map = map)
   }
 
   class(mod) <- "qremlModel"
-  mod
+  return(mod)
 }

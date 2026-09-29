@@ -529,7 +529,8 @@ summary.qremlModel <- function(object, ...) {
                 "beta", "delta", "Gamma", "lambda", "llk", "n_fixpar", "df", "nobs",
                 "llk_restricted", "allmods",
                 # reported in the smoothness selection block above
-                "converged", "iter", "best_iter", "outer_grad", "edf_valid",
+                "converged", "iter", "best_iter", "outer_grad", "outer_hessian",
+                "edf_valid",
                 "hessian_repaired", "lambda_at_bound", "max_drop")
   
   remaining_names <- setdiff(names(object), excluded)
@@ -596,7 +597,6 @@ sdreport_outer <- function(mod, invert = FALSE){
   
   spname <- mod$spname
   map_lambda <- mod[[paste0("map_", spname)]]
-  outer_gr <- mod$outer_gr
 
   # map lambda
   lambda_mapped <- map_lambda(mod[[spname]])
@@ -606,7 +606,14 @@ sdreport_outer <- function(mod, invert = FALSE){
   names(lambda_names) <- lambda_names
   mapped_names <- map_lambda(lambda_names)
 
-  H <- - jacobian(outer_gr, lambda_mapped, method = "simple")
+  # qreml() reports the outer Hessian itself; qreml_old() only the gradient.
+  # Indexed with [[ ]], since $ would partially match 'outer_grad'
+  H <- if(!is.null(mod[["outer_hessian"]])){
+    mod[["outer_hessian"]]()
+  } else if(!is.null(mod[["outer_gr"]])){
+    -jacobian(mod[["outer_gr"]], lambda_mapped, method = "simple")
+  } else stop("Model object carries neither 'outer_hessian' nor 'outer_gr'")
+
   I <- ginv(H)
   vars <- diag(I)
   

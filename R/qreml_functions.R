@@ -117,26 +117,26 @@ gen_inverse <- function(S) {
 #' @param joint_unc logical, if \code{TRUE}, joint \code{RTMB} object is returned allowing for joint uncertainty quantification
 #' @param saveall logical, if \code{TRUE}, then all model objects from each iteration are saved in the final model object
 #'
-#' @return model object of class \code{"qremlModel"}, carrying the fitted quantities, the smoothness selection diagnostics shown by \code{\link{summary.qremlModel}}, and the approximate outer gradient that \code{\link{sdreport_outer}} differences
+#' @return model object of class \code{"qremlModel"}, carrying the fitted quantities, the smoothness selection diagnostics shown by \code{\link{summary.qremlModel}}, and \code{outer_hessian()}, the outer Hessian that \code{\link{sdreport_outer}} turns into standard errors
 #'
 #' @export
 #'
 #' @import RTMB
 #'
 #' @examples
-#' data = trex[1:1000,] # subset
+#' data = trex[1:2000,] # subset of the data
 #'
 #' # initial parameter list
 #' par = list(logmu = log(c(0.3, 2.5)), # step mean
 #'            logsigma = log(c(0.3, 1.5)), # step sd
 #'            beta0 = c(-2,-2), # state process intercept
-#'            betaspline = matrix(rep(0, 18), nrow = 2)) # state process spline coefs
+#'            beta_spline = matrix(rep(0, 18), nrow = 2)) # state process spline coefs
 #'           
 #' # data object with initial penalty strength lambda
 #' dat = list(step = data$step, # step length
 #'            tod = data$tod, # time of day covariate
 #'            N = 2, # number of states
-#'            lambda = rep(10,2)) # initial penalty strength
+#'            lambda = rep(20,2)) # initial penalty strength
 #'
 #' # building model matrices
 #' modmat = make_matrices(~ s(tod, bs = "cp"), 
@@ -148,20 +148,20 @@ gen_inverse <- function(S) {
 #' # penalised negative log-likelihood function
 #' pnll = function(par) {
 #'   getAll(par, dat) # makes everything contained available without $
-#'   Gamma = tpm_g(Z, cbind(beta0, betaspline), ad = TRUE) # transition probabilities
-#'   delta = stationary_p(Gamma, t = 1, ad = TRUE) # initial distribution
+#'   Gamma = tpm(cbind(beta0, beta_spline), Z) # transition probabilities
+#'   delta = stationary_p(Gamma, t = 1) # initial distribution
 #'   mu = exp(logmu) # step mean
 #'   sigma = exp(logsigma) # step sd
 #'   # calculating all state-dependent densities
 #'   allprobs = matrix(1, nrow = length(step), ncol = N)
 #'   ind = which(!is.na(step)) # only for non-NA obs.
 #'   for(j in 1:N) allprobs[ind,j] = dgamma2(step[ind],mu[j],sigma[j])
-#'   -forward_g(delta, Gamma[,,tod], allprobs) +
-#'       penalty(betaspline, S, lambda) # this does all the penalization work
+#'   -forward(delta, Gamma[,,tod], allprobs) +
+#'       penalty(beta_spline, S, lambda) # this does all the penalization work
 #' }
 #'
 #' # model fitting
-#' mod = qreml_old(pnll, par, dat, random = "betaspline", silent = 2)
+#' mod = qreml(pnll, par, dat, random = "beta_spline", silent = 2)
 qreml <- function(pnll, # penalised negative log-likelihood function
                   par, # initial parameter list
                   dat, # initial dat object, currently needs to be called dat!
@@ -729,15 +729,23 @@ qreml <- function(pnll, # penalised negative log-likelihood function
   mod$outer_grad <- 0.5 * map_lambda(lambda) * (fr$a - fr$bSb)
   names(mod$outer_grad) <- levels(lambda_map)
 
-  # the same gradient, w.r.t. lambda itself and as a function of it, which is what
-  # sdreport_outer() differences into an outer Hessian. Every call refits the inner
-  # problem, since a and b'Sb are only defined at the conditional mode.
-  mod$outer_gr <- function(x){
+  # the same gradient, w.r.t. lambda itself and as a function of it. Kept local:
+  # only the Hessian below is reported. Every call refits the inner problem, since
+  # a and b'Sb are only defined at the conditional mode.
+  outer_gr <- function(x){
     # started cold, not at opt$par: from the fitted mode optim's relative tolerance
-    # fires before the mode has moved, and the differences taken here are far too
+    # fires before the mode has moved, and the differences taken below are far too
     # small to survive that, which inflates the outer Hessian
     fr <- efs_ratio(fit_at(log(x), newpar))
     0.5 * (fr$a - fr$bSb)
+  }
+
+  # Hessian of the negative restricted log-likelihood, as Hessian_conditional is
+  # for the inner problem. lambda_hat is captured here because fit_at() overwrites
+  # 'lambda' as it differences.
+  lambda_hat <- map_lambda(lambda)
+  mod$outer_hessian <- function(x = lambda_hat){
+    -numDeriv::jacobian(outer_gr, x, method = "simple")
   }
 
   # removing elements only reported for the update

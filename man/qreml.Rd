@@ -86,7 +86,7 @@ A tolerance in nats is not comparable across models, which is why it is the fall
 \item{saveall}{logical, if \code{TRUE}, then all model objects from each iteration are saved in the final model object}
 }
 \value{
-model object of class \code{"qremlModel"}, carrying the fitted quantities, the smoothness selection diagnostics shown by \code{\link{summary.qremlModel}}, and the approximate outer gradient that \code{\link{sdreport_outer}} differences
+model object of class \code{"qremlModel"}, carrying the fitted quantities, the smoothness selection diagnostics shown by \code{\link{summary.qremlModel}}, and \code{outer_hessian()}, the outer Hessian that \code{\link{sdreport_outer}} turns into standard errors
 }
 \description{
 Efficiently fits models involving quadratic penalties of the form
@@ -99,8 +99,44 @@ Users only need to supply a custom penalised log-likelihood function that calls 
 Step size control follows the extended Fellner-Schall implementation in \code{mgcv} while convergence is judged on the effective degrees of freedom (differing from \code{mgcv}).
 }
 \examples{
-# see ?penalty for a full model-fitting example
-# mod = qreml(pnll, par, dat, random = "betaspline")
+data = trex[1:2000,] # subset of the data
+
+# initial parameter list
+par = list(logmu = log(c(0.3, 2.5)), # step mean
+           logsigma = log(c(0.3, 1.5)), # step sd
+           beta0 = c(-2,-2), # state process intercept
+           beta_spline = matrix(rep(0, 18), nrow = 2)) # state process spline coefs
+          
+# data object with initial penalty strength lambda
+dat = list(step = data$step, # step length
+           tod = data$tod, # time of day covariate
+           N = 2, # number of states
+           lambda = rep(20,2)) # initial penalty strength
+
+# building model matrices
+modmat = make_matrices(~ s(tod, bs = "cp"), 
+                       data = data.frame(tod = 1:24), 
+                       knots = list(tod = c(0,24))) # wrapping points
+dat$Z = modmat$Z # spline design matrix
+dat$S = modmat$S # penalty matrix
+
+# penalised negative log-likelihood function
+pnll = function(par) {
+  getAll(par, dat) # makes everything contained available without $
+  Gamma = tpm(cbind(beta0, beta_spline), Z) # transition probabilities
+  delta = stationary_p(Gamma, t = 1) # initial distribution
+  mu = exp(logmu) # step mean
+  sigma = exp(logsigma) # step sd
+  # calculating all state-dependent densities
+  allprobs = matrix(1, nrow = length(step), ncol = N)
+  ind = which(!is.na(step)) # only for non-NA obs.
+  for(j in 1:N) allprobs[ind,j] = dgamma2(step[ind],mu[j],sigma[j])
+  -forward(delta, Gamma[,,tod], allprobs) +
+      penalty(beta_spline, S, lambda) # this does all the penalization work
+}
+
+# model fitting
+mod = qreml(pnll, par, dat, random = "beta_spline", silent = 2)
 }
 \references{
 Wood, S. N., & Fasiolo, M. (2017). A generalized Fellner-Schall method for smoothing parameter optimization with application to Tweedie location, scale and shape models. Biometrics, 73(4), 1071-1081.

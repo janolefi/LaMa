@@ -45,8 +45,8 @@ cosinor <- function(x, period = 24) {
 }
 
 ## the shape of a LaMa_matrices object, in one place
-new_LaMa_matrices <- function(Z, S, pardim, coef, data, gam, gam0, knots) {
-  out <- list(Z = Z, S = S, pardim = pardim, coef = coef,
+new_LaMa_matrices <- function(Z, S, pardim, coef, sp0, data, gam, gam0, knots) {
+  out <- list(Z = Z, S = S, pardim = pardim, coef = coef, sp0 = sp0,
               data = data, gam = gam, gam0 = gam0, knots = knots)
   class(out) <- "LaMa_matrices"
   out
@@ -60,6 +60,7 @@ combine_LaMa_matrices <- function(res, data, prefix = FALSE) {
   if(prefix) for(nm in names(res)){
     names(res[[nm]]$S) <- paste0(nm, ".", names(res[[nm]]$S))
     names(res[[nm]]$coef) <- paste0(nm, ".", names(res[[nm]]$coef))
+    names(res[[nm]]$sp0) <- paste0(nm, ".", names(res[[nm]]$sp0))
   }
 
   # NULL components are dropped, because the accumulating loop this replaces used
@@ -74,7 +75,7 @@ combine_LaMa_matrices <- function(res, data, prefix = FALSE) {
   flat <- function(what) do.call(c, unname(per(what)))
 
   new_LaMa_matrices(Z = per("Z"), S = flat("S"), pardim = per("pardim"),
-                    coef = flat("coef"), data = data,
+                    coef = flat("coef"), sp0 = flat("sp0"), data = data,
                     gam = per("gam"), gam0 = per("gam0"), knots = per("knots"))
 }
 
@@ -104,8 +105,15 @@ make_matrices_flat <- function(formula, data, knots = NULL) {
     colnames(Z) <- gam_setup$term.names
     gam_setup$X <- NULL # returned as Z, and a second copy is the largest thing here
     
+    # mgcv's initial guesses, one per penalty matrix and in the same order as
+    # gam_setup$S, so the loop below can name them as it walks the smooths
+    sp_init <- if(length(gam_setup$S)) {
+      mgcv::initial.sp(Z, gam_setup$S, gam_setup$off)
+    } else numeric(0)
+
     S <- list()
     coef <- list()
+    sp0 <- numeric(0)
     pardim <- list(fixed_eff = gam_setup$nsdf)
     counter <- 1
     
@@ -122,6 +130,7 @@ make_matrices_flat <- function(formula, data, knots = NULL) {
         S[[label]] <- gam_setup$S[[counter]]
         pardim[[sm$label]] <- nrow(S[[label]])
         coef[[label]] <- rep(0, nrow(S[[label]]))
+        sp0[label] <- sp_init[counter]
         counter <- counter + 1
       } else {
         # Tensor product smooth
@@ -132,6 +141,8 @@ make_matrices_flat <- function(formula, data, knots = NULL) {
         S[[label]] <- penalty_list
         pardim[[sm$label]] <- nrow(penalty_list[[1]])
         coef[[label]] <- rep(0, nrow(penalty_list[[1]]))
+        # one per margin, named <smooth>.<margin> to mirror the sub-list in S
+        sp0[paste0(label, ".", margin_names)] <- sp_init[counter:(counter + n_pen - 1)]
         counter <- counter + n_pen
       }
     }
@@ -139,13 +150,13 @@ make_matrices_flat <- function(formula, data, knots = NULL) {
     list(
       Z = Z, S = S, pardim = pardim,
       gam = gam_setup, gam0 = gam_setup0,
-      knots = knots_sub, coef = coef
+      knots = knots_sub, coef = coef, sp0 = sp0
     )
   }
   
   if (!inherits(formula, "list")) {
     res <- process_single(formula, get_name(formula), knots) # NULL name -> unprefixed labels
-    return(new_LaMa_matrices(res$Z, res$S, res$pardim, res$coef,
+    return(new_LaMa_matrices(res$Z, res$S, res$pardim, res$coef, res$sp0,
                              data, res$gam, res$gam0, knots))
   }
   
@@ -188,6 +199,14 @@ make_matrices_flat <- function(formula, data, knots = NULL) {
 #' \item{\code{S}}{list of penalty matrices (with names based on the response terms of the formulas as well as the smooth terms and covariates). For tensorproduct smooths, corresponding entries are themselves lists, containing the \eqn{d} marginal penalty matrices if \eqn{d} is the dimension of the tensor product)}
 #' \item{\code{pardim}}{list of parameter dimensions (fixed and penalised separately) for each formula, for ease of setting up initial parameters}
 #' \item{\code{coef}}{list of coefficient vectors filled with zeros of the correct length for each formula, for ease of setting up initial parameters}
+#' \item{\code{sp0}}{named vector of \strong{initial penalty strengths}, as computed by \code{\link[mgcv]{initial.sp}}, with one entry per penalty matrix and names matching \code{S} (a tensor product contributes one entry per margin, named \code{<smooth>.<margin>}).
+#'
+#' It can be passed straight to \code{\link{penalty}} or \code{\link{penalty2}} when each smooth appears once. When a smooth is replicated, e.g. one spline per state or per off-diagonal element of the transition probability matrix, the entries have to be repeated, and \code{lambda} runs over replicates \strong{within} each smooth. A single \code{rep()} over \code{sp0} is therefore only correct for some models: use \code{each = N} if every smooth carries one penalty, \code{times = N} if there is a single tensor product, and neither if the two are mixed. Repeating per smooth always works:
+#' \preformatted{
+#' n <- sapply(modmat$S, function(x) if(is.matrix(x)) 1 else length(x))
+#' lambda <- unlist(lapply(split(modmat$sp0, rep(seq_along(n), n)),
+#'                         rep, times = N))
+#' }}
 #' \item{\code{data}}{the data frame used for the model(s)}
 #' \item{\code{gam}}{unfitted \code{mgcv::gam} object used for construction of \code{Z} and \code{S} (or list of such objects if \code{formula} is a list). Its \code{X} element is not kept, as it is returned as \code{Z}}
 #' \item{\code{gam0}}{fitted \code{mgcv::gam} which is used internally to create prediction design matrices (or list of such objects if \code{formula} is a list)}
@@ -195,7 +214,7 @@ make_matrices_flat <- function(formula, data, knots = NULL) {
 #'
 #' @export
 #' 
-#' @importFrom mgcv gam s
+#' @importFrom mgcv gam s initial.sp
 #' @importFrom stats update
 #'
 #' @examples

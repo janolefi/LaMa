@@ -649,9 +649,13 @@ qreml <- function(pnll, # penalised negative log-likelihood function
   if(!estimate_ps) iter <- 1
 
   ## final model fit, at the best penalty strengths found
-  if(best_iter < iter && silent < 2){
-    message("Restricted likelihood did not improve after iteration ", best_iter,
-            "; returning the best penalty strengths found")
+  # once converged the criterion wobbles, so the last iterate is rarely the very
+  # best one and saying so every time is noise. 'tol' is the scale on which a
+  # change in the restricted likelihood counts as negligible, so use it here too
+  shortfall <- crit_hist[iter] - best_crit
+  if(shortfall > tol && silent < 2){
+    message("Returning the ", spname, " from iteration ", best_iter,
+            "; the run ended ", signif(shortfall, 4), " worse than that")
   }
   lsp <- best_lsp
   lambda <- unmap_lambda(exp(lsp)) * smoothing

@@ -1710,7 +1710,7 @@ qreml <- function(pnll, # penalized negative log-likelihood function
   mod[[argname_par]] <- parlist # and assing to return object
   mod[[paste0("relist_", argname_par)]] <- obj$env$parList
   mod[[paste0("map_", psname)]] <- function(lambda) map_lambda(lambda, lambda_map)
-  mod$psname <- psname
+  mod$spname <- psname
   mod$parname <- argname_par
   
   # assign estimated parameter as vector
@@ -1920,7 +1920,7 @@ summary.qremlModel <- function(object, ...) {
   
   ### Printing smoothing parameter estimates
   cat("\nSmoothing parameters:")
-  lambdas <- object[[object$psname]]
+  lambdas <- object[[object$spname]]
   lambda_names <- names(lambdas)
   if(is.null(lambda_names)){
     lambda_names <- paste0("lambda.", 1:length(lambdas))
@@ -1933,8 +1933,8 @@ summary.qremlModel <- function(object, ...) {
   
   # Print additional user-specified objects, excluding unwanted ones
   excluded <- c("allprobs", "trackID", "type", "obj", "outer_gr", 
-                paste0("all_", object$psname), "parname", object$parname, paste0("relist_", object$parname), 
-                paste0("map_", object$psname), "psname", paste0(object$parname, "_vec"), 
+                paste0("all_", object$spname), "parname", object$parname, paste0("relist_", object$parname), 
+                paste0("map_", object$spname), "spname", paste0(object$parname, "_vec"), 
                 "edf", "Hessian_conditional", "obj_joint",
                 "beta", "delta", "Gamma", "lambda", "llk", "n_fixpar", "df", "nobs",
                 "llk_restricted", "allmods")
@@ -2001,15 +2001,15 @@ sdreport_outer <- function(mod, invert = FALSE){
     stop("Model object is not of class 'qremlModel'")
   }
   
-  psname <- mod$psname
-  map_lambda <- mod[[paste0("map_", psname)]]
+  spname <- mod$spname
+  map_lambda <- mod[[paste0("map_", spname)]]
   outer_gr <- mod$outer_gr
 
   # map lambda
-  lambda_mapped <- map_lambda(mod[[psname]])
+  lambda_mapped <- map_lambda(mod[[spname]])
   
   # map names of lambda
-  lambda_names <- names(mod[[psname]])
+  lambda_names <- names(mod[[spname]])
   names(lambda_names) <- lambda_names
   mapped_names <- map_lambda(lambda_names)
 

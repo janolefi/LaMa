@@ -13,7 +13,7 @@
 
 \item{what}{optional character string specifying which formula to use for prediction if \code{object} contains multiple formulas.}
 
-\item{...}{for method consistency only}
+\item{...}{passed on to \code{\link{pred_matrix}}, in particular \code{exclude} to set terms to zero in the predicted design matrix}
 }
 \value{
 prediction design matrix for \code{newdata} with the same basis as used for \code{model_matrices}

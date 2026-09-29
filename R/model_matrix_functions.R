@@ -44,110 +44,49 @@ cosinor <- function(x, period = 24) {
   out
 }
 
-#' Build the design and the penalty matrix for models involving penalised splines based on a formula and a data set
-#'
-#' @param formula right side of a formula as used in \code{mgcv}
-#' @param data data frame containing the variables in the formula
-#' @param knots optional list containing user specified knot values to be used for basis construction
-#' 
-#' For most bases the user simply supplies the \code{knots} to be used, which must match up with the \code{k} value supplied (note that the number of knots is not always just \code{k}).
-#' See \code{mgcv} documentation for more details.
-#'
-#' @return a list containing the design matrix \code{Z}, a (potentially nested) list of penalty matrices \code{S}, the \code{formula}, the \code{data}, the \code{knots}, and the original \code{mod} object returned by \code{mgcv}.
-#' Note that for tensorproduct smooths, the corresponding list entry is itself a list, containing the d marginal penalty matrices if d is the dimension of the tensor product.
-#' @export
-#' 
-#' @importFrom mgcv gam s
-#' @importFrom stats update
-#'
-#' @examples
-#' data = data.frame(x = runif(100), 
-#'                   y = runif(100),
-#'                   g = factor(rep(1:10, each = 10)))
-#'
-#' # unvariate thin plate regression spline
-#' modmat = make_matrices(~ s(x), data)
-#' # univariate P-spline
-#' modmat = make_matrices(~ s(x, bs = "ps"), data)
-#' # adding random intercept
-#' modmat = make_matrices(~ s(g, bs = "re") + s(x, bs = "ps"), data)
-#' # tensorproduct of x and y
-#' modmat = make_matrices(~ s(x) + s(y) + ti(x,y), data)
-make_matrices_old = function(formula, 
-                         data, 
-                         knots = NULL
-                         ){
-  
-  ## Potenially expand cosinor terms
-  formula = expand_cosinor(formula)
-  
-  ## setting up the model using mgcv
-  gam_setup = gam(formula = update(formula, dummy ~ .),
-                  data = cbind(dummy = 1, data), 
-                  knots = knots,
-                  fit = FALSE)
-  
-  ## assiging design matrix
-  term_names = gam_setup$term.names
-  Z = gam_setup$X
-  colnames(Z) = term_names
-
-  ## dealing with the penalty matrices
-  term_labels = sapply(gam_setup$smooth, function(x) x$label)
-  
-  # second option: tensorproduct -> save blown-up marginal penalty matrices (with constraints baked in)
-  S = list()
-  counter = 1
-  for(i in seq_along(gam_setup$smooth)){
-    sm = gam_setup$smooth[[i]]
-    if(is.null(sm$margin)){
-      S[[i]] = gam_setup$S[[counter]]
-      counter = counter + 1
-    } else{
-      nPenMat = length(sm$margin)
-      S_sublist = gam_setup$S[counter:(counter + nPenMat - 1)]
-      margin_names = sapply(sm$margin, function(y) y$term)
-      names(S_sublist) = margin_names
-      S[[i]] = S_sublist
-      counter = counter + nPenMat
-    }
-  }
-  names(S) = term_labels
-  
-  pardim <- list(fixed_eff = gam_setup$nsdf)
-  
-  pardim_smooth = sapply(S, function(x){
-    if(is.matrix(x)){
-      return(nrow(x))
-    } else{
-      return(nrow(x[[1]]))
-    }
-  })
-  
-  pardim = c(pardim, pardim_smooth)
-  
-  out = list(Z = Z, 
-             S = S, 
-             # S2 = S2,
-             pardim = pardim,
-             formula = gam_setup$formula, 
-             data = data, 
-             knots = knots,
-             gam = gam_setup)
-  
+## the shape of a LaMa_matrices object, in one place
+new_LaMa_matrices <- function(Z, S, pardim, coef, data, gam, gam0, knots) {
+  out <- list(Z = Z, S = S, pardim = pardim, coef = coef,
+              data = data, gam = gam, gam0 = gam0, knots = knots)
   class(out) <- "LaMa_matrices"
-  return(out)
+  out
+}
+
+## combine per-component results into one object. Z, pardim, gam, gam0 and knots
+## stay per component; S and coef are flattened, because the fitting code wants a
+## single flat list of penalty matrices. 'prefix' qualifies their names with the
+## component name, which is what distinguishes a nested formula list from a flat one.
+combine_LaMa_matrices <- function(res, data, prefix = FALSE) {
+  if(prefix) for(nm in names(res)){
+    names(res[[nm]]$S) <- paste0(nm, ".", names(res[[nm]]$S))
+    names(res[[nm]]$coef) <- paste0(nm, ".", names(res[[nm]]$coef))
+  }
+
+  # NULL components are dropped, because the accumulating loop this replaces used
+  # res[[name]] <- NULL, which deletes rather than assigns. Matters for 'knots',
+  # which is NULL whenever the caller supplied none
+  per <- function(what) {
+    v <- lapply(res, `[[`, what)
+    keep <- !vapply(v, is.null, TRUE)
+    if(any(keep)) v[keep] else list()
+  }
+  # unname() first: c() would otherwise qualify the names a second time
+  flat <- function(what) do.call(c, unname(per(what)))
+
+  new_LaMa_matrices(Z = per("Z"), S = flat("S"), pardim = per("pardim"),
+                    coef = flat("coef"), data = data,
+                    gam = per("gam"), gam0 = per("gam0"), knots = per("knots"))
+}
+
+## response variable of a formula, used to name its block. NULL for a right-side
+## only formula, unless an index is given to fall back on
+get_name <- function(fml, idx = NULL) {
+  if(length(fml) == 3 && !deparse(fml[[2]]) %in% c("", ".")) deparse(fml[[2]])
+  else if(!is.null(idx)) paste0("par", idx)
+  else NULL
 }
 
 make_matrices_flat <- function(formula, data, knots = NULL) {
-  
-  get_name <- function(fml, idx) {
-    if (length(fml) == 3 && !deparse(fml[[2]]) %in% c("", ".")) {
-      deparse(fml[[2]])
-    } else {
-      paste0("par", idx)
-    }
-  }
   
   process_single <- function(fml, name, knots_sub) {
     fml <- expand_cosinor(fml)
@@ -156,12 +95,14 @@ make_matrices_flat <- function(formula, data, knots = NULL) {
     gam_setup <- gam(update(fml, dummy ~ .), data = cbind(dummy = 1, data), 
                    knots = knots_sub, fit = FALSE)
     
-    # also prepare prediction gam
-    gam_setup0 <- gam(update(fml, dummy ~ .), data = cbind(dummy = 1, data), 
-                   knots = knots_sub, control = list(maxit = 1))
+    # also prepare prediction gam, only ever used by predict.gam() to build
+    # prediction design matrices. gam(G = ) reuses the setup above instead of
+    # constructing the whole basis a second time
+    gam_setup0 <- gam(G = gam_setup, control = list(maxit = 1))
     
     Z <- gam_setup$X
     colnames(Z) <- gam_setup$term.names
+    gam_setup$X <- NULL # returned as Z, and a second copy is the largest thing here
     
     S <- list()
     coef <- list()
@@ -195,10 +136,6 @@ make_matrices_flat <- function(formula, data, knots = NULL) {
       }
     }
     
-    coef_fixed <- rep(0, gam_setup$nsdf)
-    names(coef_fixed) <- colnames(Z)[seq_len(gam_setup$nsdf)]
-    # coef <- c(setNames(list(coef_fixed), paste0(name, ".fixed_eff")), coef)
-    
     list(
       Z = Z, S = S, pardim = pardim,
       gam = gam_setup, gam0 = gam_setup0,
@@ -207,21 +144,9 @@ make_matrices_flat <- function(formula, data, knots = NULL) {
   }
   
   if (!inherits(formula, "list")) {
-    name <- get_name(formula, 1)
-    if(name == "par1"){
-      name <- NULL # default name for single formula
-    }
-    res <- process_single(formula, name, knots)
-    out <- list(
-      Z = res$Z, S = res$S, 
-      pardim = res$pardim,
-      coef = res$coef,
-      data = data, 
-      gam = res$gam, gam0 = res$gam0,
-      knots = knots
-    )
-    class(out) <- "LaMa_matrices"
-    return(out)
+    res <- process_single(formula, get_name(formula), knots) # NULL name -> unprefixed labels
+    return(new_LaMa_matrices(res$Z, res$S, res$pardim, res$coef,
+                             data, res$gam, res$gam0, knots))
   }
   
   # get names
@@ -237,42 +162,11 @@ make_matrices_flat <- function(formula, data, knots = NULL) {
     }
   }
   
-  # Case: list of formulas
-  Z_list <- list()
-  S_flat <- list()
-  pardim_list <- list()
-  formula_list <- list()
-  knots_list <- list()
-  gam_list <- list()
-  gam0_list <- list()
-  coef_list <- list()
-  
-  # formula_names <- names(formula)
-  
-  for (i in seq_along(formula)) {
-    fml <- formula[[i]]
-    name <- form_names[i]
-    res <- process_single(fml, name, knots[[name]])
-    
-    Z_list[[name]] <- res$Z
-    S_flat <- c(S_flat, res$S)
-    pardim_list[[name]] <- res$pardim
-    knots_list[[name]] <- res$knots
-    gam_list[[name]] <- res$gam
-    gam0_list[[name]] <- res$gam0
-    coef_list <- c(coef_list, res$coef)
-  }
-  
-  out <- list(
-    Z = Z_list, S = S_flat, 
-    pardim = pardim_list,
-    coef = coef_list,
-    data = data,
-    gam = gam_list, gam0 = gam0_list,
-    knots = knots_list
-  )
-  class(out) <- "LaMa_matrices"
-  return(out)
+  # a list of formulas: the labels are already prefixed by process_single()
+  res <- lapply(seq_along(formula), function(i)
+    process_single(formula[[i]], form_names[i], knots[[form_names[i]]]))
+  names(res) <- form_names
+  combine_LaMa_matrices(res, data)
 }
 
 #' Build the design and the penalty matrix for models involving penalised splines based on a formula and a data set
@@ -295,7 +189,7 @@ make_matrices_flat <- function(formula, data, knots = NULL) {
 #' \item{\code{pardim}}{list of parameter dimensions (fixed and penalised separately) for each formula, for ease of setting up initial parameters}
 #' \item{\code{coef}}{list of coefficient vectors filled with zeros of the correct length for each formula, for ease of setting up initial parameters}
 #' \item{\code{data}}{the data frame used for the model(s)}
-#' \item{\code{gam}}{unfitted \code{mgcv::gam} object used for construction of \code{Z} and \code{S} (or list of such objects if \code{formula} is a list)}
+#' \item{\code{gam}}{unfitted \code{mgcv::gam} object used for construction of \code{Z} and \code{S} (or list of such objects if \code{formula} is a list). Its \code{X} element is not kept, as it is returned as \code{Z}}
 #' \item{\code{gam0}}{fitted \code{mgcv::gam} which is used internally to create prediction design matrices (or list of such objects if \code{formula} is a list)}
 #' \item{\code{knots}}{knot list used in the basis construction (or named list over such lists if \code{formula} is a list)}
 #'
@@ -320,100 +214,35 @@ make_matrices_flat <- function(formula, data, knots = NULL) {
 #' # multiple formulas at once
 #' modmat = make_matrices(list(mu ~ s(x) + y, sigma ~ s(g, bs = "re")), data = data)
 make_matrices <- function(formula, data, knots = NULL){
-  if(!is.list(formula)){
-    # not a list -> check if formula is a single formula
-    if(inherits(formula, "formula")){
-      # check knots
-      return(make_matrices_flat(formula, data, knots))
-    } else{
-      stop("'formula' must be a (nested) list of formulas or a single formula.")
-    }
-  } else if(all(sapply(formula, inherits, what = "formula"))){     # check if flat list
-    # check knots
-    if(!is.null(knots)){
-      if(!is.list(knots)){
-        stop("'knots' must be a list of knots for each formula in 'formula'.")
-      } else if(!all(sapply(knots, is.list))){
-        stop("'knots' must be a named list of knot lists, containing knots for the corresponding formula (top level) and variable (bottom level) in 'formula'.")
-      }
-    }
-    return(make_matrices_flat(formula, data, knots))
-  } else{
-    # check if two level list
-    nested_check <- all(sapply(formula, function(f){
-      all(sapply(f, inherits, what = "formula"))
-    }))
-    
-    if(nested_check){
-      Z_list <- list()
-      S_list <- list()
-      pardim_list <- list()
-      coef_list <- list()
-      gam_list <- list()
-      gam0_list <- list()
-      knots_list <- list()
-      
-      names <- names(formula)
-      if(is.null(names)){
-        names <- paste0("stream", seq_along(formula))
-      }
-      
-      for(i in seq_along(formula)){
-        thisname <- names[i]
-        res <- make_matrices_flat(formula[[i]], data, knots[[i]])
-        
-        # handle nameing of S and coef
-        if(length(res$S) > 0){
-          names(res$S) <- paste0(thisname, ".", names(res$S))
-        }
-        names(res$coef) <- paste0(thisname, ".", names(res$coef))
-        
-        Z_list[[thisname]] <- res$Z
-        S_list <- c(S_list, res$S)
-        pardim_list[[thisname]] <- res$pardim
-        coef_list <- c(coef_list, res$coef)
-        gam_list[[thisname]] <- res$gam
-        gam0_list[[thisname]] <- res$gam0
-        knots_list[[thisname]] <- res$knots
-      }
-      
-      out <- list(
-        Z = Z_list, 
-        S = S_list, 
-        pardim = pardim_list,
-        coef = coef_list,
-        data = data,
-        gam = gam_list, 
-        gam0 = gam0_list,
-        knots = knots_list
-      )
-      class(out) <- "LaMa_matrices"
-      return(out)
-    } else{
-      stop("'formula' must be a (nested) list of formulas or a single formula.")
+  ## 0 = a single formula, 1 = a list of formulas, 2 = a list of such lists
+  is_formula_list <- function(x){
+    is.list(x) && length(x) > 0 && all(vapply(x, inherits, TRUE, what = "formula"))
+  }
+  depth <- if(inherits(formula, "formula")) 0L
+           else if(is_formula_list(formula)) 1L
+           else if(is.list(formula) && length(formula) > 0 &&
+                   all(vapply(formula, is_formula_list, TRUE))) 2L
+           else stop("'formula' must be a (nested) list of formulas or a single formula.")
+
+  if(depth == 2L){
+    names_out <- names(formula)
+    if(is.null(names_out)) names_out <- paste0("stream", seq_along(formula))
+    res <- lapply(seq_along(formula),
+                  function(i) make_matrices_flat(formula[[i]], data, knots[[i]]))
+    names(res) <- names_out
+    # prefix: S and coef of every stream are qualified by the stream name
+    return(combine_LaMa_matrices(res, data, prefix = TRUE))
+  }
+
+  if(depth == 1L && !is.null(knots)){
+    if(!is.list(knots)){
+      stop("'knots' must be a list of knots for each formula in 'formula'.")
+    } else if(!all(sapply(knots, is.list))){
+      stop("'knots' must be a named list of knot lists, containing knots for the corresponding formula (top level) and variable (bottom level) in 'formula'.")
     }
   }
+  make_matrices_flat(formula, data, knots)
 }
-
-# process_obs_formulas <- function(formulas, 
-#                                  dists,
-#                                  nStates){
-# 
-#   # get dists
-#   dist_fns <- lapply(dists, function(d){
-#     if(is.character("d")){
-#       get(paste0("d", d))
-#     } else if(is.function(d)){
-#       d
-#     }
-#   })
-#   # for each dist, find parameter names of dist
-#   parnames <- lapply(dist_fns, function(d) formals(d)[-1])
-#   
-#   
-#   # create nested named formula list with streami.par.i ~ 1 for all by default
-#   # match with provided formulas
-# }
 
 #' Process and standardise formulas for the state process of hidden Markov models
 #'
@@ -565,7 +394,7 @@ process_hid_formulas <- function(formulas,
 #' @param object model matrices object as returned from \code{\link{make_matrices}}
 #' @param newdata data frame containing the variables in the formula and new data for which to evaluate the basis
 #' @param what optional character string specifying which formula to use for prediction if \code{object} contains multiple formulas.
-#' @param ... for method consistency only
+#' @param ... passed on to \code{\link{pred_matrix}}, in particular \code{exclude} to set terms to zero in the predicted design matrix
 #'
 #' @seealso \code{\link{make_matrices}} for creating objects of class \code{LaMa_matrices} which can be used for prediction by this function.
 #'
@@ -585,14 +414,7 @@ process_hid_formulas <- function(formulas,
 #' modmat = make_matrices(form, data = data.frame(x = 1:10))
 #' Z_p = predict(modmat, data.frame(x = 1:10 - 0.5), what = c("stream1", "mu"))
 predict.LaMa_matrices <- function(object, newdata, what = NULL, ...){
-  # dots <- list(...)
-  # if(!is.null(dots$newdata)){
-  #   newdata <- dots$newdata
-  # } else{
-  #   newdata <- dots[[1]]
-  # }
-  
-  pred_matrix(object, newdata = newdata, what = what)
+  pred_matrix(object, newdata = newdata, what = what, ...) # ... carries 'exclude'
 }
 
 
@@ -626,9 +448,7 @@ pred_matrix = function(model_matrices,
                        exclude = NULL) {
   
   if(is.null(model_matrices$gam0)){
-    gam_setup0 = mgcv::gam(model_matrices$formula,
-                           data = cbind(dummy = 1, model_matrices$data),
-                           knots = model_matrices$knots)
+    stop("'model_matrices' contains no 'gam0' object; rebuild it with make_matrices()")
   } else {
     if(inherits(model_matrices$gam0, "gam")){
       if(!is.null(what)){
@@ -636,7 +456,7 @@ pred_matrix = function(model_matrices,
       }
       gam_setup0 <- model_matrices$gam0
     } else {
-      if(!inherits(model_matrices$gam0[[1]], "gam")){
+      if(!inherits(model_matrices$gam0[[1]], "gam")){ # nested list of formulas
         if(is.null(what)){
           stop("'what' must be specified and contain a top-level name of the formula list and a name/ response variable from your original formulas.")
         }
@@ -650,17 +470,15 @@ pred_matrix = function(model_matrices,
           stop("'what[2]' must be one of the names/ response variables of your original formulas.")
         }
         gam_setup0 <- model_matrices$gam0[[what[1]]][[what[2]]]
-      } else {
+      } else { # flat list of formulas
         if(is.null(what)){
           stop("'what' must be specified and be one of the names/ response variables from your original formulas.")
-          # what <- names(model_matrices$Z)[1]
         }
         if(!what %in% names(model_matrices$gam0)){
           stop("'what' must be one of the names of your original formulas.")
         }
+        gam_setup0 <- model_matrices$gam0[[what]]
       }
-      
-      gam_setup0 <- model_matrices$gam0[[what]]
     }
   }
   

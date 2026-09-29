@@ -120,7 +120,7 @@ gen_inverse <- function(S) {
 #' @param joint_unc logical, if \code{TRUE}, joint \code{RTMB} object is returned allowing for joint uncertainty quantification
 #' @param saveall logical, if \code{TRUE}, then all model objects from each iteration are saved in the final model object
 #'
-#' @return model object of class \code{c("aremlModel", "qremlModel")}, so that all methods defined for \code{\link{qreml}} objects apply
+#' @return model object of class \code{"qremlModel"}, so that all methods defined for \code{\link{qreml}} objects apply
 #'
 #' @export
 #'
@@ -251,7 +251,7 @@ areml <- function(pnll, # penalised negative log-likelihood function
     if(silent < 2) message("Constructing sparse Hessian")
     spH <- Tape$jacfun(sparse = TRUE)$jacfun(sparse = TRUE)
     rm(Tape)
-    gc()
+    gc(verbose = FALSE)
     hessian_at <- function(p) as.matrix(spH(p))
   } else if(!is.null(obj$he)){ # regular option
     hessian_at <- function(p) obj$he(p)
@@ -737,6 +737,6 @@ areml <- function(pnll, # penalised negative log-likelihood function
                                map = map)
   }
 
-  class(mod) <- c("aremlModel", "qremlModel")
+  class(mod) <- "qremlModel"
   mod
 }

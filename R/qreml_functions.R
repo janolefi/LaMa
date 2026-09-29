@@ -1931,13 +1931,55 @@ summary.qremlModel <- function(object, ...) {
   }
   cat("\n")
   
+  ### Printing diagnostics of the smoothness selection, if the fit reports them
+  if(!is.null(object$converged)){
+    cat("\n---")
+    cat("\nSmoothness selection:\n")
+    cat("Converged:", object$converged, paste0("(", object$iter, " outer iterations)\n"))
+    if(!is.null(object$outer_grad)){
+      cat("Max. absolute outer gradient:", signif(max(abs(object$outer_grad)), 4), "\n")
+    }
+    
+    # the rest are flags, and only worth a line when they are actually set
+    if(isFALSE(object$edf_valid)){
+      cat("! Effective degrees of freedom outside [0, block dimension];",
+          "the inverse Hessian is unreliable\n")
+    }
+    if(isTRUE(object$hessian_repaired)){
+      cat("! Hessian was not positive definite; a ridge was added\n")
+    }
+    if(length(object$lambda_at_bound) > 0){
+      cat("!", length(object$lambda_at_bound), "of", length(lambdas),
+          "smoothing parameters ended at the upper bound\n")
+    }
+    # both of the following are judged on the same relative scale: after
+    # convergence the criterion wobbles, and that is not worth a line
+    small <- 1e-3 * (1 + abs(tail(object$llk_restricted, 1)))
+    if(!is.null(object$max_drop)){
+      if(object$max_drop > small){
+        cat("! Restricted likelihood decreased by up to", signif(object$max_drop, 4),
+            "during the iteration\n")
+      }
+    }
+    if(!is.null(object$best_iter)){
+      shortfall <- max(object$llk_restricted) - tail(object$llk_restricted, 1)
+      if(shortfall > small){
+        cat(paste0("! Returned the fit at iteration ", object$best_iter,
+                   "; the run ended ", signif(shortfall, 4), " worse than that\n"))
+      }
+    }
+  }
+  
   # Print additional user-specified objects, excluding unwanted ones
   excluded <- c("allprobs", "trackID", "type", "obj", "outer_gr", 
                 paste0("all_", object$spname), "parname", object$parname, paste0("relist_", object$parname), 
                 paste0("map_", object$spname), "spname", paste0(object$parname, "_vec"), 
                 "edf", "Hessian_conditional", "obj_joint",
                 "beta", "delta", "Gamma", "lambda", "llk", "n_fixpar", "df", "nobs",
-                "llk_restricted", "allmods")
+                "llk_restricted", "allmods",
+                # reported in the smoothness selection block above
+                "converged", "iter", "best_iter", "outer_grad", "edf_valid",
+                "hessian_repaired", "lambda_at_bound", "max_drop")
   
   remaining_names <- setdiff(names(object), excluded)
   

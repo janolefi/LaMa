@@ -85,7 +85,7 @@ A tolerance in nats is not comparable across models, which is why it is the fall
 \item{saveall}{logical, if \code{TRUE}, then all model objects from each iteration are saved in the final model object}
 }
 \value{
-model object of class \code{c("aremlModel", "qremlModel")}, so that all methods defined for \code{\link{qreml}} objects apply
+model object of class \code{"qremlModel"}, so that all methods defined for \code{\link{qreml}} objects apply
 }
 \description{
 Fits statistical models involving \strong{penalised splines} or simple \strong{i.i.d. random effects}, i.e. that have penalties of the form

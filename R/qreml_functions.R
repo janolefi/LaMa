@@ -197,7 +197,7 @@ qreml <- function(pnll, # penalised negative log-likelihood function
                   map = NULL, # map for fixed effects
                   silent = 1, # print level
                   spname = "lambda", # name given to the smoothing parameter parameter in dat
-                  tol_edf = 0.001, # convergence tolerance on the effective degrees of freedom
+                  tol_edf = 0.01, # convergence tolerance on the effective degrees of freedom
                   maxiter = 100, # maximum number of outer iterations
                   alpha = 0.1, # smallest factor by which lambda may decrease per iteration
                   tol = 0.01, # fallback tolerance on the restricted log-likelihood

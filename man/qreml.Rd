@@ -13,7 +13,7 @@ qreml(
   map = NULL,
   silent = 1,
   spname = "lambda",
-  tol_edf = 0.001,
+  tol_edf = 0.01,
   maxiter = 100,
   alpha = 0.1,
   tol = 0.01,

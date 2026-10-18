@@ -566,7 +566,7 @@ stateprobs_g = function(delta, Gamma, allprobs, trackID = NULL,
           Phi <- Alpha / rowSums(Alpha)
           stateprobs[id_i[1], ] <- Phi[1, ]
           for(t in seq_along(id_i)[-1]) {
-            stateprobs[id_i[t], ] <- Phi[t-1, ] %*% Gamma[,,id_i[t-1]]
+            stateprobs[id_i[t], ] <- Phi[t-1, ] %*% Gamma[,,id_i[t]]
           }
         }
       }

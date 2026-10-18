@@ -37,3 +37,11 @@ test_that("decoding: periodic model reports L slices and decodes as with one sli
     expect_equal(stateprobs(mod = old), stateprobs(mod = mod))
   }
 })
+
+test_that("decoding: forecast probabilities with trackID use the transition into t", {
+  ap <- exp(logP_test)
+  ID <- rep(1:2, each = 10)
+  ref <- rbind(stateprobs_g(d_test, Gt_test[, , 2:10], ap[1:10, ], forecast = TRUE),
+               stateprobs_g(d_test, Gt_test[, , 12:20], ap[11:20, ], forecast = TRUE))
+  expect_equal(stateprobs_g(d_test, Gt_test, ap, trackID = ID, forecast = TRUE), ref)
+})

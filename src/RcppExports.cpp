@@ -11,6 +11,21 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// forward_cpp
+double forward_cpp(const arma::mat& allprobs, const arma::mat& Delta, const arma::cube& Gamma, const IntegerVector& gidx, const IntegerVector& trackStart);
+RcppExport SEXP _LaMa_forward_cpp(SEXP allprobsSEXP, SEXP DeltaSEXP, SEXP GammaSEXP, SEXP gidxSEXP, SEXP trackStartSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type allprobs(allprobsSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Delta(DeltaSEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type Gamma(GammaSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type gidx(gidxSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type trackStart(trackStartSEXP);
+    rcpp_result_gen = Rcpp::wrap(forward_cpp(allprobs, Delta, Gamma, gidx, trackStart));
+    return rcpp_result_gen;
+END_RCPP
+}
 // forward_cpp_h
 double forward_cpp_h(const arma::mat& allprobs, const arma::rowvec& delta, const arma::mat& Gamma);
 RcppExport SEXP _LaMa_forward_cpp_h(SEXP allprobsSEXP, SEXP deltaSEXP, SEXP GammaSEXP) {
@@ -238,6 +253,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_LaMa_forward_cpp", (DL_FUNC) &_LaMa_forward_cpp, 5},
     {"_LaMa_forward_cpp_h", (DL_FUNC) &_LaMa_forward_cpp_h, 3},
     {"_LaMa_forward_cpp_g", (DL_FUNC) &_LaMa_forward_cpp_g, 3},
     {"_LaMa_forward_cpp_g_tracks", (DL_FUNC) &_LaMa_forward_cpp_g_tracks, 4},

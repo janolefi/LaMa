@@ -9,6 +9,9 @@
 * one-state models are correct with logspace = TRUE and report their quantities
 * forward_p() works if tod does not contain all values 1, ..., L
 * forward_g() works without AD for two observations
+* stateprobs_g(forecast = TRUE) with trackID used the transition matrix of the previous 
+  time point, which also affected pseudo_res() for inhomogeneous models with tracks
+* stateprobs() passes forecast on for time-varying Gamma
 
 ## Minor changes
 
@@ -17,6 +20,8 @@
 * tracks need to be contiguous, otherwise forward() gives an informative error
 * without AD, forward() gives an error for NA in allprobs
 * the TapeConfig performance tip is shown only once per session
+* forward_p() reports Gamma with its L slices and type "periodic"; viterbi(), stateprobs() 
+  with mod dispatch on the reported type
 
 # LaMa 2.1.1 (2026-05-13)
 

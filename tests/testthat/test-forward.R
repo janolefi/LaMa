@@ -173,7 +173,7 @@ test_that("forward: TapeConfig tip is shown only once per session", {
   old <- RTMB::TapeConfig()$matmul
   on.exit(RTMB::TapeConfig(matmul = old))
   RTMB::TapeConfig(matmul = "atomic")
-  LaMa:::.lama_env$tape_msg_shown <- FALSE
+  assign("tape_msg_shown", FALSE, envir = getFromNamespace(".lama_env", "LaMa"))
   tape <- function() RTMB::MakeTape(function(x) forward(d_test, G1, exp(lp) * x, report = FALSE), 1)
   expect_message(tape(), "TapeConfig")
   expect_no_message(tape())

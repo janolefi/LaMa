@@ -1,3 +1,6 @@
+# package environment for internal state, e.g. messages shown once per session
+.lama_env <- new.env(parent = emptyenv())
+
 # create environment to store information of distributions and parameters used in allprobs calculations
 # forward() and forward_g() then access this environment and REPORT() the contents 
 # this way we can capture all the parameters used in the observation distributions

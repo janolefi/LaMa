@@ -249,6 +249,22 @@ run_forward <- function(inp, ad = NULL){
 
   nStates <- ncol(inp$allprobs)
 
+  # value checks, only possible without AD
+  if(!ad) {
+    if(anyNA(inp$allprobs)) {
+      stop("allprobs contains NA values. For missing observations, keep the rows of allprobs at 1, ",
+           "e.g. by only filling allprobs[ind, ] with ind = which(!is.na(x)).")
+    }
+    rs <- 0 # row sums of all slices of Gamma
+    for(j in seq_len(nStates)) rs <- rs + inp$Gamma[, j, ]
+    if(any(abs(rs - 1) > 1e-6)) {
+      warning("Rows of Gamma do not sum to one. Is Gamma transposed?", call. = FALSE)
+    }
+    if(any(abs(rowSums(inp$delta) - 1) > 1e-6)) {
+      warning("delta does not sum to one.", call. = FALSE)
+    }
+  }
+
   # only one state: no hidden process
   if(nStates == 1) {
     return(as.numeric(sum(log(inp$allprobs)) + inp$shift))
@@ -260,15 +276,19 @@ run_forward <- function(inp, ad = NULL){
 
   } else { # AD version -> R code
 
-    # printing suggestion to change TapeConfig
+    # printing suggestion to change TapeConfig (once per session)
     cfg <- RTMB::TapeConfig()
-    if(cfg$matmul != "plain" & nStates <= 5) {
-      message("Performance tip: Consider running TapeConfig(matmul = 'plain') before MakeADFun() to speed up the forward algorithm.\n")
-    }
-    if(cfg$matmul == "plain" & nStates > 50) {
-      msg <- paste0("Your model has a lot of states (", nStates, "). ",
-                    "Run TapeConfig(matmul = 'atomic') or TapeConfig(matmul = 'compact') before MakeADFun() to speed up the forward algorithm.\n")
-      message(msg)
+    if(!isTRUE(.lama_env$tape_msg_shown)) {
+      if(cfg$matmul != "plain" & nStates <= 5) {
+        message("Performance tip: Consider running TapeConfig(matmul = 'plain') before MakeADFun() to speed up the forward algorithm.\n")
+        .lama_env$tape_msg_shown <- TRUE
+      }
+      if(cfg$matmul == "plain" & nStates > 50) {
+        msg <- paste0("Your model has a lot of states (", nStates, "). ",
+                      "Run TapeConfig(matmul = 'atomic') or TapeConfig(matmul = 'compact') before MakeADFun() to speed up the forward algorithm.\n")
+        message(msg)
+        .lama_env$tape_msg_shown <- TRUE
+      }
     }
     if (!is.null(inp$bw) && inp$bw <= 5) {
       warning("bw = ", inp$bw, " is very small; the banded approximation may be ",

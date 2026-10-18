@@ -26,7 +26,7 @@ forward(
 \itemize{
   \item a matrix of dimension \code{c(nStates, nStates)}, or
   \item an array of dimension \code{c(nStates, nStates, nTracks)} if \code{trackID} is provided, or
-  \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities, in which case \code{\link{forward_g}} is called internally.
+  \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities (see \code{\link{forward_g}}).
 }}
 
 \item{allprobs}{matrix of state-dependent probabilities or density values of dimension \code{c(nObs, nStates)}}
@@ -57,7 +57,7 @@ contribution. In this case, \code{Gamma} can be
   \itemize{
     \item a matrix (same transition probabilities for each track),
     \item an array of dimension \code{c(nStates, nStates, nTracks)} (track-specific transition probability matrix), or
-    \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities, in which case \code{\link{forward_g}} is called internally.
+    \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities (see \code{\link{forward_g}}).
   }
 Additionally, \code{delta} can be a vector (same initial distribution for each track) or a
 matrix of dimension \code{c(nTracks, nStates)} (track-specific initial distributions).

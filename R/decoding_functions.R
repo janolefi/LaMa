@@ -56,19 +56,23 @@ viterbi = function(delta, Gamma, allprobs, trackID = NULL,
     if(is.null(mod$allprobs)){
       stop("Model object contains no state-dependent probabilities.")
     }
-    
+
+    # dispatch on the reported model type
+    if(identical(mod$type, "periodic")) return(viterbi_p(mod = mod))
+    if(identical(mod$type, "inhomogeneous")) return(viterbi_g(mod = mod))
+
     # if suitable model object is provided, overwrite inputs with model object
     delta = mod$delta
     Gamma = mod$Gamma
     allprobs = mod$allprobs
     trackID = mod$trackID
   }
-  
+
   n = nrow(allprobs)
   N = ncol(allprobs)
-  
-  # Handle time-varying Gamma by dispatching to forward_g
-  if (is.array(Gamma) && length(dim(Gamma)) == 3 && (dim(Gamma)[3] == n | dim(Gamma)[3] == n-1)) {
+
+  # Handle time-varying Gamma by dispatching to viterbi_g (if model type is unknown)
+  if (is.null(mod$type) && is.array(Gamma) && length(dim(Gamma)) == 3 && (dim(Gamma)[3] == n | dim(Gamma)[3] == n-1)) {
     return(viterbi_g(delta, Gamma, allprobs, trackID = trackID))
   }
   
@@ -370,19 +374,23 @@ stateprobs = function(delta, Gamma, allprobs, trackID = NULL,
     if(is.null(mod$allprobs)){
       stop("Model object contains no state-dependent probabilities.")
     }
-    
+
+    # dispatch on the reported model type
+    if(identical(mod$type, "periodic")) return(stateprobs_p(mod = mod, forecast = forecast))
+    if(identical(mod$type, "inhomogeneous")) return(stateprobs_g(mod = mod, forecast = forecast))
+
     # if suitable model object is provided, overwrite inputs with model object
     delta = mod$delta
     Gamma = mod$Gamma
     allprobs = mod$allprobs
     trackID = mod$trackID
   }
-  
+
   n = nrow(allprobs)
   N = ncol(allprobs)
-  
-  # Handle time-varying Gamma by dispatching to forward_g
-  if (is.array(Gamma) && length(dim(Gamma)) == 3 && (dim(Gamma)[3] == n | dim(Gamma)[3] == n-1)) {
+
+  # Handle time-varying Gamma by dispatching to stateprobs_g (if model type is unknown)
+  if (is.null(mod$type) && is.array(Gamma) && length(dim(Gamma)) == 3 && (dim(Gamma)[3] == n | dim(Gamma)[3] == n-1)) {
     return(stateprobs_g(delta, Gamma, allprobs, trackID = trackID))
   }
   

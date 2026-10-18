@@ -26,17 +26,19 @@ forward(
 \itemize{
   \item a matrix of dimension \code{c(nStates, nStates)}, or
   \item an array of dimension \code{c(nStates, nStates, nTracks)} if \code{trackID} is provided, or
-  \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities, in which case \code{\link{forward_g}} is called internally.
+  \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities (see \code{\link{forward_g}}).
 }}
 
 \item{allprobs}{matrix of state-dependent probabilities or density values of dimension \code{c(nObs, nStates)}}
 
-\item{trackID}{optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks (see \sQuote{Details}).}
+\item{trackID}{optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks (see \sQuote{Details}).
+The observations of each track need to be consecutive.}
 
-\item{logspace}{logical; if \code{TRUE}, \code{allprobs} is assumed to be on the log-scale, improving numerical stability for small probabilities. Only supported with \code{RTMB}.}
+\item{logspace}{logical; if \code{TRUE}, \code{allprobs} is assumed to be on the log-scale, improving numerical stability for small probabilities.}
 
 \item{bw}{optional positive integer specifying the bandwidth for a banded approximation of the forward algorithm, inducing a banded Hessian w.r.t. the observations. 
-Defaults to \code{NULL} (exact algorithm). Approximation error decays geometrically in \code{bw}.}
+Defaults to \code{NULL} (exact algorithm). Approximation error decays geometrically in \code{bw}.
+Only used with automatic differentiation; otherwise the exact likelihood is computed.}
 
 \item{report}{logical; if \code{TRUE} (default), \code{delta}, \code{Gamma}, \code{allprobs}, and \code{trackID} are reported from the fitted model. Requires \code{ad = TRUE}.}
 
@@ -55,7 +57,7 @@ contribution. In this case, \code{Gamma} can be
   \itemize{
     \item a matrix (same transition probabilities for each track),
     \item an array of dimension \code{c(nStates, nStates, nTracks)} (track-specific transition probability matrix), or
-    \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities, in which case \code{\link{forward_g}} is called internally.
+    \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities (see \code{\link{forward_g}}).
   }
 Additionally, \code{delta} can be a vector (same initial distribution for each track) or a
 matrix of dimension \code{c(nTracks, nStates)} (track-specific initial distributions).

@@ -1,3 +1,23 @@
+# LaMa (development version)
+
+## Bug fixes
+
+* forward(): with track-specific delta or Gamma, the AD version matched them to the 
+  wrong tracks if the track IDs were not sorted (e.g. "ID1", ..., "ID10")
+* forward(): tracks of length one failed with AD
+* logspace = TRUE is now exact (delta is no longer modified) and also stable without AD
+* one-state models are correct with logspace = TRUE and report their quantities
+* forward_p() works if tod does not contain all values 1, ..., L
+* forward_g() works without AD for two observations
+
+## Minor changes
+
+* forward(), forward_g() and forward_p() share one implementation (one C++ and one 
+  R version for AD); forward_p() no longer expands Gamma for the computation
+* tracks need to be contiguous, otherwise forward() gives an informative error
+* without AD, forward() gives an error for NA in allprobs
+* the TapeConfig performance tip is shown only once per session
+
 # LaMa 2.1.1 (2026-05-13)
 
 ## Major changes

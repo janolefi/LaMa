@@ -15,7 +15,7 @@
 * forward(), forward_g() and forward_p() share one implementation (one C++ and one 
   R version for AD); forward_p() no longer expands Gamma for the computation
 * tracks need to be contiguous, otherwise forward() gives an informative error
-* without AD, forward() checks for NA in allprobs and rows of Gamma and delta summing to one
+* without AD, forward() gives an error for NA in allprobs
 * the TapeConfig performance tip is shown only once per session
 
 # LaMa 2.1.1 (2026-05-13)

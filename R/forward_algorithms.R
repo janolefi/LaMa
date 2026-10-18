@@ -249,20 +249,11 @@ run_forward <- function(inp, ad = NULL){
 
   nStates <- ncol(inp$allprobs)
 
-  # value checks, only possible without AD
-  if(!ad) {
-    if(anyNA(inp$allprobs)) {
-      stop("allprobs contains NA values. For missing observations, keep the rows of allprobs at 1, ",
-           "e.g. by only filling allprobs[ind, ] with ind = which(!is.na(x)).")
-    }
-    rs <- 0 # row sums of all slices of Gamma
-    for(j in seq_len(nStates)) rs <- rs + inp$Gamma[, j, ]
-    if(any(abs(rs - 1) > 1e-6)) {
-      warning("Rows of Gamma do not sum to one. Is Gamma transposed?", call. = FALSE)
-    }
-    if(any(abs(rowSums(inp$delta) - 1) > 1e-6)) {
-      warning("delta does not sum to one.", call. = FALSE)
-    }
+  # value check, only possible without AD
+  # (no row sum checks: MMPPs and state-space models use sub-stochastic Gamma)
+  if(!ad && anyNA(inp$allprobs)) {
+    stop("allprobs contains NA values. For missing observations, keep the rows of allprobs at 1, ",
+         "e.g. by only filling allprobs[ind, ] with ind = which(!is.na(x)).")
   }
 
   # only one state: no hidden process

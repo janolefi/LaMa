@@ -140,7 +140,7 @@ test_that("forward: informative errors for bad input", {
 test_that("forward: value checks in the non-AD version", {
   ap <- exp(lp); ap[3, 1] <- NA
   expect_error(forward(d_test, G1, ap, ad = FALSE), "NA")
-  expect_warning(forward(d_test, t(G1), exp(lp), ad = FALSE), "sum to one")
+  expect_no_warning(forward(d_test, 0.9 * G1, exp(lp), ad = FALSE)) # sub-stochastic Gamma is allowed (MMPPs)
 })
 
 test_that("forward: reported quantities", {

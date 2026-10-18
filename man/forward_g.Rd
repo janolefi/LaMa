@@ -32,12 +32,14 @@ This function also supports continuous-time HMMs, where each slice is a Markov s
 
 \item{allprobs}{matrix of state-dependent probabilities or density values of dimension \code{c(nObs, nStates)}}
 
-\item{trackID}{optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks (see \sQuote{Details}).}
+\item{trackID}{optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks (see \sQuote{Details}).
+The observations of each track need to be consecutive.}
 
-\item{logspace}{logical; if \code{TRUE}, \code{allprobs} is assumed to be on the log-scale, improving numerical stability for small probabilities. Only supported with \code{RTMB}.}
+\item{logspace}{logical; if \code{TRUE}, \code{allprobs} is assumed to be on the log-scale, improving numerical stability for small probabilities.}
 
 \item{bw}{optional positive integer specifying the bandwidth for a banded approximation of the forward algorithm, inducing a banded Hessian w.r.t. the observations. 
-Defaults to \code{NULL} (exact algorithm). Approximation error decays geometrically in \code{bw}.}
+Defaults to \code{NULL} (exact algorithm). Approximation error decays geometrically in \code{bw}.
+Only used with automatic differentiation; otherwise the exact likelihood is computed.}
 
 \item{report}{logical; if \code{TRUE} (default), \code{delta}, \code{Gamma}, \code{allprobs}, and \code{trackID} are reported from the fitted model. Requires \code{ad = TRUE}.}
 

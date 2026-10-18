@@ -130,6 +130,15 @@ logspace_add <- function(x){
 }
 
 
+## row maxima of a matrix, also for advector (pmax does not work for advector)
+rowmax <- function(x){
+  if(inherits(x, "advector")) return(apply(x, 1, max))
+  m <- x[, 1]
+  for(j in seq_len(ncol(x))[-1]) m <- pmax(m, x[, j])
+  m
+}
+
+
 ## function to construct unimodality constraint matrix (list)
 construct_C <- function(m, # beta mode index (vector of length N)
                         k, # basis dimension

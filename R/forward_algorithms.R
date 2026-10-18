@@ -36,13 +36,15 @@
 #' 
 #' @param trackID 
 #' optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks (see \sQuote{Details}).
+#' The observations of each track need to be consecutive.
 #' 
 #' @param logspace 
-#' logical; if \code{TRUE}, \code{allprobs} is assumed to be on the log-scale, improving numerical stability for small probabilities. Only supported with \code{RTMB}.
+#' logical; if \code{TRUE}, \code{allprobs} is assumed to be on the log-scale, improving numerical stability for small probabilities.
 #' 
 #' @param bw 
 #' optional positive integer specifying the bandwidth for a banded approximation of the forward algorithm, inducing a banded Hessian w.r.t. the observations. 
 #' Defaults to \code{NULL} (exact algorithm). Approximation error decays geometrically in \code{bw}.
+#' Only used with automatic differentiation; otherwise the exact likelihood is computed.
 #' 
 #' @param report 
 #' logical; if \code{TRUE} (default), \code{delta}, \code{Gamma}, \code{allprobs}, and \code{trackID} are reported from the fitted model. Requires \code{ad = TRUE}.
@@ -89,99 +91,80 @@
 #'         log(c(0.3, 2.5)), # initial means for step length (log-transformed)
 #'         log(c(0.2, 1.5))) # initial sds for step length (log-transformed)
 #' mod = nlm(nll, par, step = trex$step[1:1000])
-forward <- function(delta, 
-                    Gamma, 
-                    allprobs, 
-                    trackID = NULL, 
+forward <- function(delta,
+                    Gamma,
+                    allprobs,
+                    trackID = NULL,
                     logspace = FALSE,
                     bw = NULL,
                     report = TRUE,
                     ad = NULL
                     ){
-  
-  # Check allprobs  
+
+  # check inputs and bring them into the form used by the algorithm
+  inp <- prepare_forward(delta, Gamma, allprobs, trackID, logspace, bw)
+
+  # report quantities for easy use later
+  if(report) {
+    if(logspace) allprobs <- exp(allprobs)
+    report_forward(delta, Gamma, allprobs, inp$trackID, inp$type)
+  }
+
+  run_forward(inp, ad)
+}
+
+# Checks inputs of the forward algorithm and brings them into a common form:
+# - delta: matrix of dimension c(nTracks, nStates)
+# - Gamma: array of dimension c(nStates, nStates, nSlices)
+# - gidx: slice of Gamma for the transition into each time point
+# - start, end: first and last index of each track
+# - allprobs: if logspace, divided by its row maxima, whose logs sum to shift
+prepare_forward <- function(delta, Gamma, allprobs, trackID = NULL,
+                            logspace = FALSE, bw = NULL, gidx = NULL){
+
+  # Check allprobs
   if(!is.matrix(allprobs)) {
     stop("allprobs needs to be a matrix of dimension c(n, N).")
-  } 
+  }
   nObs <- nrow(allprobs)
   nStates <- ncol(allprobs)
-  
-  # Handle time-varying Gamma by dispatching to forward_g
-  if (is.array(Gamma) && length(dim(Gamma)) == 3 && (dim(Gamma)[3] == nObs | dim(Gamma)[3] == nObs-1)) {
-    return(forward_g(delta, Gamma, allprobs, trackID = trackID,
-                     logspace = logspace, bw = bw, report = report, ad = ad))
-  }
-  
+
   # check bw
   if (!is.null(bw)) {
     if (length(bw) != 1 || is.na(bw) || bw != as.integer(bw) || bw < 2) {
       stop("bw must be a single integer >= 2 (bandwidth of 1 is degenerate).")
     }
     bw <- as.integer(bw)
-    if (bw <= 5) {
-      warning("bw = ", bw, " is very small; the banded approximation may be ",
-              "poor. Consider a larger bandwidth.", call. = FALSE)
-    }
   }
-  
-  # exit if only one state
-  if (nStates == 1) return(sum(log(allprobs)))
-  
+
   # check trackID
   if (!is.null(trackID)) {
     if (length(trackID) != nObs) {
       stop("Length of trackID must equal number of rows in allprobs.")
     }
-    # coerce to integer track indices
-    trackID <- as.integer(as.factor(trackID))
-    uID <- unique(trackID)
-    nTracks <- length(uID)
-    trackID <- match(trackID, uID) # ensure trackID is 1, 2, ..., nTracks
+    # integer track indices 1, 2, ..., nTracks in order of appearance
+    trackID <- match(trackID, unique(trackID))
+    if (is.unsorted(trackID)) {
+      stop("Tracks must be contiguous, i.e. the observations of each track must be consecutive. Order your data by trackID.")
+    }
+    nTracks <- max(trackID)
+    start <- which(!duplicated(trackID))
   } else {
-    uID <- 1L
     nTracks <- 1L
+    start <- 1L
   }
-  
-  # if allprobs on log-scale, report exp(allprobs)
-  if(logspace){
-    logallprobs <- allprobs
-    allprobs <- exp(logallprobs)
-  }
-  
-  # report quantities for easy use later
-  if(report) {
-    REPORT(delta)
-    REPORT(Gamma)
-    REPORT(allprobs)
-    if(!is.null(trackID)) REPORT(trackID)
-    type <- "homogeneous"
-    REPORT(type)
-    
-    # if (length(.obs_info$calls) > 0) {
-    #   obs_info <- .obs_info$calls
-    #   REPORT(obs_info)
-    #   rm(list = ls(.obs_info), envir = .obs_info)
-    # }
-  }
-  
-  # if ad is not explicitly provided, check via RTMB:::ad_context()
-  if(is.null(ad)){
-    ad <- ad_context()
-  }
-  
-  
-  ##### Dimension matching for input arguments #####
-  
+  end <- c(start[-1] - 1L, nObs)
+
   ## handle delta
   delta <- AD(as.matrix(delta))
   d <- dim(delta)
-  
+
   # allow N x 1 and transpose
   if (d[1] == nStates && d[2] == 1) {
     delta <- t(delta)
     d <- dim(delta)
   }
-  
+
   # check dimensions depending on trackID
   if (is.null(trackID)) {
     # single track: must be 1 x N
@@ -197,56 +180,86 @@ forward <- function(delta,
     }
   }
 
-  # handle Gamma
+  ## handle Gamma
   Gamma <- AD(as.array(Gamma))
   dG <- dim(Gamma)
-  
+
   # allow matrix input -> convert to 3D array
   if (length(dG) == 2) {
     Gamma <- AD(array(Gamma, dim = c(dG, 1)))
     dG <- dim(Gamma)
   }
-  
+
   # basic square check
   if (!all(dG[1:2] == nStates)) {
     stop("Gamma must be square with dimensions (N, N).")
   }
-  
-  # expand across tracks if necessary
-  if (is.null(trackID)) {
-    if (dG[3] != 1) {
-      stop("Gamma must have third dimension 1 when no trackID is provided.")
-    }
-  } else {
-    if (dG[3] == 1 && nTracks > 1) {
-      Gamma <- AD(array(Gamma, dim = c(nStates, nStates, nTracks)))
-    } else if (dG[3] != nTracks) {
-      stop("Gamma must have third dimension equal to number of tracks.")
-    }
-  }
-  
-  ### Inputs are cleaned up now: 
-  # - now delta is matrix of dimension c(nTracks, nStates)
-  # - and Gamma is array of dimension c(nStates, nStates, nTracks)
 
-  ### Now run forward algorithm: 
-  # - if ad == FALSE, use C++ version for speed
-  # - if ad == TRUE, use R version which is converted into diff'able C++ code via RTMB
-  
-  if(!ad) { # non-AD version in C++
-    
-    # if(logspace) {
-    #   stop("Logspace computations are not supported in the non-AD version.")
-    # }
-    
-    if(is.null(trackID)) {
-      l <- forward_cpp_h(allprobs, delta[1, ], Gamma[,, 1])
-    } else {
-      l <- forward_cpp_h_tracks(allprobs, delta, Gamma, calc_trackInd(trackID))
-    }
-    
-  } else if(ad) { # AD version -> R code
-    
+  # gidx[t]: slice of Gamma for the transition into t (unused at the start of a track)
+  type <- "homogeneous"
+  if (!is.null(gidx)) { # given by forward_p()
+    type <- "inhomogeneous"
+  } else if (dG[3] == 1) {
+    gidx <- rep(1L, nObs)
+  } else if (!is.null(trackID) && dG[3] == nTracks) { # track-specific
+    gidx <- trackID
+  } else if (dG[3] == nObs) { # time-varying
+    gidx <- seq_len(nObs)
+    type <- "inhomogeneous"
+  } else if (is.null(trackID) && dG[3] == nObs - 1) { # time-varying, without first slice
+    gidx <- c(1L, seq_len(nObs - 1))
+    type <- "inhomogeneous"
+  } else {
+    stop("Gamma must have third dimension 1, nTracks (track-specific), nObs (time-varying),",
+         " or nObs - 1 (time-varying, only without trackID).")
+  }
+
+  # if allprobs on log-scale, divide each row by its maximum:
+  # exact, as each row scales the likelihood by a constant, and numerically stable
+  shift <- 0
+  if (logspace) {
+    m <- rowmax(allprobs)
+    allprobs <- exp(allprobs - m)
+    shift <- sum(m)
+  }
+
+  list(delta = delta, Gamma = Gamma, allprobs = allprobs, shift = shift,
+       gidx = as.integer(gidx), start = start, end = end,
+       trackID = trackID, type = type, bw = bw)
+}
+
+# REPORT quantities of the forward algorithm (with these names)
+report_forward <- function(delta, Gamma, allprobs, trackID, type){
+  REPORT(delta)
+  REPORT(Gamma)
+  REPORT(allprobs)
+  if(!is.null(trackID)) REPORT(trackID)
+  REPORT(type)
+}
+
+# Runs the forward algorithm on the output of prepare_forward()
+# - if ad == FALSE, use C++ version for speed
+# - if ad == TRUE, use R version which is converted into diff'able C++ code via RTMB
+run_forward <- function(inp, ad = NULL){
+
+  # if ad is not explicitly provided, check via RTMB:::ad_context()
+  if(is.null(ad)){
+    ad <- ad_context()
+  }
+
+  nStates <- ncol(inp$allprobs)
+
+  # only one state: no hidden process
+  if(nStates == 1) {
+    return(as.numeric(sum(log(inp$allprobs)) + inp$shift))
+  }
+
+  if(!ad) { # non-AD version in C++, always exact (bw is ignored)
+
+    l <- forward_cpp(inp$allprobs, inp$delta, inp$Gamma, inp$gidx - 1L, inp$start - 1L)
+
+  } else { # AD version -> R code
+
     # printing suggestion to change TapeConfig
     cfg <- RTMB::TapeConfig()
     if(cfg$matmul != "plain" & nStates <= 5) {
@@ -257,178 +270,93 @@ forward <- function(delta,
                     "Run TapeConfig(matmul = 'atomic') or TapeConfig(matmul = 'compact') before MakeADFun() to speed up the forward algorithm.\n")
       message(msg)
     }
-    
-    # AD overloading to avoid trouble 
-    "[<-" <- ADoverload("[<-")
-    "c" <- ADoverload("c")
-    "diag<-" <- ADoverload("diag<-")
-    
-    # Initialising log-likelihood at 0
-    l <- 0 
-    
-    if(is.null(trackID)) {
-      trackID <- rep(1, nObs) # if no trackID, only one track
+    if (!is.null(inp$bw) && inp$bw <= 5) {
+      warning("bw = ", inp$bw, " is very small; the banded approximation may be ",
+              "poor. Consider a larger bandwidth.", call. = FALSE)
     }
-    # outer loop only has one iteration in this case
-    
-    ### forward algorithm code:
-    # - if logspace == FALSE, regular computations
-    # - if logspace == TRUE, computations on log-scale for numerical precision
-    if(!logspace) { # regular, non-logspace computations
-      for(i in seq_len(nTracks)) {
-        ind <- which(trackID == uID[i]) # indices of track i
-        
-        allprobs_i <- allprobs[ind, , drop = FALSE] # matrix
-        delta_i <- delta[i, , drop = FALSE] # matrix 
-        Gamma_i <- Gamma[, , i] # matrix
-        
-        # Initialize forward algorithm
-        foo <- delta_i * allprobs_i[1, , drop = FALSE]
-        sumfoo <- sum(foo)
-        phi <- foo / sumfoo
-        l <- l + log(sumfoo)
-        
-        if(is.null(bw)) {
-          k <- length(ind)
-        } else {
-          k <- bw
+
+    l <- forward_ad(inp)
+  }
+
+  as.numeric(l + inp$shift)
+}
+
+# forward algorithm in R, taped by RTMB for automatic differentiation
+forward_ad <- function(inp){
+
+  Gamma <- inp$Gamma
+  bw <- inp$bw
+  nStates <- ncol(inp$allprobs)
+
+  # Initialising log-likelihood at 0
+  l <- 0
+
+  for(i in seq_along(inp$start)) {
+    ind <- inp$start[i]:inp$end[i] # indices of track i
+
+    allprobs_i <- inp$allprobs[ind, , drop = FALSE] # matrix
+    delta_i <- inp$delta[i, , drop = FALSE] # matrix
+    gidx_i <- inp$gidx[ind] # Gamma slices of track i
+
+    # Initialize forward algorithm
+    foo <- delta_i * allprobs_i[1, , drop = FALSE]
+    sumfoo <- sum(foo)
+    phi <- foo / sumfoo
+    l <- l + log(sumfoo)
+
+    if(is.null(bw)) {
+      k <- length(ind)
+    } else {
+      k <- bw
+    }
+
+    # Regular forward algorithm
+    # If banded, only runs first block
+    for(t in seq_len(min(k, length(ind)))[-1]) {
+      foo <- (phi %*% Gamma[, , gidx_i[t]]) * allprobs_i[t, , drop = FALSE]
+      sumfoo <- sum(foo)
+      phi <- foo / sumfoo
+      l <- l + log(sumfoo)
+    }
+
+    # If banded, the approximation is as follows:
+    # - separate the log likelihood into blocks of size bw
+    # - for each block, starting at time t
+    #   - initialise with uniform distribution at t-bw
+    #   - use observations from t-bw to t-1 to update (scaled) forward variable to get close approx to true one
+    #   - compute likelihood of block from t to t + bw using this approximation
+    #   - this way, blocks are independent after a time lag of 2 * bw (at most)
+
+    # If banded, run this banded version below for remaining blocks
+    if(!is.null(bw) & (k < length(ind))) {
+      stateDist <- rep(1, nStates) / nStates
+
+      startInd <- k + 1
+      endInd <- 2 * k
+      nBlocks <- ceiling(length(ind) / k) - 1 # number of remaining blocks
+
+      for(b in seq_len(nBlocks)) {
+        # updating forward variable to get good approximation
+        foo <- stateDist * allprobs_i[startInd-k, , drop = FALSE]
+        foo <- foo / sum(foo)
+        for(t in (startInd-k+1):(startInd - 1)) {
+          foo <- (foo %*% Gamma[, , gidx_i[t]]) * allprobs_i[t, , drop = FALSE]
+          foo <- foo / sum(foo)
         }
-        
-        # Regular forward algorithm
-        # If banded, only runs first block
-        for(t in 2:min(k, length(ind))) {
-          foo <- (phi %*% Gamma_i) * allprobs_i[t, , drop = FALSE]
+        # computing likelihood of this block based on approx forward variable
+        end <- min(endInd, length(ind))
+        for(t in startInd:end) {
+          foo <- (foo %*% Gamma[, , gidx_i[t]]) * allprobs_i[t, , drop = FALSE]
           sumfoo <- sum(foo)
-          phi <- foo / sumfoo
+          foo <- foo / sumfoo
           l <- l + log(sumfoo)
         }
-        
-        # If banded, the approximation is as follows:
-        # - compute state distribution of the chain at each time point, independent of the observations
-        # - separate the log likelihood into blocks of size bw
-        # - for each block, starting at time t
-        #   - initialise with statedist_{t-bw}
-        #   - use observations from t-bw to t-1 to update (scaled) forward variable to get close approx to true one
-        #   - compute likelihood of block from t to t + bw using this approximation
-        #   - this way, blocks are independent after a time lag of 2 * bw (at most)
-        
-        # If banded, run this banded version below for remaining blocks
-        if(!is.null(bw) & (k < length(ind))) {
-          # State distribution needs to be computed to initialise blocks
-          # stateDist <- AD(matrix(NaN, nrow = length(ind), ncol = nStates))
-          # stateDist[1, ] <- as.numeric(delta_i)
-          # for(l in 2:length(ind)) {
-          #   stateDist[l, ] <- stateDist[l-1, ] %*% Gamma_i
-          # }
-          stateDist <- rep(1, nStates) / nStates
-          
-          startInd <- k + 1
-          endInd <- 2 * k
-          nBlocks <- ceiling(length(ind) / k) - 1 # number of remaining blocks
-        
-          for(b in seq_len(nBlocks)) {
-            # updating forward variable to get good approximation
-            # foo <- stateDist[startInd-k, , drop = FALSE] * allprobs_i[startInd-k, , drop = FALSE]
-            foo <- stateDist * allprobs_i[startInd-k, , drop = FALSE]
-            foo <- foo / sum(foo)
-            for(t in (startInd-k+1):(startInd - 1)) { 
-              foo <- (foo %*% Gamma_i) * allprobs_i[t, , drop = FALSE]
-              foo <- foo / sum(foo)
-            }
-            # computing likelihood of this block based on approx forward variable
-            end <- min(endInd, length(ind))
-            for(t in startInd:end) { 
-              foo <- (foo %*% Gamma_i) * allprobs_i[t, , drop = FALSE]
-              sumfoo <- sum(foo)
-              foo <- foo / sumfoo
-              l <- l + log(sumfoo)
-            }
-            startInd <- startInd + k
-            endInd <- endInd + k
-          }
-        }
-      }
-      
-    } else { # logspace computations
-      # when state-dependent probabilities are small, this is advantageous for numerical precision
-      
-      # to avoid log(0)
-      delta <- delta + 1e-7
-      delta <- delta / rowSums(delta)
-      logdelta <- log(delta)
-      
-      for(i in seq_len(nTracks)) {
-        ind <- which(trackID == uID[i]) # indices of track i
-        
-        logallprobs_i <- logallprobs[ind, , drop = FALSE] # matrix
-        logdelta_i <- logdelta[i, , drop = FALSE] # matrix 
-        Gamma_i <- Gamma[, , i] # matrix
-        
-        # Initialize forward algorithm
-        logfoo <- logdelta_i + logallprobs_i[1, , drop = FALSE]
-        logsumfoo <- logspace_add(logfoo)
-        l <- l + logsumfoo
-        logfoo <- logfoo - logsumfoo
-
-        if(is.null(bw)) {
-          k <- length(ind)
-        } else {
-          k <- bw
-        }
-        
-        # Regular forward algorithm
-        # If banded, only runs first block
-        for(t in 2:min(k, length(ind))) {
-          logfoo <- log((exp(logfoo) %*% Gamma_i)) + logallprobs_i[t, , drop = FALSE]
-          logsumfoo <- logspace_add(logfoo)
-          l <- l + logsumfoo
-          logfoo <- logfoo - logsumfoo
-        }
-        
-        # For explanation of the banded approximation, see above (non-logspace version)
-        
-        # If banded, run this baned version below for remaining blocks
-        if(!is.null(bw) & (k < length(ind))) {
-          # state distribution needs to be computed to initialise blocks
-          # stateDist <- AD(matrix(NaN, nrow = length(ind), ncol = nStates))
-          # stateDist[1, ] <- as.numeric(exp(logdelta_i))
-          # for(i in 2:length(ind)) {
-          #   stateDist[i, ] <- stateDist[i-1, ] %*% Gamma_i
-          # }
-          stateDist <- rep(1, nStates) / nStates
-          
-          
-          startInd <- k + 1
-          endInd <- 2 * k
-          nBlocks <- ceiling(length(ind) / k) - 1 # number of remaining blocks
-          # Compute likelihood contribution of each block, independent from all other blocks
-          for(b in seq_len(nBlocks)) {
-            # updating forward variable to get good approximation
-            # logfoo <- log(stateDist[startInd-k, , drop = FALSE]) + logallprobs_i[startInd-k, , drop = FALSE]
-            logfoo <- log(stateDist) + logallprobs_i[startInd-k, , drop = FALSE]
-            logsumfoo <- logspace_add(logfoo)
-            logfoo <- logfoo - logsumfoo
-            for(t in (startInd-k+1):(startInd - 1)) { 
-              logfoo <- log(exp(logfoo) %*% Gamma_i) + logallprobs_i[t, , drop = FALSE]
-              logsumfoo <- logspace_add(logfoo)
-              logfoo <- logfoo - logsumfoo
-            }
-            # computing likelihood of this block based on approx forward variable
-            end <- min(endInd, length(ind))
-            for(t in startInd:end) { 
-              logfoo <- log(exp(logfoo) %*% Gamma_i) + logallprobs_i[t, , drop = FALSE]
-              logsumfoo <- logspace_add(logfoo)
-              l <- l + logsumfoo
-              logfoo <- logfoo - logsumfoo
-            }
-            startInd <- startInd + k
-            endInd <- endInd + k
-          }
-        }
+        startInd <- startInd + k
+        endInd <- endInd + k
       }
     }
   }
-  as.numeric(l)
+  l
 }
 
 
@@ -468,13 +396,15 @@ forward <- function(delta,
 #' 
 #' @param trackID 
 #' optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks (see \sQuote{Details}).
+#' The observations of each track need to be consecutive.
 #' 
 #' @param logspace 
-#' logical; if \code{TRUE}, \code{allprobs} is assumed to be on the log-scale, improving numerical stability for small probabilities. Only supported with \code{RTMB}.
+#' logical; if \code{TRUE}, \code{allprobs} is assumed to be on the log-scale, improving numerical stability for small probabilities.
 #' 
 #' @param bw 
 #' optional positive integer specifying the bandwidth for a banded approximation of the forward algorithm, inducing a banded Hessian w.r.t. the observations. 
 #' Defaults to \code{NULL} (exact algorithm). Approximation error decays geometrically in \code{bw}.
+#' Only used with automatic differentiation; otherwise the exact likelihood is computed.
 #' 
 #' @param report 
 #' logical; if \code{TRUE} (default), \code{delta}, \code{Gamma}, \code{allprobs}, and \code{trackID} are reported from the fitted model. Requires \code{ad = TRUE}.

@@ -391,7 +391,7 @@ stateprobs = function(delta, Gamma, allprobs, trackID = NULL,
 
   # Handle time-varying Gamma by dispatching to stateprobs_g (if model type is unknown)
   if (is.null(mod$type) && is.array(Gamma) && length(dim(Gamma)) == 3 && (dim(Gamma)[3] == n | dim(Gamma)[3] == n-1)) {
-    return(stateprobs_g(delta, Gamma, allprobs, trackID = trackID))
+    return(stateprobs_g(delta, Gamma, allprobs, trackID = trackID, forecast = forecast))
   }
   
   # inflating Gamma to use stateprobs_g

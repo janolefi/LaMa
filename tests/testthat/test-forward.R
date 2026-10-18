@@ -162,8 +162,8 @@ test_that("forward: reported quantities", {
   expect_equal(r$type, "inhomogeneous")
   Gp <- tpm_p(1:4, L = 4, beta = matrix(c(-1, -1, 0.5, 0.5, 0, 0), 2))
   r <- fit(function(ap) forward_p(d_test, Gp, ap, rep(1:4, 5)))
-  expect_equal(r$type, "inhomogeneous") # Gamma is reported expanded, as decoders expect
-  expect_equal(dim(r$Gamma), c(2, 2, 20))
+  expect_equal(r$type, "periodic")
+  expect_equal(r$Gamma, Gp)
   expect_equal(r$tod, rep(1:4, 5))
   r <- fit(function(ap) forward(1, matrix(1), ap[, 1, drop = FALSE], logspace = FALSE))
   expect_equal(r$type, "homogeneous")

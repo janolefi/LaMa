@@ -198,7 +198,7 @@ prepare_forward <- function(delta, Gamma, allprobs, trackID = NULL,
   # gidx[t]: slice of Gamma for the transition into t (unused at the start of a track)
   type <- "homogeneous"
   if (!is.null(gidx)) { # given by forward_p()
-    type <- "inhomogeneous"
+    type <- "periodic"
   } else if (dG[3] == 1) {
     gidx <- rep(1L, nObs)
   } else if (!is.null(trackID) && dG[3] == nTracks) { # track-specific
@@ -562,8 +562,7 @@ forward_p <- function(delta,
   if(report){
     if(logspace) allprobs <- exp(allprobs)
     REPORT(tod)
-    # report Gamma with one slice per observation, as used by the decoding functions
-    report_forward(delta, Gamma[,,tod], allprobs, inp$trackID, inp$type)
+    report_forward(delta, Gamma, allprobs, inp$trackID, inp$type)
   }
   
   run_forward(inp, ad)

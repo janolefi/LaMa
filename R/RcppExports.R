@@ -5,26 +5,6 @@ forward_cpp <- function(allprobs, Delta, Gamma, gidx, trackStart) {
     .Call(`_LaMa_forward_cpp`, allprobs, Delta, Gamma, gidx, trackStart)
 }
 
-forward_cpp_h <- function(allprobs, delta, Gamma) {
-    .Call(`_LaMa_forward_cpp_h`, allprobs, delta, Gamma)
-}
-
-forward_cpp_g <- function(allprobs, delta, Gamma) {
-    .Call(`_LaMa_forward_cpp_g`, allprobs, delta, Gamma)
-}
-
-forward_cpp_g_tracks <- function(allprobs, Delta, Gamma, trackInd) {
-    .Call(`_LaMa_forward_cpp_g_tracks`, allprobs, Delta, Gamma, trackInd)
-}
-
-forward_cpp_h_tracks <- function(allprobs, Delta, Gamma, trackInd) {
-    .Call(`_LaMa_forward_cpp_h_tracks`, allprobs, Delta, Gamma, trackInd)
-}
-
-forward_cpp_p <- function(allprobs, delta, Gamma, tod) {
-    .Call(`_LaMa_forward_cpp_p`, allprobs, delta, Gamma, tod)
-}
-
 forward_cpp_s <- function(allprobs, delta, Gamma, agsizes) {
     .Call(`_LaMa_forward_cpp_s`, allprobs, delta, Gamma, agsizes)
 }

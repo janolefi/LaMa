@@ -121,15 +121,6 @@ gdeterminant <- function(x, eps = NULL, log = TRUE) {
   }
 }
 
-## log(sum(exp(x))) # with numerical stability
-logspace_add <- function(x){
-  # Computes the log of the sum of exponentials of the input vector x
-  # This is useful for numerical stability when dealing with large numbers
-  max_x <- max(x)
-  max_x + log(sum(exp(x - max_x)))
-}
-
-
 ## row maxima of a matrix, also for advector (pmax does not work for advector)
 rowmax <- function(x){
   if(inherits(x, "advector")) return(apply(x, 1, max))

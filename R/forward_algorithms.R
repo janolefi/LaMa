@@ -490,44 +490,6 @@ forward_g <- function(delta,
           bw = bw, report = report, ad = ad)
 }
 
-# allows for computing state distribution of an inhomogeneous Markov chain in a banded mannor
-# when Gamma has a parameter per slice, these are independent after lag 2 * bw
-stateDist_banded <- function(delta, Gamma, bw){
-  nObs <- dim(Gamma)[3] # number of observations
-  nStates <- dim(Gamma)[1] # number of states
-  nBlocks <- ceiling(nObs / bw) - 2 # number of remaining tracks
-  rho <- rep(1, nStates) / nStates # fixed intermediate state distribution
-  
-  # Initialise Delta matrix to store state distributions
-  Delta <- matrix(NaN, nrow = nObs, ncol = nStates)
-  
-  # Set initial state distribution
-  Delta[1, ] <- as.numeric(delta)
-  # Compute the state distribution at time t
-  for(t in 2:(2*bw)){ 
-    Delta[t, ] <- Delta[t - 1, ] %*% Gamma[, , t]
-  }
-  
-  # remaining blocks, always initialise with rho to keep independent
-  startInd <- bw + 1
-  endInd <- bw + 2 * bw
-  for(b in seq_len(nBlocks)){
-    foo <- rho
-    end <- min(endInd, nObs)
-    for(t in startInd:end){
-      foo <- foo %*% Gamma[, , t]
-      if(t > startInd + bw - 1){
-        Delta[t, ] <- foo
-      }
-    }
-    startInd <- startInd + bw
-    endInd <- endInd + bw
-  }
-  Delta
-}
-
-
-
 #' \href{https://www.taylorfrancis.com/books/mono/10.1201/b20790/hidden-markov-models-time-series-walter-zucchini-iain-macdonald-roland-langrock}{Forward algorithm} with for periodically varying transition probability matrices
 #'
 #' Calculates the log-likelihood of a sequence of observations under a hidden Markov model with periodically varying transition probabilities using the \strong{forward algorithm}.

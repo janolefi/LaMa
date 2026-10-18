@@ -40,9 +40,8 @@ forward(
     provided, or
 
   - an array of dimension `c(nStates, nStates, nObs)` for time-varying
-    transition probabilities, in which case
-    [`forward_g`](https://janolefi.github.io/LaMa/reference/forward_g.md)
-    is called internally.
+    transition probabilities (see
+    [`forward_g`](https://janolefi.github.io/LaMa/reference/forward_g.md)).
 
 - allprobs:
 
@@ -52,20 +51,21 @@ forward(
 - trackID:
 
   optional vector of length `nObs` containing `nTracks` unique IDs that
-  separate tracks (see ‘Details’).
+  separate tracks (see ‘Details’). The observations of each track need
+  to be consecutive.
 
 - logspace:
 
   logical; if `TRUE`, `allprobs` is assumed to be on the log-scale,
-  improving numerical stability for small probabilities. Only supported
-  with `RTMB`.
+  improving numerical stability for small probabilities.
 
 - bw:
 
   optional positive integer specifying the bandwidth for a banded
   approximation of the forward algorithm, inducing a banded Hessian
   w.r.t. the observations. Defaults to `NULL` (exact algorithm).
-  Approximation error decays geometrically in `bw`.
+  Approximation error decays geometrically in `bw`. Only used with
+  automatic differentiation; otherwise the exact likelihood is computed.
 
 - report:
 
@@ -92,9 +92,8 @@ track's likelihood contribution. In this case, `Gamma` can be
   transition probability matrix), or
 
 - an array of dimension `c(nStates, nStates, nObs)` for time-varying
-  transition probabilities, in which case
-  [`forward_g`](https://janolefi.github.io/LaMa/reference/forward_g.md)
-  is called internally.
+  transition probabilities (see
+  [`forward_g`](https://janolefi.github.io/LaMa/reference/forward_g.md)).
 
 Additionally, `delta` can be a vector (same initial distribution for
 each track) or a matrix of dimension `c(nTracks, nStates)`

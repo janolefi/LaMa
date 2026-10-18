@@ -78,7 +78,7 @@ using the <strong>forward algorithm</strong> (Zucchini, MacDonald &amp; Langrock
 <dt id="arg-gamma">Gamma<a class="anchor" aria-label="anchor" href="#arg-gamma"></a></dt>
 <dd><p>transition probability matrix; either</p><ul><li><p>a matrix of dimension <code>c(nStates, nStates)</code>, or</p></li>
 <li><p>an array of dimension <code>c(nStates, nStates, nTracks)</code> if <code>trackID</code> is provided, or</p></li>
-<li><p>an array of dimension <code>c(nStates, nStates, nObs)</code> for time-varying transition probabilities, in which case <code><a href="forward_g.html">forward_g</a></code> is called internally.</p></li>
+<li><p>an array of dimension <code>c(nStates, nStates, nObs)</code> for time-varying transition probabilities (see <code><a href="forward_g.html">forward_g</a></code>).</p></li>
 </ul></dd>
 
 
@@ -87,16 +87,18 @@ using the <strong>forward algorithm</strong> (Zucchini, MacDonald &amp; Langrock
 
 
 <dt id="arg-trackid">trackID<a class="anchor" aria-label="anchor" href="#arg-trackid"></a></dt>
-<dd><p>optional vector of length <code>nObs</code> containing <code>nTracks</code> unique IDs that separate tracks (see ‘Details’).</p></dd>
+<dd><p>optional vector of length <code>nObs</code> containing <code>nTracks</code> unique IDs that separate tracks (see ‘Details’).
+The observations of each track need to be consecutive.</p></dd>
 
 
 <dt id="arg-logspace">logspace<a class="anchor" aria-label="anchor" href="#arg-logspace"></a></dt>
-<dd><p>logical; if <code>TRUE</code>, <code>allprobs</code> is assumed to be on the log-scale, improving numerical stability for small probabilities. Only supported with <code>RTMB</code>.</p></dd>
+<dd><p>logical; if <code>TRUE</code>, <code>allprobs</code> is assumed to be on the log-scale, improving numerical stability for small probabilities.</p></dd>
 
 
 <dt id="arg-bw">bw<a class="anchor" aria-label="anchor" href="#arg-bw"></a></dt>
 <dd><p>optional positive integer specifying the bandwidth for a banded approximation of the forward algorithm, inducing a banded Hessian w.r.t. the observations.
-Defaults to <code>NULL</code> (exact algorithm). Approximation error decays geometrically in <code>bw</code>.</p></dd>
+Defaults to <code>NULL</code> (exact algorithm). Approximation error decays geometrically in <code>bw</code>.
+Only used with automatic differentiation; otherwise the exact likelihood is computed.</p></dd>
 
 
 <dt id="arg-report">report<a class="anchor" aria-label="anchor" href="#arg-report"></a></dt>
@@ -116,7 +118,7 @@ Defaults to <code>NULL</code> (exact algorithm). Approximation error decays geom
     <p>If <code>trackID</code> is provided, the total log-likelihood is the sum of each track's likelihood
 contribution. In this case, <code>Gamma</code> can be</p><ul><li><p>a matrix (same transition probabilities for each track),</p></li>
 <li><p>an array of dimension <code>c(nStates, nStates, nTracks)</code> (track-specific transition probability matrix), or</p></li>
-<li><p>an array of dimension <code>c(nStates, nStates, nObs)</code> for time-varying transition probabilities, in which case <code><a href="forward_g.html">forward_g</a></code> is called internally.</p></li>
+<li><p>an array of dimension <code>c(nStates, nStates, nObs)</code> for time-varying transition probabilities (see <code><a href="forward_g.html">forward_g</a></code>).</p></li>
 </ul><p>Additionally, <code>delta</code> can be a vector (same initial distribution for each track) or a
 matrix of dimension <code>c(nTracks, nStates)</code> (track-specific initial distributions).</p>
 <p><strong>Note:</strong> When there are multiple tracks, for compatibility with downstream functions like <code><a href="viterbi.html">viterbi</a></code>, <code><a href="stateprobs.html">stateprobs</a></code> or <code><a href="pseudo_res.html">pseudo_res</a></code>,

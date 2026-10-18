@@ -85,16 +85,18 @@ the first slice of each track is ignored as there is no transition into the star
 
 
 <dt id="arg-trackid">trackID<a class="anchor" aria-label="anchor" href="#arg-trackid"></a></dt>
-<dd><p>optional vector of length <code>nObs</code> containing <code>nTracks</code> unique IDs that separate tracks (see ‘Details’).</p></dd>
+<dd><p>optional vector of length <code>nObs</code> containing <code>nTracks</code> unique IDs that separate tracks (see ‘Details’).
+The observations of each track need to be consecutive.</p></dd>
 
 
 <dt id="arg-logspace">logspace<a class="anchor" aria-label="anchor" href="#arg-logspace"></a></dt>
-<dd><p>logical; if <code>TRUE</code>, <code>allprobs</code> is assumed to be on the log-scale, improving numerical stability for small probabilities. Only supported with <code>RTMB</code>.</p></dd>
+<dd><p>logical; if <code>TRUE</code>, <code>allprobs</code> is assumed to be on the log-scale, improving numerical stability for small probabilities.</p></dd>
 
 
 <dt id="arg-bw">bw<a class="anchor" aria-label="anchor" href="#arg-bw"></a></dt>
 <dd><p>optional positive integer specifying the bandwidth for a banded approximation of the forward algorithm, inducing a banded Hessian w.r.t. the observations.
-Defaults to <code>NULL</code> (exact algorithm). Approximation error decays geometrically in <code>bw</code>.</p></dd>
+Defaults to <code>NULL</code> (exact algorithm). Approximation error decays geometrically in <code>bw</code>.
+Only used with automatic differentiation; otherwise the exact likelihood is computed.</p></dd>
 
 
 <dt id="arg-report">report<a class="anchor" aria-label="anchor" href="#arg-report"></a></dt>

@@ -51,20 +51,21 @@ forward_g(
 - trackID:
 
   optional vector of length `nObs` containing `nTracks` unique IDs that
-  separate tracks (see ‘Details’).
+  separate tracks (see ‘Details’). The observations of each track need
+  to be consecutive.
 
 - logspace:
 
   logical; if `TRUE`, `allprobs` is assumed to be on the log-scale,
-  improving numerical stability for small probabilities. Only supported
-  with `RTMB`.
+  improving numerical stability for small probabilities.
 
 - bw:
 
   optional positive integer specifying the bandwidth for a banded
   approximation of the forward algorithm, inducing a banded Hessian
   w.r.t. the observations. Defaults to `NULL` (exact algorithm).
-  Approximation error decays geometrically in `bw`.
+  Approximation error decays geometrically in `bw`. Only used with
+  automatic differentiation; otherwise the exact likelihood is computed.
 
 - report:
 

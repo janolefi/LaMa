@@ -159,30 +159,9 @@ pseudo_res <- function(obs,
                        discrete = NULL,
                        randomise = TRUE) {
   
-  # handle model input
+  # handle model input: forecast probabilities, checks in stateprobs()
   if(!is.null(mod)){
-    # checks
-    if(is.null(mod$type)){
-      stop("'mod' contains no type.")
-    }
-    if(!(mod$type) %in% c("homogeneous","inhomogeneous","periodic","continuous_time")){
-      stop("'mod' contains invalid type.")
-    }
-    if(is.null(mod$delta)) stop("'mod' contains no initial distribution.")
-    if(is.null(mod$Gamma)) stop("'mod' contains no transition matrix.")
-    if(is.null(mod$allprobs)) stop("'mod' contains no state-dependent probabilities.")
-    if(mod$type == "periodic" && is.null(mod$tod)){
-      stop("'mod' contains no cyclic indexing variable.")
-    }
-    if(mod$type == "homogeneous"){
-      stateprobs = stateprobs(mod = mod, forecast = TRUE)
-    }
-    if(mod$type %in% c("inhomogeneous","continuous_time")){
-      stateprobs = stateprobs_g(mod = mod, forecast = TRUE)
-    }
-    if(mod$type == "periodic"){
-      stateprobs = stateprobs_p(mod = mod, forecast = TRUE)
-    }
+    stateprobs = stateprobs(mod = mod, forecast = TRUE)
   }
   
   nObs <- length(obs)

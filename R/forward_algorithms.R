@@ -26,9 +26,10 @@
 #' @param Gamma 
 #' transition probability matrix; either
 #'   \itemize{
-#'     \item a matrix of dimension \code{c(nStates, nStates)}, or
-#'     \item an array of dimension \code{c(nStates, nStates, nTracks)} if \code{trackID} is provided, or
-#'     \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities (see \code{\link{forward_g}}).
+#'     \item a matrix of dimension \code{c(nStates, nStates)},
+#'     \item an array of dimension \code{c(nStates, nStates, nTracks)} if \code{trackID} is provided,
+#'     \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities, or
+#'     \item an array of dimension \code{c(nStates, nStates, L)} for periodic transition probabilities, if \code{tod} is provided.
 #'   }
 #'   
 #' @param allprobs 
@@ -51,6 +52,10 @@
 #' 
 #' @param ad 
 #' logical; whether to use automatic differentiation. Determined automatically — for debugging only.
+#' 
+#' @param tod 
+#' optional integer vector of length \code{nObs} with values in 1, ..., L, indexing the slices of \code{Gamma} for periodic models
+#' (e.g. time of day with L = 24 for hourly data).
 #'   
 #' @details
 #' If \code{trackID} is provided, the total log-likelihood is the sum of each track's likelihood
@@ -58,7 +63,8 @@
 #'   \itemize{
 #'     \item a matrix (same transition probabilities for each track),
 #'     \item an array of dimension \code{c(nStates, nStates, nTracks)} (track-specific transition probability matrix), or
-#'     \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities (see \code{\link{forward_g}}).
+#'     \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities, or
+#'     \item an array of dimension \code{c(nStates, nStates, L)} for periodic transition probabilities, if \code{tod} is provided.
 #'   }
 #' Additionally, \code{delta} can be a vector (same initial distribution for each track) or a
 #' matrix of dimension \code{c(nTracks, nStates)} (track-specific initial distributions).
@@ -98,15 +104,17 @@ forward <- function(delta,
                     logspace = FALSE,
                     bw = NULL,
                     report = TRUE,
-                    ad = NULL
+                    ad = NULL,
+                    tod = NULL
                     ){
 
   # check inputs and bring them into the form used by the algorithm
-  inp <- prepare_forward(delta, Gamma, allprobs, trackID, logspace, bw)
+  inp <- prepare_forward(delta, Gamma, allprobs, trackID, logspace, bw, gidx = tod)
 
   # report quantities for easy use later
   if(report) {
     if(logspace) allprobs <- exp(allprobs)
+    if(!is.null(tod)) REPORT(tod)
     report_forward(delta, Gamma, allprobs, inp$trackID, inp$type)
   }
 
@@ -197,8 +205,14 @@ prepare_forward <- function(delta, Gamma, allprobs, trackID = NULL,
 
   # gidx[t]: slice of Gamma for the transition into t (unused at the start of a track)
   type <- "homogeneous"
-  if (!is.null(gidx)) { # given by forward_p()
-    type <- "inhomogeneous"
+  if (!is.null(gidx)) { # tod, for periodic models
+    if (length(gidx) != nObs) {
+      stop("tod must have the same length as the number of rows in allprobs.")
+    }
+    if (anyNA(gidx) || any(gidx < 1 | gidx > dG[3] | gidx != round(gidx))) {
+      stop("tod must contain integers in 1, ..., L, indexing the slices of Gamma (array of dimension c(N,N,L)).")
+    }
+    type <- "periodic"
   } else if (dG[3] == 1) {
     gidx <- rep(1L, nObs)
   } else if (!is.null(trackID) && dG[3] == nTracks) { # track-specific
@@ -374,6 +388,8 @@ forward_ad <- function(inp){
 #' Forward algorithm with time-varying transition probability matrix
 #'
 #' Calculates the log-likelihood of a sequence of observations under a hidden Markov model with time-varying transition probabilities using the \strong{forward algorithm} (Zucchini, MacDonald & Langrock, 2016).
+#' 
+#' \strong{Deprecated:} please use \code{\link{forward}} for all model types instead.
 #'
 #' @references 
 #' Zucchini, W., MacDonald, I.L., & Langrock, R. (2016). 
@@ -476,6 +492,10 @@ forward_g <- function(delta,
                       ad = NULL
                       ){
   
+  message(
+    "forward_g() is deprecated, please use forward() for all model types instead."
+  )
+  
   # forward() handles all types of Gamma
   forward(delta, Gamma, allprobs, trackID = trackID, logspace = logspace, 
           bw = bw, report = report, ad = ad)
@@ -484,6 +504,8 @@ forward_g <- function(delta,
 #' \href{https://www.taylorfrancis.com/books/mono/10.1201/b20790/hidden-markov-models-time-series-walter-zucchini-iain-macdonald-roland-langrock}{Forward algorithm} with for periodically varying transition probability matrices
 #'
 #' Calculates the log-likelihood of a sequence of observations under a hidden Markov model with periodically varying transition probabilities using the \strong{forward algorithm}.
+#' 
+#' \strong{Deprecated:} please use \code{\link{forward}} with argument \code{tod} instead.
 #' 
 #' @family forward algorithms
 #' 
@@ -548,25 +570,13 @@ forward_p <- function(delta,
                       report = TRUE,
                       logspace = FALSE){
   
+  message(
+    "forward_p() is deprecated, please use forward(..., tod = tod) for periodic models instead."
+  )
   
-  # tod indexes the slices of Gamma
-  if(length(dim(Gamma)) != 3 || anyNA(tod) || any(tod < 1 | tod > dim(Gamma)[3] | tod != round(tod))) {
-    stop("tod must contain integers in 1, ..., L, indexing the slices of Gamma (array of dimension c(N,N,L)).")
-  }
-  if(length(tod) != nrow(allprobs)) {
-    stop("tod must have the same length as the number of rows in allprobs.")
-  }
-  
-  inp <- prepare_forward(delta, Gamma, allprobs, trackID, logspace, gidx = tod)
-  
-  if(report){
-    if(logspace) allprobs <- exp(allprobs)
-    REPORT(tod)
-    # report Gamma with one slice per observation, as used by the decoding functions
-    report_forward(delta, Gamma[,,tod], allprobs, inp$trackID, inp$type)
-  }
-  
-  run_forward(inp, ad)
+  # forward() handles periodic Gamma, indexed by tod
+  forward(delta, Gamma, allprobs, trackID = trackID, logspace = logspace, 
+          report = report, ad = ad, tod = tod)
 }
 # HSMMs -------------------------------------------------------------------
 

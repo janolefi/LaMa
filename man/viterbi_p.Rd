@@ -19,7 +19,7 @@ This could e.g. be the periodically stationary distribution (for each track).}
 
 For half-hourly data L = 48. It could, however, also be day of year for daily data and L = 365.}
 
-\item{trackID}{optional vector of k track IDs, if multiple tracks need to be decoded separately}
+\item{trackID}{optional vector of k track IDs, if multiple tracks need to be decoded separately. The observations of each track need to be consecutive.}
 
 \item{mod}{optional model object containing initial distribution \code{delta}, transition probability matrix \code{Gamma}, matrix of state-dependent probabilities \code{allprobs}, and potentially a \code{trackID} variable
 
@@ -31,6 +31,9 @@ vector of decoded states of length n
 }
 \description{
 The Viterbi algorithm allows one to decode the most probable state sequence of an HMM.
+}
+\details{
+\strong{Deprecated:} please use \code{\link{viterbi}} with argument \code{tod} instead.
 }
 \examples{
 delta = c(0.5, 0.5)

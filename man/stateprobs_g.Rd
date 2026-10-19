@@ -26,7 +26,8 @@ For a single track, an array of dimension \code{c(nStates, nStates, nObs-1)} is 
 
 \item{allprobs}{matrix of state-dependent probabilities or density values of dimension \code{c(nObs, nStates)}}
 
-\item{trackID}{optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks}
+\item{trackID}{optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks.
+The observations of each track need to be consecutive.}
 
 \item{mod}{optional model object containing \code{delta}, \code{Gamma}, \code{allprobs}, and
 optionally \code{trackID}. When using \code{RTMB::MakeADFun} or \code{\link{qreml}} with
@@ -42,6 +43,9 @@ matrix of conditional state probabilities of dimension \code{c(nObs, nStates)}
 Computes
 \deqn{\Pr(\text{State}_t = j \mid X_1, ..., X_T)}
 for inhomogeneous HMMs
+}
+\details{
+\strong{Deprecated:} please use \code{\link{stateprobs}} for all model types instead.
 }
 \examples{
 Gamma = tpm_g(runif(10), matrix(c(-1,-1,1,-2), nrow = 2, byrow = TRUE))

@@ -26,7 +26,7 @@ This could e.g. be the periodically stationary distribution (for each track) as 
 \item{tod}{(Integer valued) variable for cycle indexing in 1, ..., L, mapping the data index to a generalised time of day (length n).
 For half-hourly data L = 48. It could, however, also be day of year for daily data and L = 365.}
 
-\item{trackID}{optional vector of k track IDs, if multiple tracks need to be decoded separately}
+\item{trackID}{optional vector of k track IDs, if multiple tracks need to be decoded separately. The observations of each track need to be consecutive.}
 
 \item{mod}{optional model object containing initial distribution \code{delta}, transition probability matrix \code{Gamma}, matrix of state-dependent probabilities \code{allprobs}, and potentially a \code{trackID} variable
 
@@ -42,6 +42,9 @@ matrix of conditional state probabilities of dimension c(n,N)
 Computes
 \deqn{\Pr(S_t = j \mid X_1, ..., X_T)}
 for periodically inhomogeneous HMMs
+}
+\details{
+\strong{Deprecated:} please use \code{\link{stateprobs}} with argument \code{tod} instead.
 }
 \examples{
 L = 24

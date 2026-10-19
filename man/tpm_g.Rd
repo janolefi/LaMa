@@ -4,16 +4,7 @@
 \alias{tpm_g}
 \title{Build all transition probability matrices of an inhomogeneous HMM}
 \usage{
-tpm_g(
-  Z,
-  beta,
-  Eta = NULL,
-  byrow = FALSE,
-  ref = NULL,
-  ad = NULL,
-  report = TRUE,
-  sparse = FALSE
-)
+tpm_g(Z, beta, Eta = NULL, byrow = FALSE, ref = NULL, ad = NULL, report = TRUE)
 }
 \arguments{
 \item{Z}{Covariate design matrix with or without intercept column, i.e. of dimension \code{c(nObs, p)} or \code{c(nObs, p+1)}.
@@ -34,8 +25,6 @@ Defaults to \code{FALSE}, but should be set to \code{TRUE} if one wants to work 
 \item{ad}{logical; whether to use automatic differentiation. Determined automatically — for debugging only.}
 
 \item{report}{logical; if \code{TRUE} (default), \code{delta}, \code{Gamma}, \code{allprobs}, and \code{trackID} are reported from the fitted model. Requires \code{ad = TRUE}.}
-
-\item{sparse}{logical, indicating whether sparsity in the rows of \code{Z} should be exploited.}
 }
 \value{
 array of transition probability matrices of dimension \code{c(nStates, nStates, nObs)}
@@ -46,6 +35,9 @@ Most commonly, this is done by specifying a linear predictor
 \deqn{ \eta_{ij}^{(t)} = \beta^{(ij)}_0 + \beta^{(ij)}_1 z_{t1} + \dots + \beta^{(ij)}_p z_{tp} }
 for each off-diagonal element (\eqn{i \neq j}) of the transition probability matrix and then applying the inverse multinomial logistic link (also known as softmax) to each row.
 This function efficiently calculates all transition probabilty matrices for a given design matrix \code{Z} and parameter matrix \code{beta}.
+}
+\details{
+\strong{Deprecated:} please use \code{\link{tpm}(beta, Z)} for all model types instead.
 }
 \examples{
 ## inhomogeneous Markov chain

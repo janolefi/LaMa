@@ -464,9 +464,9 @@ plot(pres_step, hist = TRUE)
 
 <!-- ```{r results refit, fig.width = 8, fig.height = 5}
 mod4 = obj4$report()
-mod4$Gamma = tpm_g(Z, mod4$beta) # calculating 24 tpms
+mod4$Gamma = tpm(mod4$beta, Z) # calculating 24 tpms
 
-Gamma_plot = tpm_g(Z_pred, mod4$beta)
+Gamma_plot = tpm(mod4$beta, Z_pred)
 plot(tod_seq, Gamma_plot[1,2,], type = "l", lwd = 2, ylim = c(0,1),
      xlab = "time of day", ylab = "transition probability", bty = "n")
 lines(tod_seq, Gamma_plot[2,1,], lwd = 2, lty = 3)

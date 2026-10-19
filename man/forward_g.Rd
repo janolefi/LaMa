@@ -52,6 +52,9 @@ HMM log-likelihood for given data and parameters
 Calculates the log-likelihood of a sequence of observations under a hidden Markov model with time-varying transition probabilities using the \strong{forward algorithm} (Zucchini, MacDonald & Langrock, 2016).
 }
 \details{
+\strong{Deprecated:} please use \code{\link{forward}} for all model types instead.
+
+
 If \code{trackID} is provided, the total log-likelihood will be the sum of each track's likelihood contribution.
 In this case, \code{Gamma} must be an array of dimension \code{c(nStates, nStates, nObs)}, matching the number of rows of allprobs. For each track, the transition matrix at the beginning of the track will be ignored (as there is no transition between tracks).
 Additionally, \code{delta} can be a vector (same initial distribution for each track) or a matrix of dimension \code{c(nTracks, nStates)} (different initial distribution for each track).

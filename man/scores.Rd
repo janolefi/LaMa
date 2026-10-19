@@ -4,18 +4,16 @@
 \alias{scores}
 \title{Per-observation score contributions}
 \usage{
-scores(nll, par, est = NULL)
+scores(obj, par = NULL)
 }
 \arguments{
-\item{nll}{negative log-likelihood function of a named parameter list, as passed to \code{RTMB::MakeADFun}}
+\item{obj}{optimised \code{RTMB} object from \code{\link[RTMB]{MakeADFun}}, or a model object from \code{\link{report}} or \code{\link{qreml}}}
 
-\item{par}{named list of parameters, as passed to \code{RTMB::MakeADFun}}
-
-\item{est}{optional vector of parameter values in the order of \code{unlist(par)}, e.g. \code{opt$par}.
-Defaults to the values in \code{par}.}
+\item{par}{optional parameter vector like \code{obj$par}, e.g. \code{opt$par}.
+Defaults to the best parameters found during optimisation.}
 }
 \value{
-matrix of score contributions of dimension \code{c(nObs, length(unlist(par)))}
+matrix of score contributions of dimension \code{c(nObs, length(obj$par))}
 }
 \description{
 Computes the score contribution of each observation,
@@ -28,11 +26,14 @@ robust (sandwich) standard errors, e.g. cluster-robust ones via \code{rowsum(U, 
 Each log-likelihood contribution in \code{\link{forward}} gets a weight \eqn{w_t}.
 The gradient of the weighted log-likelihood is linear in the weights, so its derivative
 w.r.t. \eqn{w_t} is \eqn{u_t}. This needs one tape of the gradient and one reverse sweep
-per parameter. The weights are handed to \code{\link{forward}} internally, so \code{nll}
-does not need to change.
+per parameter. The weights are handed to \code{\link{forward}} internally, so the
+likelihood function does not need to change.
 
-The number of observations is found by one evaluation of \code{nll} without automatic differentiation.
-If \code{nll} calls \code{\link{forward}} several times, e.g. once per track, the rows of the
+The likelihood function is taken from \code{obj} and evaluated again, with the data as they are
+when \code{scores()} is called. Parameters fixed via \code{map} are respected, and the columns
+correspond to \code{obj$par}, like \code{obj$gr()} and \code{obj$he()}.
+
+If the likelihood function calls \code{\link{forward}} several times, e.g. once per track, the rows of the
 result follow the order of these calls. Only \code{\link{forward}} (and its deprecated
 \code{_g} and \code{_p} versions) is supported, and models with random effects are not.
 }
@@ -41,13 +42,15 @@ nll <- function(par) {
   getAll(par)
   Gamma <- tpm(eta)
   delta <- stationary(Gamma)
-  allprobs <- cbind(dgamma2(step, mu[1], sigma[1]), dgamma2(step, mu[2], sigma[2]))
+  allprobs <- cbind(dgamma2(step, mu[1], sigma[1]), 
+                    dgamma2(step, mu[2], sigma[2]))
   -forward(delta, Gamma, allprobs)
 }
 step <- trex$step[1:200]
 par <- list(eta = c(-2, -2), mu = c(0.3, 2.5), sigma = c(0.2, 1.5))
-obj <- RTMB::MakeADFun(nll, par, silent = TRUE)
+obj <- MakeADFun(nll, par, silent = TRUE)
 opt <- nlminb(obj$par, obj$fn, obj$gr)
-U <- scores(nll, par, est = opt$par)
+mod <- report(obj)
+U <- scores(mod)
 colSums(U) # ~ 0 at the MLE
 }

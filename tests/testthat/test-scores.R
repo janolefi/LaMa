@@ -74,11 +74,12 @@ nll_sc <- function(par) {
 }
 est_sc <- c(-0.2, 2.8, 0.1, -0.1, -1.5, -2.5, 0.3, -0.2)
 
+obj_sc <- RTMB::MakeADFun(nll_sc, par_sc, silent = TRUE)
+
 test_that("scores: column sums equal the gradient", {
-  U <- scores(nll_sc, par_sc, est_sc)
+  U <- scores(obj_sc, est_sc)
   expect_equal(dim(U), c(30, 8))
-  obj <- RTMB::MakeADFun(nll_sc, par_sc, silent = TRUE)
-  expect_equal(colSums(U), -obj$gr(est_sc)[1, ], ignore_attr = TRUE)
+  expect_equal(colSums(U), -obj_sc$gr(est_sc)[1, ], ignore_attr = TRUE)
 })
 
 test_that("scores: rows are derivatives of the log-likelihood contributions", {
@@ -95,7 +96,23 @@ test_that("scores: rows are derivatives of the log-likelihood contributions", {
     e <- replace(0 * est_sc, k, h)
     (contrib(est_sc + e) - contrib(est_sc - e)) / (2 * h)
   })
-  expect_equal(unname(scores(nll_sc, par_sc, est_sc)), num, tolerance = 1e-6)
+  expect_equal(unname(scores(obj_sc, est_sc)), num, tolerance = 1e-6)
+})
+
+test_that("scores: respects map", {
+  obj <- RTMB::MakeADFun(nll_sc, par_sc, map = list(log_sigma = factor(c(1, 1))), silent = TRUE)
+  est <- est_sc[-4] # one common log_sigma
+  U <- scores(obj, est)
+  expect_equal(ncol(U), 7)
+  expect_equal(colSums(U), -obj$gr(est)[1, ], ignore_attr = TRUE)
+})
+
+test_that("scores: model object from report() and best parameters", {
+  obj <- RTMB::MakeADFun(nll_sc, par_sc, silent = TRUE)
+  opt <- nlminb(obj$par, obj$fn, obj$gr)
+  U <- scores(report(obj))
+  expect_equal(U, scores(obj, opt$par))
+  expect_equal(unname(colSums(U)), rep(0, 8), tolerance = 1e-4) # MLE
 })
 
 test_that("scores: one forward() call per track gives the same", {
@@ -106,10 +123,15 @@ test_that("scores: one forward() call per track gives the same", {
     -forward(c(0.5, 0.5), Gamma[, , 1:15], allprobs[1:15, ], report = FALSE) -
       forward(c(0.5, 0.5), Gamma[, , 16:30], allprobs[16:30, ], report = FALSE)
   }
-  expect_equal(scores(nll2, par_sc, est_sc), scores(nll_sc, par_sc, est_sc))
+  obj2 <- RTMB::MakeADFun(nll2, par_sc, silent = TRUE)
+  expect_equal(scores(obj2, est_sc), scores(obj_sc, est_sc))
 })
 
 test_that("scores: informative errors", {
-  expect_error(scores(nll_sc, par_sc, est_sc[-1]), "same length")
-  expect_error(scores(function(par) sum(par$x^2), list(x = 1)), "no call of forward")
+  expect_error(scores(obj_sc, est_sc[-1]), "same length")
+  obj0 <- RTMB::MakeADFun(function(par) sum(par$x^2), list(x = 1), silent = TRUE)
+  expect_error(scores(obj0), "no call of forward")
+  obj_re <- RTMB::MakeADFun(nll_sc, par_sc, random = "mu", silent = TRUE)
+  expect_error(scores(obj_re), "random effects")
+  expect_error(scores(list(a = 1)), "Expected an RTMB object")
 })

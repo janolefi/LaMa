@@ -34,6 +34,7 @@ test_that("decoding: periodic model reports L slices and decodes as with one sli
     # mod without type
     mod$type <- NULL
     expect_equal(viterbi(mod = mod), viterbi(mod = old))
+    expect_equal(stateprobs(mod = mod), stateprobs(mod = old))
   }
 })
 
@@ -63,4 +64,25 @@ test_that("viterbi: exact for all kinds of Gamma, also for tracks of length 1 an
   expect_equal(viterbi(D, Gk, ap, ID), ref_viterbi(D, function(t, i) Gk[, , i], logP_test, ID))
   expect_equal(viterbi_g(D, Gt_test, ap, ID), ref_viterbi(D, function(t, i) Gt_test[, , t], logP_test, ID))
   expect_equal(viterbi_p(D, Gp, ap, tod, ID), ref_viterbi(D, function(t, i) Gp[, , tod[t]], logP_test, ID))
+})
+
+test_that("stateprobs: exact for all kinds of Gamma, also for tracks of length 1 and 2", {
+  ap <- exp(logP_test)
+  ID <- rep(c("d", "a", "c", "b"), c(1, 2, 5, 12))
+  D <- rbind(D_test, c(0.4, 0.6))
+  Gk <- array(c(G1, G2, G3, G2), dim = c(2, 2, 4)) # track-specific
+  Gp <- tpm_p(1:4, L = 4, beta = matrix(c(-1, -1, 0.5, 0.5, 0, 0), 2)); tod <- rep(1:4, 5)
+  # sp(forecast) calls a stateprobs function, Gam as in ref_forward()
+  expect_stateprobs <- function(sp, delta, Gam, trackID = rep(1, 20)) {
+    expect_equal(unname(sp(FALSE)), ref_stateprobs(delta, Gam, logP_test, trackID))
+    expect_equal(unname(sp(TRUE)), ref_forecast(delta, Gam, logP_test, trackID))
+  }
+  expect_stateprobs(function(f) stateprobs(d_test, G1, ap, forecast = f), d_test, function(t, i) G1)
+  expect_stateprobs(function(f) stateprobs_g(d_test, Gt_test[, , -1], ap, forecast = f),
+                    d_test, function(t, i) Gt_test[, , t])
+  expect_stateprobs(function(f) stateprobs(D, Gk, ap, ID, forecast = f), D, function(t, i) Gk[, , i], ID)
+  expect_stateprobs(function(f) stateprobs_g(D, Gt_test, ap, ID, forecast = f),
+                    D, function(t, i) Gt_test[, , t], ID)
+  expect_stateprobs(function(f) stateprobs_p(D, Gp, ap, tod, ID, forecast = f),
+                    D, function(t, i) Gp[, , tod[t]], ID)
 })

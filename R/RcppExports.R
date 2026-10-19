@@ -13,12 +13,8 @@ forward_cpp_sp <- function(allprobs, delta, Gamma, agsizes, tod) {
     .Call(`_LaMa_forward_cpp_sp`, allprobs, delta, Gamma, agsizes, tod)
 }
 
-logalpha_cpp <- function(allprobs, delta, Gamma) {
-    .Call(`_LaMa_logalpha_cpp`, allprobs, delta, Gamma)
-}
-
-logbeta_cpp <- function(allprobs, Gamma) {
-    .Call(`_LaMa_logbeta_cpp`, allprobs, Gamma)
+stateprobs_cpp <- function(allprobs, Delta, Gamma, gidx, trackStart, forecast) {
+    .Call(`_LaMa_stateprobs_cpp`, allprobs, Delta, Gamma, gidx, trackStart, forecast)
 }
 
 viterbi_cpp <- function(allprobs, Delta, Gamma, gidx, trackStart) {

@@ -22,6 +22,14 @@ run_viterbi <- function(inp){
   as.integer(viterbi_cpp(inp$allprobs, inp$delta, inp$Gamma, inp$gidx - 1L, inp$start - 1L))
 }
 
+# local state probabilities in C++ on the output of prepare_decoding()
+run_stateprobs <- function(inp, forecast = FALSE){
+  probs <- stateprobs_cpp(inp$allprobs, inp$delta, inp$Gamma, inp$gidx - 1L, inp$start - 1L, forecast)
+  probs <- probs / rowSums(probs) # normalise rows
+  colnames(probs) <- paste0("S", seq_len(ncol(probs)))
+  probs
+}
+
 
 # Global decoding ---------------------------------------------------------
 
@@ -209,59 +217,8 @@ viterbi_p = function(delta, Gamma, allprobs, tod, trackID = NULL,
 #' probs = stateprobs(delta, Gamma, allprobs)
 stateprobs = function(delta, Gamma, allprobs, trackID = NULL,
                       mod = NULL, forecast = FALSE) {
-  
-  # check if a model with delta, Gamma and allprobs is provided
-  if(!is.null(mod)){
-    if(is.null(mod$delta)){
-      stop("Model object contains no initial distribution.")
-    }
-    if(is.null(mod$Gamma)){
-      stop("Model object contains no transition matrix.")
-    }
-    if(is.null(mod$allprobs)){
-      stop("Model object contains no state-dependent probabilities.")
-    }
-
-    # dispatch on the reported model type
-    if(identical(mod$type, "periodic")) return(stateprobs_p(mod = mod, forecast = forecast))
-    if(identical(mod$type, "inhomogeneous")) return(stateprobs_g(mod = mod, forecast = forecast))
-
-    # if suitable model object is provided, overwrite inputs with model object
-    delta = mod$delta
-    Gamma = mod$Gamma
-    allprobs = mod$allprobs
-    trackID = mod$trackID
-  }
-
-  n = nrow(allprobs)
-  N = ncol(allprobs)
-
-  # Handle time-varying Gamma by dispatching to stateprobs_g (if model type is unknown)
-  if (is.null(mod$type) && is.array(Gamma) && length(dim(Gamma)) == 3 && (dim(Gamma)[3] == n | dim(Gamma)[3] == n-1)) {
-    return(stateprobs_g(delta, Gamma, allprobs, trackID = trackID, forecast = forecast))
-  }
-  
-  # inflating Gamma to use stateprobs_g
-  if(is.null(trackID)){
-    Gammanew = array(Gamma, dim = c(N, N, n-1))
-  } else{
-    uID = unique(trackID)
-    k = length(uID) # number of tracks
-    
-    if(is.matrix(Gamma)){
-      Gammanew = array(Gamma, dim = c(N, N, n))
-    } else if(is.array(Gamma)){
-      if(dim(Gamma)[3] != k) stop("Number of distinct transition matrices does not match the number of tracks.")
-      
-      ## construct integer trackID
-      integerID = match(trackID, uID)
-      
-      Gammanew = Gamma[,,integerID]
-      Gammanew = Gammanew[,, -1] # ignoring first slice
-    }
-  }
-  
-  stateprobs_g(delta, Gammanew, allprobs, trackID, forecast = forecast)
+  inp <- prepare_decoding(delta, Gamma, allprobs, trackID, mod = mod)
+  run_stateprobs(inp, forecast)
 }
 
 
@@ -311,150 +268,8 @@ stateprobs = function(delta, Gamma, allprobs, trackID = NULL,
 #' probs = stateprobs_g(delta, Gamma[,,-1], allprobs)
 stateprobs_g = function(delta, Gamma, allprobs, trackID = NULL,
                         mod = NULL, forecast = FALSE) {
-  
-  # check if a model with delta, Gamma and allprobs is provided
-  if(!is.null(mod)){
-    if(is.null(mod$delta)){
-      stop("Model object contains no initial distribution.")
-    }
-    if(is.null(mod$Gamma)){
-      stop("Model object contains no transition matrix.")
-    }
-    if(is.null(mod$allprobs)){
-      stop("Model object contains no state-dependent probabilities.")
-    }
-    
-    # if suitable model object is provided, overwrite inputs with model object
-    delta = mod$delta
-    Gamma = mod$Gamma
-    # Gamma = mod$Gamma[,, -1] # ignoring first slice
-    allprobs = mod$allprobs
-    trackID = mod$trackID
-  }
-  
-  n = nrow(allprobs)
-  N = ncol(allprobs)
-  
-  # initialising state vector
-  stateprobs = matrix(NA, nrow = n, ncol = N)
-  
-  # If ID is provided, several tracks need to be decoded separately
-  if(!is.null(trackID)){
-    uID = unique(trackID) # unique IDs
-    k = length(uID) # number of tracks
-    
-    if(is.vector(delta)){ # single initial distribution
-      delta = matrix(delta, nrow = k, ncol = length(delta), byrow = TRUE)
-    } else if(is.matrix(delta)){
-      if(dim(delta)[1] != k){
-        if(dim(delta)[1] == 1){
-          delta = matrix(c(delta), nrow = k, ncol = length(delta), byrow = TRUE)
-        } else{
-          stop("Delta needs to be either a vector of length N or a matrix of dimension c(k,N), matching the number tracks.")
-        }
-      }
-    }
-    
-    if(dim(delta)[2] != N) stop("Initial distribution(s) do not match the number of states implied by allprobs.")
-    
-    # loop over individual tracks
-    for(i in seq_len(length(uID))){
-      id_i = which(trackID == uID[i])
-      allprobs_i = allprobs[id_i, ]
-      
-      if(length(id_i) == 1) stop("All tracks must be at least of length 2.")
-      
-      if(nrow(allprobs_i) == 2){
-        # viterbi algorithm for track of length 2 only
-        Gamma_i = as.matrix(Gamma[,,id_i[-1]])
-        
-        lalpha = matrix(NA, 2, N)
-        lbeta = matrix(NA, 2, N)
-        
-        # computing forward variables on log scale
-        foo = delta[i,] * allprobs_i[1,]
-        l = log(sum(foo))
-        foo = foo / sum(foo)
-        lalpha[1,] = log(foo) + l
-        
-        foo = (foo %*% Gamma_i) * allprobs_i[2,]
-        l = l + log(sum(foo))
-        foo = foo / sum(foo)
-        lalpha[2,] = log(foo) + l
-        
-        if(!forecast) {
-          # computing backward variables on log scale
-          foo = rep(1, N)
-          lbeta[2,] = rep(0, N)
-          foo = Gamma_i %*% diag(allprobs_i[2, ]) %*% foo
-          lbeta[1,] = log(foo)
-          
-          c = max(lalpha[2, ])
-          llk = c + log(sum(exp(lalpha[2, ] - c)))
-          stateprobs[id_i, ] = exp(lalpha + lbeta - llk)
-        } else {
-          phi1 <- exp(lalpha[1,])
-          phi2 <- as.vector(phi1 %*% Gamma_i)
-          stateprobs[id_i, ] <- rbind(delta[i,], phi2) # forecast at the start is delta
-        }
-   
-      } else{
-        # regurlar local decoding
-        lalpha = logalpha_cpp(allprobs_i, delta[i,], Gamma[,,id_i[-1]])
-        
-        if(!forecast) {
-          lbeta = logbeta_cpp(allprobs_i, Gamma[,,id_i[-1]])
-          c = max(lalpha[nrow(lalpha), ])
-          llk = c + log(sum(exp(lalpha[nrow(lalpha), ] - c)))
-          stateprobs[id_i, ] = exp(lalpha + lbeta - llk)
-        } else {
-          rowmax <- apply(lalpha, 1, max)
-          Alpha <- exp(lalpha - rowmax)
-          Phi <- Alpha / rowSums(Alpha)
-          stateprobs[id_i[1], ] <- delta[i, ] # forecast at the start is delta
-          for(t in seq_along(id_i)[-1]) {
-            stateprobs[id_i[t], ] <- Phi[t-1, ] %*% Gamma[,,id_i[t]]
-          }
-        }
-      }
-    }
-    
-  } else{
-    if(!is.vector(delta)){
-      stop("If trackID is not provided, delta needs to be a vector of length N.")
-    }
-    
-    if(dim(Gamma)[3] == n){
-      # message("Igoring the first slice of Gamma, as there are only n-1 transitions in a time series of length n.")
-      # not using the first slice of Gamma, if n slices are provided
-      Gamma = Gamma[,,-1]
-    }
-    
-    lalpha = logalpha_cpp(allprobs, delta, Gamma)
-    
-    if(!forecast) {
-      lbeta = logbeta_cpp(allprobs, Gamma)
-      
-      c = max(lalpha[nrow(lalpha),])
-      llk = c + log(sum(exp(lalpha[nrow(lalpha),] - c)))
-      
-      stateprobs = exp(lalpha + lbeta - llk)
-    } else{
-      rowmax <- apply(lalpha, 1, max)
-      Alpha <- exp(lalpha - rowmax)
-      Phi <- Alpha / rowSums(Alpha)
-      stateprobs[1, ] <- delta # forecast at the start is delta
-      for(t in 2:n) {
-        stateprobs[t, ] <- Phi[t-1, ] %*% Gamma[,,t-1]
-      }
-    }
-  }
-  
-  # rowSums should already be one, but just to be safe
-  stateprobs <- stateprobs / rowSums(stateprobs)
-  
-  colnames(stateprobs) <- paste0("S", 1:N)
-  stateprobs
+  inp <- prepare_decoding(delta, Gamma, allprobs, trackID, mod = mod)
+  run_stateprobs(inp, forecast)
 }
 
 
@@ -495,39 +310,7 @@ stateprobs_g = function(delta, Gamma, allprobs, trackID = NULL,
 
 stateprobs_p = function(delta, Gamma, allprobs, tod, trackID = NULL,
                         mod = NULL, forecast = FALSE) {
-  
-  # check if a model with delta, Gamma and allprobs is provided
-  if(!is.null(mod)){
-    if(is.null(mod$delta)){
-      stop("Model object contains no initial distribution.")
-    }
-    if(is.null(mod$Gamma)){
-      stop("Model object contains no transition matrix.")
-    }
-    if(is.null(mod$allprobs)){
-      stop("Model object contains no state-dependent probabilities.")
-    }
-    if(is.null(mod$tod)){
-      stop("Model object contains no cyclic indexing variable.")
-    }
-    
-    # if suitable model object is provided, overwrite inputs with model object
-    delta = mod$delta
-    Gamma = mod$Gamma
-    allprobs = mod$allprobs
-    tod = mod$tod
-    trackID = mod$trackID
-  }
-  
-  n = nrow(allprobs)
-  N = ncol(allprobs)
-  
-  Gammanew = Gamma[,,tod] # select the transition matrix for the current time of day
-  
-  if(is.null(trackID)){
-    Gammanew = Gammanew[,,-1]
-  }
-  
-  stateprobs_g(delta, Gammanew, allprobs, trackID, forecast = forecast)
+  inp <- prepare_decoding(delta, Gamma, allprobs, trackID, tod, mod)
+  run_stateprobs(inp, forecast)
 }
 

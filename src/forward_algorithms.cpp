@@ -83,50 +83,46 @@ double forward_cpp_sp(const arma::mat& allprobs, const arma::rowvec& delta, cons
   return l;
 }
 
+// local state probabilities for all tracks, with the same inputs as forward_cpp()
+// forecast: Pr(S_t = j | x_1, ..., x_t-1) instead of Pr(S_t = j | x_1, ..., x_T)
+// rows are not normalised
 // [[Rcpp::export]]
-arma::mat logalpha_cpp(const arma::mat& allprobs, const arma::rowvec& delta, const arma::cube& Gamma)
+arma::mat stateprobs_cpp(const arma::mat& allprobs, const arma::mat& Delta, const arma::cube& Gamma,
+                         const IntegerVector& gidx, const IntegerVector& trackStart, bool forecast)
 {
-  int N = allprobs.n_cols;
   int nObs = allprobs.n_rows;
-  arma::rowvec foo(N);
-  arma::mat lalpha(nObs, N);
-  
-  foo = delta % allprobs.row(0);
-  double sumfoo = sum(foo);
-  double l = log(sumfoo);
-  foo = foo / sumfoo;
-  lalpha.row(0) = log(foo) + l;
-  
-  for (unsigned int i=1; i<nObs; i++){
-    foo = (foo*Gamma.slice(i-1)) % allprobs.row(i);
-    sumfoo = sum(foo);
-    l = l + log(sumfoo);
-    foo = foo / sumfoo;
-    lalpha.row(i) = log(foo) + l;
-  }
-  return lalpha;
-}
+  int N = allprobs.n_cols;
+  int K = trackStart.size();
 
-// [[Rcpp::export]]
-arma::mat logbeta_cpp(const arma::mat& allprobs, const arma::cube& Gamma) {
-  int N = allprobs.n_cols;
-  int nObs = allprobs.n_rows;
-  arma::mat lbeta(nObs, N);
-  
-  arma::colvec foo = arma::ones<vec>(N) / N;
-  double sumfoo = sum(foo);
-  double l = log(N);
-  lbeta.row(nObs - 1) = arma::zeros<rowvec>(N);
-  
-  for (int i = nObs - 2; i >= 0; --i) { // Loop from nObs - 1 down to 0
-    foo = Gamma.slice(i) * arma::diagmat(allprobs.row(i + 1)) * foo;
-    sumfoo = sum(foo);
-    l = l + log(sumfoo);
-    foo = foo / sumfoo;
-    
-    lbeta.row(i) = (l + log(foo)).t();
+  arma::mat phi(nObs, N); // filtered state probabilities
+  arma::mat probs(nObs, N);
+  arma::rowvec foo(N);
+  arma::colvec beta(N);
+
+  for (int k = 0; k < K; k++){
+    int start = trackStart[k];
+    int end = (k < K - 1) ? trackStart[k + 1] - 1 : nObs - 1;
+
+    // forward pass
+    foo = Delta.row(k);
+    for (int t = start; t <= end; t++){
+      if (t > start) foo = phi.row(t - 1) * Gamma.slice(gidx[t]);
+      probs.row(t) = foo; // forecast
+      foo = foo % allprobs.row(t);
+      phi.row(t) = foo / sum(foo);
+    }
+    if (forecast) continue;
+
+    // backward pass with scaled beta: smoothing probabilities are proportional to phi * beta
+    beta.ones();
+    probs.row(end) = phi.row(end);
+    for (int t = end - 1; t >= start; t--){
+      beta = Gamma.slice(gidx[t + 1]) * (allprobs.row(t + 1).t() % beta);
+      beta = beta / sum(beta);
+      probs.row(t) = phi.row(t) % beta.t();
+    }
   }
-  return lbeta;
+  return probs;
 }
 
 // Viterbi algorithm for all tracks, with the same inputs as forward_cpp()

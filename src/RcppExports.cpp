@@ -55,28 +55,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// logalpha_cpp
-arma::mat logalpha_cpp(const arma::mat& allprobs, const arma::rowvec& delta, const arma::cube& Gamma);
-RcppExport SEXP _LaMa_logalpha_cpp(SEXP allprobsSEXP, SEXP deltaSEXP, SEXP GammaSEXP) {
+// stateprobs_cpp
+arma::mat stateprobs_cpp(const arma::mat& allprobs, const arma::mat& Delta, const arma::cube& Gamma, const IntegerVector& gidx, const IntegerVector& trackStart, bool forecast);
+RcppExport SEXP _LaMa_stateprobs_cpp(SEXP allprobsSEXP, SEXP DeltaSEXP, SEXP GammaSEXP, SEXP gidxSEXP, SEXP trackStartSEXP, SEXP forecastSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type allprobs(allprobsSEXP);
-    Rcpp::traits::input_parameter< const arma::rowvec& >::type delta(deltaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Delta(DeltaSEXP);
     Rcpp::traits::input_parameter< const arma::cube& >::type Gamma(GammaSEXP);
-    rcpp_result_gen = Rcpp::wrap(logalpha_cpp(allprobs, delta, Gamma));
-    return rcpp_result_gen;
-END_RCPP
-}
-// logbeta_cpp
-arma::mat logbeta_cpp(const arma::mat& allprobs, const arma::cube& Gamma);
-RcppExport SEXP _LaMa_logbeta_cpp(SEXP allprobsSEXP, SEXP GammaSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type allprobs(allprobsSEXP);
-    Rcpp::traits::input_parameter< const arma::cube& >::type Gamma(GammaSEXP);
-    rcpp_result_gen = Rcpp::wrap(logbeta_cpp(allprobs, Gamma));
+    Rcpp::traits::input_parameter< const IntegerVector& >::type gidx(gidxSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type trackStart(trackStartSEXP);
+    Rcpp::traits::input_parameter< bool >::type forecast(forecastSEXP);
+    rcpp_result_gen = Rcpp::wrap(stateprobs_cpp(allprobs, Delta, Gamma, gidx, trackStart, forecast));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -190,8 +181,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_LaMa_forward_cpp", (DL_FUNC) &_LaMa_forward_cpp, 5},
     {"_LaMa_forward_cpp_s", (DL_FUNC) &_LaMa_forward_cpp_s, 4},
     {"_LaMa_forward_cpp_sp", (DL_FUNC) &_LaMa_forward_cpp_sp, 5},
-    {"_LaMa_logalpha_cpp", (DL_FUNC) &_LaMa_logalpha_cpp, 3},
-    {"_LaMa_logbeta_cpp", (DL_FUNC) &_LaMa_logbeta_cpp, 2},
+    {"_LaMa_stateprobs_cpp", (DL_FUNC) &_LaMa_stateprobs_cpp, 6},
     {"_LaMa_viterbi_cpp", (DL_FUNC) &_LaMa_viterbi_cpp, 5},
     {"_LaMa_rep_times", (DL_FUNC) &_LaMa_rep_times, 2},
     {"_LaMa_tpm_g_cpp", (DL_FUNC) &_LaMa_tpm_g_cpp, 4},

@@ -43,6 +43,9 @@ Computes
 \deqn{\Pr(\text{State}_t = j \mid X_1, ..., X_T)}
 for inhomogeneous HMMs
 }
+\details{
+\strong{Deprecated:} please use \code{\link{stateprobs}} for all model types instead.
+}
 \examples{
 Gamma = tpm_g(runif(10), matrix(c(-1,-1,1,-2), nrow = 2, byrow = TRUE))
 delta = c(0.5, 0.5)

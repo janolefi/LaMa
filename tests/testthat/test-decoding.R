@@ -9,7 +9,7 @@ fit_p <- function(trackID = NULL) {
     delta <- stationary_p(Gamma, tod_dec[1])
     allprobs <- cbind(dnorm(x_dec, mu[1], 1), dnorm(x_dec, mu[2], 1))
     REPORT(mu)
-    -forward_p(delta, Gamma, allprobs, tod_dec, trackID = trackID)
+    -forward(delta, Gamma, allprobs, tod = tod_dec, trackID = trackID)
   }
   obj <- RTMB::MakeADFun(nll, list(beta = matrix(c(-2, -2, 0, 0, 0, 0), 2), mu = c(0, 3)), silent = TRUE)
   nlminb(obj$par, obj$fn, obj$gr)
@@ -24,11 +24,11 @@ test_that("decoding: periodic model reports L slices and decodes as with one sli
     # reporting of LaMa <= 2.1.1: expanded Gamma, with tod, type inhomogeneous
     G <- mod$Gamma[, , mod$tod]
     old <- mod; old$Gamma <- G; old$type <- "inhomogeneous"
-    expect_equal(viterbi(mod = mod), viterbi_g(mod$delta, G, mod$allprobs, mod$trackID))
+    expect_equal(viterbi(mod = mod), viterbi(mod$delta, G, mod$allprobs, mod$trackID))
     expect_equal(viterbi(mod = mod), viterbi(mod = old))
-    expect_equal(stateprobs(mod = mod), stateprobs_g(mod$delta, G, mod$allprobs, mod$trackID))
+    expect_equal(stateprobs(mod = mod), stateprobs(mod$delta, G, mod$allprobs, mod$trackID))
     expect_equal(stateprobs(mod = mod, forecast = TRUE),
-                 stateprobs_g(mod$delta, G, mod$allprobs, mod$trackID, forecast = TRUE))
+                 stateprobs(mod$delta, G, mod$allprobs, mod$trackID, forecast = TRUE))
     expect_equal(pseudo_res(x_dec, "norm", list(mean = mod$mu, sd = 1), mod = mod),
                  pseudo_res(x_dec, "norm", list(mean = mod$mu, sd = 1), mod = old))
     # mod without type
@@ -44,10 +44,10 @@ test_that("decoding: forecast probabilities reproduce the log-likelihood", {
   ID <- rep(1:3, c(2, 8, 10)) # with a track of length 2
   expect_equal(llk_fc(stateprobs(d_test, G1, ap, forecast = TRUE)),
                forward(d_test, G1, ap, ad = FALSE))
-  expect_equal(llk_fc(stateprobs_g(d_test, Gt_test, ap, forecast = TRUE)),
-               forward_g(d_test, Gt_test, ap, ad = FALSE))
-  expect_equal(llk_fc(stateprobs_g(D_test, Gt_test, ap, trackID = ID, forecast = TRUE)),
-               forward_g(D_test, Gt_test, ap, trackID = ID, ad = FALSE))
+  expect_equal(llk_fc(stateprobs(d_test, Gt_test, ap, forecast = TRUE)),
+               forward(d_test, Gt_test, ap, ad = FALSE))
+  expect_equal(llk_fc(stateprobs(D_test, Gt_test, ap, trackID = ID, forecast = TRUE)),
+               forward(D_test, Gt_test, ap, trackID = ID, ad = FALSE))
 })
 
 test_that("viterbi: exact for all kinds of Gamma, also for tracks of length 1 and 2", {
@@ -58,12 +58,12 @@ test_that("viterbi: exact for all kinds of Gamma, also for tracks of length 1 an
   Gp <- tpm_p(1:4, L = 4, beta = matrix(c(-1, -1, 0.5, 0.5, 0, 0), 2)); tod <- rep(1:4, 5)
   lp <- logP_test[1:12, ] # single track
   expect_equal(viterbi(d_test, G1, ap[1:12, ]), ref_viterbi(d_test, function(t, i) G1, lp))
-  expect_equal(viterbi_g(d_test, Gt_test[, , 2:12], ap[1:12, ]),
+  expect_equal(viterbi(d_test, Gt_test[, , 2:12], ap[1:12, ]),
                ref_viterbi(d_test, function(t, i) Gt_test[, , t], lp))
   expect_equal(viterbi(D, G1, ap, ID), ref_viterbi(D, function(t, i) G1, logP_test, ID))
   expect_equal(viterbi(D, Gk, ap, ID), ref_viterbi(D, function(t, i) Gk[, , i], logP_test, ID))
-  expect_equal(viterbi_g(D, Gt_test, ap, ID), ref_viterbi(D, function(t, i) Gt_test[, , t], logP_test, ID))
-  expect_equal(viterbi_p(D, Gp, ap, tod, ID), ref_viterbi(D, function(t, i) Gp[, , tod[t]], logP_test, ID))
+  expect_equal(viterbi(D, Gt_test, ap, ID), ref_viterbi(D, function(t, i) Gt_test[, , t], logP_test, ID))
+  expect_equal(viterbi(D, Gp, ap, ID, tod = tod), ref_viterbi(D, function(t, i) Gp[, , tod[t]], logP_test, ID))
 })
 
 test_that("stateprobs: exact for all kinds of Gamma, also for tracks of length 1 and 2", {
@@ -78,11 +78,28 @@ test_that("stateprobs: exact for all kinds of Gamma, also for tracks of length 1
     expect_equal(unname(sp(TRUE)), ref_forecast(delta, Gam, logP_test, trackID))
   }
   expect_stateprobs(function(f) stateprobs(d_test, G1, ap, forecast = f), d_test, function(t, i) G1)
-  expect_stateprobs(function(f) stateprobs_g(d_test, Gt_test[, , -1], ap, forecast = f),
+  expect_stateprobs(function(f) stateprobs(d_test, Gt_test[, , -1], ap, forecast = f),
                     d_test, function(t, i) Gt_test[, , t])
   expect_stateprobs(function(f) stateprobs(D, Gk, ap, ID, forecast = f), D, function(t, i) Gk[, , i], ID)
-  expect_stateprobs(function(f) stateprobs_g(D, Gt_test, ap, ID, forecast = f),
+  expect_stateprobs(function(f) stateprobs(D, Gt_test, ap, ID, forecast = f),
                     D, function(t, i) Gt_test[, , t], ID)
-  expect_stateprobs(function(f) stateprobs_p(D, Gp, ap, tod, ID, forecast = f),
+  expect_stateprobs(function(f) stateprobs(D, Gp, ap, ID, forecast = f, tod = tod),
                     D, function(t, i) Gp[, , tod[t]], ID)
+})
+
+test_that("deprecated _g and _p functions give a message and the same results", {
+  ap <- exp(logP_test); ID <- rep(1:3, c(5, 8, 7)); tod <- rep(1:4, 5)
+  Gp <- tpm_p(1:4, L = 4, beta = matrix(c(-1, -1, 0.5, 0.5, 0, 0), 2))
+  expect_message(l <- forward_g(d_test, Gt_test, ap, ad = FALSE), "deprecated")
+  expect_equal(l, forward(d_test, Gt_test, ap, ad = FALSE))
+  expect_message(l <- forward_p(d_test, Gp, ap, tod, ad = FALSE), "deprecated")
+  expect_equal(l, forward(d_test, Gp, ap, ad = FALSE, tod = tod))
+  expect_message(s <- viterbi_g(d_test, Gt_test, ap, ID), "deprecated")
+  expect_equal(s, viterbi(d_test, Gt_test, ap, ID))
+  expect_message(s <- viterbi_p(d_test, Gp, ap, tod, ID), "deprecated")
+  expect_equal(s, viterbi(d_test, Gp, ap, ID, tod = tod))
+  expect_message(p <- stateprobs_g(d_test, Gt_test, ap, ID, forecast = TRUE), "deprecated")
+  expect_equal(p, stateprobs(d_test, Gt_test, ap, ID, forecast = TRUE))
+  expect_message(p <- stateprobs_p(d_test, Gp, ap, tod, ID), "deprecated")
+  expect_equal(p, stateprobs(d_test, Gp, ap, ID, tod = tod))
 })

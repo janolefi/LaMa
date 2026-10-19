@@ -10,7 +10,8 @@ stateprobs(
   allprobs,
   trackID = NULL,
   mod = NULL,
-  forecast = FALSE
+  forecast = FALSE,
+  tod = NULL
 )
 }
 \arguments{
@@ -23,8 +24,9 @@ stateprobs(
 \item{Gamma}{transition probability matrix; either
 \itemize{
   \item a matrix of dimension \code{c(nStates, nStates)},
-  \item an array of dimension \code{c(nStates, nStates, nTracks)} if \code{trackID} is provided, or
-  \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities, in which case \code{\link{stateprobs_g}} is called internally
+  \item an array of dimension \code{c(nStates, nStates, nTracks)} if \code{trackID} is provided,
+  \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities, or
+  \item an array of dimension \code{c(nStates, nStates, L)} for periodic transition probabilities, if \code{tod} is provided
 }}
 
 \item{allprobs}{matrix of state-dependent probabilities or density values of dimension \code{c(nObs, nStates)}}
@@ -37,6 +39,8 @@ optionally \code{trackID}. When using \code{RTMB::MakeADFun} or \code{\link{qrem
 and the object returned by \code{RTMB::report()} or \code{\link{qreml}} can be passed directly.}
 
 \item{forecast}{logical, indicating if forecast probabilities \eqn{\Pr(\text{State}_t = j \mid X_1, ..., X_{t-1})} should be calculated instead.}
+
+\item{tod}{optional integer vector of length \code{nObs} with values in 1, ..., L, indexing the slices of \code{Gamma} for periodic models}
 }
 \value{
 matrix of conditional state probabilities of dimension \code{c(nObs, nStates)}

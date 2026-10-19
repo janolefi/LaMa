@@ -12,7 +12,7 @@ prepare_decoding <- function(delta, Gamma, allprobs, trackID = NULL, tod = NULL,
     allprobs <- mod$allprobs
     trackID <- mod$trackID
     # periodic models (LaMa <= 2.1.1 reported tod with an expanded Gamma, type inhomogeneous)
-    if(!identical(mod$type, "inhomogeneous")) tod <- mod$tod
+    tod <- if(!identical(mod$type, "inhomogeneous")) mod$tod
   }
   prepare_forward(delta, Gamma, allprobs, trackID, gidx = tod)
 }
@@ -50,8 +50,9 @@ run_stateprobs <- function(inp, forecast = FALSE){
 #' transition probability matrix; either
 #'   \itemize{
 #'     \item a matrix of dimension \code{c(nStates, nStates)},
-#'     \item an array of dimension \code{c(nStates, nStates, nTracks)} if \code{trackID} is provided, or
-#'     \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities, in which case \code{\link{viterbi_g}} is called internally
+#'     \item an array of dimension \code{c(nStates, nStates, nTracks)} if \code{trackID} is provided,
+#'     \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities, or
+#'     \item an array of dimension \code{c(nStates, nStates, L)} for periodic transition probabilities, if \code{tod} is provided
 #'   }
 #' @param allprobs 
 #' matrix of state-dependent probabilities or density values of dimension \code{c(nObs, nStates)}
@@ -65,6 +66,9 @@ run_stateprobs <- function(inp, forecast = FALSE){
 #'   \code{\link{forward}} in the likelihood, these are reported automatically after model fitting
 #'   and the object returned by \code{RTMB::report()} or \code{\link{qreml}} can be passed directly.
 #'
+#' @param tod 
+#' optional integer vector of length \code{nObs} with values in 1, ..., L, indexing the slices of \code{Gamma} for periodic models
+#'
 #' @return vector of decoded states of length \code{nObs}
 #' @export
 #'
@@ -74,8 +78,8 @@ run_stateprobs <- function(inp, forecast = FALSE){
 #' allprobs = matrix(runif(200), nrow = 100, ncol = 2)
 #' states = viterbi(delta, Gamma, allprobs)
 viterbi = function(delta, Gamma, allprobs, trackID = NULL,
-                   mod = NULL){
-  inp <- prepare_decoding(delta, Gamma, allprobs, trackID, mod = mod)
+                   mod = NULL, tod = NULL){
+  inp <- prepare_decoding(delta, Gamma, allprobs, trackID, tod, mod)
   run_viterbi(inp)
 }
 
@@ -83,6 +87,8 @@ viterbi = function(delta, Gamma, allprobs, trackID = NULL,
 #' Viterbi algorithm for state decoding in inhomogeneous HMMs
 #'
 #' The Viterbi algorithm decodes the most probable state sequence of an HMM.
+#' 
+#' \strong{Deprecated:} please use \code{\link{viterbi}} for all model types instead.
 #'
 #' @family decoding functions
 #'
@@ -120,14 +126,20 @@ viterbi = function(delta, Gamma, allprobs, trackID = NULL,
 #' states = viterbi_g(delta, Gamma[,,-1], allprobs)
 viterbi_g = function(delta, Gamma, allprobs, trackID = NULL,
                      mod = NULL){
-  inp <- prepare_decoding(delta, Gamma, allprobs, trackID, mod = mod)
-  run_viterbi(inp)
+  
+  message(
+    "viterbi_g() is deprecated, please use viterbi() for all model types instead."
+  )
+  
+  viterbi(delta, Gamma, allprobs, trackID = trackID, mod = mod)
 }
 
 
 #' Viterbi algorithm for state decoding in periodically inhomogeneous HMMs
 #' 
 #' The Viterbi algorithm allows one to decode the most probable state sequence of an HMM.
+#' 
+#' \strong{Deprecated:} please use \code{\link{viterbi}} with argument \code{tod} instead.
 #'
 #' @family decoding functions
 #'
@@ -161,8 +173,12 @@ viterbi_g = function(delta, Gamma, allprobs, trackID = NULL,
 #' states = viterbi_p(delta, Gamma, allprobs, tod)
 viterbi_p = function(delta, Gamma, allprobs, tod, trackID = NULL,
                      mod = NULL){
-  inp <- prepare_decoding(delta, Gamma, allprobs, trackID, tod, mod)
-  run_viterbi(inp)
+  
+  message(
+    "viterbi_p() is deprecated, please use viterbi(..., tod = tod) for periodic models instead."
+  )
+  
+  viterbi(delta, Gamma, allprobs, trackID = trackID, mod = mod, tod = tod)
 }
 
 
@@ -188,8 +204,9 @@ viterbi_p = function(delta, Gamma, allprobs, tod, trackID = NULL,
 #' transition probability matrix; either
 #'   \itemize{
 #'     \item a matrix of dimension \code{c(nStates, nStates)},
-#'     \item an array of dimension \code{c(nStates, nStates, nTracks)} if \code{trackID} is provided, or
-#'     \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities, in which case \code{\link{stateprobs_g}} is called internally
+#'     \item an array of dimension \code{c(nStates, nStates, nTracks)} if \code{trackID} is provided,
+#'     \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities, or
+#'     \item an array of dimension \code{c(nStates, nStates, L)} for periodic transition probabilities, if \code{tod} is provided
 #'   }
 #' @param allprobs 
 #' matrix of state-dependent probabilities or density values of dimension \code{c(nObs, nStates)}
@@ -206,6 +223,9 @@ viterbi_p = function(delta, Gamma, allprobs, tod, trackID = NULL,
 #' @param forecast 
 #' logical, indicating if forecast probabilities \eqn{\Pr(\text{State}_t = j \mid X_1, ..., X_{t-1})} should be calculated instead.
 #' 
+#' @param tod 
+#' optional integer vector of length \code{nObs} with values in 1, ..., L, indexing the slices of \code{Gamma} for periodic models
+#'
 #' @return matrix of conditional state probabilities of dimension \code{c(nObs, nStates)}
 #' @export
 #'
@@ -216,8 +236,8 @@ viterbi_p = function(delta, Gamma, allprobs, tod, trackID = NULL,
 #' 
 #' probs = stateprobs(delta, Gamma, allprobs)
 stateprobs = function(delta, Gamma, allprobs, trackID = NULL,
-                      mod = NULL, forecast = FALSE) {
-  inp <- prepare_decoding(delta, Gamma, allprobs, trackID, mod = mod)
+                      mod = NULL, forecast = FALSE, tod = NULL) {
+  inp <- prepare_decoding(delta, Gamma, allprobs, trackID, tod, mod)
   run_stateprobs(inp, forecast)
 }
 
@@ -227,6 +247,8 @@ stateprobs = function(delta, Gamma, allprobs, trackID = NULL,
 #' Computes
 #' \deqn{\Pr(\text{State}_t = j \mid X_1, ..., X_T)}
 #' for inhomogeneous HMMs
+#' 
+#' \strong{Deprecated:} please use \code{\link{stateprobs}} for all model types instead.
 #' 
 #' @family decoding functions
 #' 
@@ -268,8 +290,12 @@ stateprobs = function(delta, Gamma, allprobs, trackID = NULL,
 #' probs = stateprobs_g(delta, Gamma[,,-1], allprobs)
 stateprobs_g = function(delta, Gamma, allprobs, trackID = NULL,
                         mod = NULL, forecast = FALSE) {
-  inp <- prepare_decoding(delta, Gamma, allprobs, trackID, mod = mod)
-  run_stateprobs(inp, forecast)
+  
+  message(
+    "stateprobs_g() is deprecated, please use stateprobs() for all model types instead."
+  )
+  
+  stateprobs(delta, Gamma, allprobs, trackID = trackID, mod = mod, forecast = forecast)
 }
 
 
@@ -278,6 +304,8 @@ stateprobs_g = function(delta, Gamma, allprobs, trackID = NULL,
 #' Computes
 #' \deqn{\Pr(S_t = j \mid X_1, ..., X_T)}
 #' for periodically inhomogeneous HMMs
+#' 
+#' \strong{Deprecated:} please use \code{\link{stateprobs}} with argument \code{tod} instead.
 #'  
 #' @family decoding functions
 #' 
@@ -310,7 +338,11 @@ stateprobs_g = function(delta, Gamma, allprobs, trackID = NULL,
 
 stateprobs_p = function(delta, Gamma, allprobs, tod, trackID = NULL,
                         mod = NULL, forecast = FALSE) {
-  inp <- prepare_decoding(delta, Gamma, allprobs, trackID, tod, mod)
-  run_stateprobs(inp, forecast)
+  
+  message(
+    "stateprobs_p() is deprecated, please use stateprobs(..., tod = tod) for periodic models instead."
+  )
+  
+  stateprobs(delta, Gamma, allprobs, trackID = trackID, mod = mod, forecast = forecast, tod = tod)
 }
 

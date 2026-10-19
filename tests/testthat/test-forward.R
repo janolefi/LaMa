@@ -28,7 +28,7 @@ test_that("forward: tracks of length one and nObs = 1", {
   ID <- rep(1:5, c(1, 7, 1, 10, 1))
   expect_forward(function(ap, ...) forward(d_test, G1, ap, trackID = ID, report = FALSE, ...), lp,
                  ref_forward(d_test, function(t, i) G1, lp, ID))
-  expect_forward(function(ap, ...) forward_g(d_test, Gt_test, ap, trackID = ID, report = FALSE, ...), lp,
+  expect_forward(function(ap, ...) forward(d_test, Gt_test, ap, trackID = ID, report = FALSE, ...), lp,
                  ref_forward(d_test, function(t, i) Gt_test[, , t], lp, ID))
   lp1 <- lp[1, , drop = FALSE]
   expect_forward(function(ap, ...) forward(d_test, G1, ap, report = FALSE, ...), lp1,
@@ -43,30 +43,30 @@ test_that("forward: track-specific Gamma with nTracks = nObs - 1", {
                  ref_forward(d_test, function(t, i) Gk[, , i], lp10, ID))
 })
 
-test_that("forward_g: time-varying Gamma with nObs and nObs - 1 slices", {
+test_that("forward: time-varying Gamma with nObs and nObs - 1 slices", {
   ref <- ref_forward(d_test, function(t, i) Gt_test[, , t], lp)
-  expect_forward(function(ap, ...) forward_g(d_test, Gt_test, ap, report = FALSE, ...), lp, ref)
-  expect_forward(function(ap, ...) forward_g(d_test, Gt_test[, , -1], ap, report = FALSE, ...), lp, ref)
+  expect_forward(function(ap, ...) forward(d_test, Gt_test, ap, report = FALSE, ...), lp, ref)
+  expect_forward(function(ap, ...) forward(d_test, Gt_test[, , -1], ap, report = FALSE, ...), lp, ref)
   expect_forward(function(ap, ...) forward(d_test, Gt_test, ap, report = FALSE, ...), lp, ref)
   # nObs = 2
   lp2 <- lp[1:2, ]
   ref2 <- ref_forward(d_test, function(t, i) Gt_test[, , t], lp2)
-  expect_forward(function(ap, ...) forward_g(d_test, Gt_test[, , 1:2], ap, report = FALSE, ...), lp2, ref2)
-  expect_forward(function(ap, ...) forward_g(d_test, Gt_test[, , 2, drop = FALSE], ap, report = FALSE, ...), lp2, ref2)
+  expect_forward(function(ap, ...) forward(d_test, Gt_test[, , 1:2], ap, report = FALSE, ...), lp2, ref2)
+  expect_forward(function(ap, ...) forward(d_test, Gt_test[, , 2, drop = FALSE], ap, report = FALSE, ...), lp2, ref2)
   # multiple tracks
   ID <- rep(c("b", "a", "c"), c(5, 8, 7))
-  expect_forward(function(ap, ...) forward_g(D_test, Gt_test, ap, trackID = ID, report = FALSE, ...), lp,
+  expect_forward(function(ap, ...) forward(D_test, Gt_test, ap, trackID = ID, report = FALSE, ...), lp,
                  ref_forward(D_test, function(t, i) Gt_test[, , t], lp, ID))
 })
 
-test_that("forward_p: periodic Gamma, also if tod does not cover the full cycle", {
+test_that("forward: periodic Gamma with tod, also if tod does not cover the full cycle", {
   Gp <- tpm_p(1:24, L = 24, beta = matrix(c(-1, -1, 0.5, 0.5, 0, 0), 2))
   for(tod in list(rep(1:4, 5), c(3:24, 1:2)[1:20], rep(c(2, 5, 24), length.out = 20))) {
-    expect_forward(function(ap, ...) forward_p(d_test, Gp, ap, tod, report = FALSE, ...), lp,
+    expect_forward(function(ap, ...) forward(d_test, Gp, ap, tod = tod, report = FALSE, ...), lp,
                    ref_forward(d_test, function(t, i) Gp[, , tod[t]], lp))
   }
   ID <- rep(1:3, c(5, 8, 7)); tod <- rep(1:4, 5)
-  expect_forward(function(ap, ...) forward_p(D_test, Gp, ap, tod, trackID = ID, report = FALSE, ...), lp,
+  expect_forward(function(ap, ...) forward(D_test, Gp, ap, tod = tod, trackID = ID, report = FALSE, ...), lp,
                  ref_forward(D_test, function(t, i) Gp[, , tod[t]], lp, ID))
 })
 
@@ -75,7 +75,7 @@ test_that("forward: one state, with and without logspace", {
   expect_forward(function(ap, ...) forward(1, matrix(1), ap, report = FALSE, ...), lp1, sum(lp1))
   expect_forward(function(ap, ...) forward(1, matrix(1), ap, logspace = TRUE, report = FALSE, ...), lp1,
                  sum(lp1), logspace = TRUE)
-  expect_forward(function(ap, ...) forward_g(1, array(1, c(1, 1, 20)), ap, logspace = TRUE, report = FALSE, ...), lp1,
+  expect_forward(function(ap, ...) forward(1, array(1, c(1, 1, 20)), ap, logspace = TRUE, report = FALSE, ...), lp1,
                  sum(lp1), logspace = TRUE)
 })
 
@@ -88,7 +88,7 @@ test_that("forward: logspace is exact and stable", {
   lpu <- lp - 800
   expect_forward(function(ap, ...) forward(d_test, G1, ap, logspace = TRUE, report = FALSE, ...), lpu,
                  ref_forward(d_test, function(t, i) G1, lpu), logspace = TRUE)
-  expect_forward(function(ap, ...) forward_g(d_test, Gt_test, ap, logspace = TRUE, report = FALSE, ...), lpu,
+  expect_forward(function(ap, ...) forward(d_test, Gt_test, ap, logspace = TRUE, report = FALSE, ...), lpu,
                  ref_forward(d_test, function(t, i) Gt_test[, , t], lpu), logspace = TRUE)
   # very different densities in one row
   lpr <- lp; lpr[, 2] <- lpr[, 2] - 3000
@@ -116,9 +116,9 @@ test_that("forward: gradients match finite differences", {
   Gp <- tpm_p(1:4, L = 4, beta = matrix(c(-1, -1, 0.5, 0.5, 0, 0), 2))
   expect_forward_grad(function(ap, ...) forward(D_test, Gk_test, ap, trackID = ID, report = FALSE, ...), lp,
                       function(x) ref_forward(D_test, function(t, i) Gk_test[, , i], x, ID))
-  expect_forward_grad(function(ap, ...) forward_g(d_test, Gt_test, ap, trackID = ID, report = FALSE, ...), lp,
+  expect_forward_grad(function(ap, ...) forward(d_test, Gt_test, ap, trackID = ID, report = FALSE, ...), lp,
                       function(x) ref_forward(d_test, function(t, i) Gt_test[, , t], x, ID))
-  expect_forward_grad(function(ap, ...) forward_p(d_test, Gp, ap, tod, report = FALSE, ...), lp,
+  expect_forward_grad(function(ap, ...) forward(d_test, Gp, ap, tod = tod, report = FALSE, ...), lp,
                       function(x) ref_forward(d_test, function(t, i) Gp[, , tod[t]], x))
   expect_forward_grad(function(ap, ...) forward(d_test, G1, ap, logspace = TRUE, report = FALSE, ...), lp,
                       function(x) ref_forward(d_test, function(t, i) G1, x), logspace = TRUE)
@@ -134,7 +134,7 @@ test_that("forward: informative errors for bad input", {
   expect_error(forward(d_test, G1, ap, trackID = 1:3, ad = FALSE), "trackID")
   expect_error(forward(1, matrix(1), ap[, 1, drop = FALSE], trackID = 1:3, ad = FALSE), "trackID")
   expect_error(forward(c(0.5, 0.3, 0.2), G1, ap, ad = FALSE), "delta")
-  expect_error(forward_p(d_test, array(G1, c(2, 2, 3)), ap, tod = rep(1:4, 5), ad = FALSE), "tod")
+  expect_error(forward(d_test, array(G1, c(2, 2, 3)), ap, tod = rep(1:4, 5), ad = FALSE), "tod")
 })
 
 test_that("forward: value checks in the non-AD version", {
@@ -161,7 +161,7 @@ test_that("forward: reported quantities", {
   r <- fit(function(ap) forward(d_test, Gt_test, ap))
   expect_equal(r$type, "inhomogeneous")
   Gp <- tpm_p(1:4, L = 4, beta = matrix(c(-1, -1, 0.5, 0.5, 0, 0), 2))
-  r <- fit(function(ap) forward_p(d_test, Gp, ap, rep(1:4, 5)))
+  r <- fit(function(ap) forward(d_test, Gp, ap, tod = rep(1:4, 5)))
   expect_equal(r$type, "periodic")
   expect_equal(r$Gamma, Gp)
   expect_equal(r$tod, rep(1:4, 5))

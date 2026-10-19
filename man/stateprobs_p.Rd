@@ -43,6 +43,9 @@ Computes
 \deqn{\Pr(S_t = j \mid X_1, ..., X_T)}
 for periodically inhomogeneous HMMs
 }
+\details{
+\strong{Deprecated:} please use \code{\link{stateprobs}} with argument \code{tod} instead.
+}
 \examples{
 L = 24
 beta = matrix(c(-1, 2, -1, -2, 1, -1), nrow = 2, byrow = TRUE)

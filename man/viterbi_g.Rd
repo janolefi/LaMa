@@ -32,6 +32,9 @@ vector of decoded states of length \code{nObs}
 \description{
 The Viterbi algorithm decodes the most probable state sequence of an HMM.
 }
+\details{
+\strong{Deprecated:} please use \code{\link{viterbi}} for all model types instead.
+}
 \examples{
 delta = c(0.5, 0.5)
 Gamma = tpm_g(runif(10), matrix(c(-2,-2,1,-1), nrow = 2))

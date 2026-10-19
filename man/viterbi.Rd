@@ -4,7 +4,7 @@
 \alias{viterbi}
 \title{Viterbi algorithm for state decoding in HMMs}
 \usage{
-viterbi(delta, Gamma, allprobs, trackID = NULL, mod = NULL)
+viterbi(delta, Gamma, allprobs, trackID = NULL, mod = NULL, tod = NULL)
 }
 \arguments{
 \item{delta}{initial distribution; either
@@ -16,8 +16,9 @@ viterbi(delta, Gamma, allprobs, trackID = NULL, mod = NULL)
 \item{Gamma}{transition probability matrix; either
 \itemize{
   \item a matrix of dimension \code{c(nStates, nStates)},
-  \item an array of dimension \code{c(nStates, nStates, nTracks)} if \code{trackID} is provided, or
-  \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities, in which case \code{\link{viterbi_g}} is called internally
+  \item an array of dimension \code{c(nStates, nStates, nTracks)} if \code{trackID} is provided,
+  \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities, or
+  \item an array of dimension \code{c(nStates, nStates, L)} for periodic transition probabilities, if \code{tod} is provided
 }}
 
 \item{allprobs}{matrix of state-dependent probabilities or density values of dimension \code{c(nObs, nStates)}}
@@ -28,6 +29,8 @@ viterbi(delta, Gamma, allprobs, trackID = NULL, mod = NULL)
 optionally \code{trackID}. When using \code{RTMB::MakeADFun} or \code{\link{qreml}} with
 \code{\link{forward}} in the likelihood, these are reported automatically after model fitting
 and the object returned by \code{RTMB::report()} or \code{\link{qreml}} can be passed directly.}
+
+\item{tod}{optional integer vector of length \code{nObs} with values in 1, ..., L, indexing the slices of \code{Gamma} for periodic models}
 }
 \value{
 vector of decoded states of length \code{nObs}

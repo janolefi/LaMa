@@ -27,6 +27,9 @@
   C++ implementation each, so Gamma is no longer expanded; as in forward(), tracks need 
   to be contiguous
 * forward_p() reports Gamma with its L slices and type "periodic"
+* forward(), viterbi() and stateprobs() have an argument tod for periodic models, so they 
+  handle all model types; forward_g(), forward_p(), viterbi_g(), viterbi_p(), stateprobs_g() 
+  and stateprobs_p() are deprecated and give a message
 
 # LaMa 2.1.1 (2026-05-13)
 

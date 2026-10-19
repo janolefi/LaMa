@@ -12,7 +12,8 @@ forward(
   logspace = FALSE,
   bw = NULL,
   report = TRUE,
-  ad = NULL
+  ad = NULL,
+  tod = NULL
 )
 }
 \arguments{
@@ -24,9 +25,10 @@ forward(
 
 \item{Gamma}{transition probability matrix; either
 \itemize{
-  \item a matrix of dimension \code{c(nStates, nStates)}, or
-  \item an array of dimension \code{c(nStates, nStates, nTracks)} if \code{trackID} is provided, or
-  \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities (see \code{\link{forward_g}}).
+  \item a matrix of dimension \code{c(nStates, nStates)},
+  \item an array of dimension \code{c(nStates, nStates, nTracks)} if \code{trackID} is provided,
+  \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities, or
+  \item an array of dimension \code{c(nStates, nStates, L)} for periodic transition probabilities, if \code{tod} is provided.
 }}
 
 \item{allprobs}{matrix of state-dependent probabilities or density values of dimension \code{c(nObs, nStates)}}
@@ -43,6 +45,9 @@ Only used with automatic differentiation; otherwise the exact likelihood is comp
 \item{report}{logical; if \code{TRUE} (default), \code{delta}, \code{Gamma}, \code{allprobs}, and \code{trackID} are reported from the fitted model. Requires \code{ad = TRUE}.}
 
 \item{ad}{logical; whether to use automatic differentiation. Determined automatically — for debugging only.}
+
+\item{tod}{optional integer vector of length \code{nObs} with values in 1, ..., L, indexing the slices of \code{Gamma} for periodic models
+(e.g. time of day with L = 24 for hourly data).}
 }
 \value{
 HMM log-likelihood for given data and parameters
@@ -57,7 +62,8 @@ contribution. In this case, \code{Gamma} can be
   \itemize{
     \item a matrix (same transition probabilities for each track),
     \item an array of dimension \code{c(nStates, nStates, nTracks)} (track-specific transition probability matrix), or
-    \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities (see \code{\link{forward_g}}).
+    \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities, or
+    \item an array of dimension \code{c(nStates, nStates, L)} for periodic transition probabilities, if \code{tod} is provided.
   }
 Additionally, \code{delta} can be a vector (same initial distribution for each track) or a
 matrix of dimension \code{c(nTracks, nStates)} (track-specific initial distributions).

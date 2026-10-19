@@ -32,6 +32,9 @@ vector of decoded states of length n
 \description{
 The Viterbi algorithm allows one to decode the most probable state sequence of an HMM.
 }
+\details{
+\strong{Deprecated:} please use \code{\link{viterbi}} with argument \code{tod} instead.
+}
 \examples{
 delta = c(0.5, 0.5)
 beta = matrix(c(-2, 1, -1,

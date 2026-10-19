@@ -21,7 +21,7 @@ test_that("decoding: periodic model reports L slices and decodes as with one sli
     mod <- fit_p(ID)
     expect_equal(mod$type, "periodic")
     expect_equal(dim(mod$Gamma), c(2, 2, 6))
-    # old reporting: expanded Gamma, type inhomogeneous
+    # reporting of LaMa <= 2.1.1: expanded Gamma, with tod, type inhomogeneous
     G <- mod$Gamma[, , mod$tod]
     old <- mod; old$Gamma <- G; old$type <- "inhomogeneous"
     expect_equal(viterbi(mod = mod), viterbi_g(mod$delta, G, mod$allprobs, mod$trackID))
@@ -31,10 +31,9 @@ test_that("decoding: periodic model reports L slices and decodes as with one sli
                  stateprobs_g(mod$delta, G, mod$allprobs, mod$trackID, forecast = TRUE))
     expect_equal(pseudo_res(x_dec, "norm", list(mean = mod$mu, sd = 1), mod = mod),
                  pseudo_res(x_dec, "norm", list(mean = mod$mu, sd = 1), mod = old))
-    # unknown type: dispatch on dim(Gamma)[3]
-    old$type <- NULL
-    expect_equal(viterbi(mod = old), viterbi(mod = mod))
-    expect_equal(stateprobs(mod = old), stateprobs(mod = mod))
+    # mod without type
+    mod$type <- NULL
+    expect_equal(viterbi(mod = mod), viterbi(mod = old))
   }
 })
 
@@ -48,4 +47,20 @@ test_that("decoding: forecast probabilities reproduce the log-likelihood", {
                forward_g(d_test, Gt_test, ap, ad = FALSE))
   expect_equal(llk_fc(stateprobs_g(D_test, Gt_test, ap, trackID = ID, forecast = TRUE)),
                forward_g(D_test, Gt_test, ap, trackID = ID, ad = FALSE))
+})
+
+test_that("viterbi: exact for all kinds of Gamma, also for tracks of length 1 and 2", {
+  ap <- exp(logP_test)
+  ID <- rep(c("d", "a", "c", "b"), c(1, 2, 5, 12))
+  D <- rbind(D_test, c(0.4, 0.6))
+  Gk <- array(c(G1, G2, G3, G2), dim = c(2, 2, 4)) # track-specific
+  Gp <- tpm_p(1:4, L = 4, beta = matrix(c(-1, -1, 0.5, 0.5, 0, 0), 2)); tod <- rep(1:4, 5)
+  lp <- logP_test[1:12, ] # single track
+  expect_equal(viterbi(d_test, G1, ap[1:12, ]), ref_viterbi(d_test, function(t, i) G1, lp))
+  expect_equal(viterbi_g(d_test, Gt_test[, , 2:12], ap[1:12, ]),
+               ref_viterbi(d_test, function(t, i) Gt_test[, , t], lp))
+  expect_equal(viterbi(D, G1, ap, ID), ref_viterbi(D, function(t, i) G1, logP_test, ID))
+  expect_equal(viterbi(D, Gk, ap, ID), ref_viterbi(D, function(t, i) Gk[, , i], logP_test, ID))
+  expect_equal(viterbi_g(D, Gt_test, ap, ID), ref_viterbi(D, function(t, i) Gt_test[, , t], logP_test, ID))
+  expect_equal(viterbi_p(D, Gp, ap, tod, ID), ref_viterbi(D, function(t, i) Gp[, , tod[t]], logP_test, ID))
 })

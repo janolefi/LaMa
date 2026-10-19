@@ -129,27 +129,38 @@ arma::mat logbeta_cpp(const arma::mat& allprobs, const arma::cube& Gamma) {
   return lbeta;
 }
 
+// Viterbi algorithm for all tracks, with the same inputs as forward_cpp()
 // [[Rcpp::export]]
-arma::colvec viterbi_g_cpp(const arma::mat& allprobs, const arma::rowvec& delta, const arma::cube& Gamma) {
-  int N = allprobs.n_cols;
+arma::colvec viterbi_cpp(const arma::mat& allprobs, const arma::mat& Delta, const arma::cube& Gamma,
+                         const IntegerVector& gidx, const IntegerVector& trackStart)
+{
   int nObs = allprobs.n_rows;
+  int N = allprobs.n_cols;
+  int K = trackStart.size();
 
   arma::mat xi(nObs, N);
-  arma::rowvec foo = delta % allprobs.row(0);
-  
-  xi.row(0) = foo / sum(foo);
-  
-  for (int t = 1; t < nObs; ++t) {
-    for (int j = 0; j < N; ++j) {
-      foo(j) = arma::max(xi.row(t - 1).t() % Gamma.slice(t - 1).col(j)) * allprobs(t, j);
+  arma::rowvec foo(N);
+  arma::colvec iv(nObs);
+
+  for (int k = 0; k < K; k++){
+    int start = trackStart[k];
+    int end = (k < K - 1) ? trackStart[k + 1] - 1 : nObs - 1;
+
+    foo = Delta.row(k) % allprobs.row(start);
+    xi.row(start) = foo / sum(foo);
+
+    for (int t = start + 1; t <= end; t++){
+      for (int j = 0; j < N; j++){
+        foo(j) = arma::max(xi.row(t - 1).t() % Gamma.slice(gidx[t]).col(j)) * allprobs(t, j);
+      }
+      xi.row(t) = foo / sum(foo);
     }
-    xi.row(t) = foo / arma::sum(foo);
+
+    // backtracking
+    iv(end) = arma::index_max(xi.row(end));
+    for (int t = end - 1; t >= start; t--){
+      iv(t) = arma::index_max(Gamma.slice(gidx[t + 1]).col(iv(t + 1)) % xi.row(t).t());
+    }
   }
-  arma::colvec iv = arma::zeros<vec>(nObs);
-  iv(nObs - 1) = arma::index_max(xi.row(nObs - 1));
-  
-  for (int t = nObs - 2; t >= 0; --t) {
-    iv(t) = arma::index_max(Gamma.slice(t).col(iv(t + 1)) % xi.row(t).t());
-  }
-  return(iv+1);
+  return iv + 1;
 }

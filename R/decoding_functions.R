@@ -1,5 +1,28 @@
 
 
+# Takes delta, Gamma, allprobs, trackID and tod from mod (if provided) and
+# brings them into the form of the forward algorithm, see prepare_forward()
+prepare_decoding <- function(delta, Gamma, allprobs, trackID = NULL, tod = NULL, mod = NULL){
+  if(!is.null(mod)){
+    for(x in c("delta", "Gamma", "allprobs")) {
+      if(is.null(mod[[x]])) stop("Model object contains no ", x, ".")
+    }
+    delta <- mod$delta
+    Gamma <- mod$Gamma
+    allprobs <- mod$allprobs
+    trackID <- mod$trackID
+    # periodic models (LaMa <= 2.1.1 reported tod with an expanded Gamma, type inhomogeneous)
+    if(!identical(mod$type, "inhomogeneous")) tod <- mod$tod
+  }
+  prepare_forward(delta, Gamma, allprobs, trackID, gidx = tod)
+}
+
+# Viterbi algorithm in C++ on the output of prepare_decoding()
+run_viterbi <- function(inp){
+  as.integer(viterbi_cpp(inp$allprobs, inp$delta, inp$Gamma, inp$gidx - 1L, inp$start - 1L))
+}
+
+
 # Global decoding ---------------------------------------------------------
 
 
@@ -44,61 +67,8 @@
 #' states = viterbi(delta, Gamma, allprobs)
 viterbi = function(delta, Gamma, allprobs, trackID = NULL,
                    mod = NULL){
-  
-  # check if a model with delta, Gamma and allprobs is provided
-  if(!is.null(mod)){
-    if(is.null(mod$delta)){
-      stop("Model object contains no initial distribution.")
-    }
-    if(is.null(mod$Gamma)){
-      stop("Model object contains no transition matrix.")
-    }
-    if(is.null(mod$allprobs)){
-      stop("Model object contains no state-dependent probabilities.")
-    }
-
-    # dispatch on the reported model type
-    if(identical(mod$type, "periodic")) return(viterbi_p(mod = mod))
-    if(identical(mod$type, "inhomogeneous")) return(viterbi_g(mod = mod))
-
-    # if suitable model object is provided, overwrite inputs with model object
-    delta = mod$delta
-    Gamma = mod$Gamma
-    allprobs = mod$allprobs
-    trackID = mod$trackID
-  }
-
-  n = nrow(allprobs)
-  N = ncol(allprobs)
-
-  # Handle time-varying Gamma by dispatching to viterbi_g (if model type is unknown)
-  if (is.null(mod$type) && is.array(Gamma) && length(dim(Gamma)) == 3 && (dim(Gamma)[3] == n | dim(Gamma)[3] == n-1)) {
-    return(viterbi_g(delta, Gamma, allprobs, trackID = trackID))
-  }
-  
-  # inflating Gamma to use viterbi_g
-  if(is.null(trackID)){
-    if(length(dim(Gamma)) > 2){
-      stop("If no 'trackID' is provided, 'Gamma' needs to be a matrix of dimension c(N,N). \nDo you need to use 'viterbi_g()'?")
-    }
-    Gammanew = array(Gamma, dim = c(N, N, n-1))
-  } else{
-    uID = unique(trackID)
-    k = length(uID) # number of tracks
-    
-    if(is.matrix(Gamma)){
-      Gammanew = array(Gamma, dim = c(N, N, n))
-    } else if(is.array(Gamma)){
-      if(dim(Gamma)[3] != k) stop("Number of distinct transition matrices does not match the number of tracks.")
-      
-      ## construct integer trackID
-      integerID = match(trackID, uID)
-      
-      Gammanew = Gamma[,,integerID]
-    }
-  }
-  
-  viterbi_g(delta, Gammanew, allprobs, trackID)
+  inp <- prepare_decoding(delta, Gamma, allprobs, trackID, mod = mod)
+  run_viterbi(inp)
 }
 
 
@@ -142,97 +112,8 @@ viterbi = function(delta, Gamma, allprobs, trackID = NULL,
 #' states = viterbi_g(delta, Gamma[,,-1], allprobs)
 viterbi_g = function(delta, Gamma, allprobs, trackID = NULL,
                      mod = NULL){
-  
-  # check if a model with delta, Gamma and allprobs is provided
-  if(!is.null(mod)){
-    if(is.null(mod$delta)){
-      stop("Model object contains no initial distribution.")
-    }
-    if(is.null(mod$Gamma)){
-      stop("Model object contains no transition matrix.")
-    }
-    if(is.null(mod$allprobs)){
-      stop("Model object contains no state-dependent probabilities.")
-    }
-    
-    # if suitable model object is provided, overwrite inputs with model object
-    delta = mod$delta
-    Gamma = mod$Gamma
-    # Gamma = mod$Gamma[,, -1] # ignoring first slice
-    allprobs = mod$allprobs
-    trackID = mod$trackID
-  }
-  
-  n = nrow(allprobs)
-  N = ncol(allprobs)
-  
-  # If ID is provided, several tracks need to be decoded separately
-  if(!is.null(trackID)){
-    uID = unique(trackID)
-    k = length(uID) # number of tracks
-    
-    if(is.vector(delta)){
-      delta = matrix(delta, nrow = k, ncol = length(delta), byrow = TRUE)
-    } else if(is.matrix(delta)){
-      if(dim(delta)[1] != k){
-        if(dim(delta)[1] == 1){
-          delta = matrix(c(delta), nrow = k, ncol = length(delta), byrow = TRUE)
-        } else{
-          stop("Delta needs to be either a vector of length N or a matrix of dimension c(k,N), matching the number tracks.")
-        }
-      }
-    }
-    
-    # initialising state vector
-    states = rep(NA, n)
-    
-    # loop over individual tracks
-    for(i in seq_len(length(uID))){
-      id_i = which(trackID == uID[i])
-      
-      allprobs_i = allprobs[id_i, ]
-      
-      if(length(id_i) == 1) stop("All tracks must be at least of length 2.")
-      
-      if(dim(allprobs_i)[1] == 2){
-        # viterbi algorithm for track of length 2 only
-        Gamma_i = as.matrix(Gamma[,,id_i[-1]])
-        
-        xi = matrix(0, nrow = 2, ncol = N) 
-        foo = delta[i,] * allprobs_i[1, ]
-        xi[1, ] = foo / sum(foo)
-        
-        foo = apply(xi[1, ] * Gamma_i, 2, max) * allprobs_i[2, ]
-        xi[2, ] = foo / sum(foo)
-        
-        iv = numeric(2)
-        iv[2] = which.max(xi[2, ]) 
-        iv[1] = which.max(Gamma_i[, iv[2]] * xi[1, ])
-        
-        states[id_i] = iv
-        
-      } else{
-        # regurlar viterbi algorithm for this track
-        states[id_i] = viterbi_g_cpp(allprobs_i, delta[i,], Gamma[,,id_i[-1]])
-      }
-      
-    }
-    
-  } else{
-    if(!is.vector(delta)){
-      stop("If no ID is provided, delta needs to be a vector of length N.")
-    }
-    
-    if(dim(Gamma)[3]==n){
-      # message("Igoring the first slice of Gamma, as there are only n-1 transitions in a time series of length n.")
-      # not using the first slice of Gamma, if n slices are provided
-      Gamma = Gamma[,,-1]
-    }
-    
-    states = viterbi_g_cpp(allprobs, delta, Gamma)
-  }
-  
-  return(as.integer(states))
+  inp <- prepare_decoding(delta, Gamma, allprobs, trackID, mod = mod)
+  run_viterbi(inp)
 }
 
 
@@ -272,42 +153,8 @@ viterbi_g = function(delta, Gamma, allprobs, trackID = NULL,
 #' states = viterbi_p(delta, Gamma, allprobs, tod)
 viterbi_p = function(delta, Gamma, allprobs, tod, trackID = NULL,
                      mod = NULL){
-  
-  # check if a model with delta, Gamma and allprobs is provided
-  if(!is.null(mod)){
-    if(is.null(mod$delta)){
-      stop("Model object contains no initial distribution.")
-    }
-    if(is.null(mod$Gamma)){
-      stop("Model object contains no transition matrix.")
-    }
-    if(is.null(mod$allprobs)){
-      stop("Model object contains no state-dependent probabilities.")
-    }
-    if(is.null(mod$tod)){
-      stop("Model object contains no cyclic indexing variable.")
-    }
-    
-    # if suitable model object is provided, overwrite inputs with model object
-    delta = mod$delta
-    Gamma = mod$Gamma
-    allprobs = mod$allprobs
-    tod = mod$tod
-    trackID = mod$trackID
-  }
-  
-  n = nrow(allprobs)
-  N = ncol(allprobs)
-  
-  # creating repeating Gamma array from L unique tpms
-  Gammanew = Gamma[,,tod]
-  
-  if(is.null(trackID)){
-    Gammanew = Gammanew[,,-1]
-  }
-  
-  # as.integer(viterbi_g_cpp(allprobs, delta, Gammanew))  
-  viterbi_g(delta, Gammanew, allprobs, trackID) 
+  inp <- prepare_decoding(delta, Gamma, allprobs, trackID, tod, mod)
+  run_viterbi(inp)
 }
 
 

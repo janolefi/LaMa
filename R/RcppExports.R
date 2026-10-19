@@ -21,8 +21,8 @@ logbeta_cpp <- function(allprobs, Gamma) {
     .Call(`_LaMa_logbeta_cpp`, allprobs, Gamma)
 }
 
-viterbi_g_cpp <- function(allprobs, delta, Gamma) {
-    .Call(`_LaMa_viterbi_g_cpp`, allprobs, delta, Gamma)
+viterbi_cpp <- function(allprobs, Delta, Gamma, gidx, trackStart) {
+    .Call(`_LaMa_viterbi_cpp`, allprobs, Delta, Gamma, gidx, trackStart)
 }
 
 rep_times <- function(x, times) {

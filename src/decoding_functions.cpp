@@ -8,8 +8,12 @@ using namespace arma;
 // forecast: Pr(S_t = j | x_1, ..., x_t-1) instead of Pr(S_t = j | x_1, ..., x_T)
 // rows are not normalised
 // [[Rcpp::export]]
-arma::mat stateprobs_cpp(const arma::mat& allprobs, const arma::mat& Delta, const arma::cube& Gamma,
-                         const IntegerVector& gidx, const IntegerVector& trackStart, bool forecast)
+arma::mat stateprobs_cpp(const arma::mat& allprobs, 
+                         const arma::mat& Delta, 
+                         const arma::cube& Gamma,
+                         const IntegerVector& gidx, 
+                         const IntegerVector& trackStart, 
+                         bool forecast)
 {
   int nObs = allprobs.n_rows;
   int N = allprobs.n_cols;
@@ -48,8 +52,11 @@ arma::mat stateprobs_cpp(const arma::mat& allprobs, const arma::mat& Delta, cons
 
 // Viterbi algorithm for all tracks, with the same inputs as forward_cpp()
 // [[Rcpp::export]]
-arma::colvec viterbi_cpp(const arma::mat& allprobs, const arma::mat& Delta, const arma::cube& Gamma,
-                         const IntegerVector& gidx, const IntegerVector& trackStart)
+arma::colvec viterbi_cpp(const arma::mat& allprobs, 
+                         const arma::mat& Delta, 
+                         const arma::cube& Gamma,
+                         const IntegerVector& gidx, 
+                         const IntegerVector& trackStart)
 {
   int nObs = allprobs.n_rows;
   int N = allprobs.n_cols;

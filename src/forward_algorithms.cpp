@@ -10,8 +10,11 @@ using namespace arma;
 // Gamma.slice(gidx[t]) is the tpm for the transition into t
 // trackStart: first index of each track (all indices 0-based)
 // [[Rcpp::export]]
-double forward_cpp(const arma::mat& allprobs, const arma::mat& Delta, const arma::cube& Gamma,
-                   const IntegerVector& gidx, const IntegerVector& trackStart)
+double forward_cpp(const arma::mat& allprobs, 
+                   const arma::mat& Delta, 
+                   const arma::cube& Gamma,
+                   const IntegerVector& gidx, 
+                   const IntegerVector& trackStart)
 {
   int nObs = allprobs.n_rows;
   int K = trackStart.size();

@@ -122,6 +122,18 @@ test_that("pseudo_res: explicit distribution and parameters", {
   expect_equal(r$lower, replace(lo, 20, NA))
 })
 
+test_that("pseudo_res: parameters per observation with missing observations", {
+  sp <- stateprobs(d_test, G1, exp(logP_test), forecast = TRUE)
+  x <- replace(rnorm(20, 1), c(3, 8), NA)
+  m <- cbind(seq(0, 1, length.out = 20), 3) # mean per observation and state
+  ref <- qnorm(rowSums(sp * cbind(pnorm(x, m[, 1]), pnorm(x, m[, 2]))))
+  expect_equal(unclass(pseudo_res(x, "norm", list(mean = m, sd = 1), sp)), ref)
+  # vector per observation, common to all states
+  sd <- seq(1, 2, length.out = 20)
+  ref <- qnorm(rowSums(sp * cbind(pnorm(x, 0, sd), pnorm(x, 3, sd))))
+  expect_equal(unclass(pseudo_res(x, "norm", list(mean = c(0, 3), sd = sd), sp)), ref)
+})
+
 fit_mod <- function(nll, par) {
   obj <- RTMB::MakeADFun(nll, par, silent = TRUE)
   nlminb(obj$par, obj$fn, obj$gr)
@@ -132,9 +144,7 @@ test_that("pseudo_res(mod): same as with family and parameters given", {
   mod <- fit_mod(nll_res, par_res) # loop over states, covariate, missing values, prior
   p <- mod$par
   mu <- sapply(1:2, function(j) exp(p$log_mu[j] + p$b[j] * dat_res$z))
-  F <- sapply(1:2, function(j) pgamma2(dat_res$step, mu[, j], exp(p$log_sigma[j])))
-  ref <- qnorm(rowSums(stateprobs(mod, forecast = TRUE) * F))
-  class(ref) <- "LaMaResiduals"
+  ref <- pseudo_res(dat_res$step, "gamma2", list(mean = mu, sd = exp(p$log_sigma)), mod = mod)
   expect_equal(pseudo_res(mod), ref)
   expect_equal(pseudo_res(mod = mod), ref)
   expect_equal(pseudo_res(mod$obj), ref) # RTMB object

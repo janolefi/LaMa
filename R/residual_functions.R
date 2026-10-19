@@ -13,10 +13,12 @@
         if(nrow(param) != nObs | ncol(param) != N){
           stop("Parameter matrix dimensions must match observations and states.")
         }
-        param[, state]
+        param[ind, state] # observed rows, like x[ind]
       } else if(is.vector(param)){
-        if(length(param) == 1 | length(param) == nObs){
+        if(length(param) == 1){
           param
+        } else if(length(param) == nObs){
+          param[ind]
         } else{
           if(length(param) != N){
             stop("Parameter vector must have length equal to number of states.")

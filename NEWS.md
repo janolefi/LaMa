@@ -16,6 +16,8 @@
 
 * pseudo_res(): missing observations give NA in all variants (before 0 with normal = FALSE, 
   -Inf for non-randomised discrete residuals)
+* pseudo_res(): parameters given per observation (matrix or vector of length nObs) work with 
+  missing observations
 
 * forward(): with track-specific delta or Gamma, the AD version matched them to the 
   wrong tracks if the track IDs were not sorted (e.g. "ID1", ..., "ID10")

@@ -4,30 +4,51 @@
 
 ### New features
 
+- pseudo_res(mod) computes pseudo-residuals from the model object alone:
+  the likelihood function is evaluated again with its densities replaced
+  by their CDFs, after checking that this is valid; several data streams
+  give one set of residuals each
+
 - scores(mod) computes the score contribution of each observation for
   models using forward(), e.g. for robust (sandwich) standard errors; it
   takes the model from report() or the RTMB object, respects map, and
   the likelihood function does not need to change
+
 - report() also stores obj (the same object, not a copy), so MCreport()
   can be called on the model object from report() or qreml()
 
 ### Bug fixes
 
+- pseudo_res(): missing observations give NA in all variants (before 0
+  with normal = FALSE, -Inf for non-randomised discrete residuals)
+
+- pseudo_res(): parameters given per observation (matrix or vector of
+  length nObs) work with missing observations
+
 - forward(): with track-specific delta or Gamma, the AD version matched
   them to the wrong tracks if the track IDs were not sorted (e.g. “ID1”,
   …, “ID10”)
+
 - forward(): tracks of length one failed with AD
+
 - logspace = TRUE is now exact (delta is no longer modified) and also
   stable without AD
+
 - one-state models are correct with logspace = TRUE and report their
   quantities
+
 - forward_p() works if tod does not contain all values 1, …, L
+
 - forward_g() works without AD for two observations
+
 - stateprobs_g(forecast = TRUE) with trackID used the transition matrix
   of the previous time point, which also affected pseudo_res() for
   inhomogeneous models with tracks
+
 - stateprobs() passes forecast on for time-varying Gamma
+
 - viterbi() and stateprobs() work for tracks of length one
+
 - stateprobs(forecast = TRUE): the first row of each track is delta, not
   the filtered probabilities given x_1, so pseudo_res() is correct for
   the first observation

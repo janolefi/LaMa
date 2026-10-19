@@ -79,7 +79,8 @@ and can be used to quantify whether an observation is extreme relative to its mo
 
 
 <dl><dt id="arg-obs">obs<a class="anchor" aria-label="anchor" href="#arg-obs"></a></dt>
-<dd><p>vector of continuous-valued observations (of length <code>nObs</code>)</p></dd>
+<dd><p>vector of observations (of length <code>nObs</code>), or a model object from <code><a href="report.html">report</a></code>
+(or the <code>RTMB</code> object), in which case nothing else is needed (see ‘Details’)</p></dd>
 
 
 <dt id="arg-dist">dist<a class="anchor" aria-label="anchor" href="#arg-dist"></a></dt>
@@ -121,7 +122,8 @@ When used with a special discrete distribution, set to <code>TRUE</code> manuall
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>vector of pseudo residuals of class <code>LaMaResiduals</code> or list containing <code>lower</code>, <code>upper</code>, and <code>mean</code> if discrete residuals are not randomised.</p>
+    <p>vector of pseudo residuals of class <code>LaMaResiduals</code> or list containing <code>lower</code>, <code>upper</code>, and <code>mean</code> if discrete residuals are not randomised.
+For <code>pseudo_res(mod)</code> with several data streams, a named list of these, one per stream.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -136,6 +138,20 @@ corresponding to \(F(X-1)\) and \(F(X)\), respectively.
 If <code>randomise = TRUE</code>, a value is drawn uniformly
 between the lower and upper bounds. In this case, the resulting pseudo-residuals
 are again approximately standard normal after applying the standard normal quantile function.</p>
+<p><strong>Model object only:</strong> <code>pseudo_res(mod)</code> needs no observations, family or parameters.
+It evaluates the likelihood function stored in the model again, with each density
+(e.g. <code><a href="gamma2.html">dgamma2()</a></code>) replaced by its CDF (<code><a href="gamma2.html">pgamma2()</a></code>) with the same arguments, so
+that the likelihood function itself builds the CDFs in place of <code>allprobs</code>. This works for
+loops over states or time, <code><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind()</a></code>, covariate-dependent parameters, densities on the log scale,
+mixtures within a state and several data streams (multiplied, or summed on the log scale),
+giving one set of residuals per stream, named after the data variable.
+Before, it checks that the densities enter <code>allprobs</code> as a product or mixture, so that
+swapping in CDFs is valid. If not, e.g. for densities transformed by hand (truncation, Jacobians,
+zero inflation via indicators) or a latent variable integrated out inside <code>allprobs</code>, or if
+the densities are called in helper functions outside the likelihood function, it stops, and
+<code>pseudo_res(obs, dist, par, mod = mod)</code> needs to be used instead.
+The likelihood function needs to call <code><a href="forward.html">forward</a></code> once (use <code>trackID</code> for several tracks),
+and it is evaluated with the data as they are when <code>pseudo_res()</code> is called.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -203,6 +219,9 @@ are again approximately standard normal after applying the standard normal quant
 <span class="r-in"><span>                  <span class="st">"gamma2"</span>,  <span class="co"># parametric family that was used</span></span></span>
 <span class="r-in"><span>                  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mean <span class="op">=</span> <span class="va">mod</span><span class="op">$</span><span class="va">mu</span>, sd <span class="op">=</span> <span class="va">mod</span><span class="op">$</span><span class="va">sigma</span><span class="op">)</span>, <span class="co"># parameters for that family</span></span></span>
 <span class="r-in"><span>                  mod <span class="op">=</span> <span class="va">mod</span><span class="op">)</span> <span class="co"># model object</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># or, from the model object alone</span></span></span>
+<span class="r-in"><span><span class="va">pres</span> <span class="op">=</span> <span class="fu">pseudo_res</span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">pres</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="pseudo_res-1.png" alt="" width="700" height="433"></span>

@@ -30,7 +30,10 @@ pseudo_res(
 
 - obs:
 
-  vector of continuous-valued observations (of length `nObs`)
+  vector of observations (of length `nObs`), or a model object from
+  [`report`](https://janolefi.github.io/LaMa/reference/report.md) (or
+  the `RTMB` object), in which case nothing else is needed (see
+  ‘Details’)
 
 - dist:
 
@@ -99,6 +102,8 @@ pseudo_res(
 
 vector of pseudo residuals of class `LaMaResiduals` or list containing
 `lower`, `upper`, and `mean` if discrete residuals are not randomised.
+For `pseudo_res(mod)` with several data streams, a named list of these,
+one per stream.
 
 ## Details
 
@@ -115,6 +120,29 @@ If `randomise = TRUE`, a value is drawn uniformly between the lower and
 upper bounds. In this case, the resulting pseudo-residuals are again
 approximately standard normal after applying the standard normal
 quantile function.
+
+**Model object only:** `pseudo_res(mod)` needs no observations, family
+or parameters. It evaluates the likelihood function stored in the model
+again, with each density (e.g.
+[`dgamma2()`](https://janolefi.github.io/LaMa/reference/gamma2.md))
+replaced by its CDF
+([`pgamma2()`](https://janolefi.github.io/LaMa/reference/gamma2.md))
+with the same arguments, so that the likelihood function itself builds
+the CDFs in place of `allprobs`. This works for loops over states or
+time, [`cbind()`](https://rdrr.io/r/base/cbind.html),
+covariate-dependent parameters, densities on the log scale, mixtures
+within a state and several data streams (multiplied, or summed on the
+log scale), giving one set of residuals per stream, named after the data
+variable. Before, it checks that the densities enter `allprobs` as a
+product or mixture, so that swapping in CDFs is valid. If not, e.g. for
+densities transformed by hand (truncation, Jacobians, zero inflation via
+indicators) or a latent variable integrated out inside `allprobs`, or if
+the densities are called in helper functions outside the likelihood
+function, it stops, and `pseudo_res(obs, dist, par, mod = mod)` needs to
+be used instead. The likelihood function needs to call
+[`forward`](https://janolefi.github.io/LaMa/reference/forward.md) once
+(use `trackID` for several tracks), and it is evaluated with the data as
+they are when `pseudo_res()` is called.
 
 ## See also
 
@@ -183,6 +211,9 @@ pres = pseudo_res(step,      # observation sequence
                   "gamma2",  # parametric family that was used
                   list(mean = mod$mu, sd = mod$sigma), # parameters for that family
                   mod = mod) # model object
+
+# or, from the model object alone
+pres = pseudo_res(mod)
 
 plot(pres)
 ```

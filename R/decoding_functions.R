@@ -61,7 +61,8 @@ run_stateprobs <- function(inp, forecast = FALSE){
 #' matrix of state-dependent probabilities or density values of dimension \code{c(nObs, nStates)}
 #'
 #' @param trackID 
-#' optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks
+#' optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks.
+#' The observations of each track need to be consecutive.
 #'
 #' @param mod 
 #' optional model object containing \code{delta}, \code{Gamma}, \code{allprobs}, and
@@ -111,7 +112,8 @@ viterbi = function(delta, Gamma, allprobs, trackID = NULL,
 #' matrix of state-dependent probabilities or density values of dimension \code{c(nObs, nStates)}
 #'
 #' @param trackID 
-#' optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks
+#' optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks.
+#' The observations of each track need to be consecutive.
 #'
 #' @param mod 
 #' optional model object containing \code{delta}, \code{Gamma}, \code{allprobs}, and
@@ -154,7 +156,7 @@ viterbi_g = function(delta, Gamma, allprobs, trackID = NULL,
 #' @param tod (Integer valued) variable for cycle indexing in 1, ..., L, mapping the data index to a generalised time of day (length n)
 #' 
 #' For half-hourly data L = 48. It could, however, also be day of year for daily data and L = 365.
-#' @param trackID optional vector of k track IDs, if multiple tracks need to be decoded separately
+#' @param trackID optional vector of k track IDs, if multiple tracks need to be decoded separately. The observations of each track need to be consecutive.
 #' @param mod optional model object containing initial distribution \code{delta}, transition probability matrix \code{Gamma}, matrix of state-dependent probabilities \code{allprobs}, and potentially a \code{trackID} variable
 #' 
 #' If you are using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward_p}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
@@ -216,7 +218,8 @@ viterbi_p = function(delta, Gamma, allprobs, tod, trackID = NULL,
 #' matrix of state-dependent probabilities or density values of dimension \code{c(nObs, nStates)}
 #'
 #' @param trackID 
-#' optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks
+#' optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks.
+#' The observations of each track need to be consecutive.
 #'
 #' @param mod 
 #' optional model object containing \code{delta}, \code{Gamma}, \code{allprobs}, and
@@ -272,7 +275,8 @@ stateprobs = function(delta, Gamma, allprobs, trackID = NULL,
 #' matrix of state-dependent probabilities or density values of dimension \code{c(nObs, nStates)}
 #'
 #' @param trackID 
-#' optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks
+#' optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks.
+#' The observations of each track need to be consecutive.
 #'
 #' @param mod 
 #' optional model object containing \code{delta}, \code{Gamma}, \code{allprobs}, and
@@ -320,7 +324,7 @@ stateprobs_g = function(delta, Gamma, allprobs, trackID = NULL,
 #' @param allprobs matrix of state-dependent probabilities/ density values of dimension c(n, N)
 #' @param tod (Integer valued) variable for cycle indexing in 1, ..., L, mapping the data index to a generalised time of day (length n).
 #' For half-hourly data L = 48. It could, however, also be day of year for daily data and L = 365.
-#' @param trackID optional vector of k track IDs, if multiple tracks need to be decoded separately
+#' @param trackID optional vector of k track IDs, if multiple tracks need to be decoded separately. The observations of each track need to be consecutive.
 #' @param mod optional model object containing initial distribution \code{delta}, transition probability matrix \code{Gamma}, matrix of state-dependent probabilities \code{allprobs}, and potentially a \code{trackID} variable
 #' 
 #' If you are using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward_p}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.

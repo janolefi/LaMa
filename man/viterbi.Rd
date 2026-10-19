@@ -24,7 +24,8 @@ viterbi(delta, Gamma, allprobs, trackID = NULL, mod = NULL, tod = NULL)
 
 \item{allprobs}{matrix of state-dependent probabilities or density values of dimension \code{c(nObs, nStates)}}
 
-\item{trackID}{optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks}
+\item{trackID}{optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks.
+The observations of each track need to be consecutive.}
 
 \item{mod}{optional model object containing \code{delta}, \code{Gamma}, \code{allprobs}, and
 optionally \code{trackID}. When using \code{RTMB::MakeADFun} or \code{\link{qreml}} with

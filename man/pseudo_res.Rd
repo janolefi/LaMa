@@ -26,11 +26,11 @@ If a discrete CDF function is passed, the \code{discrete} argument needs to be s
 Names need to correspond to the parameter names in the specified distribution (e.g. \code{list(mean = c(1,2), sd = c(1,1))} for a normal distribution and 2 states).
 This argument is as flexible as the parametric distribution allows. For example you can have a matrix of parameters with one row for each observation and one column for each state.}
 
-\item{stateprobs}{matrix of local state probabilities for each observation (of dimension c(nObs, nStates)) as computed by \code{\link{stateprobs}}, \code{\link{stateprobs_g}} or \code{\link{stateprobs_p}}}
+\item{stateprobs}{matrix of local state probabilities for each observation (of dimension c(nObs, nStates)) as computed by \code{\link{stateprobs}}}
 
 \item{mod}{optional model object containing required quantities
 
-When using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward}}, \code{\link{forward_g}} or \code{\link{forward_p}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
+When using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
 Hence, you can pass the model object obtained from running \code{report()} or from \code{\link{qreml}} directly to this function and avoid calculating local state proabilities manually.
 In this case, a call should look like \code{pseudo_res(obs, "norm", par, mod = mod)}.}
 
@@ -54,7 +54,7 @@ These are based on the cumulative distribution function (CDF)
 \deqn{F_{X_t}(x_t) = F(x_t \mid x_1, \dots, x_{t-1})}
 and can be used to quantify whether an observation is extreme relative to its model-implied distribution.
 
-This function calculates such residuals via the probability integral transform, based on the local state probabilities obtained by \code{\link{stateprobs}} or \code{\link{stateprobs_g}} and the respective parametric family.
+This function calculates such residuals via the probability integral transform, based on the local state probabilities obtained by \code{\link{stateprobs}} and the respective parametric family.
 }
 \details{
 Pseudo-residuals are based on the probability integral transform. 

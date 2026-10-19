@@ -12,6 +12,7 @@
 * stateprobs_g(forecast = TRUE) with trackID used the transition matrix of the previous 
   time point, which also affected pseudo_res() for inhomogeneous models with tracks
 * stateprobs() passes forecast on for time-varying Gamma
+* viterbi() and stateprobs() work for tracks of length one
 * stateprobs(forecast = TRUE): the first row of each track is delta, not the filtered 
   probabilities given x_1, so pseudo_res() is correct for the first observation
 
@@ -22,8 +23,10 @@
 * tracks need to be contiguous, otherwise forward() gives an informative error
 * without AD, forward() gives an error for NA in allprobs
 * the TapeConfig performance tip is shown only once per session
-* forward_p() reports Gamma with its L slices and type "periodic"; viterbi(), stateprobs() 
-  with mod dispatch on the reported type
+* viterbi(), stateprobs() and their _g and _p versions use the inputs of forward() and one 
+  C++ implementation each, so Gamma is no longer expanded; as in forward(), tracks need 
+  to be contiguous
+* forward_p() reports Gamma with its L slices and type "periodic"
 
 # LaMa 2.1.1 (2026-05-13)
 

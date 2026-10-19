@@ -197,7 +197,13 @@ prepare_forward <- function(delta, Gamma, allprobs, trackID = NULL,
 
   # gidx[t]: slice of Gamma for the transition into t (unused at the start of a track)
   type <- "homogeneous"
-  if (!is.null(gidx)) { # given by forward_p()
+  if (!is.null(gidx)) { # tod, given by forward_p() or the decoding functions
+    if (length(gidx) != nObs) {
+      stop("tod must have the same length as the number of rows in allprobs.")
+    }
+    if (anyNA(gidx) || any(gidx < 1 | gidx > dG[3] | gidx != round(gidx))) {
+      stop("tod must contain integers in 1, ..., L, indexing the slices of Gamma (array of dimension c(N,N,L)).")
+    }
     type <- "periodic"
   } else if (dG[3] == 1) {
     gidx <- rep(1L, nObs)
@@ -548,15 +554,7 @@ forward_p <- function(delta,
                       report = TRUE,
                       logspace = FALSE){
   
-  
   # tod indexes the slices of Gamma
-  if(length(dim(Gamma)) != 3 || anyNA(tod) || any(tod < 1 | tod > dim(Gamma)[3] | tod != round(tod))) {
-    stop("tod must contain integers in 1, ..., L, indexing the slices of Gamma (array of dimension c(N,N,L)).")
-  }
-  if(length(tod) != nrow(allprobs)) {
-    stop("tod must have the same length as the number of rows in allprobs.")
-  }
-  
   inp <- prepare_forward(delta, Gamma, allprobs, trackID, logspace, gidx = tod)
   
   if(report){

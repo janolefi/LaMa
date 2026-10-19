@@ -103,3 +103,12 @@ test_that("deprecated _g and _p functions give a message and the same results", 
   expect_message(p <- stateprobs_p(d_test, Gp, ap, tod, ID), "deprecated")
   expect_equal(p, stateprobs(d_test, Gp, ap, ID, tod = tod))
 })
+
+test_that("decoding: model object as the first argument", {
+  mod <- fit_p(rep(1:3, each = 20))
+  expect_equal(viterbi(mod), viterbi(mod = mod))
+  expect_equal(stateprobs(mod, forecast = TRUE), stateprobs(mod = mod, forecast = TRUE))
+  qmod <- structure(mod, class = "qremlModel") # as returned by qreml()
+  expect_equal(viterbi(qmod), viterbi(mod = mod))
+  expect_equal(viterbi(mod$delta, mod$Gamma, mod$allprobs, mod$trackID, tod = mod$tod), viterbi(mod))
+})

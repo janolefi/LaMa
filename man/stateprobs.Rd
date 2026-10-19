@@ -17,8 +17,9 @@ stateprobs(
 \arguments{
 \item{delta}{initial distribution; either
 \itemize{
-  \item a vector of length \code{nStates}, or
-  \item a matrix of dimension \code{c(nTracks, nStates)} if \code{trackID} is provided
+  \item a vector of length \code{nStates},
+  \item a matrix of dimension \code{c(nTracks, nStates)} if \code{trackID} is provided, or
+  \item a model object as for \code{mod}, so that \code{mod} can be passed as the first argument
 }}
 
 \item{Gamma}{transition probability matrix; either

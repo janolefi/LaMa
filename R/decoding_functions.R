@@ -3,6 +3,8 @@
 # Takes delta, Gamma, allprobs, trackID and tod from mod (if provided) and
 # brings them into the form of the forward algorithm, see prepare_forward()
 prepare_decoding <- function(delta, Gamma, allprobs, trackID = NULL, tod = NULL, mod = NULL){
+  # model object as first argument, e.g. viterbi(mod)
+  if(is.null(mod) && is.list(delta)) mod <- delta
   if(!is.null(mod)){
     for(x in c("delta", "Gamma", "allprobs")) {
       if(is.null(mod[[x]])) stop("Model object contains no ", x, ".")
@@ -43,8 +45,9 @@ run_stateprobs <- function(inp, forecast = FALSE){
 #' @param delta 
 #' initial distribution; either
 #'   \itemize{
-#'     \item a vector of length \code{nStates}, or
-#'     \item a matrix of dimension \code{c(nTracks, nStates)} if \code{trackID} is provided
+#'     \item a vector of length \code{nStates},
+#'     \item a matrix of dimension \code{c(nTracks, nStates)} if \code{trackID} is provided, or
+#'     \item a model object as for \code{mod}, so that \code{mod} can be passed as the first argument
 #'   }
 #' @param Gamma 
 #' transition probability matrix; either
@@ -197,8 +200,9 @@ viterbi_p = function(delta, Gamma, allprobs, tod, trackID = NULL,
 #' @param delta 
 #' initial distribution; either
 #'   \itemize{
-#'     \item a vector of length \code{nStates}, or
-#'     \item a matrix of dimension \code{c(nTracks, nStates)} if \code{trackID} is provided
+#'     \item a vector of length \code{nStates},
+#'     \item a matrix of dimension \code{c(nTracks, nStates)} if \code{trackID} is provided, or
+#'     \item a model object as for \code{mod}, so that \code{mod} can be passed as the first argument
 #'   }
 #' @param Gamma 
 #' transition probability matrix; either

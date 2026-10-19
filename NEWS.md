@@ -30,6 +30,8 @@
 * forward(), viterbi() and stateprobs() have an argument tod for periodic models, so they 
   handle all model types; forward_g(), forward_p(), viterbi_g(), viterbi_p(), stateprobs_g() 
   and stateprobs_p() are deprecated and give a message
+* viterbi() and stateprobs() also take the model object as first argument, 
+  e.g. viterbi(mod) instead of viterbi(mod = mod)
 * tpm_g() and generator_g() are deprecated in favour of tpm(beta, Z) and generator(beta, Z), 
   which also accept a single covariate vector Z; the sparse argument of tpm_g() is gone
 

@@ -1,5 +1,13 @@
 # LaMa (development version)
 
+## New features
+
+* scores(mod) computes the score contribution of each observation for models using forward(), 
+  e.g. for robust (sandwich) standard errors; it takes the model from report() or the RTMB 
+  object, respects map, and the likelihood function does not need to change
+* report() also stores obj (the same object, not a copy), so MCreport() can be called on 
+  the model object from report() or qreml()
+
 ## Bug fixes
 
 * forward(): with track-specific delta or Gamma, the AD version matched them to the 

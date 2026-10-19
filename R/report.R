@@ -6,6 +6,7 @@
 #' @param obj Optimised \code{RTMB} object
 #'
 #' @returns A model object of class "\code{LaMaModel}" containing a list with the reported quantities from the \code{RTMB} object, along estimated parameters and other quantities.
+#' It also contains \code{obj} itself (not a copy), so that functions like \code{\link{MCreport}} or \code{\link{scores}} can be called on the model object.
 #' @export 
 #'
 #' @examples
@@ -89,9 +90,17 @@ report <- function(obj) {
   )
   
   mod$obs <- obj$env$obs
+  mod$obj <- obj # same object, not a copy
   
   class(mod) <- "LaMaModel"
   return(mod)
+}
+
+# RTMB object from MakeADFun(), or the one stored by report() or qreml()
+get_obj <- function(x){
+  if(inherits(x, c("LaMaModel", "qremlModel"))) x <- x$obj
+  if(is.null(x$env)) stop("Expected an RTMB object from MakeADFun() or a model from report() or qreml().")
+  x
 }
 
 #' Extract log-likelihood from LaMaModel object

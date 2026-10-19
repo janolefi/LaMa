@@ -126,7 +126,7 @@ forward <- function(delta,
 # - Gamma: array of dimension c(nStates, nStates, nSlices)
 # - gidx: slice of Gamma for the transition into each time point
 # - start, end: first and last index of each track
-# - allprobs: if logspace, divided by its row maxima, whose logs sum to shift
+# - allprobs: if logspace, divided by its row maxima (shift), added back on the log scale
 prepare_forward <- function(delta, Gamma, allprobs, trackID = NULL,
                             logspace = FALSE, bw = NULL, gidx = NULL){
 
@@ -232,9 +232,8 @@ prepare_forward <- function(delta, Gamma, allprobs, trackID = NULL,
   # exact, as each row scales the likelihood by a constant, and numerically stable
   shift <- 0
   if (logspace) {
-    m <- rowmax(allprobs)
-    allprobs <- exp(allprobs - m)
-    shift <- sum(m)
+    shift <- rowmax(allprobs)
+    allprobs <- exp(allprobs - shift)
   }
 
   list(delta = delta, Gamma = Gamma, allprobs = allprobs, shift = shift,
@@ -251,6 +250,19 @@ report_forward <- function(delta, Gamma, allprobs, trackID, type){
   REPORT(type)
 }
 
+# Weights of the log-likelihood contributions log p(x_t | x_1, ..., x_t-1), only used by scores():
+# - counting mode (.lama_env$count not NULL): counts the observations of all forward() calls
+# - weights (.lama_env$weights): consecutive forward() calls take consecutive blocks
+get_weights <- function(nObs){
+  if(!is.null(.lama_env$count)) .lama_env$count <- .lama_env$count + nObs
+  w <- .lama_env$weights
+  if(is.null(w)) return(NULL)
+  pos <- .lama_env$pos
+  if(pos + nObs > length(w)) stop("More observations in forward() than weights (internal error, please report).")
+  .lama_env$pos <- pos + nObs
+  w[pos + seq_len(nObs)]
+}
+
 # Runs the forward algorithm on the output of prepare_forward()
 # - if ad == FALSE, use C++ version for speed
 # - if ad == TRUE, use R version which is converted into diff'able C++ code via RTMB
@@ -263,6 +275,11 @@ run_forward <- function(inp, ad = NULL){
 
   nStates <- ncol(inp$allprobs)
 
+  # weights of the log-likelihood contributions, only set by scores() while taping (AD only)
+  w <- get_weights(nrow(inp$allprobs))
+  if(!is.null(w) && !ad) stop("Weights are only used with AD (internal error, please report).")
+  wsum <- function(x) if(is.null(w)) sum(x) else sum(w * x)
+
   # value check, only possible without AD
   # (no row sum checks: MMPPs and state-space models use sub-stochastic Gamma)
   if(!ad && anyNA(inp$allprobs)) {
@@ -272,7 +289,7 @@ run_forward <- function(inp, ad = NULL){
 
   # only one state: no hidden process
   if(nStates == 1) {
-    return(as.numeric(sum(log(inp$allprobs)) + inp$shift))
+    return(as.numeric(wsum(log(inp$allprobs[, 1])) + wsum(inp$shift)))
   }
 
   if(!ad) { # non-AD version in C++, always exact (bw is ignored)
@@ -300,18 +317,22 @@ run_forward <- function(inp, ad = NULL){
               "poor. Consider a larger bandwidth.", call. = FALSE)
     }
 
-    l <- forward_ad(inp)
+    l <- forward_ad(inp, w)
   }
 
-  as.numeric(l + inp$shift)
+  as.numeric(l + wsum(inp$shift))
 }
 
 # forward algorithm in R, taped by RTMB for automatic differentiation
-forward_ad <- function(inp){
+# w: optional weights of the log-likelihood contributions (see run_forward())
+forward_ad <- function(inp, w = NULL){
 
   Gamma <- inp$Gamma
   bw <- inp$bw
   nStates <- ncol(inp$allprobs)
+
+  # log-likelihood contribution of observation t, weighted if w is given
+  lc <- function(sumfoo, t) if(is.null(w)) log(sumfoo) else w[t] * log(sumfoo)
 
   # Initialising log-likelihood at 0
   l <- 0
@@ -327,7 +348,7 @@ forward_ad <- function(inp){
     foo <- delta_i * allprobs_i[1, , drop = FALSE]
     sumfoo <- sum(foo)
     phi <- foo / sumfoo
-    l <- l + log(sumfoo)
+    l <- l + lc(sumfoo, ind[1])
 
     if(is.null(bw)) {
       k <- length(ind)
@@ -341,7 +362,7 @@ forward_ad <- function(inp){
       foo <- (phi %*% Gamma[, , gidx_i[t]]) * allprobs_i[t, , drop = FALSE]
       sumfoo <- sum(foo)
       phi <- foo / sumfoo
-      l <- l + log(sumfoo)
+      l <- l + lc(sumfoo, ind[t])
     }
 
     # If banded, the approximation is as follows:
@@ -374,7 +395,7 @@ forward_ad <- function(inp){
           foo <- (foo %*% Gamma[, , gidx_i[t]]) * allprobs_i[t, , drop = FALSE]
           sumfoo <- sum(foo)
           foo <- foo / sumfoo
-          l <- l + log(sumfoo)
+          l <- l + lc(sumfoo, ind[t])
         }
         startInd <- startInd + k
         endInd <- endInd + k

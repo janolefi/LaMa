@@ -62,16 +62,7 @@ This function efficiently calculates all transition probabilty matrices for a gi
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">tpm_g</span><span class="op">(</span></span>
-<span>  <span class="va">Z</span>,</span>
-<span>  <span class="va">beta</span>,</span>
-<span>  Eta <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  byrow <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  ref <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  ad <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  report <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  sparse <span class="op">=</span> <span class="cn">FALSE</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">tpm_g</span><span class="op">(</span><span class="va">Z</span>, <span class="va">beta</span>, Eta <span class="op">=</span> <span class="cn">NULL</span>, byrow <span class="op">=</span> <span class="cn">FALSE</span>, ref <span class="op">=</span> <span class="cn">NULL</span>, ad <span class="op">=</span> <span class="cn">NULL</span>, report <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -110,14 +101,14 @@ Defaults to <code>FALSE</code>, but should be set to <code>TRUE</code> if one wa
 <dt id="arg-report">report<a class="anchor" aria-label="anchor" href="#arg-report"></a></dt>
 <dd><p>logical; if <code>TRUE</code> (default), <code>delta</code>, <code>Gamma</code>, <code>allprobs</code>, and <code>trackID</code> are reported from the fitted model. Requires <code>ad = TRUE</code>.</p></dd>
 
-
-<dt id="arg-sparse">sparse<a class="anchor" aria-label="anchor" href="#arg-sparse"></a></dt>
-<dd><p>logical, indicating whether sparsity in the rows of <code>Z</code> should be exploited.</p></dd>
-
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>array of transition probability matrices of dimension <code>c(nStates, nStates, nObs)</code></p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p><strong>Deprecated:</strong> please use <code><a href="tpm.html">tpm</a>(beta, Z)</code> for all model types instead.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

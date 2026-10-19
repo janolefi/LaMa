@@ -50,7 +50,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">viterbi</span><span class="op">(</span><span class="va">delta</span>, <span class="va">Gamma</span>, <span class="va">allprobs</span>, trackID <span class="op">=</span> <span class="cn">NULL</span>, mod <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">viterbi</span><span class="op">(</span><span class="va">delta</span>, <span class="va">Gamma</span>, <span class="va">allprobs</span>, trackID <span class="op">=</span> <span class="cn">NULL</span>, mod <span class="op">=</span> <span class="cn">NULL</span>, tod <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -58,15 +58,17 @@
 
 
 <dl><dt id="arg-delta">delta<a class="anchor" aria-label="anchor" href="#arg-delta"></a></dt>
-<dd><p>initial distribution; either</p><ul><li><p>a vector of length <code>nStates</code>, or</p></li>
-<li><p>a matrix of dimension <code>c(nTracks, nStates)</code> if <code>trackID</code> is provided</p></li>
+<dd><p>initial distribution; either</p><ul><li><p>a vector of length <code>nStates</code>,</p></li>
+<li><p>a matrix of dimension <code>c(nTracks, nStates)</code> if <code>trackID</code> is provided, or</p></li>
+<li><p>a model object as for <code>mod</code>, so that <code>mod</code> can be passed as the first argument</p></li>
 </ul></dd>
 
 
 <dt id="arg-gamma">Gamma<a class="anchor" aria-label="anchor" href="#arg-gamma"></a></dt>
 <dd><p>transition probability matrix; either</p><ul><li><p>a matrix of dimension <code>c(nStates, nStates)</code>,</p></li>
-<li><p>an array of dimension <code>c(nStates, nStates, nTracks)</code> if <code>trackID</code> is provided, or</p></li>
-<li><p>an array of dimension <code>c(nStates, nStates, nObs)</code> for time-varying transition probabilities, in which case <code><a href="viterbi_g.html">viterbi_g</a></code> is called internally</p></li>
+<li><p>an array of dimension <code>c(nStates, nStates, nTracks)</code> if <code>trackID</code> is provided,</p></li>
+<li><p>an array of dimension <code>c(nStates, nStates, nObs)</code> for time-varying transition probabilities, or</p></li>
+<li><p>an array of dimension <code>c(nStates, nStates, L)</code> for periodic transition probabilities, if <code>tod</code> is provided</p></li>
 </ul></dd>
 
 
@@ -75,7 +77,8 @@
 
 
 <dt id="arg-trackid">trackID<a class="anchor" aria-label="anchor" href="#arg-trackid"></a></dt>
-<dd><p>optional vector of length <code>nObs</code> containing <code>nTracks</code> unique IDs that separate tracks</p></dd>
+<dd><p>optional vector of length <code>nObs</code> containing <code>nTracks</code> unique IDs that separate tracks.
+The observations of each track need to be consecutive.</p></dd>
 
 
 <dt id="arg-mod">mod<a class="anchor" aria-label="anchor" href="#arg-mod"></a></dt>
@@ -83,6 +86,10 @@
 optionally <code>trackID</code>. When using <code>RTMB::MakeADFun</code> or <code><a href="qreml.html">qreml</a></code> with
 <code><a href="forward.html">forward</a></code> in the likelihood, these are reported automatically after model fitting
 and the object returned by <code>RTMB::report()</code> or <code><a href="qreml.html">qreml</a></code> can be passed directly.</p></dd>
+
+
+<dt id="arg-tod">tod<a class="anchor" aria-label="anchor" href="#arg-tod"></a></dt>
+<dd><p>optional integer vector of length <code>nObs</code> with values in 1, ..., L, indexing the slices of <code>Gamma</code> for periodic models</p></dd>
 
 </dl></div>
     <div class="section level2">

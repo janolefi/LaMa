@@ -13,16 +13,7 @@ given design matrix `Z` and parameter matrix `beta`.
 ## Usage
 
 ``` r
-tpm_g(
-  Z,
-  beta,
-  Eta = NULL,
-  byrow = FALSE,
-  ref = NULL,
-  ad = NULL,
-  report = TRUE,
-  sparse = FALSE
-)
+tpm_g(Z, beta, Eta = NULL, byrow = FALSE, ref = NULL, ad = NULL, report = TRUE)
 ```
 
 ## Arguments
@@ -68,15 +59,16 @@ tpm_g(
   logical; if `TRUE` (default), `delta`, `Gamma`, `allprobs`, and
   `trackID` are reported from the fitted model. Requires `ad = TRUE`.
 
-- sparse:
-
-  logical, indicating whether sparsity in the rows of `Z` should be
-  exploited.
-
 ## Value
 
 array of transition probability matrices of dimension
 `c(nStates, nStates, nObs)`
+
+## Details
+
+**Deprecated:** please use
+[`tpm`](https://janolefi.github.io/LaMa/reference/tpm.md)`(beta, Z)` for
+all model types instead.
 
 ## See also
 

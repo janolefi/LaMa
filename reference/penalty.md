@@ -132,19 +132,87 @@ pnll = function(par) {
 # model fitting
 mod = qreml(pnll, par, dat, random = "betaspline")
 #> Creating AD function
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
 #> Initialising with lambda: 10 10
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
 #> outer 1 - lambda: 3.636 2.858 
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
 #> outer 2 - lambda: 0.786 0.954 
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
 #> outer 3 - lambda: 0.26 0.387 
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
 #> outer 4 - lambda: 0.521 0.267 
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
 #> outer 5 - lambda: 0.468 0.185 
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
 #> outer 6 - lambda: 0.49 0.103 
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
 #> outer 7 - lambda: 0.486 0.079 
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
 #> outer 8 - lambda: 0.486 0.08 
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
 #> outer 9 - lambda: 0.486 0.08 
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
 #> outer 10 - lambda: 0.487 0.08 
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
 #> outer 11 - lambda: 0.487 0.08 
 #> Converged
 #> Final model fit with lambda: 0.486 0.079
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
 # }
 ```

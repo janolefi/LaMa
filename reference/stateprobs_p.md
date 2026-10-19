@@ -48,7 +48,7 @@ stateprobs_p(
 - trackID:
 
   optional vector of k track IDs, if multiple tracks need to be decoded
-  separately
+  separately. The observations of each track need to be consecutive.
 
 - mod:
 
@@ -76,6 +76,12 @@ stateprobs_p(
 
 matrix of conditional state probabilities of dimension c(n,N)
 
+## Details
+
+**Deprecated:** please use
+[`stateprobs`](https://janolefi.github.io/LaMa/reference/stateprobs.md)
+with argument `tod` instead.
+
 ## See also
 
 Other decoding functions:
@@ -96,4 +102,5 @@ allprobs = matrix(runif(200), nrow = 100, ncol = 2)
 tod = rep(1:24, 5)[1:100]
 
 probs = stateprobs_p(delta, Gamma, allprobs, tod)
+#> stateprobs_p() is deprecated, please use stateprobs(..., tod = tod) for periodic models instead.
 ```

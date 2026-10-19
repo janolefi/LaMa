@@ -85,7 +85,9 @@ If provided, no <code>Z</code> and <code>beta</code> are necessary and will be i
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Off-diagonal entries are calculated as \(\exp(Z \beta_i)\) to ensure positivity. The diagonal entries are then set to the negative row sums, which is required for generator matrices.</p>
+    <p><strong>Deprecated:</strong> please use <code><a href="generator.html">generator</a>(beta, Z)</code> for all model types instead.</p>
+
+<p>Off-diagonal entries are calculated as \(\exp(Z \beta_i)\) to ensure positivity. The diagonal entries are then set to the negative row sums, which is required for generator matrices.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

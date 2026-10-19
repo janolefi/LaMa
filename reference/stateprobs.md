@@ -12,7 +12,8 @@ stateprobs(
   allprobs,
   trackID = NULL,
   mod = NULL,
-  forecast = FALSE
+  forecast = FALSE,
+  tod = NULL
 )
 ```
 
@@ -22,9 +23,13 @@ stateprobs(
 
   initial distribution; either
 
-  - a vector of length `nStates`, or
+  - a vector of length `nStates`,
 
-  - a matrix of dimension `c(nTracks, nStates)` if `trackID` is provided
+  - a matrix of dimension `c(nTracks, nStates)` if `trackID` is
+    provided, or
+
+  - a model object as for `mod`, so that `mod` can be passed as the
+    first argument
 
 - Gamma:
 
@@ -33,12 +38,13 @@ stateprobs(
   - a matrix of dimension `c(nStates, nStates)`,
 
   - an array of dimension `c(nStates, nStates, nTracks)` if `trackID` is
-    provided, or
+    provided,
 
   - an array of dimension `c(nStates, nStates, nObs)` for time-varying
-    transition probabilities, in which case
-    [`stateprobs_g`](https://janolefi.github.io/LaMa/reference/stateprobs_g.md)
-    is called internally
+    transition probabilities, or
+
+  - an array of dimension `c(nStates, nStates, L)` for periodic
+    transition probabilities, if `tod` is provided
 
 - allprobs:
 
@@ -48,7 +54,8 @@ stateprobs(
 - trackID:
 
   optional vector of length `nObs` containing `nTracks` unique IDs that
-  separate tracks
+  separate tracks. The observations of each track need to be
+  consecutive.
 
 - mod:
 
@@ -65,6 +72,11 @@ stateprobs(
 
   logical, indicating if forecast probabilities \\\Pr(\text{State}\_t =
   j \mid X_1, ..., X\_{t-1})\\ should be calculated instead.
+
+- tod:
+
+  optional integer vector of length `nObs` with values in 1, ..., L,
+  indexing the slices of `Gamma` for periodic models
 
 ## Value
 

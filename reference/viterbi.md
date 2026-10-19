@@ -6,7 +6,7 @@ HMM.
 ## Usage
 
 ``` r
-viterbi(delta, Gamma, allprobs, trackID = NULL, mod = NULL)
+viterbi(delta, Gamma, allprobs, trackID = NULL, mod = NULL, tod = NULL)
 ```
 
 ## Arguments
@@ -15,9 +15,13 @@ viterbi(delta, Gamma, allprobs, trackID = NULL, mod = NULL)
 
   initial distribution; either
 
-  - a vector of length `nStates`, or
+  - a vector of length `nStates`,
 
-  - a matrix of dimension `c(nTracks, nStates)` if `trackID` is provided
+  - a matrix of dimension `c(nTracks, nStates)` if `trackID` is
+    provided, or
+
+  - a model object as for `mod`, so that `mod` can be passed as the
+    first argument
 
 - Gamma:
 
@@ -26,12 +30,13 @@ viterbi(delta, Gamma, allprobs, trackID = NULL, mod = NULL)
   - a matrix of dimension `c(nStates, nStates)`,
 
   - an array of dimension `c(nStates, nStates, nTracks)` if `trackID` is
-    provided, or
+    provided,
 
   - an array of dimension `c(nStates, nStates, nObs)` for time-varying
-    transition probabilities, in which case
-    [`viterbi_g`](https://janolefi.github.io/LaMa/reference/viterbi_g.md)
-    is called internally
+    transition probabilities, or
+
+  - an array of dimension `c(nStates, nStates, L)` for periodic
+    transition probabilities, if `tod` is provided
 
 - allprobs:
 
@@ -41,7 +46,8 @@ viterbi(delta, Gamma, allprobs, trackID = NULL, mod = NULL)
 - trackID:
 
   optional vector of length `nObs` containing `nTracks` unique IDs that
-  separate tracks
+  separate tracks. The observations of each track need to be
+  consecutive.
 
 - mod:
 
@@ -53,6 +59,11 @@ viterbi(delta, Gamma, allprobs, trackID = NULL, mod = NULL)
   and the object returned by `RTMB::report()` or
   [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md) can be
   passed directly.
+
+- tod:
+
+  optional integer vector of length `nObs` with values in 1, ..., L,
+  indexing the slices of `Gamma` for periodic models
 
 ## Value
 

@@ -90,7 +90,7 @@ For half-hourly data L = 48. It could, however, also be day of year for daily da
 
 
 <dt id="arg-trackid">trackID<a class="anchor" aria-label="anchor" href="#arg-trackid"></a></dt>
-<dd><p>optional vector of k track IDs, if multiple tracks need to be decoded separately</p></dd>
+<dd><p>optional vector of k track IDs, if multiple tracks need to be decoded separately. The observations of each track need to be consecutive.</p></dd>
 
 
 <dt id="arg-mod">mod<a class="anchor" aria-label="anchor" href="#arg-mod"></a></dt>
@@ -106,6 +106,10 @@ Hence, you can pass the model object obtained from running <code>RTMB::report()<
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>matrix of conditional state probabilities of dimension c(n,N)</p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p><strong>Deprecated:</strong> please use <code><a href="stateprobs.html">stateprobs</a></code> with argument <code>tod</code> instead.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -127,6 +131,7 @@ Hence, you can pass the model object obtained from running <code>RTMB::report()<
 <span class="r-in"><span><span class="va">tod</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">24</span>, <span class="fl">5</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">100</span><span class="op">]</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">probs</span> <span class="op">=</span> <span class="fu">stateprobs_p</span><span class="op">(</span><span class="va">delta</span>, <span class="va">Gamma</span>, <span class="va">allprobs</span>, <span class="va">tod</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> stateprobs_p() is deprecated, please use stateprobs(..., tod = tod) for periodic models instead.</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

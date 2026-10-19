@@ -61,7 +61,8 @@ using the <strong>forward algorithm</strong> (Zucchini, MacDonald &amp; Langrock
 <span>  logspace <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  bw <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  report <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  ad <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  ad <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  tod <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -76,9 +77,10 @@ using the <strong>forward algorithm</strong> (Zucchini, MacDonald &amp; Langrock
 
 
 <dt id="arg-gamma">Gamma<a class="anchor" aria-label="anchor" href="#arg-gamma"></a></dt>
-<dd><p>transition probability matrix; either</p><ul><li><p>a matrix of dimension <code>c(nStates, nStates)</code>, or</p></li>
-<li><p>an array of dimension <code>c(nStates, nStates, nTracks)</code> if <code>trackID</code> is provided, or</p></li>
-<li><p>an array of dimension <code>c(nStates, nStates, nObs)</code> for time-varying transition probabilities (see <code><a href="forward_g.html">forward_g</a></code>).</p></li>
+<dd><p>transition probability matrix; either</p><ul><li><p>a matrix of dimension <code>c(nStates, nStates)</code>,</p></li>
+<li><p>an array of dimension <code>c(nStates, nStates, nTracks)</code> if <code>trackID</code> is provided,</p></li>
+<li><p>an array of dimension <code>c(nStates, nStates, nObs)</code> for time-varying transition probabilities, or</p></li>
+<li><p>an array of dimension <code>c(nStates, nStates, L)</code> for periodic transition probabilities, if <code>tod</code> is provided.</p></li>
 </ul></dd>
 
 
@@ -108,6 +110,11 @@ Only used with automatic differentiation; otherwise the exact likelihood is comp
 <dt id="arg-ad">ad<a class="anchor" aria-label="anchor" href="#arg-ad"></a></dt>
 <dd><p>logical; whether to use automatic differentiation. Determined automatically — for debugging only.</p></dd>
 
+
+<dt id="arg-tod">tod<a class="anchor" aria-label="anchor" href="#arg-tod"></a></dt>
+<dd><p>optional integer vector of length <code>nObs</code> with values in 1, ..., L, indexing the slices of <code>Gamma</code> for periodic models
+(e.g. time of day with L = 24 for hourly data).</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -118,7 +125,8 @@ Only used with automatic differentiation; otherwise the exact likelihood is comp
     <p>If <code>trackID</code> is provided, the total log-likelihood is the sum of each track's likelihood
 contribution. In this case, <code>Gamma</code> can be</p><ul><li><p>a matrix (same transition probabilities for each track),</p></li>
 <li><p>an array of dimension <code>c(nStates, nStates, nTracks)</code> (track-specific transition probability matrix), or</p></li>
-<li><p>an array of dimension <code>c(nStates, nStates, nObs)</code> for time-varying transition probabilities (see <code><a href="forward_g.html">forward_g</a></code>).</p></li>
+<li><p>an array of dimension <code>c(nStates, nStates, nObs)</code> for time-varying transition probabilities, or</p></li>
+<li><p>an array of dimension <code>c(nStates, nStates, L)</code> for periodic transition probabilities, if <code>tod</code> is provided.</p></li>
 </ul><p>Additionally, <code>delta</code> can be a vector (same initial distribution for each track) or a
 matrix of dimension <code>c(nTracks, nStates)</code> (track-specific initial distributions).</p>
 <p><strong>Note:</strong> When there are multiple tracks, for compatibility with downstream functions like <code><a href="viterbi.html">viterbi</a></code>, <code><a href="stateprobs.html">stateprobs</a></code> or <code><a href="pseudo_res.html">pseudo_res</a></code>,

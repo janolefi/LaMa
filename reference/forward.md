@@ -15,7 +15,8 @@ forward(
   logspace = FALSE,
   bw = NULL,
   report = TRUE,
-  ad = NULL
+  ad = NULL,
+  tod = NULL
 )
 ```
 
@@ -34,14 +35,16 @@ forward(
 
   transition probability matrix; either
 
-  - a matrix of dimension `c(nStates, nStates)`, or
+  - a matrix of dimension `c(nStates, nStates)`,
 
   - an array of dimension `c(nStates, nStates, nTracks)` if `trackID` is
-    provided, or
+    provided,
 
   - an array of dimension `c(nStates, nStates, nObs)` for time-varying
-    transition probabilities (see
-    [`forward_g`](https://janolefi.github.io/LaMa/reference/forward_g.md)).
+    transition probabilities, or
+
+  - an array of dimension `c(nStates, nStates, L)` for periodic
+    transition probabilities, if `tod` is provided.
 
 - allprobs:
 
@@ -77,6 +80,12 @@ forward(
   logical; whether to use automatic differentiation. Determined
   automatically — for debugging only.
 
+- tod:
+
+  optional integer vector of length `nObs` with values in 1, ..., L,
+  indexing the slices of `Gamma` for periodic models (e.g. time of day
+  with L = 24 for hourly data).
+
 ## Value
 
 HMM log-likelihood for given data and parameters
@@ -92,8 +101,10 @@ track's likelihood contribution. In this case, `Gamma` can be
   transition probability matrix), or
 
 - an array of dimension `c(nStates, nStates, nObs)` for time-varying
-  transition probabilities (see
-  [`forward_g`](https://janolefi.github.io/LaMa/reference/forward_g.md)).
+  transition probabilities, or
+
+- an array of dimension `c(nStates, nStates, L)` for periodic transition
+  probabilities, if `tod` is provided.
 
 Additionally, `delta` can be a vector (same initial distribution for
 each track) or a matrix of dimension `c(nTracks, nStates)`

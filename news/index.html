@@ -53,6 +53,10 @@
 <li>one-state models are correct with logspace = TRUE and report their quantities</li>
 <li>forward_p() works if tod does not contain all values 1, …, L</li>
 <li>forward_g() works without AD for two observations</li>
+<li>stateprobs_g(forecast = TRUE) with trackID used the transition matrix of the previous time point, which also affected pseudo_res() for inhomogeneous models with tracks</li>
+<li>stateprobs() passes forecast on for time-varying Gamma</li>
+<li>viterbi() and stateprobs() work for tracks of length one</li>
+<li>stateprobs(forecast = TRUE): the first row of each track is delta, not the filtered probabilities given x_1, so pseudo_res() is correct for the first observation</li>
 </ul></div>
 <div class="section level3">
 <h3 id="minor-changes-development-version">Minor changes<a class="anchor" aria-label="anchor" href="#minor-changes-development-version"></a></h3>
@@ -60,6 +64,11 @@
 <li>tracks need to be contiguous, otherwise forward() gives an informative error</li>
 <li>without AD, forward() gives an error for NA in allprobs</li>
 <li>the TapeConfig performance tip is shown only once per session</li>
+<li>viterbi(), stateprobs() and their _g and _p versions use the inputs of forward() and one C++ implementation each, so Gamma is no longer expanded; as in forward(), tracks need to be contiguous</li>
+<li>forward_p() reports Gamma with its L slices and type “periodic”</li>
+<li>forward(), viterbi() and stateprobs() have an argument tod for periodic models, so they handle all model types; forward_g(), forward_p(), viterbi_g(), viterbi_p(), stateprobs_g() and stateprobs_p() are deprecated and give a message</li>
+<li>viterbi() and stateprobs() also take the model object as first argument, e.g. viterbi(mod) instead of viterbi(mod = mod)</li>
+<li>tpm_g() and generator_g() are deprecated in favour of tpm(beta, Z) and generator(beta, Z), which also accept a single covariate vector Z; the sparse argument of tpm_g() is gone</li>
 </ul></div>
 </div>
     <div class="section level2">

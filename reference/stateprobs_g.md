@@ -42,7 +42,8 @@ stateprobs_g(
 - trackID:
 
   optional vector of length `nObs` containing `nTracks` unique IDs that
-  separate tracks
+  separate tracks. The observations of each track need to be
+  consecutive.
 
 - mod:
 
@@ -65,6 +66,12 @@ stateprobs_g(
 matrix of conditional state probabilities of dimension
 `c(nObs, nStates)`
 
+## Details
+
+**Deprecated:** please use
+[`stateprobs`](https://janolefi.github.io/LaMa/reference/stateprobs.md)
+for all model types instead.
+
 ## See also
 
 Other decoding functions:
@@ -78,8 +85,10 @@ Other decoding functions:
 
 ``` r
 Gamma = tpm_g(runif(10), matrix(c(-1,-1,1,-2), nrow = 2, byrow = TRUE))
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
 delta = c(0.5, 0.5)
 allprobs = matrix(runif(20), nrow = 10, ncol = 2)
 
 probs = stateprobs_g(delta, Gamma[,,-1], allprobs)
+#> stateprobs_g() is deprecated, please use stateprobs() for all model types instead.
 ```

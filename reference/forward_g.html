@@ -113,7 +113,9 @@ Only used with automatic differentiation; otherwise the exact likelihood is comp
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>If <code>trackID</code> is provided, the total log-likelihood will be the sum of each track's likelihood contribution.
+    <p><strong>Deprecated:</strong> please use <code><a href="forward.html">forward</a></code> for all model types instead.</p>
+
+<p>If <code>trackID</code> is provided, the total log-likelihood will be the sum of each track's likelihood contribution.
 In this case, <code>Gamma</code> must be an array of dimension <code>c(nStates, nStates, nObs)</code>, matching the number of rows of allprobs. For each track, the transition matrix at the beginning of the track will be ignored (as there is no transition between tracks).
 Additionally, <code>delta</code> can be a vector (same initial distribution for each track) or a matrix of dimension <code>c(nTracks, nStates)</code> (different initial distribution for each track).</p>
 <p><strong>Note:</strong> When there are multiple tracks, for compatibility with downstream functions like <code><a href="viterbi_g.html">viterbi_g</a></code>, <code><a href="stateprobs_g.html">stateprobs_g</a></code> or <code><a href="pseudo_res.html">pseudo_res</a></code>,
@@ -145,6 +147,7 @@ Statistical Modelling, 25(6), 481–507.</p>
 <span class="r-in"><span><span class="va">delta</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.5</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">allprobs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">10</span>, <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">forward_g</span><span class="op">(</span><span class="va">delta</span>, <span class="va">Gamma</span>, <span class="va">allprobs</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] -6.931472</span>
 <span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="co">## Full model fitting example</span></span></span>
@@ -170,7 +173,701 @@ Statistical Modelling, 25(6), 481–507.</p>
 <span class="r-in"><span>        <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.3</span>, <span class="fl">2.5</span><span class="op">)</span><span class="op">)</span>, <span class="co"># initial means for step length (log-transformed)</span></span></span>
 <span class="r-in"><span>        <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="fl">1.5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="co"># initial sds for step length (log-transformed)</span></span></span>
 <span class="r-in"><span><span class="va">mod</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm</a></span><span class="op">(</span><span class="va">nll</span>, <span class="va">par</span>, step <span class="op">=</span> <span class="va">trex</span><span class="op">$</span><span class="va">step</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">500</span><span class="op">]</span>, Z <span class="op">=</span> <span class="fu"><a href="cosinor.html">cosinor</a></span><span class="op">(</span><span class="va">trex</span><span class="op">$</span><span class="va">tod</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">500</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>NA/NaN replaced by maximum positive value</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

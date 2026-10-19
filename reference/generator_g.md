@@ -47,6 +47,10 @@ array of infinitesimal generator matrices of dimension
 
 ## Details
 
+**Deprecated:** please use
+[`generator`](https://janolefi.github.io/LaMa/reference/generator.md)`(beta, Z)`
+for all model types instead.
+
 Off-diagonal entries are calculated as \\\exp(Z \beta_i)\\ to ensure
 positivity. The diagonal entries are then set to the negative row sums,
 which is required for generator matrices.

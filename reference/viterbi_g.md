@@ -35,7 +35,8 @@ viterbi_g(delta, Gamma, allprobs, trackID = NULL, mod = NULL)
 - trackID:
 
   optional vector of length `nObs` containing `nTracks` unique IDs that
-  separate tracks
+  separate tracks. The observations of each track need to be
+  consecutive.
 
 - mod:
 
@@ -52,6 +53,12 @@ viterbi_g(delta, Gamma, allprobs, trackID = NULL, mod = NULL)
 
 vector of decoded states of length `nObs`
 
+## Details
+
+**Deprecated:** please use
+[`viterbi`](https://janolefi.github.io/LaMa/reference/viterbi.md) for
+all model types instead.
+
 ## See also
 
 Other decoding functions:
@@ -66,6 +73,8 @@ Other decoding functions:
 ``` r
 delta = c(0.5, 0.5)
 Gamma = tpm_g(runif(10), matrix(c(-2,-2,1,-1), nrow = 2))
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
 allprobs = matrix(runif(20), nrow = 10, ncol = 2)
 states = viterbi_g(delta, Gamma[,,-1], allprobs)
+#> viterbi_g() is deprecated, please use viterbi() for all model types instead.
 ```

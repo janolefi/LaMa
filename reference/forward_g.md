@@ -83,6 +83,10 @@ HMM log-likelihood for given data and parameters
 
 ## Details
 
+**Deprecated:** please use
+[`forward`](https://janolefi.github.io/LaMa/reference/forward.md) for
+all model types instead.
+
 If `trackID` is provided, the total log-likelihood will be the sum of
 each track's likelihood contribution. In this case, `Gamma` must be an
 array of dimension `c(nStates, nStates, nObs)`, matching the number of
@@ -126,6 +130,7 @@ Gamma = array(c(0.9, 0.2, 0.1, 0.8), dim = c(2,2,10))
 delta = c(0.5, 0.5)
 allprobs = matrix(0.5, 10, 2)
 forward_g(delta, Gamma, allprobs)
+#> forward_g() is deprecated, please use forward() for all model types instead.
 #> [1] -6.931472
 # \donttest{
 ## Full model fitting example
@@ -151,6 +156,700 @@ par = c(-1.5,-1.5,        # initial tpm intercepts (logit-scale)
         log(c(0.3, 2.5)), # initial means for step length (log-transformed)
         log(c(0.2, 1.5))) # initial sds for step length (log-transformed)
 mod = nlm(nll, par, step = trex$step[1:500], Z = cosinor(trex$tod[1:500]))
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
 #> Warning: NA/NaN replaced by maximum positive value
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
 # }
 ```

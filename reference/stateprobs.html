@@ -62,7 +62,8 @@ for a given HMM.</p>
 <span>  <span class="va">allprobs</span>,</span>
 <span>  trackID <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  mod <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  forecast <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  forecast <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  tod <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -71,15 +72,17 @@ for a given HMM.</p>
 
 
 <dl><dt id="arg-delta">delta<a class="anchor" aria-label="anchor" href="#arg-delta"></a></dt>
-<dd><p>initial distribution; either</p><ul><li><p>a vector of length <code>nStates</code>, or</p></li>
-<li><p>a matrix of dimension <code>c(nTracks, nStates)</code> if <code>trackID</code> is provided</p></li>
+<dd><p>initial distribution; either</p><ul><li><p>a vector of length <code>nStates</code>,</p></li>
+<li><p>a matrix of dimension <code>c(nTracks, nStates)</code> if <code>trackID</code> is provided, or</p></li>
+<li><p>a model object as for <code>mod</code>, so that <code>mod</code> can be passed as the first argument</p></li>
 </ul></dd>
 
 
 <dt id="arg-gamma">Gamma<a class="anchor" aria-label="anchor" href="#arg-gamma"></a></dt>
 <dd><p>transition probability matrix; either</p><ul><li><p>a matrix of dimension <code>c(nStates, nStates)</code>,</p></li>
-<li><p>an array of dimension <code>c(nStates, nStates, nTracks)</code> if <code>trackID</code> is provided, or</p></li>
-<li><p>an array of dimension <code>c(nStates, nStates, nObs)</code> for time-varying transition probabilities, in which case <code><a href="stateprobs_g.html">stateprobs_g</a></code> is called internally</p></li>
+<li><p>an array of dimension <code>c(nStates, nStates, nTracks)</code> if <code>trackID</code> is provided,</p></li>
+<li><p>an array of dimension <code>c(nStates, nStates, nObs)</code> for time-varying transition probabilities, or</p></li>
+<li><p>an array of dimension <code>c(nStates, nStates, L)</code> for periodic transition probabilities, if <code>tod</code> is provided</p></li>
 </ul></dd>
 
 
@@ -88,7 +91,8 @@ for a given HMM.</p>
 
 
 <dt id="arg-trackid">trackID<a class="anchor" aria-label="anchor" href="#arg-trackid"></a></dt>
-<dd><p>optional vector of length <code>nObs</code> containing <code>nTracks</code> unique IDs that separate tracks</p></dd>
+<dd><p>optional vector of length <code>nObs</code> containing <code>nTracks</code> unique IDs that separate tracks.
+The observations of each track need to be consecutive.</p></dd>
 
 
 <dt id="arg-mod">mod<a class="anchor" aria-label="anchor" href="#arg-mod"></a></dt>
@@ -100,6 +104,10 @@ and the object returned by <code>RTMB::report()</code> or <code><a href="qreml.h
 
 <dt id="arg-forecast">forecast<a class="anchor" aria-label="anchor" href="#arg-forecast"></a></dt>
 <dd><p>logical, indicating if forecast probabilities \(\Pr(\text{State}_t = j \mid X_1, ..., X_{t-1})\) should be calculated instead.</p></dd>
+
+
+<dt id="arg-tod">tod<a class="anchor" aria-label="anchor" href="#arg-tod"></a></dt>
+<dd><p>optional integer vector of length <code>nObs</code> with values in 1, ..., L, indexing the slices of <code>Gamma</code> for periodic models</p></dd>
 
 </dl></div>
     <div class="section level2">

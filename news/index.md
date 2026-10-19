@@ -14,6 +14,14 @@
   quantities
 - forward_p() works if tod does not contain all values 1, …, L
 - forward_g() works without AD for two observations
+- stateprobs_g(forecast = TRUE) with trackID used the transition matrix
+  of the previous time point, which also affected pseudo_res() for
+  inhomogeneous models with tracks
+- stateprobs() passes forecast on for time-varying Gamma
+- viterbi() and stateprobs() work for tracks of length one
+- stateprobs(forecast = TRUE): the first row of each track is delta, not
+  the filtered probabilities given x_1, so pseudo_res() is correct for
+  the first observation
 
 ### Minor changes
 
@@ -24,6 +32,19 @@
   error
 - without AD, forward() gives an error for NA in allprobs
 - the TapeConfig performance tip is shown only once per session
+- viterbi(), stateprobs() and their \_g and \_p versions use the inputs
+  of forward() and one C++ implementation each, so Gamma is no longer
+  expanded; as in forward(), tracks need to be contiguous
+- forward_p() reports Gamma with its L slices and type “periodic”
+- forward(), viterbi() and stateprobs() have an argument tod for
+  periodic models, so they handle all model types; forward_g(),
+  forward_p(), viterbi_g(), viterbi_p(), stateprobs_g() and
+  stateprobs_p() are deprecated and give a message
+- viterbi() and stateprobs() also take the model object as first
+  argument, e.g. viterbi(mod) instead of viterbi(mod = mod)
+- tpm_g() and generator_g() are deprecated in favour of tpm(beta, Z) and
+  generator(beta, Z), which also accept a single covariate vector Z; the
+  sparse argument of tpm_g() is gone
 
 ## LaMa 2.1.1 (2026-05-13)
 

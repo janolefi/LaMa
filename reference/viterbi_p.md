@@ -40,7 +40,7 @@ viterbi_p(delta, Gamma, allprobs, tod, trackID = NULL, mod = NULL)
 - trackID:
 
   optional vector of k track IDs, if multiple tracks need to be decoded
-  separately
+  separately. The observations of each track need to be consecutive.
 
 - mod:
 
@@ -62,6 +62,12 @@ viterbi_p(delta, Gamma, allprobs, tod, trackID = NULL, mod = NULL)
 ## Value
 
 vector of decoded states of length n
+
+## Details
+
+**Deprecated:** please use
+[`viterbi`](https://janolefi.github.io/LaMa/reference/viterbi.md) with
+argument `tod` instead.
 
 ## See also
 
@@ -85,4 +91,5 @@ n = length(tod)
 
 allprobs = matrix(runif(2*n), nrow = n, ncol = 2)
 states = viterbi_p(delta, Gamma, allprobs, tod)
+#> viterbi_p() is deprecated, please use viterbi(..., tod = tod) for periodic models instead.
 ```

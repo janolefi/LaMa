@@ -1,5 +1,10 @@
 # LaMa (development version)
 
+## New features
+
+* scores() computes the score contribution of each observation for models using forward(), 
+  e.g. for robust (sandwich) standard errors; nll does not need to change
+
 ## Bug fixes
 
 * forward(): with track-specific delta or Gamma, the AD version matched them to the 

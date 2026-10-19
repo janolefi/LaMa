@@ -61,3 +61,55 @@ test_that("forward: weights are only used with AD", {
   on.exit(env$weights <- NULL)
   expect_error(forward(d_test, G1, exp(lp), ad = FALSE), "only used with AD")
 })
+
+# small model with time-varying Gamma (matrix parameter beta) and two tracks
+set.seed(4)
+dat_sc <- list(x = rnorm(30, rep(c(0, 3, 0), each = 10)), z = runif(30), ID = rep(1:2, each = 15))
+par_sc <- list(mu = c(0, 3), log_sigma = c(0, 0), beta = matrix(c(-2, -2, 0.5, -0.5), 2))
+nll_sc <- function(par) {
+  getAll(par, dat_sc)
+  Gamma <- tpm(beta, z, report = FALSE)
+  allprobs <- cbind(dnorm(x, mu[1], exp(log_sigma[1])), dnorm(x, mu[2], exp(log_sigma[2])))
+  -forward(c(0.5, 0.5), Gamma, allprobs, trackID = ID)
+}
+est_sc <- c(-0.2, 2.8, 0.1, -0.1, -1.5, -2.5, 0.3, -0.2)
+
+test_that("scores: column sums equal the gradient", {
+  U <- scores(nll_sc, par_sc, est_sc)
+  expect_equal(dim(U), c(30, 8))
+  obj <- RTMB::MakeADFun(nll_sc, par_sc, silent = TRUE)
+  expect_equal(colSums(U), -obj$gr(est_sc)[1, ], ignore_attr = TRUE)
+})
+
+test_that("scores: rows are derivatives of the log-likelihood contributions", {
+  # exact contributions as a function of the parameters
+  contrib <- function(theta) {
+    par <- utils::relist(theta, par_sc)
+    Gamma <- tpm(par$beta, dat_sc$z, report = FALSE)
+    logP <- cbind(dnorm(dat_sc$x, par$mu[1], exp(par$log_sigma[1]), log = TRUE),
+                  dnorm(dat_sc$x, par$mu[2], exp(par$log_sigma[2]), log = TRUE))
+    ref_contrib(c(0.5, 0.5), function(t, i) Gamma[, , t], logP, dat_sc$ID)
+  }
+  h <- 1e-5
+  num <- sapply(seq_along(est_sc), function(k) {
+    e <- replace(0 * est_sc, k, h)
+    (contrib(est_sc + e) - contrib(est_sc - e)) / (2 * h)
+  })
+  expect_equal(unname(scores(nll_sc, par_sc, est_sc)), num, tolerance = 1e-6)
+})
+
+test_that("scores: one forward() call per track gives the same", {
+  nll2 <- function(par) {
+    getAll(par, dat_sc)
+    Gamma <- tpm(beta, z, report = FALSE)
+    allprobs <- cbind(dnorm(x, mu[1], exp(log_sigma[1])), dnorm(x, mu[2], exp(log_sigma[2])))
+    -forward(c(0.5, 0.5), Gamma[, , 1:15], allprobs[1:15, ], report = FALSE) -
+      forward(c(0.5, 0.5), Gamma[, , 16:30], allprobs[16:30, ], report = FALSE)
+  }
+  expect_equal(scores(nll2, par_sc, est_sc), scores(nll_sc, par_sc, est_sc))
+})
+
+test_that("scores: informative errors", {
+  expect_error(scores(nll_sc, par_sc, est_sc[-1]), "same length")
+  expect_error(scores(function(par) sum(par$x^2), list(x = 1)), "no call of forward")
+})

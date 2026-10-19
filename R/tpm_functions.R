@@ -81,18 +81,18 @@ tpm <- function(
     message("Argument 'param' is deprecated. Please use 'beta' instead.")
   }
   
-  # potentially escape to tpm_g if matrix of linear predictors or design matrix is provided
+  # one matrix per row if matrix of linear predictors or design matrix is provided
   if(!is.null(Eta) && length(dim(Eta)) == 2) {
     return(
-      tpm_g(Eta = Eta, byrow = byrow, ref = ref, ad = ad, report = report)
+      tpm_inhom(Eta = Eta, byrow = byrow, ref = ref, ad = ad, report = report)
     )
   }
-  if(!is.null(Z) && length(dim(Z)) == 2) {
+  if(!is.null(Z)) {
     if(!is.matrix(beta)) {
       stop("If a design matrix is provided, beta must be a matrix of coefficients.")
     }
     return(
-      tpm_g(Z = Z, beta = beta, byrow = byrow, ref = ref, ad = ad, report = report)
+      tpm_inhom(Z = Z, beta = beta, byrow = byrow, ref = ref, ad = ad, report = report)
     )
   }
   
@@ -157,6 +157,8 @@ tpm <- function(
 #' for each off-diagonal element (\eqn{i \neq j}) of the transition probability matrix and then applying the inverse multinomial logistic link (also known as softmax) to each row.
 #' This function efficiently calculates all transition probabilty matrices for a given design matrix \code{Z} and parameter matrix \code{beta}.
 #' 
+#' \strong{Deprecated:} please use \code{\link{tpm}(beta, Z)} for all model types instead.
+#' 
 #' @family transition probability matrix functions
 #'
 #' @param Z 
@@ -185,8 +187,6 @@ tpm <- function(
 #' @param report 
 #' logical; if \code{TRUE} (default), \code{delta}, \code{Gamma}, \code{allprobs}, and \code{trackID} are reported from the fitted model. Requires \code{ad = TRUE}. 
 #' 
-#' @param sparse 
-#' logical, indicating whether sparsity in the rows of \code{Z} should be exploited.
 #'
 #' @return array of transition probability matrices of dimension \code{c(nStates, nStates, nObs)}
 #' @export
@@ -206,8 +206,22 @@ tpm_g = function(Z, beta,
                  byrow = FALSE, 
                  ref = NULL, 
                  ad = NULL, 
-                 report = TRUE, 
-                 sparse = FALSE){
+                 report = TRUE){
+  
+  message(
+    "tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead."
+  )
+  
+  tpm(beta, Z = Z, Eta = Eta, byrow = byrow, ref = ref, ad = ad, report = report)
+}
+
+# transition probability matrices for each row of Z or Eta, used by tpm()
+tpm_inhom <- function(Z, beta, 
+                      Eta = NULL, 
+                      byrow = FALSE, 
+                      ref = NULL, 
+                      ad = NULL, 
+                      report = TRUE){
   
   if(is.null(Eta)) {
     K <- nrow(beta)
@@ -291,11 +305,7 @@ tpm_g = function(Z, beta,
     # }
     
     if(is.null(Eta)) {
-      if(sparse) {
-        Eta <- Z %sp% t(beta)
-      } else{
-        Eta <- Z %*% t(beta)
-      }
+      Eta <- Z %*% t(beta)
     }
     
     expEta <- exp(Eta)
@@ -623,8 +633,8 @@ tpm_p = function(tod = 1:24, L=24, beta, degree = 1, Z = NULL, byrow = FALSE, ad
     }
   }
   
-  # just an interface to tpm_g
-  tpm_g(Z = Z, beta = beta, byrow = byrow, ad = ad, report = report)
+  # just an interface to tpm_inhom
+  tpm_inhom(Z = Z, beta = beta, byrow = byrow, ad = ad, report = report)
 }
 
 
@@ -820,18 +830,18 @@ generator <- function(
     message("Argument 'param' is deprecated. Please use 'beta' instead.")
   }
   
-  # potentially escape to tpm_g if matrix of linear predictors or design matrix is provided
+  # one matrix per row if matrix of linear predictors or design matrix is provided
   if(!is.null(Eta) && is.matrix(Eta)) {
     return(
-      generator_g(Eta = Eta, byrow = byrow, report = report)
+      generator_inhom(Eta = Eta, byrow = byrow, report = report)
     )
   }
-  if(!is.null(Z) && is.matrix(Z)) {
+  if(!is.null(Z)) {
     if(!is.matrix(beta)) {
       stop("If a design matrix is provided, beta must be a matrix of coefficients.")
     }
     return(
-      generator_g(Z = Z, beta = beta, byrow = byrow, report = report)
+      generator_inhom(Z = Z, beta = beta, byrow = byrow, report = report)
     )
   }
   
@@ -882,6 +892,8 @@ generator <- function(
 #' 
 #' This function builds \strong{infinitesimal generator matrices} for a \strong{continuous-time Markov chain} based on a design matrix and coefficient matrix.
 #' 
+#' \strong{Deprecated:} please use \code{\link{generator}(beta, Z)} for all model types instead.
+#' 
 #' @details
 #' Off-diagonal entries are calculated as \eqn{\exp(Z \beta_i)} to ensure positivity. The diagonal entries are then set to the negative row sums, which is required for generator matrices.
 #' 
@@ -915,6 +927,22 @@ generator <- function(
 #' # 3 states: 6 free off-diagonal elements
 #' generator(rep(-2, 6))
 generator_g <- function(
+    Z, 
+    beta, 
+    Eta = NULL, 
+    byrow = FALSE, 
+    report = TRUE
+){
+  
+  message(
+    "generator_g() is deprecated, please use generator(beta, Z) for all model types instead."
+  )
+  
+  generator(beta, Z = Z, Eta = Eta, byrow = byrow, report = report)
+}
+
+# generator matrices for each row of Z or Eta, used by generator()
+generator_inhom <- function(
     Z, 
     beta, 
     Eta = NULL, 

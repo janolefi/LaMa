@@ -548,7 +548,7 @@ stateprobs_g = function(delta, Gamma, allprobs, trackID = NULL,
         } else {
           phi1 <- exp(lalpha[1,])
           phi2 <- as.vector(phi1 %*% Gamma_i)
-          stateprobs[id_i, ] <- rbind(phi1, phi2)
+          stateprobs[id_i, ] <- rbind(delta[i,], phi2) # forecast at the start is delta
         }
    
       } else{
@@ -564,7 +564,7 @@ stateprobs_g = function(delta, Gamma, allprobs, trackID = NULL,
           rowmax <- apply(lalpha, 1, max)
           Alpha <- exp(lalpha - rowmax)
           Phi <- Alpha / rowSums(Alpha)
-          stateprobs[id_i[1], ] <- Phi[1, ]
+          stateprobs[id_i[1], ] <- delta[i, ] # forecast at the start is delta
           for(t in seq_along(id_i)[-1]) {
             stateprobs[id_i[t], ] <- Phi[t-1, ] %*% Gamma[,,id_i[t]]
           }
@@ -596,7 +596,7 @@ stateprobs_g = function(delta, Gamma, allprobs, trackID = NULL,
       rowmax <- apply(lalpha, 1, max)
       Alpha <- exp(lalpha - rowmax)
       Phi <- Alpha / rowSums(Alpha)
-      stateprobs[1, ] <- Phi[1, ]
+      stateprobs[1, ] <- delta # forecast at the start is delta
       for(t in 2:n) {
         stateprobs[t, ] <- Phi[t-1, ] %*% Gamma[,,t-1]
       }

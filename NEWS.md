@@ -12,6 +12,8 @@
 * stateprobs_g(forecast = TRUE) with trackID used the transition matrix of the previous 
   time point, which also affected pseudo_res() for inhomogeneous models with tracks
 * stateprobs() passes forecast on for time-varying Gamma
+* stateprobs(forecast = TRUE): the first row of each track is delta, not the filtered 
+  probabilities given x_1, so pseudo_res() is correct for the first observation
 
 ## Minor changes
 

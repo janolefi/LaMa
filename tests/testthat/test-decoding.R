@@ -38,10 +38,14 @@ test_that("decoding: periodic model reports L slices and decodes as with one sli
   }
 })
 
-test_that("decoding: forecast probabilities with trackID use the transition into t", {
+test_that("decoding: forecast probabilities reproduce the log-likelihood", {
   ap <- exp(logP_test)
-  ID <- rep(1:2, each = 10)
-  ref <- rbind(stateprobs_g(d_test, Gt_test[, , 2:10], ap[1:10, ], forecast = TRUE),
-               stateprobs_g(d_test, Gt_test[, , 12:20], ap[11:20, ], forecast = TRUE))
-  expect_equal(stateprobs_g(d_test, Gt_test, ap, trackID = ID, forecast = TRUE), ref)
+  llk_fc <- function(fc) sum(log(rowSums(fc * ap))) # sum of log f(x_t | x_1, ..., x_t-1)
+  ID <- rep(1:3, c(2, 8, 10)) # with a track of length 2
+  expect_equal(llk_fc(stateprobs(d_test, G1, ap, forecast = TRUE)),
+               forward(d_test, G1, ap, ad = FALSE))
+  expect_equal(llk_fc(stateprobs_g(d_test, Gt_test, ap, forecast = TRUE)),
+               forward_g(d_test, Gt_test, ap, ad = FALSE))
+  expect_equal(llk_fc(stateprobs_g(D_test, Gt_test, ap, trackID = ID, forecast = TRUE)),
+               forward_g(D_test, Gt_test, ap, trackID = ID, ad = FALSE))
 })

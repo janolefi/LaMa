@@ -4,6 +4,8 @@
 
 * scores() computes the score contribution of each observation for models using forward(), 
   e.g. for robust (sandwich) standard errors; nll does not need to change
+* report() also stores obj (the same object, not a copy), so MCreport() can be called on 
+  the model object from report() or qreml()
 
 ## Bug fixes
 

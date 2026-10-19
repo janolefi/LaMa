@@ -39,6 +39,33 @@
   rowSums(cdf_values * stateprobs)
 }
 
+# pseudo-residuals from the predictive CDF at the observations (upper) and, for discrete data,
+# at the observations minus one (lower); NA where not observed
+finish_res <- function(upper, lower = NULL, observed = !is.na(upper), normal = TRUE, randomise = TRUE){
+  upper[!observed] <- NA
+  if(!is.null(lower)) lower[!observed] <- NA
+  q <- if(normal) qnorm else identity
+
+  if(!is.null(lower)){
+    message("Calculating discrete pseudo-residuals")
+    if(!randomise){
+      out <- list(lower = q(lower), upper = q(upper), mean = q((lower + upper) / 2))
+      class(out) <- "LaMaResiduals"
+      return(out)
+    }
+    message("Randomised between lower and upper")
+    u <- rep(NA_real_, length(upper))
+    u[observed] <- runif(sum(observed), lower[observed], upper[observed])
+  } else{
+    u <- upper
+  }
+
+  u <- q(u)
+  u[is.infinite(u)] <- NA
+  class(u) <- "LaMaResiduals"
+  u
+}
+
 
 #' Calculate pseudo-residuals
 #' 
@@ -173,9 +200,7 @@ pseudo_res <- function(obs,
   # determine discrete automatically if possible
   if(is.null(discrete)){
     if(is.character(dist)){
-      discrete <- dist %in% c("pois","binom","geom","nbinom","nbinom2",
-                              "betabinom","genpois","zibinom","zibinom2",
-                              "zipois","ztbinom","ztnbinom","ztnbinom2", "ztpois")
+      discrete <- dist %in% .discrete_fams
     } else if(is.function(dist)){
       discrete <- FALSE
       message("Assuming 'dist' evaluates a continuous CDF. Set 'discrete = TRUE' if not.")
@@ -191,49 +216,14 @@ pseudo_res <- function(obs,
     stop("'dist' must be a character string or function.")
   }
   
+  observed <- !is.na(obs)
   if(discrete){
-    message("Calculating discrete pseudo-residuals")
-    
-    u_upper <- .eval_cdf_states(obs, par, stateprobs, cdf_func)
-    u_lower <- .eval_cdf_states(obs - 1, par, stateprobs, cdf_func)
-    
-    if(randomise){
-      message("Randomised between lower and upper")
-      u <- rep(NA_real_, nObs)
-      ind <- which(!is.na(obs))
-      u[ind] <- runif(length(ind), u_lower[ind], u_upper[ind])
-    } else{
-      if(normal){
-        out <- list(
-          lower = qnorm(u_lower),
-          upper = qnorm(u_upper),
-          mean  = qnorm((u_lower + u_upper)/2)
-        )
-        class(out) <- "LaMaResiduals"
-        return(out)
-      } else{
-        out <- list(
-          lower = u_lower,
-          upper = u_upper,
-          mean  = (u_lower + u_upper)/2
-        )
-        class(out) <- "LaMaResiduals"
-        return(out)
-      }
-    }
+    upper <- .eval_cdf_states(obs, par, stateprobs, cdf_func)
+    lower <- .eval_cdf_states(obs - 1, par, stateprobs, cdf_func)
+    finish_res(upper, lower, observed, normal, randomise)
   } else{
-    u <- .eval_cdf_states(obs, par, stateprobs, cdf_func)
+    finish_res(.eval_cdf_states(obs, par, stateprobs, cdf_func), observed = observed, normal = normal)
   }
-  
-  if(normal){
-    u <- qnorm(u)
-  }
-  
-  u[is.infinite(u)] <- NA
-  
-  class(u) <- "LaMaResiduals"
-  
-  return(u)
 }
 
 

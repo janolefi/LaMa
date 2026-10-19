@@ -100,3 +100,24 @@ test_that("stream_cdfs: only one forward() call", {
   }, list(mu = c(0, 1)), silent = TRUE)
   expect_error(stream_cdfs(obj), "one call of forward")
 })
+
+test_that("pseudo_res: explicit distribution and parameters", {
+  sp <- stateprobs(d_test, G1, exp(logP_test), forecast = TRUE)
+  x <- c(rnorm(19, 1), NA)
+  r <- pseudo_res(x, "norm", list(mean = c(0, 3), sd = c(1, 1)), sp)
+  expect_s3_class(r, "LaMaResiduals")
+  expect_equal(unclass(r), qnorm(rowSums(sp * cbind(pnorm(x, 0, 1), pnorm(x, 3, 1)))))
+  expect_true(is.na(r[20]))
+  # discrete, randomised
+  cnt <- c(rpois(19, 2), NA)
+  set.seed(5)
+  r <- suppressMessages(pseudo_res(cnt, "pois", list(lambda = c(1, 4)), sp))
+  up <- rowSums(sp * cbind(ppois(cnt, 1), ppois(cnt, 4)))
+  lo <- rowSums(sp * cbind(ppois(cnt - 1, 1), ppois(cnt - 1, 4)))
+  set.seed(5)
+  expect_equal(unclass(r), c(qnorm(runif(19, lo[1:19], up[1:19])), NA))
+  # discrete, not randomised: NA where not observed
+  r <- suppressMessages(pseudo_res(cnt, "pois", list(lambda = c(1, 4)), sp, randomise = FALSE, normal = FALSE))
+  expect_equal(r$upper, replace(up, 20, NA))
+  expect_equal(r$lower, replace(lo, 20, NA))
+})

@@ -10,6 +10,9 @@
 
 ## Bug fixes
 
+* pseudo_res(): missing observations give NA in all variants (before 0 with normal = FALSE, 
+  -Inf for non-randomised discrete residuals)
+
 * forward(): with track-specific delta or Gamma, the AD version matched them to the 
   wrong tracks if the track IDs were not sorted (e.g. "ID1", ..., "ID10")
 * forward(): tracks of length one failed with AD

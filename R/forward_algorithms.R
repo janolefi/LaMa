@@ -250,6 +250,19 @@ report_forward <- function(delta, Gamma, allprobs, trackID, type){
   REPORT(type)
 }
 
+# Weights of the log-likelihood contributions log p(x_t | x_1, ..., x_t-1), only used by scores():
+# - counting mode (.lama_env$count not NULL): counts the observations of all forward() calls
+# - weights (.lama_env$weights): consecutive forward() calls take consecutive blocks
+get_weights <- function(nObs){
+  if(!is.null(.lama_env$count)) .lama_env$count <- .lama_env$count + nObs
+  w <- .lama_env$weights
+  if(is.null(w)) return(NULL)
+  pos <- .lama_env$pos
+  if(pos + nObs > length(w)) stop("More observations in forward() than weights (internal error, please report).")
+  .lama_env$pos <- pos + nObs
+  w[pos + seq_len(nObs)]
+}
+
 # Runs the forward algorithm on the output of prepare_forward()
 # - if ad == FALSE, use C++ version for speed
 # - if ad == TRUE, use R version which is converted into diff'able C++ code via RTMB
@@ -262,13 +275,9 @@ run_forward <- function(inp, ad = NULL){
 
   nStates <- ncol(inp$allprobs)
 
-  # weights of the log-likelihood contributions log p(x_t | x_1, ..., x_t-1),
-  # only set by scores() while taping (AD only)
-  w <- .lama_env$weights
-  if(!is.null(w)) {
-    if(!ad) stop("Weights are only used with AD (internal error, please report).")
-    if(length(w) != nrow(inp$allprobs)) stop("Length of weights does not match nrow(allprobs) (internal error).")
-  }
+  # weights of the log-likelihood contributions, only set by scores() while taping (AD only)
+  w <- get_weights(nrow(inp$allprobs))
+  if(!is.null(w) && !ad) stop("Weights are only used with AD (internal error, please report).")
   wsum <- function(x) if(is.null(w)) sum(x) else sum(w * x)
 
   # value check, only possible without AD

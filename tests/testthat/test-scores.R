@@ -33,9 +33,31 @@ test_that("forward: weights for one state and with weights 1", {
   expect_equal(forward_weighted(f, lp, rep(1, 20)), ref_forward(d_test, function(t, i) Gt_test[, , t], lp))
 })
 
+test_that("forward: several forward() calls take consecutive blocks of weights", {
+  ID <- rep(1:2, c(5, 15))
+  contrib <- ref_contrib(D_test[1:2, ], function(t, i) G1, lp, ID)
+  f <- function(ap) forward(D_test[1, ], G1, ap[1:5, ], report = FALSE) +
+    forward(D_test[2, ], G1, ap[6:20, ], report = FALSE)
+  expect_equal(forward_weighted(f, lp, w), sum(w * contrib))
+  # more observations than weights
+  expect_error(forward_weighted(f, lp, w[1:10]), "More observations")
+})
+
+test_that("count_obs: observations of all forward() calls", {
+  nll <- function(par) {
+    ap <- exp(lp + par$x)
+    -forward(D_test[1, ], G1, ap[1:5, ], report = FALSE) - forward(D_test[2, ], G1, ap[6:20, ], report = FALSE)
+  }
+  expect_equal(count_obs(nll, list(x = 0)), 20)
+  nll <- function(par) -forward(d_test, G1, exp(lp + par$x), trackID = rep(1:2, each = 10), report = FALSE)
+  expect_equal(count_obs(nll, list(x = 0)), 20)
+  expect_null(getFromNamespace(".lama_env", "LaMa")$count) # counting mode ends
+})
+
 test_that("forward: weights are only used with AD", {
   env <- getFromNamespace(".lama_env", "LaMa")
   env$weights <- w
+  env$pos <- 0
   on.exit(env$weights <- NULL)
   expect_error(forward(d_test, G1, exp(lp), ad = FALSE), "only used with AD")
 })

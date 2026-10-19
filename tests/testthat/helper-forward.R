@@ -95,6 +95,7 @@ ref_contrib <- function(delta, Gam, logP, trackID = rep(1, nrow(logP))) {
 forward_weighted <- function(f, logP, w, logspace = FALSE) {
   env <- getFromNamespace(".lama_env", "LaMa")
   env$weights <- w
+  env$pos <- 0
   on.exit(env$weights <- NULL)
   F <- RTMB::MakeTape(function(x) {
     x <- matrix(x, nrow(logP))

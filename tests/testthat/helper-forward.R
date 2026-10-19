@@ -81,6 +81,28 @@ ref_forecast <- function(delta, Gam, logP, trackID = rep(1, nrow(logP))) {
   }))
 }
 
+# log-likelihood contributions log p(x_t | observations before t in the track):
+# differences of ref_forward() with the observations from t (or t + 1) on dropped
+ref_contrib <- function(delta, Gam, logP, trackID = rep(1, nrow(logP))) {
+  sapply(seq_len(nrow(logP)), function(t) {
+    drop_from <- function(s) replace(logP, trackID == trackID[t] & seq_len(nrow(logP)) >= s, 0)
+    ref_forward(delta, Gam, drop_from(t + 1), trackID) - ref_forward(delta, Gam, drop_from(t), trackID)
+  })
+}
+
+# forward() taped with weights w for its log-likelihood contributions, as set by scores()
+# f(allprobs) calls a forward function, evaluated at logP
+forward_weighted <- function(f, logP, w, logspace = FALSE) {
+  env <- getFromNamespace(".lama_env", "LaMa")
+  env$weights <- w
+  on.exit(env$weights <- NULL)
+  F <- RTMB::MakeTape(function(x) {
+    x <- matrix(x, nrow(logP))
+    f(if(logspace) x else exp(x))
+  }, as.vector(logP))
+  F(as.vector(logP))
+}
+
 # small test data: 2 states, 20 observations
 set.seed(1)
 logP_test <- local({

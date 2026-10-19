@@ -22,7 +22,11 @@ report(obj)
 
 A model object of class "`LaMaModel`" containing a list with the
 reported quantities from the `RTMB` object, along estimated parameters
-and other quantities.
+and other quantities. It also contains `obj` itself (not a copy), so
+that functions like
+[`MCreport`](https://janolefi.github.io/LaMa/reference/MCreport.md) or
+[`scores`](https://janolefi.github.io/LaMa/reference/scores.md) can be
+called on the model object.
 
 ## Examples
 

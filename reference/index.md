@@ -166,6 +166,9 @@
   Get reported quantities from and `RTMB` object and return a
   `LaMaModel`
 
+- [`scores()`](https://janolefi.github.io/LaMa/reference/scores.md) :
+  Per-observation score contributions
+
 - [`sdreportMC()`](https://janolefi.github.io/LaMa/reference/sdreportMC.md)
   :
 

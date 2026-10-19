@@ -46,6 +46,11 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="lama-development-version">LaMa (development version)<a class="anchor" aria-label="anchor" href="#lama-development-version"></a></h2>
 <div class="section level3">
+<h3 id="new-features-development-version">New features<a class="anchor" aria-label="anchor" href="#new-features-development-version"></a></h3>
+<ul><li>scores(mod) computes the score contribution of each observation for models using forward(), e.g. for robust (sandwich) standard errors; it takes the model from report() or the RTMB object, respects map, and the likelihood function does not need to change</li>
+<li>report() also stores obj (the same object, not a copy), so MCreport() can be called on the model object from report() or qreml()</li>
+</ul></div>
+<div class="section level3">
 <h3 id="bug-fixes-development-version">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-development-version"></a></h3>
 <ul><li>forward(): with track-specific delta or Gamma, the AD version matched them to the wrong tracks if the track IDs were not sorted (e.g. “ID1”, …, “ID10”)</li>
 <li>forward(): tracks of length one failed with AD</li>

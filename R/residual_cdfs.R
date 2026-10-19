@@ -93,3 +93,16 @@ stream_cdfs <- function(obj) {
   }
   out
 }
+
+# pseudo-residuals of each data stream from the model object alone (pseudo_res(mod))
+pseudo_res_mod <- function(mod, normal = TRUE, randomise = TRUE) {
+  obj <- get_obj(mod)
+  # forecast probabilities from the reported quantities
+  if(!inherits(mod, c("LaMaModel", "qremlModel"))) mod <- obj$report(obj$env$last.par.best)
+  fc <- stateprobs(mod, forecast = TRUE)
+  res <- lapply(stream_cdfs(obj), function(s) {
+    lower <- if(!is.null(s$lower)) rowSums(fc * s$lower)
+    finish_res(rowSums(fc * s$upper), lower, s$observed, normal, randomise)
+  })
+  if(length(res) == 1) res[[1]] else res
+}

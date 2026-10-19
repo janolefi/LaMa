@@ -121,3 +121,74 @@ test_that("pseudo_res: explicit distribution and parameters", {
   expect_equal(r$upper, replace(up, 20, NA))
   expect_equal(r$lower, replace(lo, 20, NA))
 })
+
+fit_mod <- function(nll, par) {
+  obj <- RTMB::MakeADFun(nll, par, silent = TRUE)
+  nlminb(obj$par, obj$fn, obj$gr)
+  report(obj)
+}
+
+test_that("pseudo_res(mod): same as with family and parameters given", {
+  mod <- fit_mod(nll_res, par_res) # loop over states, covariate, missing values, prior
+  p <- mod$par
+  mu <- sapply(1:2, function(j) exp(p$log_mu[j] + p$b[j] * dat_res$z))
+  F <- sapply(1:2, function(j) pgamma2(dat_res$step, mu[, j], exp(p$log_sigma[j])))
+  ref <- qnorm(rowSums(stateprobs(mod, forecast = TRUE) * F))
+  class(ref) <- "LaMaResiduals"
+  expect_equal(pseudo_res(mod), ref)
+  expect_equal(pseudo_res(mod = mod), ref)
+  expect_equal(pseudo_res(mod$obj), ref) # RTMB object
+  expect_true(all(is.na(pseudo_res(mod)[c(10, 50)])))
+})
+
+test_that("pseudo_res(mod): several data streams, one residual vector each", {
+  d2 <- list(step = trex$step[1:300], angle = trex$angle[1:300])
+  mod <- fit_mod(function(par) {
+    getAll(par, d2)
+    Gamma <- tpm(eta)
+    mu <- exp(log_mu); sigma <- exp(log_sigma); kappa <- exp(log_kappa)
+    allprobs <- cbind(dgamma2(step, mu[1], sigma[1]), dgamma2(step, mu[2], sigma[2]))
+    ind <- which(!is.na(angle))
+    for(j in 1:2) allprobs[ind, j] <- allprobs[ind, j] * dvm(angle[ind], 0, kappa[j])
+    -forward(stationary(Gamma), Gamma, allprobs)
+  }, list(log_mu = log(c(0.3, 2.5)), log_sigma = log(c(0.2, 1.5)), log_kappa = log(c(0.5, 2)), eta = rep(-2, 2)))
+  p <- mod$par
+  r <- pseudo_res(mod)
+  expect_named(r, c("step", "angle"))
+  expect_equal(r$step, pseudo_res(d2$step, "gamma2", list(mean = exp(p$log_mu), sd = exp(p$log_sigma)), mod = mod))
+  expect_equal(r$angle, pseudo_res(d2$angle, "vm", list(mu = 0, kappa = exp(p$log_kappa)), mod = mod))
+})
+
+test_that("pseudo_res(mod): loop over time, two streams summed on the log scale", {
+  set.seed(3)
+  s <- rep(1:2, each = 25, length.out = 300)
+  d5 <- list(x = rnorm(300, c(0, 3)[s], 1), y = rgamma(300, shape = c(2, 6)[s], rate = 1))
+  mod <- fit_mod(function(par) {
+    getAll(par, d5)
+    Gamma <- tpm(eta)
+    lallprobs <- matrix(0, length(x), 2)
+    for(t in seq_along(x)) lallprobs[t, ] <- dnorm(x[t], mu, exp(log_sd), log = TRUE) +
+      dgamma(y[t], shape = exp(log_shape), rate = 1, log = TRUE)
+    -forward(stationary(Gamma), Gamma, lallprobs, logspace = TRUE)
+  }, list(mu = c(0, 3), log_sd = c(0, 0), log_shape = log(c(2, 6)), eta = rep(-2, 2)))
+  p <- mod$par
+  r <- pseudo_res(mod)
+  expect_equal(r$x, pseudo_res(d5$x, "norm", list(mean = p$mu, sd = exp(p$log_sd)), mod = mod))
+  expect_equal(r$y, pseudo_res(d5$y, "gamma", list(shape = exp(p$log_shape), rate = 1), mod = mod))
+})
+
+test_that("pseudo_res(mod): discrete, randomised as with family and parameters given", {
+  set.seed(1)
+  cnt <- rpois(200, rep(c(2, 8), each = 20))
+  mod <- fit_mod(function(par) {
+    getAll(par)
+    Gamma <- tpm(eta)
+    lambda <- exp(log_lambda)
+    -forward(stationary(Gamma), Gamma, cbind(dpois(cnt, lambda[1]), dpois(cnt, lambda[2])))
+  }, list(log_lambda = log(c(1, 5)), eta = rep(-2, 2)))
+  set.seed(2); r <- suppressMessages(pseudo_res(mod))
+  set.seed(2); ref <- suppressMessages(pseudo_res(cnt, "pois", list(lambda = exp(mod$par$log_lambda)), mod = mod))
+  expect_equal(r, ref)
+  r <- suppressMessages(pseudo_res(mod, randomise = FALSE))
+  expect_named(r, c("lower", "upper", "mean"))
+})

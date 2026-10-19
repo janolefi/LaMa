@@ -90,10 +90,26 @@ finish_res <- function(upper, lower = NULL, observed = !is.na(upper), normal = T
 #' If \code{randomise = TRUE}, a value is drawn uniformly 
 #' between the lower and upper bounds. In this case, the resulting pseudo-residuals 
 #' are again approximately standard normal after applying the standard normal quantile function.
+#' 
+#' \strong{Model object only:} \code{pseudo_res(mod)} needs no observations, family or parameters.
+#' It evaluates the likelihood function stored in the model again, with each density
+#' (e.g. \code{dgamma2()}) replaced by its CDF (\code{pgamma2()}) with the same arguments, so
+#' that the likelihood function itself builds the CDFs in place of \code{allprobs}. This works for
+#' loops over states or time, \code{cbind()}, covariate-dependent parameters, densities on the log scale,
+#' mixtures within a state and several data streams (multiplied, or summed on the log scale),
+#' giving one set of residuals per stream, named after the data variable.
+#' Before, it checks that the densities enter \code{allprobs} as a product or mixture, so that
+#' swapping in CDFs is valid. If not, e.g. for densities transformed by hand (truncation, Jacobians,
+#' zero inflation via indicators) or a latent variable integrated out inside \code{allprobs}, or if
+#' the densities are called in helper functions outside the likelihood function, it stops, and
+#' \code{pseudo_res(obs, dist, par, mod = mod)} needs to be used instead.
+#' The likelihood function needs to call \code{\link{forward}} once (use \code{trackID} for several tracks),
+#' and it is evaluated with the data as they are when \code{pseudo_res()} is called.
 #'
 #' @seealso \code{\link{plot.LaMaResiduals}} for plotting pseudo-residuals.
 #' 
-#' @param obs vector of continuous-valued observations (of length \code{nObs})
+#' @param obs vector of observations (of length \code{nObs}), or a model object from \code{\link{report}}
+#' (or the \code{RTMB} object), in which case nothing else is needed (see \sQuote{Details})
 #' @param dist character string specifying which parametric CDF to use (e.g., \code{"norm"} for normal or \code{"pois"} for Poisson) or CDF function to evaluate directly.
 #' If a discrete CDF function is passed, the \code{discrete} argument needs to be set to \code{TRUE} because this cannot determined automatically.
 #' @param par named parameter list for the parametric CDF
@@ -116,6 +132,7 @@ finish_res <- function(upper, lower = NULL, observed = !is.na(upper), normal = T
 #' @param randomise for discrete pseudo residuals only. Logical, if \code{TRUE}, return randomised pseudo residuals. Recommended for discrete observations.
 #'
 #' @return vector of pseudo residuals of class \code{LaMaResiduals} or list containing \code{lower}, \code{upper}, and \code{mean} if discrete residuals are not randomised.
+#' For \code{pseudo_res(mod)} with several data streams, a named list of these, one per stream.
 #' 
 #' @importFrom stats runif
 #' @export
@@ -176,6 +193,9 @@ finish_res <- function(upper, lower = NULL, observed = !is.na(upper), normal = T
 #'                   list(mean = mod$mu, sd = mod$sigma), # parameters for that family
 #'                   mod = mod) # model object
 #'
+#' # or, from the model object alone
+#' pres = pseudo_res(mod)
+#'
 #' plot(pres)
 pseudo_res <- function(obs,
                        dist,
@@ -185,6 +205,12 @@ pseudo_res <- function(obs,
                        normal = TRUE,
                        discrete = NULL,
                        randomise = TRUE) {
+  
+  # pseudo_res(mod): everything from the model object
+  if(missing(obs) || inherits(obs, c("LaMaModel", "qremlModel")) || (is.list(obs) && !is.null(obs$env))) {
+    if(!missing(obs)) mod <- obs
+    return(pseudo_res_mod(mod, normal, randomise))
+  }
   
   # handle model input: forecast probabilities, checks in stateprobs()
   if(!is.null(mod)){

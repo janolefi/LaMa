@@ -16,7 +16,8 @@ pseudo_res(
 )
 }
 \arguments{
-\item{obs}{vector of continuous-valued observations (of length \code{nObs})}
+\item{obs}{vector of observations (of length \code{nObs}), or a model object from \code{\link{report}}
+(or the \code{RTMB} object), in which case nothing else is needed (see \sQuote{Details})}
 
 \item{dist}{character string specifying which parametric CDF to use (e.g., \code{"norm"} for normal or \code{"pois"} for Poisson) or CDF function to evaluate directly.
 If a discrete CDF function is passed, the \code{discrete} argument needs to be set to \code{TRUE} because this cannot determined automatically.}
@@ -47,6 +48,7 @@ When used with a special discrete distribution, set to \code{TRUE} manually.}
 }
 \value{
 vector of pseudo residuals of class \code{LaMaResiduals} or list containing \code{lower}, \code{upper}, and \code{mean} if discrete residuals are not randomised.
+For \code{pseudo_res(mod)} with several data streams, a named list of these, one per stream.
 }
 \description{
 For HMMs, pseudo-residuals are used to assess the overall goodness-of-fit of the model. 
@@ -69,6 +71,21 @@ corresponding to \eqn{F(X-1)} and \eqn{F(X)}, respectively.
 If \code{randomise = TRUE}, a value is drawn uniformly 
 between the lower and upper bounds. In this case, the resulting pseudo-residuals 
 are again approximately standard normal after applying the standard normal quantile function.
+
+\strong{Model object only:} \code{pseudo_res(mod)} needs no observations, family or parameters.
+It evaluates the likelihood function stored in the model again, with each density
+(e.g. \code{dgamma2()}) replaced by its CDF (\code{pgamma2()}) with the same arguments, so
+that the likelihood function itself builds the CDFs in place of \code{allprobs}. This works for
+loops over states or time, \code{cbind()}, covariate-dependent parameters, densities on the log scale,
+mixtures within a state and several data streams (multiplied, or summed on the log scale),
+giving one set of residuals per stream, named after the data variable.
+Before, it checks that the densities enter \code{allprobs} as a product or mixture, so that
+swapping in CDFs is valid. If not, e.g. for densities transformed by hand (truncation, Jacobians,
+zero inflation via indicators) or a latent variable integrated out inside \code{allprobs}, or if
+the densities are called in helper functions outside the likelihood function, it stops, and
+\code{pseudo_res(obs, dist, par, mod = mod)} needs to be used instead.
+The likelihood function needs to call \code{\link{forward}} once (use \code{trackID} for several tracks),
+and it is evaluated with the data as they are when \code{pseudo_res()} is called.
 }
 \examples{
 ## continuous-valued observations
@@ -125,6 +142,9 @@ pres = pseudo_res(step,      # observation sequence
                   "gamma2",  # parametric family that was used
                   list(mean = mod$mu, sd = mod$sigma), # parameters for that family
                   mod = mod) # model object
+
+# or, from the model object alone
+pres = pseudo_res(mod)
 
 plot(pres)
 }

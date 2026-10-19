@@ -1,0 +1,11 @@
+test_that("forward: record mode stores allprobs on the natural scale", {
+  env <- getFromNamespace(".lama_env", "LaMa")
+  env$record <- list()
+  on.exit(env$record <- NULL)
+  ap <- exp(logP_test)
+  expect_equal(forward(d_test, G1, ap), 0)
+  forward(d_test, G1, logP_test, logspace = TRUE)
+  expect_length(env$record, 2)
+  expect_equal(env$record[[1]], ap)
+  expect_equal(env$record[[2]], ap)
+})

@@ -108,6 +108,12 @@ forward <- function(delta,
                     tod = NULL
                     ){
 
+  # record mode of pseudo_res(): store allprobs instead of computing the likelihood
+  if(!is.null(.lama_env$record)) {
+    .lama_env$record[[length(.lama_env$record) + 1]] <- if(logspace) exp(allprobs) else allprobs
+    return(0)
+  }
+
   # check inputs and bring them into the form used by the algorithm
   inp <- prepare_forward(delta, Gamma, allprobs, trackID, logspace, bw, gidx = tod)
 

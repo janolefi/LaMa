@@ -135,7 +135,7 @@ finish_res <- function(upper, lower = NULL, observed = !is.na(upper), normal = T
 #' @param randomise for discrete pseudo residuals only. Logical, if \code{TRUE}, return randomised pseudo residuals. Recommended for discrete observations.
 #'
 #' @return vector of pseudo residuals of class \code{LaMaResiduals} or list containing \code{lower}, \code{upper}, and \code{mean} if discrete residuals are not randomised.
-#' For \code{pseudo_res(mod)} with several data streams, a named list of these, one per stream.
+#' For \code{pseudo_res(mod)} with several data streams, a named list of these, one per stream, also of class \code{LaMaResiduals}.
 #' 
 #' @importFrom stats runif
 #' @export
@@ -260,8 +260,10 @@ pseudo_res <- function(obs,
 #' 
 #' @description
 #' Plot pseudo-residuals computed by \code{\link{pseudo_res}}.
+#' The QQ plot shows a pointwise 95\% band (in gray) for the sample quantiles under a correct model.
 #' 
-#' @param x pseudo-residuals as returned by \code{\link{pseudo_res}}
+#' @param x pseudo-residuals as returned by \code{\link{pseudo_res}}.
+#' For several data streams (from \code{pseudo_res(mod)}), one row of plots per stream, titled by the stream name.
 #' @param col character, color for the QQ-line (and density curve if \code{histogram = TRUE})
 #' @param lwd numeric, line width for the QQ-line (and density curve if \code{histogram = TRUE})
 #' @param main optional character vector of main titles for the plots of length 2 (or 3 if \code{histogram = TRUE})
@@ -272,8 +274,8 @@ pseudo_res <- function(obs,
 #' @returns NULL, plots the pseudo-residuals in a 3-panel layout
 #' @export
 #'
-#' @importFrom graphics par lines hist abline
-#' @importFrom stats acf na.pass qqnorm
+#' @importFrom graphics par lines hist abline polygon points
+#' @importFrom stats acf na.pass qqnorm ppoints
 #' @importFrom RTMB dnorm
 #' @importFrom utils modifyList
 #'
@@ -327,6 +329,9 @@ pseudo_res <- function(obs,
 #'      axis.lab = list(hist = c("Step residuals", "Density")))
 #' plot(pres_angle, main = c("", "Turning Angle", ""),
 #'      axis.lab = list(hist = c("Angle residuals", "Density")))
+#'
+#' # or from the model object alone, one row per stream
+#' plot(pseudo_res(mod))
 plot.LaMaResiduals <- function(
     x, 
     col = "darkblue", 
@@ -345,7 +350,17 @@ plot.LaMaResiduals <- function(
   )
   
   axis.lab <- modifyList(default_axis, axis.lab)
-  
+
+  # several streams: one row per stream, titled by its name
+  if (is.list(x) && all(sapply(x, inherits, "LaMaResiduals"))) {
+    old <- par(mfrow = c(length(x), 3))
+    on.exit(par(old))
+    for (s in names(x)) {
+      plot(x[[s]], col = col, lwd = lwd, main = c("", s, ""), breaks = breaks, axis.lab = axis.lab)
+    }
+    return(invisible(NULL))
+  }
+
   # Extract mean if residuals is a list
   res <- if (is.list(x)) x$mean else x
   res_clean <- na.omit(res)
@@ -364,11 +379,18 @@ plot.LaMaResiduals <- function(
     on.exit(par(old))
   }
   
-  # QQ Plot
-  qqnorm(res_clean, main = main[1], 
-         xlab = axis.lab$qq[1], 
+  # QQ Plot with pointwise 95% band, i-th order statistic of n uniforms is Beta(i, n-i+1)
+  n <- length(res_clean)
+  q <- qnorm(ppoints(n))
+  lo <- qnorm(qbeta(0.025, 1:n, n:1))
+  hi <- qnorm(qbeta(0.975, 1:n, n:1))
+  qqnorm(res_clean, main = main[1],
+         xlab = axis.lab$qq[1],
          ylab = axis.lab$qq[2],
-         bty = "n", pch = 16, col = "#00000070")
+         ylim = range(res_clean, lo, hi),
+         bty = "n", type = "n")
+  polygon(c(q, rev(q)), c(lo, rev(hi)), col = "gray90", border = NA)
+  points(qqnorm(res_clean, plot.it = FALSE), pch = 16, col = "#00000070")
   abline(a = 0, b = 1, col = col, lwd = lwd)
   
   # Histogram

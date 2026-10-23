@@ -132,5 +132,7 @@ pseudo_res_mod <- function(mod, normal = TRUE, randomise = TRUE) {
     lower <- if(!is.null(s$lower)) rowSums(fc * s$lower)
     finish_res(rowSums(fc * s$upper), lower, s$observed, normal, randomise)
   })
-  if(length(res) == 1) res[[1]] else res
+  if(length(res) == 1) return(res[[1]])
+  class(res) <- "LaMaResiduals" # list of streams, plotted together
+  res
 }

@@ -85,12 +85,16 @@ test_that("stream_cdfs: stops if densities do not enter allprobs as product or m
     allprobs <- sapply(1:2, function(j) dnorm(pos, mu[j], 1)^2)
     -forward(stationary(Gamma), Gamma, allprobs)
   }, list(mu = c(0.3, 2)))), "non-linearly")
-  # density in a helper function outside the likelihood function
+})
+
+test_that("stream_cdfs: densities in helper functions are found", {
+  pos <- dat_res$step[!is.na(dat_res$step)]
   helper <- function(mu) sapply(1:2, function(j) dnorm(pos, mu[j], 1))
-  expect_error(stream_cdfs(obj_of(function(par) {
+  obj <- RTMB::MakeADFun(function(par) {
     getAll(par); Gamma <- tpm(eta)
     -forward(stationary(Gamma), Gamma, helper(mu))
-  }, list(mu = c(0.3, 2)))), "No density")
+  }, list(mu = c(0.3, 2), eta = rep(-2, 2)), silent = TRUE)
+  expect_equal(stream_cdfs(obj)$pos$upper, cbind(pnorm(pos, 0.3, 1), pnorm(pos, 2, 1)))
 })
 
 test_that("stream_cdfs: only one forward() call", {
@@ -201,4 +205,33 @@ test_that("pseudo_res(mod): discrete, randomised as with family and parameters g
   expect_equal(r, ref)
   r <- suppressMessages(pseudo_res(mod, randomise = FALSE))
   expect_named(r, c("lower", "upper", "mean"))
+})
+
+test_that("pseudo_res(mod) and scores(mod) for qreml() models use the final fit", {
+  modmat <- make_matrices(~ s(tod, bs = "cp"), data = data.frame(tod = 1:24), knots = list(tod = c(0, 24)))
+  dat <- list(step = trex$step[1:500], angle = trex$angle[1:500], tod = trex$tod[1:500],
+              Z = modmat$Z, S = modmat$S, lambda = rep(100, 2))
+  pnll <- function(par) {
+    getAll(par, dat)
+    Gamma <- tpm(cbind(beta0, betaSpline), Z)
+    Delta <- stationary_p(Gamma)
+    mu <- exp(logmu); REPORT(mu)
+    sigma <- exp(logsigma); REPORT(sigma)
+    kappa <- exp(logkappa); REPORT(kappa)
+    allprobs <- matrix(1, length(step), 2)
+    ind <- which(!is.na(step) & !is.na(angle))
+    for(j in 1:2) allprobs[ind, j] <- dgamma2(step[ind], mu[j], sigma[j]) * dvm(angle[ind], 0, kappa[j])
+    -forward(Delta[tod[1], ], Gamma[, , tod], allprobs) + penalty(betaSpline, S, lambda)
+  }
+  par <- list(logmu = log(c(0.3, 2.5)), logsigma = log(c(0.3, 2)), logkappa = log(c(0.1, 2)),
+              beta0 = c(-2, -2), betaSpline = matrix(0, 2, ncol(modmat$Z) - 1))
+  mod <- suppressMessages(qreml(pnll, par, dat, random = "betaSpline", silent = 2))
+  expect_equal(est_par(mod), mod$par_vec)
+  r <- pseudo_res(mod)
+  ok <- !is.na(dat$step) & !is.na(dat$angle)
+  ref <- pseudo_res(dat$step, "gamma2", list(mean = mod$mu, sd = mod$sigma), mod = mod)
+  expect_equal(unclass(r$step)[ok], unclass(ref)[ok])
+  ref <- pseudo_res(dat$angle, "vm", list(mu = 0, kappa = mod$kappa), mod = mod)
+  expect_equal(unclass(r$angle)[ok], unclass(ref)[ok])
+  expect_equal(scores(mod), scores(mod$obj, mod$par_vec))
 })

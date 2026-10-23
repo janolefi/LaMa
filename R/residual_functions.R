@@ -102,9 +102,10 @@ finish_res <- function(upper, lower = NULL, observed = !is.na(upper), normal = T
 #' giving one set of residuals per stream, named after the data variable.
 #' Before, it checks that the densities enter \code{allprobs} as a product or mixture, so that
 #' swapping in CDFs is valid. If not, e.g. for densities transformed by hand (truncation, Jacobians,
-#' zero inflation via indicators) or a latent variable integrated out inside \code{allprobs}, or if
-#' the densities are called in helper functions outside the likelihood function, it stops, and
+#' zero inflation via indicators) or a latent variable integrated out inside \code{allprobs}, it stops, and
 #' \code{pseudo_res(obs, dist, par, mod = mod)} needs to be used instead.
+#' Densities in your own helper functions called by the likelihood function are found as well,
+#' and \code{\link{qreml}} models work like models from \code{\link{report}}.
 #' The likelihood function needs to call \code{\link{forward}} once (use \code{trackID} for several tracks),
 #' and it is evaluated with the data as they are when \code{pseudo_res()} is called.
 #'

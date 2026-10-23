@@ -10,7 +10,7 @@ scores(obj, par = NULL)
 \item{obj}{optimised \code{RTMB} object from \code{\link[RTMB]{MakeADFun}}, or a model object from \code{\link{report}} or \code{\link{qreml}}}
 
 \item{par}{optional parameter vector like \code{obj$par}, e.g. \code{opt$par}.
-Defaults to the best parameters found during optimisation.}
+Defaults to the estimates (for \code{\link{qreml}} models the final fit).}
 }
 \value{
 matrix of score contributions of dimension \code{c(nObs, length(obj$par))}

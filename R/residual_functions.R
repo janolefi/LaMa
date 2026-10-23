@@ -261,7 +261,8 @@ pseudo_res <- function(obs,
 #' @description
 #' Plot pseudo-residuals computed by \code{\link{pseudo_res}}.
 #' 
-#' @param x pseudo-residuals as returned by \code{\link{pseudo_res}}
+#' @param x pseudo-residuals as returned by \code{\link{pseudo_res}}.
+#' For several data streams (from \code{pseudo_res(mod)}), one row of plots per stream, titled by the stream name.
 #' @param col character, color for the QQ-line (and density curve if \code{histogram = TRUE})
 #' @param lwd numeric, line width for the QQ-line (and density curve if \code{histogram = TRUE})
 #' @param main optional character vector of main titles for the plots of length 2 (or 3 if \code{histogram = TRUE})
@@ -327,6 +328,9 @@ pseudo_res <- function(obs,
 #'      axis.lab = list(hist = c("Step residuals", "Density")))
 #' plot(pres_angle, main = c("", "Turning Angle", ""),
 #'      axis.lab = list(hist = c("Angle residuals", "Density")))
+#'
+#' # or from the model object alone, one row per stream
+#' plot(pseudo_res(mod))
 plot.LaMaResiduals <- function(
     x, 
     col = "darkblue", 
@@ -345,7 +349,17 @@ plot.LaMaResiduals <- function(
   )
   
   axis.lab <- modifyList(default_axis, axis.lab)
-  
+
+  # several streams: one row per stream, titled by its name
+  if (is.list(x) && all(sapply(x, inherits, "LaMaResiduals"))) {
+    old <- par(mfrow = c(length(x), 3))
+    on.exit(par(old))
+    for (s in names(x)) {
+      plot(x[[s]], col = col, lwd = lwd, main = c("", s, ""), breaks = breaks, axis.lab = axis.lab)
+    }
+    return(invisible(NULL))
+  }
+
   # Extract mean if residuals is a list
   res <- if (is.list(x)) x$mean else x
   res_clean <- na.omit(res)

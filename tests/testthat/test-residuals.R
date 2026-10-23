@@ -172,6 +172,11 @@ test_that("pseudo_res(mod): several data streams, one residual vector each", {
   expect_s3_class(r, "LaMaResiduals")
   expect_equal(r$step, pseudo_res(d2$step, "gamma2", list(mean = exp(p$log_mu), sd = exp(p$log_sigma)), mod = mod))
   expect_equal(r$angle, pseudo_res(d2$angle, "vm", list(mu = 0, kappa = exp(p$log_kappa)), mod = mod))
+  # plot: one row per stream, mfrow restored afterwards
+  pdf(NULL)
+  expect_null(plot(r))
+  expect_equal(par("mfrow"), c(1, 1))
+  dev.off()
 })
 
 test_that("pseudo_res(mod): loop over time, two streams summed on the log scale", {

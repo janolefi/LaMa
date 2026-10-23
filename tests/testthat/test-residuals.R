@@ -169,6 +169,7 @@ test_that("pseudo_res(mod): several data streams, one residual vector each", {
   p <- mod$par
   r <- pseudo_res(mod)
   expect_named(r, c("step", "angle"))
+  expect_s3_class(r, "LaMaResiduals")
   expect_equal(r$step, pseudo_res(d2$step, "gamma2", list(mean = exp(p$log_mu), sd = exp(p$log_sigma)), mod = mod))
   expect_equal(r$angle, pseudo_res(d2$angle, "vm", list(mu = 0, kappa = exp(p$log_kappa)), mod = mod))
 })

@@ -135,7 +135,7 @@ finish_res <- function(upper, lower = NULL, observed = !is.na(upper), normal = T
 #' @param randomise for discrete pseudo residuals only. Logical, if \code{TRUE}, return randomised pseudo residuals. Recommended for discrete observations.
 #'
 #' @return vector of pseudo residuals of class \code{LaMaResiduals} or list containing \code{lower}, \code{upper}, and \code{mean} if discrete residuals are not randomised.
-#' For \code{pseudo_res(mod)} with several data streams, a named list of these, one per stream.
+#' For \code{pseudo_res(mod)} with several data streams, a named list of these, one per stream, also of class \code{LaMaResiduals}.
 #' 
 #' @importFrom stats runif
 #' @export

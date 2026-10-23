@@ -48,7 +48,7 @@ When used with a special discrete distribution, set to \code{TRUE} manually.}
 }
 \value{
 vector of pseudo residuals of class \code{LaMaResiduals} or list containing \code{lower}, \code{upper}, and \code{mean} if discrete residuals are not randomised.
-For \code{pseudo_res(mod)} with several data streams, a named list of these, one per stream.
+For \code{pseudo_res(mod)} with several data streams, a named list of these, one per stream, also of class \code{LaMaResiduals}.
 }
 \description{
 For HMMs, pseudo-residuals are used to assess the overall goodness-of-fit of the model. 

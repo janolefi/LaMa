@@ -95,3 +95,127 @@ print.LaMaModel <- function(x, ...) {
 
   invisible(x)
 }
+
+#' Summary of a \code{LaMaModel} object
+#'
+#' @description
+#' Summarises a model from \code{\link{report}} or \code{\link{qreml}}.
+#' Besides the overview of \code{print()}, this contains
+#' \itemize{
+#'   \item for a homogeneous state process (or one per track) with at most 10 states: the transition probability matrix
+#'   (or generator matrix \code{Q} in continuous time, if reported, e.g. by \code{\link{tpm_ct}}), its stationary distribution and mean dwell times,
+#'   averaged over tracks if there is one per track,
+#'   \item for a periodic state process: the stationary distribution averaged over the cycle, i.e. the long-run proportion of time spent in each state,
+#'   \item the quantities reported by the likelihood function via \code{REPORT()}: numeric vectors of length equal to the number of states
+#'   are shown as one table with a column per state, other small objects separately, and large ones only by name,
+#'   \item log-likelihood, AIC, BIC and the maximum gradient component at the estimate.
+#' }
+#'
+#' @param object model object of class \code{"LaMaModel"}
+#' @param x object of class \code{"summary.LaMaModel"}
+#' @param digits number of significant digits to print
+#' @param ... additional arguments (not used)
+#'
+#' @returns \code{summary()} returns an object of class \code{"summary.LaMaModel"}, a list containing the quantities shown,
+#' e.g. \code{Gamma}, \code{stationary}, \code{dwell} and \code{bystate}. \code{print()} returns \code{x} invisibly.
+#' @export
+summary.LaMaModel <- function(object, ...) {
+  sp <- state_process(object)
+  s <- list(header = model_header(object), fit = fit_line(object), mgc = object$mgc)
+  
+  ### state process: matrix, stationary distribution and dwell times, only for few states
+  if(!is.null(sp) && sp$N > 10){
+    s$note <- paste0("State process not shown for more than 10 states")
+  } else if(!is.null(sp) && sp$N > 1){
+    N <- sp$N
+    states <- paste0("S", 1:N)
+    if(isTRUE(sp$type %in% c("homogeneous", "track-specific"))){
+      M <- if(sp$ct) object$Q else object$Gamma
+      M <- array(M, c(N, N, length(M) / N^2)) # one slice per track
+      stat <- if(sp$ct) stationary_ct(M) else stationary(M)
+      d <- apply(M, 3, diag)
+      dwell <- if(sp$ct) -1 / d else 1 / (1 - d)
+      
+      # averages over tracks
+      M <- rowMeans(M, dims = 2)
+      dimnames(M) <- list(states, states)
+      if(sp$ct) s$Q <- M else s$Gamma <- M
+      s$stationary <- setNames(colMeans(stat), states)
+      s$dwell <- setNames(rowMeans(dwell), states)
+      s$nTracks <- dim(d)[2]
+    } else if(identical(sp$type, "periodic")){
+      s$occupancy <- setNames(colMeans(stationary_p(object$Gamma)), states)
+    }
+  }
+  
+  ### quantities reported by the likelihood function
+  internal <- c("delta", "Gamma", "allprobs", "trackID", "type", "tod",
+                "delta_sparse", "Gamma_sparse", "Delta_sparse", if(isTRUE(sp$ct)) "Q")
+  reported <- object[setdiff(names(object), c(model_fields(object), internal))]
+  
+  # vectors with one entry per state form one table
+  N <- if(is.null(sp)) 0 else sp$N
+  bystate <- vapply(reported, function(v) is.numeric(v) && is.null(dim(v)) && length(v) == N, logical(1))
+  if(N > 1 && N <= 10 && any(bystate)){
+    s$bystate <- do.call(rbind, reported[bystate])
+    colnames(s$bystate) <- paste0("S", 1:N)
+    reported <- reported[!bystate]
+  }
+  
+  # other small objects are shown, large ones only by name
+  small <- vapply(reported, function(v) {
+    d <- dim(v)
+    is.atomic(v) && (if(is.null(d)) length(v) <= 10 else length(d) == 2 && all(d <= 10))
+  }, logical(1))
+  s$other <- reported[small]
+  s$hidden <- vapply(names(reported)[!small], function(nm) {
+    v <- reported[[nm]]
+    paste0(nm, " [", if(is.list(v)) "list" else paste(if(is.null(dim(v))) length(v) else dim(v), collapse = " x "), "]")
+  }, character(1), USE.NAMES = FALSE)
+  
+  class(s) <- "summary.LaMaModel"
+  s
+}
+
+#' @rdname summary.LaMaModel
+#' @export
+print.summary.LaMaModel <- function(x, digits = max(3, getOption("digits") - 3), ...) {
+  cat(x$header, sep = "\n")
+  
+  ### state process
+  avg <- if(isTRUE(x$nTracks > 1)) paste0(" (average over ", x$nTracks, " tracks)") else ""
+  if(!is.null(x$Gamma)) cat("\nTransition probability matrix", avg, ":\n", sep = "")
+  if(!is.null(x$Q)) cat("\nGenerator matrix", avg, ":\n", sep = "")
+  if(!is.null(x$Gamma) || !is.null(x$Q)) print(if(is.null(x$Q)) x$Gamma else x$Q, digits = digits)
+  if(!is.null(x$stationary)){
+    cat("\nStationary distribution", avg, ":\n", sep = "")
+    print(x$stationary, digits = digits)
+    cat("\nMean dwell times", avg, ":\n", sep = "")
+    print(x$dwell, digits = digits)
+  }
+  if(!is.null(x$occupancy)){
+    cat("\nLong-run proportion of time in each state (stationary distribution averaged over the cycle):\n")
+    print(x$occupancy, digits = digits)
+  }
+  if(!is.null(x$note)) cat("\n", x$note, "\n", sep = "")
+  
+  ### reported quantities
+  if(!is.null(x$bystate) || length(x$other) > 0 || length(x$hidden) > 0) cat("\nReported quantities:\n")
+  if(!is.null(x$bystate)) print(x$bystate, digits = digits)
+  for(nm in names(x$other)){
+    v <- x$other[[nm]]
+    if(is.null(dim(v)) && is.null(names(v))){
+      cat(nm, ": ", paste(format(v, digits = digits), collapse = " "), "\n", sep = "")
+    } else{
+      cat(nm, ":\n", sep = "")
+      print(v, digits = digits)
+    }
+  }
+  if(length(x$hidden) > 0) cat(strwrap(paste("Not shown:", paste(x$hidden, collapse = ", ")), exdent = 2), sep = "\n")
+  
+  ### fit
+  cat("\n", x$fit, "\n", sep = "")
+  if(!is.null(x$mgc)) cat("Maximum gradient component: ", signif(x$mgc, 3), "\n", sep = "")
+  
+  invisible(x)
+}

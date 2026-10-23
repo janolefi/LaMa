@@ -80,20 +80,29 @@ report <- function(obj) {
   # Now trust that it is RTMB object
   
   mod$par <- obj$env$parList(par = p_hat)
-  
+
+  # fixed effects of the best parameter vector, at which fn and gr are evaluated
+  random <- obj$env$random
+  p_fix <- if(length(random)) p_hat[-random] else p_hat
+
   # assign log-likelihood, number of parameters, and number of observations to the model object
-  mod$ll <- -obj$fn(par = p_hat)
+  mod$llk <- -obj$fn(p_fix)
   mod$df <- length(obj$par)
-  mod$nobs <- tryCatch(
-    nrow(mod$allprobs),
-    error = function(e) NULL
-  )
-  
+  mod$nobs <- count_nobs(mod$allprobs)
+  mod$mgc <- max(abs(obj$gr(p_fix))) # maximum gradient component, to check convergence
+
   mod$obs <- obj$env$obs
   mod$obj <- obj # same object, not a copy
   
   class(mod) <- "LaMaModel"
   return(mod)
+}
+
+# Number of observations: rows of allprobs that are not all 1,
+# as these are missing and contribute nothing to the likelihood
+count_nobs <- function(allprobs){
+  if(is.null(allprobs)) return(NULL)
+  sum(rowSums(allprobs != 1) > 0)
 }
 
 # RTMB object from MakeADFun(), or the one stored by report() or qreml()
@@ -109,7 +118,7 @@ get_obj <- function(x){
 #' @return An object of class "logLik"
 #' @export
 logLik.LaMaModel <- function(object, ...) {
-  ll <- object$ll  # your stored log-likelihood
+  ll <- object$llk  # your stored log-likelihood
   df <- object$df # number of free parameters
   nobs <- object$nobs  # number of observations
   

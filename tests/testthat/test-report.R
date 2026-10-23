@@ -1,5 +1,5 @@
 # small fitted model
-dat_rep <- list(step = trex$step[1:200])
+dat_rep <- list(step = replace(trex$step[1:200], c(5, 50), NA)) # two missing
 par_rep <- list(log_mu = log(c(0.3, 2.5)), log_sigma = log(c(0.2, 1.5)), eta = rep(-2, 2))
 nll_rep <- function(par) {
   getAll(par, dat_rep)
@@ -20,6 +20,14 @@ test_that("report: stores obj itself, get_obj() finds it", {
   expect_identical(get_obj(mod), get_obj(obj_rep))
   expect_identical(get_obj(structure(list(obj = obj_rep), class = "qremlModel"))$env, obj_rep$env)
   expect_error(get_obj(list(a = 1)), "Expected an RTMB object")
+})
+
+test_that("report: log-likelihood, missing observations not counted, gradient", {
+  mod <- report(obj_rep)
+  expect_equal(mod$llk, -opt_rep$objective)
+  expect_equal(mod$nobs, sum(!is.na(dat_rep$step)))
+  expect_equal(attr(logLik(mod), "nobs"), mod$nobs)
+  expect_lt(mod$mgc, 1e-3)
 })
 
 test_that("MCreport: model object gives the same as obj", {

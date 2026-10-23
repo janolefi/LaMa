@@ -223,6 +223,7 @@ prepare_forward <- function(delta, Gamma, allprobs, trackID = NULL,
     gidx <- rep(1L, nObs)
   } else if (!is.null(trackID) && dG[3] == nTracks) { # track-specific
     gidx <- trackID
+    type <- "track-specific"
   } else if (dG[3] == nObs) { # time-varying
     gidx <- seq_len(nObs)
     type <- "inhomogeneous"

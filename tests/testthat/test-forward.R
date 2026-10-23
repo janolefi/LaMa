@@ -158,6 +158,8 @@ test_that("forward: reported quantities", {
   expect_equal(r$trackID, rep(1:2, each = 10))
   expect_equal(r$Gamma, G1)
   expect_equal(r$delta, d_test)
+  r <- fit(function(ap) forward(d_test, array(G1, c(2, 2, 2)), ap, trackID = dat$ID))
+  expect_equal(r$type, "track-specific")
   r <- fit(function(ap) forward(d_test, Gt_test, ap))
   expect_equal(r$type, "inhomogeneous")
   Gp <- tpm_p(1:4, L = 4, beta = matrix(c(-1, -1, 0.5, 0.5, 0, 0), 2))

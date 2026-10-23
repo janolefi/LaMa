@@ -95,9 +95,6 @@
 - [`logLik(`*`<LaMaModel>`*`)`](https://janolefi.github.io/LaMa/reference/logLik.LaMaModel.md)
   : Extract log-likelihood from LaMaModel object
 
-- [`logLik(`*`<qremlModel>`*`)`](https://janolefi.github.io/LaMa/reference/logLik.qremlModel.md)
-  : Extract log-likelihood from qremlModel object
-
 - [`make_matrices()`](https://janolefi.github.io/LaMa/reference/make_matrices.md)
   : Build the design and the penalty matrix for models involving
   penalised splines based on a formula and a data set
@@ -145,6 +142,11 @@
 
   Build the prediction design matrix based on new data and
   model_matrices object created by `make_matrices`
+
+- [`print(`*`<LaMaModel>`*`)`](https://janolefi.github.io/LaMa/reference/print.LaMaModel.md)
+  :
+
+  Print a `LaMaModel` object
 
 - [`process_hid_formulas()`](https://janolefi.github.io/LaMa/reference/process_hid_formulas.md)
   : Process and standardise formulas for the state process of hidden
@@ -220,10 +222,17 @@
 
   Sparse version of `stationary`
 
-- [`summary(`*`<qremlModel>`*`)`](https://janolefi.github.io/LaMa/reference/summary.qremlModel.md)
+- [`summary(`*`<LaMaModel>`*`)`](https://janolefi.github.io/LaMa/reference/summary.LaMaModel.md)
+  [`print(`*`<summary.LaMaModel>`*`)`](https://janolefi.github.io/LaMa/reference/summary.LaMaModel.md)
   :
 
-  Summary method for `qremlModel` objects
+  Summary of a `LaMaModel` object
+
+- [`summary(`*`<qremlModel>`*`)`](https://janolefi.github.io/LaMa/reference/summary.qremlModel.md)
+  [`print(`*`<summary.qremlModel>`*`)`](https://janolefi.github.io/LaMa/reference/summary.qremlModel.md)
+  :
+
+  Summary of a `qremlModel` object
 
 - [`tpm()`](https://janolefi.github.io/LaMa/reference/tpm.md) : Build
   the transition probability matrix from unconstrained parameter vector

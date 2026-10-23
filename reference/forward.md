@@ -110,13 +110,16 @@ Additionally, `delta` can be a vector (same initial distribution for
 each track) or a matrix of dimension `c(nTracks, nStates)`
 (track-specific initial distributions).
 
-**Note:** When there are multiple tracks, for compatibility with
-downstream functions like
+**Note:** `forward` should only be called **once** in the likelihood
+function, with a `trackID` argument for multiple tracks. Downstream
+functions like
+[`report`](https://janolefi.github.io/LaMa/reference/report.md),
 [`viterbi`](https://janolefi.github.io/LaMa/reference/viterbi.md),
 [`stateprobs`](https://janolefi.github.io/LaMa/reference/stateprobs.md)
 or
-[`pseudo_res`](https://janolefi.github.io/LaMa/reference/pseudo_res.md),
-`forward` should only be called **once** with a `trackID` argument.
+[`pseudo_res`](https://janolefi.github.io/LaMa/reference/pseudo_res.md)
+rely on the quantities it reports, and only those of the last call are
+kept.
 
 ## References
 

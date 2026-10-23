@@ -5,6 +5,10 @@ Having fitted a latent Markov model using automatic differentiation via
 additional processing. This then yields estimated parameters on their
 natural scale, allows for convenient calculation of `AIC` and `BIC`,
 state-decoding, and residual calculation.
+[`print()`](https://rdrr.io/r/base/print.html) gives a short overview of
+the model,
+[`summary()`](https://janolefi.github.io/LaMa/reference/summary.LaMaModel.md)
+the estimates.
 
 ## Usage
 
@@ -22,11 +26,20 @@ report(obj)
 
 A model object of class "`LaMaModel`" containing a list with the
 reported quantities from the `RTMB` object, along estimated parameters
-and other quantities. It also contains `obj` itself (not a copy), so
-that functions like
-[`MCreport`](https://janolefi.github.io/LaMa/reference/MCreport.md) or
-[`scores`](https://janolefi.github.io/LaMa/reference/scores.md) can be
-called on the model object.
+(`par`), the log-likelihood (`llk`), number of parameters (`df`) and
+observations (`nobs`), and the maximum gradient component (`mgc`) at the
+estimate. It also contains `obj` itself (not a copy), so that functions
+like [`MCreport`](https://janolefi.github.io/LaMa/reference/MCreport.md)
+or [`scores`](https://janolefi.github.io/LaMa/reference/scores.md) can
+be called on the model object.
+
+## Details
+
+The number of observations (used by `BIC`) is the number of rows of the
+reported `allprobs` that are not all 1, i.e. missing observations are
+not counted. This assumes that
+[`forward`](https://janolefi.github.io/LaMa/reference/forward.md) is
+called only once in the likelihood function.
 
 ## Examples
 
@@ -65,6 +78,35 @@ opt <- nlminb(obj$par, obj$fn, obj$gr)
 
 ### reporting ###
 mod <- report(obj)
+mod          # short overview
+#> Latent Markov model with 2 states (discrete time, homogeneous)
+#> 200 observations, 6 parameters
+#> Log-likelihood: -210.27   AIC: 432.53   BIC: 452.32
+#> Reported: mu, sigma, delta, Gamma, allprobs
+summary(mod) # estimated state process and reported quantities
+#> Latent Markov model with 2 states (discrete time, homogeneous)
+#> 200 observations, 6 parameters
+#> 
+#> Transition probability matrix:
+#>        S1     S2
+#> S1 0.8085 0.1915
+#> S2 0.2256 0.7744
+#> 
+#> Stationary distribution:
+#>     S1     S2 
+#> 0.5409 0.4591 
+#> 
+#> Mean dwell times:
+#>    S1    S2 
+#> 5.223 4.433 
+#> 
+#> Reported quantities:
+#>           S1    S2
+#> mu    0.3136 2.568
+#> sigma 0.2034 1.514
+#> 
+#> Log-likelihood: -210.27   AIC: 432.53   BIC: 452.32
+#> Maximum gradient component: 0.000444
 
 # estimated parameters
 mod$par

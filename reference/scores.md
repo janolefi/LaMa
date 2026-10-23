@@ -25,7 +25,9 @@ scores(obj, par = NULL)
 - par:
 
   optional parameter vector like `obj$par`, e.g. `opt$par`. Defaults to
-  the best parameters found during optimisation.
+  the estimates (for
+  [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md) models
+  the final fit).
 
 ## Value
 

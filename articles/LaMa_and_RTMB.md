@@ -233,10 +233,49 @@ are always reported by default when using
 which is very useful for downstream tasks like state decoding or
 residuals calculation. The `viterbi` and `stateprobs` functions either
 take these as arguments or, more conveniently, can also take the whole
-reported `mod` object as an input. Because the state-dependent
-parameters depend on the specific model formulation, these need to be
-reported manually by the user specifying the likelihood. Having all the
-parameters, we can plot the decoded time series
+reported `mod` object as an input. For this to work,
+[`forward()`](https://janolefi.github.io/LaMa/reference/forward.md)
+should only be called once in the likelihood function, with the
+`trackID` argument for several tracks (see the vignette on longitudinal
+data). Because the state-dependent parameters depend on the specific
+model formulation, these need to be reported manually by the user
+specifying the likelihood.
+
+Printing `mod` gives a short overview of the model, while
+[`summary()`](https://rdrr.io/r/base/summary.html) shows the estimated
+state process, i.e. the transition probability matrix with its
+stationary distribution and mean dwell times, together with all
+quantities reported in the likelihood function:
+
+``` r
+
+summary(mod)
+#> Latent Markov model with 2 states (discrete time, homogeneous)
+#> 9999 observations (1 missing), 6 parameters
+#> 
+#> Transition probability matrix:
+#>        S1     S2
+#> S1 0.8270 0.1730
+#> S2 0.1608 0.8392
+#> 
+#> Stationary distribution:
+#>     S1     S2 
+#> 0.4817 0.5183 
+#> 
+#> Mean dwell times:
+#>    S1    S2 
+#> 5.779 6.217 
+#> 
+#> Reported quantities:
+#>           S1    S2
+#> mu    0.3035 2.506
+#> sigma 0.2015 1.491
+#> 
+#> Log-likelihood: -10847.12   AIC: 21706.25   BIC: 21749.51
+#> Maximum gradient component: 0.0141
+```
+
+Having all the parameters, we can plot the decoded time series
 
 ``` r
 

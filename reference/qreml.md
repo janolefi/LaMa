@@ -178,8 +178,10 @@ qreml(
 
 ## Value
 
-model object of class `"qremlModel"`, carrying the fitted quantities,
-the smoothness selection diagnostics shown by
+model object of class `"qremlModel"`, inheriting from `"LaMaModel"` (see
+[`report`](https://janolefi.github.io/LaMa/reference/report.md)),
+carrying the fitted quantities, the smoothness selection diagnostics
+shown by
 [`summary.qremlModel`](https://janolefi.github.io/LaMa/reference/summary.qremlModel.md),
 and `outer_hessian()`, the outer Hessian that
 [`sdreport_outer`](https://janolefi.github.io/LaMa/reference/sdreport_outer.md)

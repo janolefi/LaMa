@@ -136,10 +136,14 @@ log scale), giving one set of residuals per stream, named after the data
 variable. Before, it checks that the densities enter `allprobs` as a
 product or mixture, so that swapping in CDFs is valid. If not, e.g. for
 densities transformed by hand (truncation, Jacobians, zero inflation via
-indicators) or a latent variable integrated out inside `allprobs`, or if
-the densities are called in helper functions outside the likelihood
-function, it stops, and `pseudo_res(obs, dist, par, mod = mod)` needs to
-be used instead. The likelihood function needs to call
+indicators) or a latent variable integrated out inside `allprobs`, it
+stops, and `pseudo_res(obs, dist, par, mod = mod)` needs to be used
+instead. Densities in your own helper functions called by the likelihood
+function are found as well, and
+[`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md) models
+work like models from
+[`report`](https://janolefi.github.io/LaMa/reference/report.md). The
+likelihood function needs to call
 [`forward`](https://janolefi.github.io/LaMa/reference/forward.md) once
 (use `trackID` for several tracks), and it is evaluated with the data as
 they are when `pseudo_res()` is called.

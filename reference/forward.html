@@ -129,8 +129,9 @@ contribution. In this case, <code>Gamma</code> can be</p><ul><li><p>a matrix (sa
 <li><p>an array of dimension <code>c(nStates, nStates, L)</code> for periodic transition probabilities, if <code>tod</code> is provided.</p></li>
 </ul><p>Additionally, <code>delta</code> can be a vector (same initial distribution for each track) or a
 matrix of dimension <code>c(nTracks, nStates)</code> (track-specific initial distributions).</p>
-<p><strong>Note:</strong> When there are multiple tracks, for compatibility with downstream functions like <code><a href="viterbi.html">viterbi</a></code>, <code><a href="stateprobs.html">stateprobs</a></code> or <code><a href="pseudo_res.html">pseudo_res</a></code>,
-<code>forward</code> should only be called <strong>once</strong> with a <code>trackID</code> argument.</p>
+<p><strong>Note:</strong> <code>forward</code> should only be called <strong>once</strong> in the likelihood function, with a <code>trackID</code> argument for multiple tracks.
+Downstream functions like <code><a href="report.html">report</a></code>, <code><a href="viterbi.html">viterbi</a></code>, <code><a href="stateprobs.html">stateprobs</a></code> or <code><a href="pseudo_res.html">pseudo_res</a></code> rely on the quantities it reports,
+and only those of the last call are kept.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>

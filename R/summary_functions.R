@@ -116,6 +116,7 @@ print.LaMaModel <- function(x, ...) {
 #' @param digits number of significant digits to print
 #' @param ... additional arguments (not used)
 #'
+#' @importFrom stats AIC BIC logLik setNames
 #' @returns \code{summary()} returns an object of class \code{"summary.LaMaModel"}, a list containing the quantities shown,
 #' e.g. \code{Gamma}, \code{stationary}, \code{dwell} and \code{bystate}. \code{print()} returns \code{x} invisibly.
 #' @export
@@ -216,6 +217,92 @@ print.summary.LaMaModel <- function(x, digits = max(3, getOption("digits") - 3),
   ### fit
   cat("\n", x$fit, "\n", sep = "")
   if(!is.null(x$mgc)) cat("Maximum gradient component: ", signif(x$mgc, 3), "\n", sep = "")
+  
+  invisible(x)
+}
+
+#' Summary of a \code{qremlModel} object
+#'
+#' @description
+#' Summarises a model from \code{\link{qreml}}: the summary of \code{\link{summary.LaMaModel}},
+#' plus the effective degrees of freedom and smoothing parameters of the smooth terms and diagnostics of the smoothness selection.
+#'
+#' @param object model object of class \code{"qremlModel"}
+#' @param x object of class \code{"summary.qremlModel"}
+#' @param digits number of significant digits to print
+#' @param ... additional arguments (not used)
+#'
+#' @importFrom utils tail
+#' @returns \code{summary()} returns an object of class \code{"summary.qremlModel"}, 
+#' extending \code{"summary.LaMaModel"} by \code{edf}, \code{lambda} and \code{selection}. \code{print()} returns \code{x} invisibly.
+#' @export
+summary.qremlModel <- function(object, ...) {
+  s <- summary.LaMaModel(object)
+  
+  # one edf per smoothed coefficient vector, named like the smoothing parameters
+  smooths <- names(object$edf)
+  if(is.null(smooths)) smooths <- paste0("s", seq_along(object$edf))
+  s$edf <- unlist(object$edf, use.names = FALSE)
+  names(s$edf) <- unlist(Map(function(e, nm) if(length(e) == 1) nm else paste0(nm, ".", seq_along(e)),
+                             object$edf, smooths), use.names = FALSE)
+  s$lambda <- object[[object$spname]]
+  if(is.null(names(s$lambda))) names(s$lambda) <- paste0(object$spname, ".", seq_along(s$lambda))
+  s$spname <- object$spname
+  
+  ### diagnostics of the smoothness selection, if the fit reports them
+  if(!is.null(object$converged)){
+    sel <- paste0("Converged: ", object$converged, " (", object$iter, " outer iterations)")
+    if(!is.null(object$outer_grad)){
+      sel <- c(sel, paste("Maximum absolute outer gradient:", signif(max(abs(object$outer_grad)), 3)))
+    }
+    # the rest are flags, and only worth a line when they are actually set
+    if(isFALSE(object$edf_valid)){
+      sel <- c(sel, "! Effective degrees of freedom outside [0, block dimension]; the inverse Hessian is unreliable")
+    }
+    if(isTRUE(object$hessian_repaired)){
+      sel <- c(sel, "! Hessian was not positive definite; a ridge was added")
+    }
+    if(length(object$lambda_at_bound) > 0){
+      sel <- c(sel, paste("!", length(object$lambda_at_bound), "of", length(s$lambda),
+                          "smoothing parameters ended at the upper bound"))
+    }
+    # both of the following are judged against the fit's own 'tol', below which a
+    # change in the criterion counts as negligible: after convergence it wobbles,
+    # and that is not worth a line. isTRUE() so that a fit without 'tol' is quiet
+    small <- object[["tol"]]
+    if(isTRUE(object$max_drop > small)){
+      sel <- c(sel, paste("! Restricted likelihood decreased by up to", signif(object$max_drop, 4),
+                          "during the iteration"))
+    }
+    llk_r <- object$llk_restricted
+    shortfall <- if(length(llk_r) > 0) max(llk_r) - tail(llk_r, 1)
+    if(isTRUE(shortfall > small)){
+      sel <- c(sel, paste0("! Returned the fit at iteration ", object$best_iter, "; the run ended ",
+                           signif(shortfall, 4), " worse than that"))
+    }
+    s$selection <- sel
+  }
+  
+  class(s) <- c("summary.qremlModel", class(s))
+  s
+}
+
+#' @rdname summary.qremlModel
+#' @export
+print.summary.qremlModel <- function(x, digits = max(3, getOption("digits") - 3), ...) {
+  NextMethod()
+  
+  cat("\nSmooth terms:\n")
+  if(identical(names(x$edf), names(x$lambda))){ # one smoothing parameter per edf, i.e. no tensor products
+    print(cbind(edf = x$edf, lambda = x$lambda), digits = digits)
+  } else{
+    cat("Effective degrees of freedom:\n")
+    print(x$edf, digits = digits)
+    cat("Smoothing parameters:\n")
+    print(x$lambda, digits = digits)
+  }
+  
+  if(!is.null(x$selection)) cat("\nSmoothness selection:\n", paste0(x$selection, "\n"), sep = "")
   
   invisible(x)
 }

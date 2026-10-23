@@ -72,6 +72,19 @@ test_that("summary: continuous time, averages over tracks, periodic", {
   expect_equal(unname(summary(mod)$occupancy), unname(colMeans(stationary_p(Gp))))
 })
 
+test_that("summary: qreml models add smooth terms", {
+  mod <- structure(list(allprobs = matrix(0.5, 10, 2), type = "inhomogeneous", llk = -10, df = 8.5, nobs = 10,
+                        n_fixpar = 4, edf = list("s(x)" = c(2, 2.5)), lambda = c("s(x).1" = 1, "s(x).2" = 3),
+                        spname = "lambda", parname = "par", converged = TRUE, iter = 3),
+                   class = c("qremlModel", "LaMaModel"))
+  s <- summary(mod)
+  expect_s3_class(s, "summary.qremlModel")
+  expect_equal(s$edf, c("s(x).1" = 2, "s(x).2" = 2.5))
+  expect_null(s$other$lambda) # set by qreml(), not reported
+  expect_output(print(s), "4 fixed parameters \\+ smooths with 4.5 edf")
+  expect_output(print(s), "Converged: TRUE \\(3 outer iterations\\)")
+})
+
 test_that("MCreport: model object gives the same as obj", {
   mod <- report(obj_rep)
   set.seed(1); a <- suppressMessages(MCreport(obj_rep, nSamples = 20))

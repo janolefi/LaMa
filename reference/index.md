@@ -128,6 +128,11 @@
   : Penalty approximation of unimodality constraints for univariates
   smooths
 
+- [`plot(`*`<LaMaModel>`*`)`](https://janolefi.github.io/LaMa/reference/plot.LaMaModel.md)
+  :
+
+  Plot a `LaMaModel` object
+
 - [`plot(`*`<LaMaResiduals>`*`)`](https://janolefi.github.io/LaMa/reference/plot.LaMaResiduals.md)
   : Plot pseudo-residuals
 

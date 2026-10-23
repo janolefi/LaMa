@@ -103,7 +103,7 @@ pseudo_res(
 vector of pseudo residuals of class `LaMaResiduals` or list containing
 `lower`, `upper`, and `mean` if discrete residuals are not randomised.
 For `pseudo_res(mod)` with several data streams, a named list of these,
-one per stream.
+one per stream, also of class `LaMaResiduals`.
 
 ## Details
 

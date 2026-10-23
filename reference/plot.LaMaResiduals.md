@@ -2,6 +2,8 @@
 
 Plot pseudo-residuals computed by
 [`pseudo_res`](https://janolefi.github.io/LaMa/reference/pseudo_res.md).
+The QQ plot shows a pointwise 95% band (in gray) for the sample
+quantiles under a correct model.
 
 ## Usage
 
@@ -24,7 +26,9 @@ plot(
 - x:
 
   pseudo-residuals as returned by
-  [`pseudo_res`](https://janolefi.github.io/LaMa/reference/pseudo_res.md)
+  [`pseudo_res`](https://janolefi.github.io/LaMa/reference/pseudo_res.md).
+  For several data streams (from `pseudo_res(mod)`), one row of plots
+  per stream, titled by the stream name.
 
 - col:
 
@@ -111,4 +115,8 @@ plot(pres_step, main = c("", "Step Length", ""),
      axis.lab = list(hist = c("Step residuals", "Density")))
 plot(pres_angle, main = c("", "Turning Angle", ""),
      axis.lab = list(hist = c("Angle residuals", "Density")))
+
+
+# or from the model object alone, one row per stream
+plot(pseudo_res(mod))
 ```

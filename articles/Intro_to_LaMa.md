@@ -236,7 +236,7 @@ system.time(
   opt <- nlm(nll, par, x = x)
 )
 #>    user  system elapsed 
-#>   0.129   0.011   0.140
+#>   0.108   0.017   0.126
 ```
 
 We see that implementation of the forward algorithm in C++ leads to
@@ -307,7 +307,7 @@ pres = pseudo_res(x, # observations
                   probs) # local state probabilities
 
 # use the plotting method for LaMaResiduals
-plot(pres, hist = TRUE)
+plot(pres)
 ```
 
 ![](Intro_to_LaMa_files/figure-html/pseudores-1.png)

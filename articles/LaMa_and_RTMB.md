@@ -377,7 +377,20 @@ as.list(sdr, "Std", report = TRUE)
 ```
 
 Lastly, the automatic reporting with `LaMa` and `RTMB` together makes
-calculating pseudo-residuals really convenient:
+calculating pseudo-residuals really convenient. `pseudo_res(mod)`
+computes them from the model object alone, by evaluating the likelihood
+function again with the densities replaced by their CDFs, and
+`plot(mod)` plots them directly (with one row per data stream):
+
+``` r
+
+plot(mod)
+```
+
+![](LaMa_and_RTMB_files/figure-html/pres-1.png)
+
+Alternatively, we can specify the observations, the parametric family
+and the estimated parameters manually, which gives the same residuals:
 
 ``` r
 
@@ -385,10 +398,13 @@ pres_step = pseudo_res(obs = trex$step, # observation sequence
                        dist = "gamma2", # which parametric CDF to use
                        par = list(mean = mu, sd = sigma), # estimated pars for that CDF
                        mod = mod) # model object
-plot(pres_step, hist = TRUE)
+all.equal(pres_step, pseudo_res(mod))
+#> [1] TRUE
 ```
 
-![](LaMa_and_RTMB_files/figure-html/pres-1.png)
+This is needed when the densities are transformed by hand inside the
+likelihood, e.g. for zero-inflation, where swapping in CDFs is not
+valid. `plot(pres_step)` then gives the same plots as above.
 
 ## Tips and common issues
 

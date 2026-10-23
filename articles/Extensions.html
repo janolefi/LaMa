@@ -189,6 +189,11 @@ for each state:</p>
 <p><img src="Extensions_files/figure-html/state%20dist%20multi-1.png" class="r-plt" alt="" width="85%" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">oldpar</span><span class="op">)</span></span></code></pre></div>
+<p>The pseudo-residuals of both data streams are obtained from the model
+object alone, with one row of plots per stream:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">mod_multi</span><span class="op">)</span></span></code></pre></div>
+<p><img src="Extensions_files/figure-html/pres%20multi-1.png" class="r-plt" alt="" width="85%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="covariate-effects">Covariate effects<a class="anchor" aria-label="anchor" href="#covariate-effects"></a>
@@ -251,7 +256,7 @@ transition matrix by column, which can be changed by setting
 <code>byrow = TRUE</code>. The latter is useful, as popular HMM packages
 like <code>moveHMM</code> or <code>momentuHMM</code> return the
 parameter matrix such that the t.p.m. needs to be filled by row.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># parameters</span></span>
 <span><span class="va">mu</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">20</span><span class="op">)</span>   <span class="co"># state-dependent means</span></span>
 <span><span class="va">sigma</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">5</span><span class="op">)</span> <span class="co"># state-dependent standard deviations</span></span>
@@ -279,7 +284,7 @@ parameter matrix such that the t.p.m. needs to be filled by row.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">z_p</span>, <span class="va">Gamma_p</span><span class="op">[</span><span class="fl">2</span>,<span class="fl">1</span>,<span class="op">]</span>, lwd <span class="op">=</span> <span class="fl">3</span>, col <span class="op">=</span> <span class="va">color</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Extensions_files/figure-html/parameters-1.png" class="r-plt" alt="" width="85%" style="display: block; margin: auto;"></p>
 <p>Let’s now simulate synthetic data from the above specified model.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">s</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="va">n</span><span class="op">)</span></span>
 <span><span class="va">s</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, <span class="fl">1</span>, prob <span class="op">=</span> <span class="va">delta</span><span class="op">)</span> <span class="co"># sampling first state from initial distribution</span></span>
 <span><span class="kw">for</span><span class="op">(</span><span class="va">t</span> <span class="kw">in</span> <span class="fl">2</span><span class="op">:</span><span class="va">n</span><span class="op">)</span><span class="op">{</span></span>
@@ -308,7 +313,7 @@ stationary distribution. We therefore cannot use
 have to estimate it. We do this by adding a single unconstrained
 parameter <code>logit_delta</code> to <code>par</code> and constructing
 the initial distribution from it inside the likelihood.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nll_cov</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">par</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">getAll</a></span><span class="op">(</span><span class="va">par</span>, <span class="va">dat</span><span class="op">)</span></span>
 <span>  <span class="va">Gamma</span> <span class="op">=</span> <span class="fu"><a href="../reference/tpm.html">tpm</a></span><span class="op">(</span><span class="va">beta</span>, <span class="va">Z</span><span class="op">)</span></span>
@@ -325,7 +330,7 @@ the initial distribution from it inside the likelihood.</p>
 <p>Using automatic differentiation with <code>RTMB</code>, we can – very
 neatly – specify <code>beta</code> as a parameter matrix in the desired
 shape. Model fitting is also extremely quick:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">N</span> <span class="op">=</span> <span class="fl">2</span></span>
 <span></span>
 <span><span class="va">par</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
@@ -346,12 +351,12 @@ shape. Model fitting is also extremely quick:</p>
 <span>  <span class="va">opt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></span><span class="op">(</span><span class="va">obj_cov</span><span class="op">$</span><span class="va">par</span>, <span class="va">obj_cov</span><span class="op">$</span><span class="va">fn</span>, <span class="va">obj_cov</span><span class="op">$</span><span class="va">gr</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.034   0.000   0.034</span></span>
+<span><span class="co">#&gt;   0.039   0.000   0.040</span></span>
 <span><span class="va">mod_cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/report.html">report</a></span><span class="op">(</span><span class="va">obj_cov</span><span class="op">)</span> <span class="co"># reporting from fitted model</span></span></code></pre></div>
 <p>Let’s plot the fitted model, starting with the estimated
 state-dependent densities. We can obtain approximate global state
 probabilities from decoded states.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_cov</span><span class="op">$</span><span class="va">states</span> <span class="op">=</span> <span class="fu"><a href="../reference/viterbi.html">viterbi</a></span><span class="op">(</span>mod <span class="op">=</span> <span class="va">mod_cov</span><span class="op">)</span></span>
 <span><span class="va">delta</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/proportions.html" class="external-link">prop.table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">mod_cov</span><span class="op">$</span><span class="va">states</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -373,7 +378,7 @@ intervals, we can use <code><a href="../reference/MCreport.html">MCreport()</a><
 <code>beta</code> from the approximate normal distribution of the MLE
 and then use <code><a href="../reference/tpm.html">tpm()</a></code> to get the associated transition
 probabilities on our prediction grid.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">samples</span> <span class="op">=</span> <span class="fu"><a href="../reference/MCreport.html">MCreport</a></span><span class="op">(</span><span class="va">obj_cov</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Evaluating Hessian...</span></span>
 <span></span>
@@ -423,7 +428,7 @@ X_t \mid S_t = j \sim N(\beta_j^\top z_t, \: \sigma_j^2), \quad j = 1,
 <p>First we specify parameters for the simulation. The important change
 here is that <code>beta</code> now contains the regression coefficients
 for the state-dependent regressions.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sigma</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span> <span class="co"># state-dependent standard deviations (homoscedasticity)</span></span>
 <span></span>
 <span><span class="co"># parameter matrix</span></span>
@@ -447,7 +452,7 @@ for the state-dependent regressions.</p>
 <p>In the simulation code, the state-dependent mean now is not fixed
 anymore, but changes according to the covariate values in
 <code>Z</code>.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">s</span> <span class="op">=</span> <span class="va">x</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="va">n</span><span class="op">)</span></span>
 <span><span class="va">s</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, <span class="fl">1</span>, prob <span class="op">=</span> <span class="va">delta</span><span class="op">)</span></span>
 <span><span class="va">x</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">beta</span><span class="op">[</span><span class="va">s</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,<span class="op">]</span><span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">Z</span><span class="op">[</span><span class="fl">1</span>,<span class="op">]</span><span class="op">)</span>, <span class="co"># state-dependent regression</span></span>
@@ -466,7 +471,7 @@ anymore, but changes according to the covariate values in
 <span>     ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">15</span><span class="op">)</span>, xlab <span class="op">=</span> <span class="st">"z"</span>, ylab <span class="op">=</span> <span class="st">"x"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/points.html" class="external-link">points</a></span><span class="op">(</span><span class="va">z</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">s</span><span class="op">==</span><span class="fl">2</span><span class="op">)</span><span class="op">]</span>, <span class="va">x</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">s</span><span class="op">==</span><span class="fl">2</span><span class="op">)</span><span class="op">]</span>, pch <span class="op">=</span> <span class="fl">16</span>, col <span class="op">=</span> <span class="va">color</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Extensions_files/figure-html/data2-1.png" class="r-plt" alt="" width="85%" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span><span class="va">oldpar</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level4">
@@ -477,7 +482,7 @@ regression in the loop calculating the state-dependent probabilities.
 The code <code>cbind(1,Z) %*% t(beta)</code> computes all linear
 predictor for the states 1 and 2 at once. It thus returns a matrix of
 dimension <span class="math inline">T \times 2</span>.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nll_msr</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">par</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">getAll</a></span><span class="op">(</span><span class="va">par</span>, <span class="va">dat</span><span class="op">)</span></span>
 <span>  <span class="va">Gamma</span> <span class="op">=</span> <span class="fu"><a href="../reference/tpm.html">tpm</a></span><span class="op">(</span><span class="va">eta</span><span class="op">)</span></span>
@@ -496,7 +501,7 @@ dimension <span class="math inline">T \times 2</span>.</p>
 <div class="section level4">
 <h4 id="fitting-a-markov-switching-regression-model">Fitting a Markov-switching regression model<a class="anchor" aria-label="anchor" href="#fitting-a-markov-switching-regression-model"></a>
 </h4>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">par</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  eta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">3</span>, <span class="op">-</span><span class="fl">2</span><span class="op">)</span>,                          <span class="co"># starting values state process</span></span>
 <span>  beta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">10</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span>, <span class="co"># starting values for regression</span></span>
@@ -518,7 +523,7 @@ dimension <span class="math inline">T \times 2</span>.</p>
 <p>To visualise the results, we transform the parameters to working
 parameters and add the two estimated state-specific regressions to the
 scatter plot.</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">Gamma_hat_reg</span> <span class="op">=</span> <span class="va">mod_msr</span><span class="op">$</span><span class="va">Gamma</span></span>
 <span><span class="va">delta_hat_reg</span> <span class="op">=</span> <span class="va">mod_msr</span><span class="op">$</span><span class="va">delta</span></span>
 <span><span class="va">sigma_hat_reg</span> <span class="op">=</span> <span class="va">mod_msr</span><span class="op">$</span><span class="va">sigma</span></span>
@@ -556,7 +561,7 @@ simplest form, for a cycle length of e.g. <span class="math inline">24</span>, 
 sine and cosine expressions can also be precomputed and stored in a
 design matrix. In <code>LaMa</code>, this can be done using the
 <code><a href="../reference/cosinor.html">cosinor()</a></code> function, e.g.</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">Z_tod</span> <span class="op">=</span> <span class="fu"><a href="../reference/cosinor.html">cosinor</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">24</span>, period <span class="op">=</span> <span class="fl">24</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">Z_tod</span><span class="op">)</span></span>
 <span><span class="co">#&gt;      sin(2*pi*1:24/24) cos(2*pi*1:24/24)</span></span>
@@ -583,7 +588,7 @@ distribution for that time point in the cycle.</p>
 <p>Let’s try out everything we learned using the <code>trex</code> data
 set as an example. It has a time of day (<code>tod</code>)
 covariate:</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">trex</span>, <span class="fl">6</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   tod      step     angle state</span></span>
 <span><span class="co">#&gt; 1   9 0.3252437        NA     1</span></span>
@@ -595,7 +600,7 @@ covariate:</p>
 <p>As usual, we set initial parameter values. In the dat list, we
 include the trigonometric design matrix as well as the integer time of
 day variable.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">par</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  log_mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.3</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span>,                <span class="co"># initial means for step length</span></span>
 <span>  log_sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="fl">0.7</span><span class="op">)</span><span class="op">)</span>,           <span class="co"># initial sds for step length</span></span>
@@ -616,7 +621,7 @@ stationary distribution corresponding to the first time of day value
 (<code>Delta[tod[1],]</code>) and ii) build an array of tpms for the
 entire time series by indexing the 24 matrices using
 (<code>Gamma[,,tod]</code>).</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nll_seas</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">par</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">getAll</a></span><span class="op">(</span><span class="va">par</span>, <span class="va">dat</span><span class="op">)</span></span>
 <span>  <span class="va">Gamma</span> <span class="op">=</span> <span class="fu"><a href="../reference/tpm.html">tpm</a></span><span class="op">(</span><span class="va">beta</span>, <span class="va">Z_tod</span><span class="op">)</span></span>
@@ -634,13 +639,13 @@ entire time series by indexing the 24 matrices using
 <span>  <span class="op">-</span><span class="fu"><a href="../reference/forward.html">forward</a></span><span class="op">(</span><span class="va">Delta</span><span class="op">[</span><span class="va">tod</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,<span class="op">]</span>, <span class="va">Gamma</span><span class="op">[</span>,,<span class="va">tod</span><span class="op">]</span>, <span class="va">allprobs</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>Let’s fit the model:</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">obj_seas</span> <span class="op">=</span> <span class="fu">MakeADFun</span><span class="op">(</span><span class="va">nll_seas</span>, <span class="va">par</span>, silent <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">opt_seas</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></span><span class="op">(</span><span class="va">obj_seas</span><span class="op">$</span><span class="va">par</span>, <span class="va">obj_seas</span><span class="op">$</span><span class="va">fn</span>, <span class="va">obj_seas</span><span class="op">$</span><span class="va">gr</span><span class="op">)</span></span>
 <span><span class="va">sdr_seas</span> <span class="op">=</span> <span class="fu">sdreport</span><span class="op">(</span><span class="va">obj_seas</span><span class="op">)</span></span>
 <span><span class="va">mod_seas</span> <span class="op">=</span> <span class="fu"><a href="../reference/report.html">report</a></span><span class="op">(</span><span class="va">obj_seas</span><span class="op">)</span></span></code></pre></div>
 <p>And look at the estimated periodically stationary distribution:</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">Delta</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">as.list</a></span><span class="op">(</span><span class="va">sdr_seas</span>, <span class="st">"Est"</span>, report <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">$</span><span class="va">Delta</span></span>
 <span><span class="va">Delta_sd</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">as.list</a></span><span class="op">(</span><span class="va">sdr_seas</span>, <span class="st">"Std"</span>, report <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">$</span><span class="va">Delta</span></span>
 <span></span>

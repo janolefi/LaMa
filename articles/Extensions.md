@@ -133,6 +133,16 @@ curve(delta[1] * dvm(x, 0, kappa[1]) + delta[2] * dvm(x, 0, kappa[2]),
 par(oldpar)
 ```
 
+The pseudo-residuals of both data streams are obtained from the model
+object alone, with one row of plots per stream:
+
+``` r
+
+plot(mod_multi)
+```
+
+![](Extensions_files/figure-html/pres%20multi-1.png)
+
 ## Covariate effects
 
 In many empirical applications, either the state-process model or the
@@ -293,7 +303,7 @@ system.time(
   opt <- nlminb(obj_cov$par, obj_cov$fn, obj_cov$gr)
 )
 #>    user  system elapsed 
-#>   0.034   0.000   0.034
+#>   0.039   0.000   0.040
 mod_cov <- report(obj_cov) # reporting from fitted model
 ```
 

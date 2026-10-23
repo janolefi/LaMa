@@ -30,6 +30,13 @@ test_that("report: log-likelihood, missing observations not counted, gradient", 
   expect_lt(mod$mgc, 1e-3)
 })
 
+test_that("print: state process, missing observations and reported quantities", {
+  mod <- report(obj_rep)
+  expect_output(print(mod), "2 states \\(discrete time, homogeneous\\)")
+  expect_output(print(mod), "198 observations \\(2 missing\\), 6 parameters")
+  expect_output(print(mod), "Reported: delta, Gamma, allprobs")
+})
+
 test_that("MCreport: model object gives the same as obj", {
   mod <- report(obj_rep)
   set.seed(1); a <- suppressMessages(MCreport(obj_rep, nSamples = 20))

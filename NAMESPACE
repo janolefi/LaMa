@@ -3,6 +3,7 @@
 S3method(logLik,LaMaModel)
 S3method(plot,LaMaResiduals)
 S3method(predict,LaMa_matrices)
+S3method(print,LaMaModel)
 S3method(summary,qremlModel)
 export("%sp%")
 export(LaMaColors)

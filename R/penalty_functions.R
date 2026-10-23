@@ -368,24 +368,6 @@ penalty2 = function(re_coef, # coefficient vector/ matrix or list of coefficient
 }
 
 
-#' Extract log-likelihood from qremlModel object
-#' @param object A fitted model of class "qremlModel"
-#' @param ... Additional arguments (not used)
-#' @return An object of class "logLik"
-#' @export
-logLik.qremlModel <- function(object, ...) {
-  ll <- object$llk  # your stored log-likelihood
-  df <- object$df # number of free parameters
-  nobs <- object$nobs  # number of observations
-  
-  val <- as.numeric(ll)
-  attr(val, "df") <- df
-  attr(val, "nobs") <- nobs
-  class(val) <- "logLik"
-  val
-}
-
-
 #' Summary method for \code{qremlModel} objects
 #'
 #' @description

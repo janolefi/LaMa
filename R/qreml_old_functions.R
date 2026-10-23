@@ -817,7 +817,7 @@ qreml_old <- function(pnll, # penalized negative log-likelihood function
   mod$edf <- Edfs # seperated by smooth
   
   if(!is.null(mod$allprobs)){
-    mod$nobs <- nrow(mod$allprobs) # number of observations
+    mod$nobs <- count_nobs(mod$allprobs) # number of observations
   }
   
   # assing conditinoal Hessian
@@ -890,6 +890,6 @@ qreml_old <- function(pnll, # penalized negative log-likelihood function
     }
   } 
   
-  class(mod) = "qremlModel"
+  class(mod) = c("qremlModel", "LaMaModel")
   return(mod)
 }

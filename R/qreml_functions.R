@@ -145,7 +145,7 @@ gen_inverse <- function(S) {
 #' @param joint_unc logical, if \code{TRUE}, joint \code{RTMB} object is returned allowing for joint uncertainty quantification
 #' @param saveall logical, if \code{TRUE}, then all model objects from each iteration are saved in the final model object
 #'
-#' @return model object of class \code{"qremlModel"}, carrying the fitted quantities, the smoothness selection diagnostics shown by \code{\link{summary.qremlModel}}, and \code{outer_hessian()}, the outer Hessian that \code{\link{sdreport_outer}} turns into standard errors
+#' @return model object of class \code{"qremlModel"}, inheriting from \code{"LaMaModel"} (see \code{\link{report}}), carrying the fitted quantities, the smoothness selection diagnostics shown by \code{\link{summary.qremlModel}}, and \code{outer_hessian()}, the outer Hessian that \code{\link{sdreport_outer}} turns into standard errors
 #'
 #' @export
 #'
@@ -737,7 +737,8 @@ qreml <- function(pnll, # penalised negative log-likelihood function
             "; refitting with a smaller 'lsp_max' usually resolves it.", call. = FALSE)
   }
 
-  if(!is.null(mod$allprobs)) mod$nobs <- nrow(mod$allprobs)
+  mod$nobs <- count_nobs(mod$allprobs)
+  mod$mgc <- final$mgc # maximum gradient component of the inner problem
 
   mod$Hessian_conditional <- hessian_at(final$opt$par)
   mod$llk_restricted <- -crit_hist[seq_len(iter)]
@@ -819,6 +820,6 @@ qreml <- function(pnll, # penalised negative log-likelihood function
                                map = map)
   }
 
-  class(mod) <- "qremlModel"
+  class(mod) <- c("qremlModel", "LaMaModel")
   return(mod)
 }

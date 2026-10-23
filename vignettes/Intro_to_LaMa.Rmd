@@ -201,14 +201,14 @@ probs = stateprobs(delta, Gamma, allprobs)
 
 Then, we can pass the observations, the state probabilities, the parametric family and the estimated parameters to the `pseudo_res()` function to get pseudo-residuals for model validation. These should be standard normally distributed if the model is correct.
 
-```{r pseudores}
+```{r pseudores, fig.dim = c(8, 4)}
 pres = pseudo_res(x, # observations
                   "norm", # parametric distribution to use
                   list(mean = mu, sd = sigma), # parameters for that distribution
                   probs) # local state probabilities
 
 # use the plotting method for LaMaResiduals
-plot(pres, hist = TRUE)
+plot(pres)
 ```
 
 In this case, our model looks really good -- which it should because it is correctly specified.

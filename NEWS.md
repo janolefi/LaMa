@@ -19,7 +19,8 @@
 
 * pseudo_res(mod) computes pseudo-residuals from the model object alone: the likelihood function 
   is evaluated again with its densities replaced by their CDFs, after checking that this is valid; 
-  several data streams give one set of residuals each
+  several data streams give one set of residuals each; also for qreml() models and densities in 
+  helper functions
 
 * scores(mod) computes the score contribution of each observation for models using forward(), 
   e.g. for robust (sandwich) standard errors; it takes the model from report() or the RTMB 

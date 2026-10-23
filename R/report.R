@@ -120,6 +120,12 @@ get_obj <- function(x){
   x
 }
 
+# estimated parameters, like obj$par: the final fit for qreml() models (whose objective changes
+# with lambda, so last.par.best can be from an earlier iteration), else the best parameters of obj
+est_par <- function(x){
+  if(inherits(x, "qremlModel")) x[[paste0(x$parname, "_vec")]] else get_obj(x)$env$last.par.best
+}
+
 #' Extract log-likelihood from LaMaModel object
 #' @param object A model fitted using RTMB and obtained via \code{report(obj)} of class "LaMaModel"
 #' @param ... Additional arguments (not used)

@@ -42,7 +42,7 @@ obj_frame <- function(obj){
 #'
 #' @param obj optimised \code{RTMB} object from \code{\link[RTMB]{MakeADFun}}, or a model object from \code{\link{report}} or \code{\link{qreml}}
 #' @param par optional parameter vector like \code{obj$par}, e.g. \code{opt$par}.
-#' Defaults to the best parameters found during optimisation.
+#' Defaults to the estimates (for \code{\link{qreml}} models the final fit).
 #'
 #' @return matrix of score contributions of dimension \code{c(nObs, length(obj$par))}
 #' @export
@@ -64,11 +64,11 @@ obj_frame <- function(obj){
 #' U <- scores(mod)
 #' colSums(U) # ~ 0 at the MLE
 scores <- function(obj, par = NULL){
+  if(is.null(par)) par <- est_par(obj)
   obj <- get_obj(obj)
   fr <- obj_frame(obj)
   if(length(fr$random)) stop("scores() does not support random effects.")
   p <- length(obj$par)
-  if(is.null(par)) par <- obj$env$last.par.best
   if(length(par) != p) stop("par must have the same length as obj$par.")
 
   parlist <- obj$env$parList(par) # all parameters at par, respecting map

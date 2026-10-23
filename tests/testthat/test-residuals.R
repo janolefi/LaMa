@@ -176,6 +176,7 @@ test_that("pseudo_res(mod): several data streams, one residual vector each", {
   pdf(NULL)
   expect_null(plot(r))
   expect_equal(par("mfrow"), c(1, 1))
+  expect_equal(plot(mod), r) # plot.LaMaModel returns the residuals
   dev.off()
 })
 

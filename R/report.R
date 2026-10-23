@@ -74,6 +74,9 @@
 #'                    "gamma2",  # distribution family
 #'                    list(mean = mod$mu, sd = mod$sigma), # parameters for that family
 #'                    mod = mod) # model object
+#'
+#' # or from the model object alone, and plotted
+#' plot(mod)
 report <- function(obj) {
   
   # get best parameter vector (potentially including random effects) from object

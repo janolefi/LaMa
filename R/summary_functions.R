@@ -96,6 +96,22 @@ print.LaMaModel <- function(x, ...) {
   invisible(x)
 }
 
+#' Plot a \code{LaMaModel} object
+#'
+#' Plots the pseudo-residuals of a model from \code{\link{report}} or \code{\link{qreml}},
+#' computed by \code{\link{pseudo_res}} from the model object alone, with one row of plots per data stream.
+#'
+#' @param x model object of class \code{"LaMaModel"}
+#' @param ... further arguments passed to \code{\link{plot.LaMaResiduals}}
+#'
+#' @returns the pseudo-residuals, invisibly
+#' @export
+plot.LaMaModel <- function(x, ...) {
+  pres <- pseudo_res(x)
+  plot(pres, ...)
+  invisible(pres) # no need to compute (or randomise) them again
+}
+
 #' Summary of a \code{LaMaModel} object
 #'
 #' @description

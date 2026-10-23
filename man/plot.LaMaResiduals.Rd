@@ -36,6 +36,7 @@ NULL, plots the pseudo-residuals in a 3-panel layout
 }
 \description{
 Plot pseudo-residuals computed by \code{\link{pseudo_res}}.
+The QQ plot shows a pointwise 95\% band (in gray) for the sample quantiles under a correct model.
 }
 \examples{
 ## pseudo-residuals for the trex data

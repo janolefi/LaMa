@@ -260,6 +260,7 @@ pseudo_res <- function(obs,
 #' 
 #' @description
 #' Plot pseudo-residuals computed by \code{\link{pseudo_res}}.
+#' The QQ plot shows a pointwise 95\% band (in gray) for the sample quantiles under a correct model.
 #' 
 #' @param x pseudo-residuals as returned by \code{\link{pseudo_res}}.
 #' For several data streams (from \code{pseudo_res(mod)}), one row of plots per stream, titled by the stream name.
@@ -273,8 +274,8 @@ pseudo_res <- function(obs,
 #' @returns NULL, plots the pseudo-residuals in a 3-panel layout
 #' @export
 #'
-#' @importFrom graphics par lines hist abline
-#' @importFrom stats acf na.pass qqnorm
+#' @importFrom graphics par lines hist abline polygon points
+#' @importFrom stats acf na.pass qqnorm ppoints
 #' @importFrom RTMB dnorm
 #' @importFrom utils modifyList
 #'
@@ -378,11 +379,18 @@ plot.LaMaResiduals <- function(
     on.exit(par(old))
   }
   
-  # QQ Plot
-  qqnorm(res_clean, main = main[1], 
-         xlab = axis.lab$qq[1], 
+  # QQ Plot with pointwise 95% band, i-th order statistic of n uniforms is Beta(i, n-i+1)
+  n <- length(res_clean)
+  q <- qnorm(ppoints(n))
+  lo <- qnorm(qbeta(0.025, 1:n, n:1))
+  hi <- qnorm(qbeta(0.975, 1:n, n:1))
+  qqnorm(res_clean, main = main[1],
+         xlab = axis.lab$qq[1],
          ylab = axis.lab$qq[2],
-         bty = "n", pch = 16, col = "#00000070")
+         ylim = range(res_clean, lo, hi),
+         bty = "n", type = "n")
+  polygon(c(q, rev(q)), c(lo, rev(hi)), col = "gray90", border = NA)
+  points(qqnorm(res_clean, plot.it = FALSE), pch = 16, col = "#00000070")
   abline(a = 0, b = 1, col = col, lwd = lwd)
   
   # Histogram

@@ -2,10 +2,16 @@
 #' 
 #' Having fitted a latent Markov model using automatic differentiation via \code{RTMB}, this function calls \code{RTMB}'s \code{obj$report()} and does some additional processing.
 #' This then yields estimated parameters on their natural scale, allows for convenient calculation of \code{AIC} and \code{BIC}, state-decoding, and residual calculation.
+#' \code{print()} gives a short overview of the model, \code{\link[=summary.LaMaModel]{summary()}} the estimates.
+#'
+#' @details
+#' The number of observations (used by \code{BIC}) is the number of rows of the reported \code{allprobs} that are not all 1,
+#' i.e. missing observations are not counted. This assumes that \code{\link{forward}} is called only once in the likelihood function.
 #'
 #' @param obj Optimised \code{RTMB} object
 #'
-#' @returns A model object of class "\code{LaMaModel}" containing a list with the reported quantities from the \code{RTMB} object, along estimated parameters and other quantities.
+#' @returns A model object of class "\code{LaMaModel}" containing a list with the reported quantities from the \code{RTMB} object, along estimated parameters (\code{par}),
+#' the log-likelihood (\code{llk}), number of parameters (\code{df}) and observations (\code{nobs}), and the maximum gradient component (\code{mgc}) at the estimate.
 #' It also contains \code{obj} itself (not a copy), so that functions like \code{\link{MCreport}} or \code{\link{scores}} can be called on the model object.
 #' @export 
 #'
@@ -44,7 +50,9 @@
 #' 
 #' ### reporting ###
 #' mod <- report(obj)
-#' 
+#' mod          # short overview
+#' summary(mod) # estimated state process and reported quantities
+#'
 #' # estimated parameters
 #' mod$par
 #' 

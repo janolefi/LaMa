@@ -140,8 +140,16 @@ mod = report(obj) # runs the reporting from the negative log-likelihood once
 (sigma = mod$sigma) # estimated state-dependent sds
 ```
 This works because of the `REPORT()` statements in the likelihood function. 
-Note that `delta`, `Gamma` and `allprobs` are always reported by default when using `forward()` which is very useful for downstream tasks like state decoding or residuals calculation. The `viterbi` and `stateprobs` functions either take these as arguments or, more conveniently, can also take the whole reported `mod` object as an input. 
-Because the state-dependent parameters depend on the specific model formulation, these need to be reported manually by the user specifying the likelihood. Having all the parameters, we can plot the decoded time series
+Note that `delta`, `Gamma` and `allprobs` are always reported by default when using `forward()` which is very useful for downstream tasks like state decoding or residuals calculation. The `viterbi` and `stateprobs` functions either take these as arguments or, more conveniently, can also take the whole reported `mod` object as an input. For this to work, `forward()` should only be called once in the likelihood function, with the `trackID` argument for several tracks (see the vignette on longitudinal data).
+Because the state-dependent parameters depend on the specific model formulation, these need to be reported manually by the user specifying the likelihood.
+
+Printing `mod` gives a short overview of the model, while `summary()` shows the estimated state process, i.e. the transition probability matrix with its stationary distribution and mean dwell times, together with all quantities reported in the likelihood function:
+
+```{r summary}
+summary(mod)
+```
+
+Having all the parameters, we can plot the decoded time series
 
 ```{r decoding, fig.width = 7, fig.height = 4}
 # manually

@@ -2,6 +2,21 @@
 
 ## New features
 
+* print() and summary() for models from report() and qreml(): print() gives a short overview, 
+  summary() the estimated state process (transition probability or generator matrix, stationary 
+  distribution and mean dwell times, averaged over tracks if track-specific) and the reported 
+  quantities, with those of length nStates in one table; summary.qremlModel() adds the smooth 
+  terms and returns an object now
+* qreml() models have class c("qremlModel", "LaMaModel"), so all LaMaModel methods apply to them
+* forward() reports type "track-specific" for one Gamma per track (before "homogeneous")
+
+## Changes
+
+* report(): the log-likelihood is called llk (before ll), as for qreml()
+* report() and qreml(): nobs does not count missing observations (rows of allprobs that are all 1), 
+  which changes BIC for data with missing observations
+* report() stores the maximum gradient component mgc to check convergence
+
 * pseudo_res(mod) computes pseudo-residuals from the model object alone: the likelihood function 
   is evaluated again with its densities replaced by their CDFs, after checking that this is valid; 
   several data streams give one set of residuals each
@@ -13,6 +28,10 @@
   the model object from report() or qreml()
 
 ## Bug fixes
+
+* report(): the log-likelihood was evaluated at the last parameters the optimiser tried, not the best
+* summary.qremlModel() failed for reported lists or character vectors, and if Gamma was not reported
+  but delta was
 
 * pseudo_res(): missing observations give NA in all variants (before 0 with normal = FALSE, 
   -Inf for non-randomised discrete residuals)

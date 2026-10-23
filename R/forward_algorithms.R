@@ -69,8 +69,9 @@
 #' Additionally, \code{delta} can be a vector (same initial distribution for each track) or a
 #' matrix of dimension \code{c(nTracks, nStates)} (track-specific initial distributions).
 #' 
-#' \strong{Note:} When there are multiple tracks, for compatibility with downstream functions like \code{\link{viterbi}}, \code{\link{stateprobs}} or \code{\link{pseudo_res}}, 
-#' \code{forward} should only be called \strong{once} with a \code{trackID} argument.
+#' \strong{Note:} \code{forward} should only be called \strong{once} in the likelihood function, with a \code{trackID} argument for multiple tracks.
+#' Downstream functions like \code{\link{report}}, \code{\link{viterbi}}, \code{\link{stateprobs}} or \code{\link{pseudo_res}} rely on the quantities it reports,
+#' and only those of the last call are kept.
 #'
 #' @return HMM log-likelihood for given data and parameters
 #' @export

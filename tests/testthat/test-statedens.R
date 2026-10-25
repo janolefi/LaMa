@@ -71,3 +71,37 @@ test_that("forward() reports the streams of statedens() and clears them", {
   expect_equal(mod_sd$streams$angle$pars[[2]], exp(mod_sd$par$log_kappa))
   expect_null(getFromNamespace(".lama_env", "LaMa")$streams)
 })
+
+test_that("stream_curves(): weighted densities add up to the marginal", {
+  st <- get_streams(mod_sd)
+  for(w in list("stateprobs", "viterbi", "stationary", c(0.5, 0.5))) {
+    W <- state_weights(mod_sd, w)
+    cv <- stream_curves(st$step, W)
+    expect_equal(sum(cv$weights), 1)
+    expect_equal(sum(rowSums(cv$density)) * diff(cv$x[1:2]), 1, tolerance = 0.01) # integrates to ~1
+  }
+  # parameters per observation: same as constant ones repeated
+  st2 <- st$step
+  st2$pars[[1]] <- matrix(st2$pars[[1]], 300, 2, byrow = TRUE)
+  expect_equal(stream_curves(st2, W)$density, stream_curves(st$step, W)$density)
+})
+
+test_that("get_streams(): only if allprobs is the product of the streams", {
+  mod <- mod_sd
+  mod$allprobs[1, ] <- 0.5 * mod$allprobs[1, ]
+  expect_error(get_streams(mod), "not the product")
+  mod$streams <- NULL
+  expect_error(get_streams(mod), "statedens")
+})
+
+test_that("plot(mod, type = \"statedens\") returns the curves", {
+  pdf(NULL)
+  on.exit(dev.off())
+  cv <- plot(mod_sd, type = "statedens")
+  expect_named(cv, c("step", "angle"))
+  expect_equal(par("mfrow"), c(1, 1))
+  cv <- plot(mod_sd, type = "statedens", stream = "angle", weights = "viterbi", breaks = 10, legend = FALSE)
+  expect_equal(range(cv$x), c(-pi, pi))
+  expect_error(plot(mod_sd, type = "statedens", stream = "speed"), "one of")
+  expect_s3_class(plot(mod_sd, stream = "step"), "LaMaResiduals") # residuals of one stream
+})

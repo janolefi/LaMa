@@ -194,6 +194,9 @@
 - [`smooth_dens_construct()`](https://janolefi.github.io/LaMa/reference/smooth_dens_construct.md)
   : Build the design and penalty matrices for smooth density estimation
 
+- [`statedens()`](https://janolefi.github.io/LaMa/reference/statedens.md)
+  : State-dependent densities of one data stream
+
 - [`stateprobs()`](https://janolefi.github.io/LaMa/reference/stateprobs.md)
   : Calculate conditional local state probabilities in HMMs
 

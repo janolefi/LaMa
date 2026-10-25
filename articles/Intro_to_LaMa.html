@@ -274,6 +274,11 @@ log-likelihood such that it can be numerically minimised.</p>
 <span>  <span class="co"># 4) Run the forward algorithm</span></span>
 <span>  <span class="op">-</span><span class="fu"><a href="../reference/forward.html">forward</a></span><span class="op">(</span><span class="va">delta</span>, <span class="va">Gamma</span>, <span class="va">allprobs</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
+<p>We write the loop in step 3 to make the structure of the
+<code>allprobs</code> matrix explicit. The shortcut
+<code>allprobs = statedens(x, dnorm, mu, sigma)</code> gives the same
+matrix and also handles missing observations (see
+<code><a href="../reference/statedens.html">?statedens</a></code>), but the loop is equally valid.</p>
 <p>We can now fit the model to data by defining a vector of initial
 parameter values on the transformed scale and calling <code><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm()</a></code>
 to numerically maximise the likelihood. The initial parameters are not
@@ -298,7 +303,7 @@ intentionally imperfect:</p>
 <span>  <span class="va">opt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm</a></span><span class="op">(</span><span class="va">nll</span>, <span class="va">par</span>, x <span class="op">=</span> <span class="va">x</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.108   0.017   0.126</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.122   0.021   0.143</span></span></code></pre></div>
 <p>We see that implementation of the forward algorithm in C++ leads to
 really fast estimation speeds.</p>
 </div>

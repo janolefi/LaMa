@@ -47,7 +47,11 @@
 <h2 class="pkg-version" data-toc-text="development version" id="lama-development-version">LaMa (development version)<a class="anchor" aria-label="anchor" href="#lama-development-version"></a></h2>
 <div class="section level3">
 <h3 id="new-features-development-version">New features<a class="anchor" aria-label="anchor" href="#new-features-development-version"></a></h3>
-<ul><li>print() and summary() for models from report() and qreml(): print() gives a short overview, summary() the estimated state process (transition probability or generator matrix, stationary distribution and mean dwell times, averaged over tracks if track-specific) and the reported quantities, with those of length nStates in one table; summary.qremlModel() adds the smooth terms and returns an object now</li>
+<ul><li>statedens() builds the matrix of state-dependent densities of one data stream for allprobs, with parameters given per state, for all states or per observation and state; missing observations are handled for each stream separately, and log = TRUE gives log-densities for forward(…, logspace = TRUE); pseudo_res(mod) works with it</li>
+<li>forward() without AD gives an error for negative allprobs, suggesting logspace = TRUE</li>
+<li>plot(mod, type = “statedens”) shows the state-dependent densities of each data stream built with statedens() on a histogram, weighted by the local state probabilities (or decoded states, the stationary distribution or given weights), which also works with covariates, several tracks and inhomogeneous models; the weighted densities are returned invisibly</li>
+<li>plot(mod, stream = …) selects data streams, for residuals and state-dependent densities</li>
+<li>print() and summary() for models from report() and qreml(): print() gives a short overview, summary() the estimated state process (transition probability or generator matrix, stationary distribution and mean dwell times, averaged over tracks if track-specific) and the reported quantities, with those of length nStates in one table; summary.qremlModel() adds the smooth terms and returns an object now</li>
 <li>qreml() models have class c(“qremlModel”, “LaMaModel”), so all LaMaModel methods apply to them</li>
 <li>forward() reports type “track-specific” for one Gamma per track (before “homogeneous”)</li>
 </ul></div>

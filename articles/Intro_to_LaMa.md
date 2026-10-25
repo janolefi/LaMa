@@ -210,6 +210,13 @@ nll = function(par, x){
 }
 ```
 
+We write the loop in step 3 to make the structure of the `allprobs`
+matrix explicit. The shortcut
+`allprobs = statedens(x, dnorm, mu, sigma)` gives the same matrix and
+also handles missing observations (see
+[`?statedens`](https://janolefi.github.io/LaMa/reference/statedens.md)),
+but the loop is equally valid.
+
 We can now fit the model to data by defining a vector of initial
 parameter values on the transformed scale and calling
 [`nlm()`](https://rdrr.io/r/stats/nlm.html) to numerically maximise the
@@ -236,7 +243,7 @@ system.time(
   opt <- nlm(nll, par, x = x)
 )
 #>    user  system elapsed 
-#>   0.108   0.017   0.126
+#>   0.122   0.021   0.143
 ```
 
 We see that implementation of the forward algorithm in C++ leads to

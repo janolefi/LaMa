@@ -93,6 +93,62 @@ opt_multi = nlminb(obj_multi$par, obj_multi$fn, obj_multi$gr)
 mod_multi = report(obj_multi) # reporting from fitted model
 ```
 
+Building `allprobs` with a loop over states as above is perfectly valid
+and gives full control. As a shortcut,
+[`statedens()`](https://janolefi.github.io/LaMa/reference/statedens.md)
+builds the matrix of one data stream, with one parameter per state (or a
+single value for all states), and the matrices of several streams are
+multiplied:
+
+``` r
+
+nll_multi2 = function(par) {
+  getAll(par, dat)
+  Gamma = tpm(eta)
+  delta = stationary(Gamma)
+  mu = exp(log_mu); REPORT(mu)
+  sigma = exp(log_sigma); REPORT(sigma)
+  kappa = exp(log_kappa); REPORT(kappa)
+  allprobs = statedens(step, dgamma2, mu, sigma) * statedens(angle, dvm, 0, kappa)
+  -forward(delta, Gamma, allprobs)
+}
+
+obj_multi2 = MakeADFun(nll_multi2, par, silent = TRUE)
+opt_multi2 = nlminb(obj_multi2$par, obj_multi2$fn, obj_multi2$gr)
+```
+
+One difference:
+[`statedens()`](https://janolefi.github.io/LaMa/reference/statedens.md)
+handles missing values for each stream separately, so a step length
+whose turning angle is missing still enters the likelihood, while the
+loop above drops it. In the `trex` data this concerns a single
+observation, hence the log-likelihoods differ slightly:
+
+``` r
+
+c(-opt_multi$objective, -opt_multi2$objective)
+#> [1] -27248.59 -27248.20
+```
+
+With `log = TRUE`,
+[`statedens()`](https://janolefi.github.io/LaMa/reference/statedens.md)
+returns log-densities, which are added over streams and used with
+`forward(..., logspace = TRUE)`.
+
+As
+[`statedens()`](https://janolefi.github.io/LaMa/reference/statedens.md)
+records the data, densities and parameters of each stream, the estimated
+state-dependent densities can also be plotted from the model object,
+weighted by the local state probabilities:
+
+``` r
+
+mod_multi2 = report(obj_multi2)
+plot(mod_multi2, type = "statedens")
+```
+
+![](Extensions_files/figure-html/statedens%20plot-1.png)
+
 We can now plot the estimated state-dependent densities separately for
 each state:
 

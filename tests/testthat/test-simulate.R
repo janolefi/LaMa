@@ -42,3 +42,51 @@ test_that("sim_stream(): per state, per observation, missing values, r-function 
   rzig <- function(n, zeroprob, mean, sd) rnorm(n, mean, sd)
   expect_equal(mean(sim_stream(st, Z, rzig)[Z == 2], na.rm = TRUE), 10, tolerance = 0.05)
 })
+
+# two tracks with a missing value, built with statedens()
+d_sim <- list(step = trex$step[1:400], angle = trex$angle[1:400], id = rep(c("b", "a"), each = 200))
+d_sim$step[10] <- NA
+nll_sim <- function(par) {
+  getAll(par, d_sim)
+  Gamma <- tpm(eta)
+  allprobs <- statedens(step, dgamma2, exp(log_mu), exp(log_sigma)) * statedens(angle, dvm, 0, exp(log_kappa))
+  -forward(stationary(Gamma), Gamma, allprobs, trackID = id)
+}
+par_sim <- list(eta = c(-2, -2), log_mu = log(c(0.3, 2.5)), log_sigma = log(c(0.2, 1.5)), log_kappa = log(c(0.2, 1.5)))
+obj_sim <- RTMB::MakeADFun(nll_sim, par_sim, silent = TRUE)
+nlminb(obj_sim$par, obj_sim$fn, obj_sim$gr)
+mod_sim <- report(obj_sim)
+
+test_that("simulate(mod): observed design, missing values, seed", {
+  sim <- simulate(mod_sim, seed = 1)
+  expect_named(sim, c("trackID", "state", "step", "angle"))
+  expect_equal(sim$trackID, rep(1:2, each = 200))
+  expect_equal(is.na(sim$step), is.na(d_sim$step))
+  expect_equal(is.na(sim$angle), is.na(d_sim$angle))
+  expect_true(all(sim$step[!is.na(sim$step)] > 0) && all(abs(sim$angle[!is.na(sim$angle)]) <= pi))
+  # seed: reproducible, and the random number stream of the session is left alone
+  set.seed(5); a <- runif(1); set.seed(5)
+  expect_equal(simulate(mod_sim, seed = 1), sim)
+  expect_equal(runif(1), a)
+  # several simulations
+  expect_length(simulate(mod_sim, nsim = 3), 3)
+})
+
+test_that("simulate(mod): data are simulated from the fitted model", {
+  mod <- mod_sim
+  mod$Gamma <- tpm(c(-4, -4)); mod$delta <- c(1, 0)
+  mod$streams$step$pars <- list(c(1, 10), c(0.1, 0.1))
+  mod$allprobs <- Reduce(`*`, lapply(mod$streams, function(s) dens_matrix(s$x, s$dens, s$pars, s$nStates)))
+  sim <- simulate(mod, nsim = 1, seed = 2)
+  expect_equal(as.vector(tapply(sim$step, sim$state, mean, na.rm = TRUE)), c(1, 10), tolerance = 0.1)
+})
+
+test_that("simulate(mod): errors without statedens() or for densities without generator", {
+  mod <- mod_sim
+  mod$streams <- NULL
+  expect_error(simulate(mod), "statedens")
+  mod <- mod_sim
+  mod$streams$step$name <- "dmy"
+  expect_error(simulate(mod), "rdens")
+  expect_equal(is.na(simulate(mod, rdens = list(step = rgamma2))$step), is.na(d_sim$step))
+})

@@ -294,6 +294,9 @@ run_forward <- function(inp, ad = NULL){
     stop("allprobs contains NA values. For missing observations, keep the rows of allprobs at 1, ",
          "e.g. by only filling allprobs[ind, ] with ind = which(!is.na(x)).")
   }
+  if(!ad && any(inp$allprobs < 0)) {
+    stop("allprobs contains negative values. For log-densities, use logspace = TRUE.")
+  }
 
   # only one state: no hidden process
   if(nStates == 1) {

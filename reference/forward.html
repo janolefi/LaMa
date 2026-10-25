@@ -72,7 +72,8 @@ using the <strong>forward algorithm</strong> (Zucchini, MacDonald &amp; Langrock
 
 <dl><dt id="arg-delta">delta<a class="anchor" aria-label="anchor" href="#arg-delta"></a></dt>
 <dd><p>initial distribution; either</p><ul><li><p>a vector of length <code>nStates</code>, or</p></li>
-<li><p>a matrix of dimension <code>c(nTracks, nStates)</code>, if <code>trackID</code> is provided.</p></li>
+<li><p>a matrix of dimension <code>c(nTracks, nStates)</code>, if <code>trackID</code> is provided, or</p></li>
+<li><p><code>"stationary"</code>, for the (periodically) stationary distribution of <code>Gamma</code> at the start of each track (see ‘Details’).</p></li>
 </ul></dd>
 
 
@@ -129,6 +130,11 @@ contribution. In this case, <code>Gamma</code> can be</p><ul><li><p>a matrix (sa
 <li><p>an array of dimension <code>c(nStates, nStates, L)</code> for periodic transition probabilities, if <code>tod</code> is provided.</p></li>
 </ul><p>Additionally, <code>delta</code> can be a vector (same initial distribution for each track) or a
 matrix of dimension <code>c(nTracks, nStates)</code> (track-specific initial distributions).</p>
+<p>With <code>delta = "stationary"</code>, the initial distribution of each track is computed from <code>Gamma</code>:</p><ul><li><p>the stationary distribution of <code>Gamma</code> (or of its slice for each track, if track-specific),</p></li>
+<li><p>the periodically stationary distribution at the first time point of each track, if <code>tod</code> is provided (see <code><a href="stationary_p.html">stationary_p</a></code>),</p></li>
+<li><p>the stationary distribution of the first slice of each track, for time-varying transition probabilities, i.e. at the covariate values of the first observation.</p></li>
+</ul><p>This requires <code>Gamma</code> to contain transition probability matrices (not, e.g., sub-stochastic matrices), which is checked without automatic differentiation.
+The computed <code>delta</code> is reported as a matrix of dimension <code>c(nTracks, nStates)</code>.</p>
 <p><strong>Note:</strong> <code>forward</code> should only be called <strong>once</strong> in the likelihood function, with a <code>trackID</code> argument for multiple tracks.
 Downstream functions like <code><a href="report.html">report</a></code>, <code><a href="viterbi.html">viterbi</a></code>, <code><a href="stateprobs.html">stateprobs</a></code> or <code><a href="pseudo_res.html">pseudo_res</a></code> rely on the quantities it reports,
 and only those of the last call are kept.</p>

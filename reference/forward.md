@@ -29,7 +29,10 @@ forward(
   - a vector of length `nStates`, or
 
   - a matrix of dimension `c(nTracks, nStates)`, if `trackID` is
-    provided.
+    provided, or
+
+  - `"stationary"`, for the (periodically) stationary distribution of
+    `Gamma` at the start of each track (see ‘Details’).
 
 - Gamma:
 
@@ -109,6 +112,25 @@ track's likelihood contribution. In this case, `Gamma` can be
 Additionally, `delta` can be a vector (same initial distribution for
 each track) or a matrix of dimension `c(nTracks, nStates)`
 (track-specific initial distributions).
+
+With `delta = "stationary"`, the initial distribution of each track is
+computed from `Gamma`:
+
+- the stationary distribution of `Gamma` (or of its slice for each
+  track, if track-specific),
+
+- the periodically stationary distribution at the first time point of
+  each track, if `tod` is provided (see
+  [`stationary_p`](https://janolefi.github.io/LaMa/reference/stationary_p.md)),
+
+- the stationary distribution of the first slice of each track, for
+  time-varying transition probabilities, i.e. at the covariate values of
+  the first observation.
+
+This requires `Gamma` to contain transition probability matrices (not,
+e.g., sub-stochastic matrices), which is checked without automatic
+differentiation. The computed `delta` is reported as a matrix of
+dimension `c(nTracks, nStates)`.
 
 **Note:** `forward` should only be called **once** in the likelihood
 function, with a `trackID` argument for multiple tracks. Downstream

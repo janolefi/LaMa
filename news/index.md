@@ -11,6 +11,11 @@
   forward(…, logspace = TRUE); pseudo_res(mod) works with it
 - forward() without AD gives an error for negative allprobs, suggesting
   logspace = TRUE
+- forward(delta = “stationary”) computes the initial distribution from
+  Gamma: the stationary distribution (per track if track-specific, of
+  the first slice of each track if time-varying) or, with tod, the
+  periodically stationary distribution at the first time point of each
+  track
 - plot(mod, type = “statedens”) shows the state-dependent densities of
   each data stream built with statedens() on a histogram, weighted by
   the local state probabilities (or decoded states, the stationary

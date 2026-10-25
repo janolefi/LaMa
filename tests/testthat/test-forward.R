@@ -70,6 +70,28 @@ test_that("forward: periodic Gamma with tod, also if tod does not cover the full
                  ref_forward(D_test, function(t, i) Gp[, , tod[t]], lp, ID))
 })
 
+test_that('forward: delta = "stationary" for all types of Gamma', {
+  ID <- rep(1:3, c(5, 8, 7)); s <- c(1, 6, 14) # track starts
+  expect_forward(function(ap, ...) forward("stationary", G1, ap, trackID = ID, report = FALSE, ...), lp,
+                 ref_forward(d_test, function(t, i) G1, lp, ID))
+  expect_forward(function(ap, ...) forward("stationary", Gk_test, ap, trackID = ID, report = FALSE, ...), lp,
+                 ref_forward(stationary(Gk_test), function(t, i) Gk_test[, , i], lp, ID))
+  # time-varying: stationary distribution of the first slice of each track
+  expect_forward(function(ap, ...) forward("stationary", Gt_test, ap, trackID = ID, report = FALSE, ...), lp,
+                 ref_forward(stationary(Gt_test[, , s]), function(t, i) Gt_test[, , t], lp, ID))
+  expect_forward(function(ap, ...) forward("stationary", Gt_test[, , -1], ap, report = FALSE, ...), lp,
+                 ref_forward(stationary(Gt_test[, , 2]), function(t, i) Gt_test[, , t], lp))
+  # periodic: Gp[,,s] leads into s, so delta at s is stationary for the cycle Gp[,,s+1] ... Gp[,,s]
+  Gp <- tpm_p(1:4, L = 4, beta = matrix(c(-1, -1, 0.5, 0.5, 0, 0), 2))
+  cyc <- function(s) Reduce(`%*%`, lapply((s + 0:3) %% 4 + 1, function(k) Gp[, , k]))
+  tod <- rep(c(2:4, 1), 5)
+  expect_forward(function(ap, ...) forward("stationary", Gp, ap, tod = tod, trackID = ID, report = FALSE, ...), lp,
+                 ref_forward(t(sapply(tod[s], function(k) stationary(cyc(k)))), function(t, i) Gp[, , tod[t]], lp, ID))
+  expect_error(forward("stat", G1, exp(lp), ad = FALSE), "stationary")
+  expect_error(forward("stationary", 0.9 * G1, exp(lp)), "sub-stochastic")
+  expect_error(forward("stationary", Gt_test * 0.99, exp(lp)), "sub-stochastic")
+})
+
 test_that("forward: one state, with and without logspace", {
   lp1 <- lp[, 1, drop = FALSE]
   expect_forward(function(ap, ...) forward(1, matrix(1), ap, report = FALSE, ...), lp1, sum(lp1))
@@ -159,6 +181,8 @@ test_that("forward: reported quantities", {
   expect_equal(r$trackID, rep(1:2, each = 10))
   expect_equal(r$Gamma, G1)
   expect_equal(r$delta, d_test)
+  r <- fit(function(ap) forward("stationary", G1, ap, trackID = dat$ID))
+  expect_equal(r$delta, rbind(d_test, d_test), ignore_attr = TRUE)
   r <- fit(function(ap) forward(d_test, array(G1, c(2, 2, 2)), ap, trackID = dat$ID))
   expect_equal(r$type, "track-specific")
   r <- fit(function(ap) forward(d_test, Gt_test, ap))

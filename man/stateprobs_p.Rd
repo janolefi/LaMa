@@ -31,7 +31,7 @@ For half-hourly data L = 48. It could, however, also be day of year for daily da
 \item{mod}{optional model object containing initial distribution \code{delta}, transition probability matrix \code{Gamma}, matrix of state-dependent probabilities \code{allprobs}, and potentially a \code{trackID} variable
 
 If you are using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward_p}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
-Hence, you can pass the model object obtained from running \code{RTMB::lama()} or from \code{\link{qreml}} directly to this function.}
+Hence, you can pass the model object obtained from \code{obj$report()}, \code{\link{lama}} or \code{\link{qreml}} directly to this function.}
 
 \item{forecast}{logical, indicating if forecast probabilities \eqn{\Pr(S_t = j \mid X_1, ..., X_{t-1})} should be calculated instead.}
 }

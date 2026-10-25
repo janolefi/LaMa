@@ -68,7 +68,7 @@ run_stateprobs <- function(inp, forecast = FALSE){
 #' optional model object containing \code{delta}, \code{Gamma}, \code{allprobs}, and
 #'   optionally \code{trackID}. When using \code{RTMB::MakeADFun} or \code{\link{qreml}} with
 #'   \code{\link{forward}} in the likelihood, these are reported automatically after model fitting
-#'   and the object returned by \code{RTMB::lama()} or \code{\link{qreml}} can be passed directly.
+#'   and the object returned by \code{obj$report()}, \code{\link{lama}} or \code{\link{qreml}} can be passed directly.
 #'
 #' @param tod 
 #' optional integer vector of length \code{nObs} with values in 1, ..., L, indexing the slices of \code{Gamma} for periodic models
@@ -119,7 +119,7 @@ viterbi = function(delta, Gamma, allprobs, trackID = NULL,
 #' optional model object containing \code{delta}, \code{Gamma}, \code{allprobs}, and
 #'   optionally \code{trackID}. When using \code{RTMB::MakeADFun} or \code{\link{qreml}} with
 #'   \code{\link{forward_g}} in the likelihood, these are reported automatically after model fitting
-#'   and the object returned by \code{RTMB::lama()} or \code{\link{qreml}} can be passed directly.
+#'   and the object returned by \code{obj$report()}, \code{\link{lama}} or \code{\link{qreml}} can be passed directly.
 #'
 #' @return vector of decoded states of length \code{nObs}
 #' @export
@@ -160,7 +160,7 @@ viterbi_g = function(delta, Gamma, allprobs, trackID = NULL,
 #' @param mod optional model object containing initial distribution \code{delta}, transition probability matrix \code{Gamma}, matrix of state-dependent probabilities \code{allprobs}, and potentially a \code{trackID} variable
 #' 
 #' If you are using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward_p}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
-#' Hence, you can pass the model object obtained from running \code{RTMB::lama()} or from \code{\link{qreml}} directly to this function.
+#' Hence, you can pass the model object obtained from \code{obj$report()}, \code{\link{lama}} or \code{\link{qreml}} directly to this function.
 #'
 #' @return vector of decoded states of length n
 #' @export
@@ -225,7 +225,7 @@ viterbi_p = function(delta, Gamma, allprobs, tod, trackID = NULL,
 #' optional model object containing \code{delta}, \code{Gamma}, \code{allprobs}, and
 #'   optionally \code{trackID}. When using \code{RTMB::MakeADFun} or \code{\link{qreml}} with
 #'   \code{\link{forward}} in the likelihood, these are reported automatically after model fitting
-#'   and the object returned by \code{RTMB::lama()} or \code{\link{qreml}} can be passed directly.
+#'   and the object returned by \code{obj$report()}, \code{\link{lama}} or \code{\link{qreml}} can be passed directly.
 #'
 #' @param forecast 
 #' logical, indicating if forecast probabilities \eqn{\Pr(\text{State}_t = j \mid X_1, ..., X_{t-1})} should be calculated instead.
@@ -282,7 +282,7 @@ stateprobs = function(delta, Gamma, allprobs, trackID = NULL,
 #' optional model object containing \code{delta}, \code{Gamma}, \code{allprobs}, and
 #'   optionally \code{trackID}. When using \code{RTMB::MakeADFun} or \code{\link{qreml}} with
 #'   \code{\link{forward_g}} in the likelihood, these are reported automatically after model fitting
-#'   and the object returned by \code{RTMB::lama()} or \code{\link{qreml}} can be passed directly.
+#'   and the object returned by \code{obj$report()}, \code{\link{lama}} or \code{\link{qreml}} can be passed directly.
 #'
 #' @param forecast 
 #' logical, indicating if forecast probabilities \eqn{\Pr(\text{State}_t = j \mid X_1, ..., X_{t-1})} should be calculated instead.
@@ -328,7 +328,7 @@ stateprobs_g = function(delta, Gamma, allprobs, trackID = NULL,
 #' @param mod optional model object containing initial distribution \code{delta}, transition probability matrix \code{Gamma}, matrix of state-dependent probabilities \code{allprobs}, and potentially a \code{trackID} variable
 #' 
 #' If you are using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward_p}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
-#' Hence, you can pass the model object obtained from running \code{RTMB::lama()} or from \code{\link{qreml}} directly to this function.
+#' Hence, you can pass the model object obtained from \code{obj$report()}, \code{\link{lama}} or \code{\link{qreml}} directly to this function.
 #' @param forecast logical, indicating if forecast probabilities \eqn{\Pr(S_t = j \mid X_1, ..., X_{t-1})} should be calculated instead.
 #'
 #' @return matrix of conditional state probabilities of dimension c(n,N)

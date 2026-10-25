@@ -32,7 +32,7 @@ This argument is as flexible as the parametric distribution allows. For example 
 \item{mod}{optional model object containing required quantities
 
 When using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
-Hence, you can pass the model object obtained from running \code{lama()} or from \code{\link{qreml}} directly to this function and avoid calculating local state proabilities manually.
+Hence, you can pass the model object obtained from \code{obj$report()}, \code{\link{lama}} or \code{\link{qreml}} directly to this function and avoid calculating local state proabilities manually.
 In this case, a call should look like \code{pseudo_res(obs, "norm", par, mod = mod)}.}
 
 \item{normal}{logical, if \code{TRUE}, returns Gaussian pseudo residuals

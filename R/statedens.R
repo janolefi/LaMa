@@ -11,8 +11,12 @@
 #'   \item a vector of length \code{nStates}, one value per state, or
 #'   \item a matrix of dimension \code{c(nObs, nStates)}, one value per observation and state, e.g. from a regression on covariates.
 #' }
-#' Missing observations contribute nothing to the likelihood, so their rows are 1.
+#' Missing observations contribute nothing to the likelihood, so their rows are 1 (0 with \code{log = TRUE}).
 #' As each data stream gets its own matrix, a missing value in one stream does not remove the observations of the others.
+#'
+#' With \code{log = TRUE}, the log-densities are returned, to be added over data streams and used with \code{forward(..., logspace = TRUE)}.
+#' They are computed by \code{dens(..., log = TRUE)} if \code{dens} has an argument \code{log}, otherwise as \code{log(dens(...))}
+#' (e.g. for densities from \code{\link{zero_inflate}}).
 #'
 #' Writing the loop over states by hand is equally valid and gives the same result. \code{statedens()} is just a shortcut.
 #'
@@ -20,6 +24,7 @@
 #' @param dens density function, e.g. \code{dnorm}, \code{\link{dgamma2}} or \code{\link{dvm}}, with the observations as first argument
 #' @param ... parameters of \code{dens}, see \sQuote{Details}
 #' @param nStates number of states. Only needed if all parameters are single values.
+#' @param log logical; if \code{TRUE}, log-densities are returned
 #'
 #' @return matrix of dimension \code{c(nObs, nStates)}
 #' @export
@@ -40,18 +45,25 @@
 #'
 #' # two data streams, mean of the turning angle the same in both states
 #' allprobs <- statedens(step, dgamma2, mu, sigma) * statedens(angle, dvm, 0, kappa)
-statedens <- function(x, dens, ..., nStates = NULL) {
+#'
+#' # on the log scale, for forward(..., logspace = TRUE)
+#' logprobs <- statedens(step, dgamma2, mu, sigma, log = TRUE) +
+#'   statedens(angle, dvm, 0, kappa, log = TRUE)
+statedens <- function(x, dens, ..., nStates = NULL, log = FALSE) {
   "[<-" <- ADoverload("[<-")
   pars <- list(...)
   # number of states from the parameters: columns of matrices, else the longest vector
   if(is.null(nStates)) nStates <- max(sapply(pars, function(p) if(is.matrix(p)) ncol(p) else length(p)))
+  # log-densities from dens itself if it can, else log() afterwards
+  dlog <- log && "log" %in% names(formals(dens))
 
   ind <- which(!is.na(x))
-  allprobs <- matrix(1, length(x), nStates)
+  allprobs <- matrix(if(log) 0 else 1, length(x), nStates)
   for(j in 1:nStates) {
     # parameters of state j at the observed rows
     pj <- lapply(pars, function(p) if(is.matrix(p)) p[ind, j] else if(length(p) == 1) p else p[j])
-    allprobs[ind, j] <- do.call(dens, c(list(x[ind]), pj))
+    d <- do.call(dens, c(list(x[ind]), pj, if(dlog) list(log = TRUE)))
+    allprobs[ind, j] <- if(log && !dlog) base::log(d) else d
   }
   allprobs
 }

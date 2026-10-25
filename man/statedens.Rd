@@ -4,7 +4,7 @@
 \alias{statedens}
 \title{State-dependent densities of one data stream}
 \usage{
-statedens(x, dens, ..., nStates = NULL)
+statedens(x, dens, ..., nStates = NULL, log = FALSE)
 }
 \arguments{
 \item{x}{vector of observations of length \code{nObs}, possibly containing \code{NA}s}
@@ -14,6 +14,8 @@ statedens(x, dens, ..., nStates = NULL)
 \item{...}{parameters of \code{dens}, see \sQuote{Details}}
 
 \item{nStates}{number of states. Only needed if all parameters are single values.}
+
+\item{log}{logical; if \code{TRUE}, log-densities are returned}
 }
 \value{
 matrix of dimension \code{c(nObs, nStates)}
@@ -30,8 +32,12 @@ Each parameter in \code{...} can be
   \item a vector of length \code{nStates}, one value per state, or
   \item a matrix of dimension \code{c(nObs, nStates)}, one value per observation and state, e.g. from a regression on covariates.
 }
-Missing observations contribute nothing to the likelihood, so their rows are 1.
+Missing observations contribute nothing to the likelihood, so their rows are 1 (0 with \code{log = TRUE}).
 As each data stream gets its own matrix, a missing value in one stream does not remove the observations of the others.
+
+With \code{log = TRUE}, the log-densities are returned, to be added over data streams and used with \code{forward(..., logspace = TRUE)}.
+They are computed by \code{dens(..., log = TRUE)} if \code{dens} has an argument \code{log}, otherwise as \code{log(dens(...))}
+(e.g. for densities from \code{\link{zero_inflate}}).
 
 Writing the loop over states by hand is equally valid and gives the same result. \code{statedens()} is just a shortcut.
 }
@@ -51,4 +57,8 @@ all.equal(allprobs, allprobs2)
 
 # two data streams, mean of the turning angle the same in both states
 allprobs <- statedens(step, dgamma2, mu, sigma) * statedens(angle, dvm, 0, kappa)
+
+# on the log scale, for forward(..., logspace = TRUE)
+logprobs <- statedens(step, dgamma2, mu, sigma, log = TRUE) +
+  statedens(angle, dvm, 0, kappa, log = TRUE)
 }

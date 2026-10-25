@@ -36,3 +36,18 @@ test_that("statedens(): nStates for single values, and with AD", {
   F <- RTMB::MakeTape(function(p) sum(statedens(step, dgamma2, exp(p[1:2]), exp(p[3:4]))), log(c(mu, sigma)))
   expect_equal(F(log(c(mu, sigma))), sum(statedens(step, dgamma2, mu, sigma)))
 })
+
+test_that("statedens(log = TRUE): log-densities, also without a log argument", {
+  step[3] <- NA
+  expect_equal(statedens(step, dgamma2, mu, sigma, log = TRUE),
+               log(statedens(step, dgamma2, mu, sigma)))
+  # zero_inflate() has no log argument, so log() is taken afterwards
+  zig <- zero_inflate(dgamma2)
+  step[1] <- 0
+  expect_equal(statedens(step, zig, 0.1, mu, sigma, log = TRUE),
+               log(statedens(step, zig, 0.1, mu, sigma)))
+  # same likelihood as on the natural scale
+  Gamma <- tpm(c(-2, -2)); delta <- stationary(Gamma)
+  expect_equal(forward(delta, Gamma, statedens(step, zig, 0.1, mu, sigma, log = TRUE), logspace = TRUE),
+               forward(delta, Gamma, statedens(step, zig, 0.1, mu, sigma)))
+})

@@ -359,7 +359,7 @@ system.time(
   opt <- nlminb(obj_cov$par, obj_cov$fn, obj_cov$gr)
 )
 #>    user  system elapsed 
-#>   0.035   0.000   0.035
+#>   0.036   0.000   0.035
 mod_cov <- lama(obj_cov) # reporting from fitted model
 ```
 
@@ -658,17 +658,22 @@ In the likelihood function, we only compute the unique 24 transition
 matrices and then, based on these, the corresponding stationary
 distribution(s) using
 [`stationary_p()`](https://janolefi.github.io/LaMa/reference/stationary_p.md).
-When running the forward algorithm in the last line, we then have to i)
-pick the stationary distribution corresponding to the first time of day
-value (`Delta[tod[1],]`) and ii) build an array of tpms for the entire
-time series by indexing the 24 matrices using (`Gamma[,,tod]`).
+As [`forward()`](https://janolefi.github.io/LaMa/reference/forward.md)
+uses `Gamma[,,tod[t]]` for the transition *into* time t, while
+[`stationary_p()`](https://janolefi.github.io/LaMa/reference/stationary_p.md)
+treats `Gamma[,,t]` as the transition from t to t+1, we shift the rows
+of `Delta` by one, such that row k is the distribution at time of day k.
+When running the forward algorithm in the last line, we then i) pick the
+stationary distribution corresponding to the first time of day value
+(`Delta[tod[1],]`) and ii) pass the 24 matrices together with `tod`,
+which indexes them for each time point.
 
 ``` r
 
 nll_seas = function(par) {
   getAll(par, dat)
   Gamma = tpm(beta, Z_tod)
-  Delta = stationary_p(Gamma) # periodically stationary distribution
+  Delta = stationary_p(Gamma)[c(2:24, 1), ] # periodically stationary distribution, row k for tod k
   ADREPORT(Delta)
   # Parameter transformations for strictly positive parameters
   mu = exp(log_mu); REPORT(mu)
@@ -679,7 +684,7 @@ nll_seas = function(par) {
   for(j in 1:N){
     allprobs[ind,j] = dgamma2(step[ind], mu[j], sigma[j])
   }
-  -forward(Delta[tod[1],], Gamma[,,tod], allprobs)
+  -forward(Delta[tod[1],], Gamma, allprobs, tod = tod)
 }
 ```
 

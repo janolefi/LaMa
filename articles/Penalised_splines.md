@@ -95,7 +95,7 @@ pnll = function(par) {
   # cbinding intercept and spline coefs, because intercept is not penalised
   Gamma = tpm(cbind(beta0, betaSpline), Z)
   # computing all periodically stationary distributions for easy access later
-  Delta = stationary_p(Gamma); REPORT(Delta)
+  Delta = stationary_p(Gamma)[c(2:24, 1), ]; REPORT(Delta) # row k for tod k
   # parameter transformations
   mu = exp(logmu); REPORT(mu)
   sigma = exp(logsigma); REPORT(sigma)
@@ -106,7 +106,7 @@ pnll = function(par) {
   for(j in 1:N){
     allprobs[ind,j] = dgamma2(step[ind],mu[j],sigma[j]) * dvm(angle[ind],0,kappa[j])
   }
-  -forward(Delta[tod[1],], Gamma[,,tod], allprobs) + # regular forward algorithm
+  -forward(Delta[tod[1],], Gamma, allprobs, tod = tod) + # regular forward algorithm
     penalty(betaSpline, S, lambda) # this does all the penalisation work
 }
 ```
@@ -205,7 +205,7 @@ system.time(
 #> outer 9 - lambda: 0.306 0.112 
 #> outer 10 - lambda: 0.306 0.112
 #>    user  system elapsed 
-#>  16.418   0.058  16.478
+#>  13.880   0.047  13.929
 ```
 
 The `mod` object is now a list that contains everything that is reported
@@ -459,7 +459,7 @@ system.time(
 #> Converged
 #> Final model fit with lambda: 0.962 0.996 1.661
 #>    user  system elapsed 
-#>  30.787   9.775  29.315
+#>  29.225   9.728  27.793
 ```
 
 After fitting the model, we can easily visualise the smooth densities
@@ -607,7 +607,7 @@ system.time(
 #> Converged
 #> Final model fit with lambda: 22.565 7.214 8.262 4.174
 #>    user  system elapsed 
-#>  25.173   0.009  25.184
+#>  23.792   0.008  23.803
 ```
 
 Having fitted the model, we can visualise the results. We first decode

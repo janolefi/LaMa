@@ -287,7 +287,7 @@ dat$S = modmat$S # penalty matrix
 pnll = function(par) {
   getAll(par, dat) # makes everything contained available without $
   Gamma = tpm_g(Z, cbind(beta0, betaspline), ad = TRUE) # transition probabilities
-  delta = stationary_p(Gamma, t = 1, ad = TRUE) # initial distribution
+  delta = stationary_p(Gamma, t = tod[1] %% 24 + 1, ad = TRUE) # initial distribution
   mu = exp(logmu) # step mean
   sigma = exp(logsigma) # step sd
   # calculating all state-dependent densities
@@ -300,6 +300,20 @@ pnll = function(par) {
 
 # model fitting
 mod = qreml_old(pnll, par, dat, random = "betaspline", silent = 2)
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
+#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
+#> forward_g() is deprecated, please use forward() for all model types instead.
 #> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
 #> forward_g() is deprecated, please use forward() for all model types instead.
 #> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.

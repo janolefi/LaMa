@@ -43,7 +43,13 @@ the thinned Markov chain, which has a full cycle as each time step, has
 homogeneous transition probability matrix \$\$\Gamma_t = \Gamma^{(t)}
 \Gamma^{(t+1)} \dots \Gamma^{(t+L-1)}\$\$ for all \\t = 1, \dots, L.\\
 The stationary distribution for time \\t\\ satifies \\\delta^{(t)}
-\Gamma_t = \delta^{(t)}\\.
+\Gamma_t = \delta^{(t)}\\. Here, `Gamma[,,t]` is the transition from
+\\t\\ to \\t+1\\.
+[`forward`](https://janolefi.github.io/LaMa/reference/forward.md) with
+`tod` uses `Gamma[,,tod[t]]` for the transition into \\t\\, so there,
+the initial distribution is `stationary_p(Gamma, tod[1] %% L + 1)`, and
+`stationary_p(Gamma)[c(2:L, 1), ]` has the distribution at `tod = k` in
+row `k`.
 
 This function calculates said periodically stationary distribution.
 

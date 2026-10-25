@@ -148,7 +148,7 @@ If these are seperate random effects, each with its own name, they need to be pa
 <span class="r-in"><span><span class="va">pnll</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">par</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">getAll</a></span><span class="op">(</span><span class="va">par</span>, <span class="va">dat</span><span class="op">)</span> <span class="co"># makes everything contained available without $</span></span></span>
 <span class="r-in"><span>  <span class="va">Gamma</span> <span class="op">=</span> <span class="fu"><a href="tpm_g.html">tpm_g</a></span><span class="op">(</span><span class="va">Z</span>, <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">beta0</span>, <span class="va">betaspline</span><span class="op">)</span><span class="op">)</span> <span class="co"># transition probabilities</span></span></span>
-<span class="r-in"><span>  <span class="va">delta</span> <span class="op">=</span> <span class="fu"><a href="stationary_p.html">stationary_p</a></span><span class="op">(</span><span class="va">Gamma</span>, t <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="co"># initial distribution</span></span></span>
+<span class="r-in"><span>  <span class="va">delta</span> <span class="op">=</span> <span class="fu"><a href="stationary_p.html">stationary_p</a></span><span class="op">(</span><span class="va">Gamma</span>, t <span class="op">=</span> <span class="va">tod</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html" class="external-link">%%</a></span> <span class="fl">24</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span> <span class="co"># initial distribution</span></span></span>
 <span class="r-in"><span>  <span class="va">mu</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">logmu</span><span class="op">)</span> <span class="co"># step mean</span></span></span>
 <span class="r-in"><span>  <span class="va">sigma</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">logsigma</span><span class="op">)</span> <span class="co"># step sd</span></span></span>
 <span class="r-in"><span>  <span class="co"># calculating all state-dependent densities</span></span></span>
@@ -171,60 +171,35 @@ If these are seperate random effects, each with its own name, they need to be pa
 <span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 1 - lambda: 3.636 2.858 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer 1 - lambda: 3.588 2.862 </span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 2 - lambda: 0.786 0.954 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer 2 - lambda: 0.759 0.954 </span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 3 - lambda: 0.26 0.387 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer 3 - lambda: 0.261 0.391 </span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 4 - lambda: 0.521 0.267 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer 4 - lambda: 0.521 0.272 </span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 5 - lambda: 0.468 0.185 </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 6 - lambda: 0.49 0.103 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer 5 - lambda: 0.465 0.189 </span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 7 - lambda: 0.486 0.079 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer 6 - lambda: 0.489 0.105 </span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 8 - lambda: 0.486 0.08 </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 9 - lambda: 0.486 0.08 </span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 10 - lambda: 0.487 0.08 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer 7 - lambda: 0.481 0.079 </span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
@@ -239,9 +214,34 @@ If these are seperate random effects, each with its own name, they need to be pa
 <span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 11 - lambda: 0.487 0.08 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer 8 - lambda: 0.482 0.079 </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer 9 - lambda: 0.482 0.079 </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer 10 - lambda: 0.483 0.08 </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer 11 - lambda: 0.483 0.08 </span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Converged</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Final model fit with lambda: 0.486 0.079</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Final model fit with lambda: 0.481 0.079</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> forward_g() is deprecated, please use forward() for all model types instead.</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>

@@ -68,7 +68,8 @@
 </ul></div>
 <div class="section level3">
 <h3 id="bug-fixes-development-version">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-development-version"></a></h3>
-<ul><li><p>lama(): the log-likelihood was evaluated at the last parameters the optimiser tried, not the best</p></li>
+<ul><li><p>Examples and vignettes: the periodically stationary initial distribution matches forward()’s tod, where Gamma[,,tod[t]] is the transition into t, i.e. stationary_p(Gamma, tod[1] %% L + 1)</p></li>
+<li><p>lama(): the log-likelihood was evaluated at the last parameters the optimiser tried, not the best</p></li>
 <li><p>summary.qremlModel() failed for reported lists or character vectors, and if Gamma was not reported but delta was</p></li>
 <li><p>pseudo_res(): missing observations give NA in all variants (before 0 with normal = FALSE, -Inf for non-randomised discrete residuals)</p></li>
 <li><p>pseudo_res(): parameters given per observation (matrix or vector of length nObs) work with missing observations</p></li>

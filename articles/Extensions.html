@@ -389,7 +389,7 @@ shape. Model fitting is also extremely quick:</p>
 <span>  <span class="va">opt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></span><span class="op">(</span><span class="va">obj_cov</span><span class="op">$</span><span class="va">par</span>, <span class="va">obj_cov</span><span class="op">$</span><span class="va">fn</span>, <span class="va">obj_cov</span><span class="op">$</span><span class="va">gr</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.035   0.000   0.035</span></span>
+<span><span class="co">#&gt;   0.036   0.000   0.035</span></span>
 <span><span class="va">mod_cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/lama.html">lama</a></span><span class="op">(</span><span class="va">obj_cov</span><span class="op">)</span> <span class="co"># reporting from fitted model</span></span></code></pre></div>
 <p>Let’s plot the fitted model, starting with the estimated
 state-dependent densities. We can obtain approximate global state
@@ -653,17 +653,22 @@ day variable.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p>In the likelihood function, we only compute the unique 24 transition
 matrices and then, based on these, the corresponding stationary
-distribution(s) using <code><a href="../reference/stationary_p.html">stationary_p()</a></code>. When running the
-forward algorithm in the last line, we then have to i) pick the
+distribution(s) using <code><a href="../reference/stationary_p.html">stationary_p()</a></code>. As
+<code><a href="../reference/forward.html">forward()</a></code> uses <code>Gamma[,,tod[t]]</code> for the
+transition <em>into</em> time <span class="math inline">t</span>, while
+<code><a href="../reference/stationary_p.html">stationary_p()</a></code> treats <code>Gamma[,,t]</code> as the
+transition from <span class="math inline">t</span> to <span class="math inline">t+1</span>, we shift the rows of <code>Delta</code>
+by one, such that row <span class="math inline">k</span> is the
+distribution at time of day <span class="math inline">k</span>. When
+running the forward algorithm in the last line, we then i) pick the
 stationary distribution corresponding to the first time of day value
-(<code>Delta[tod[1],]</code>) and ii) build an array of tpms for the
-entire time series by indexing the 24 matrices using
-(<code>Gamma[,,tod]</code>).</p>
+(<code>Delta[tod[1],]</code>) and ii) pass the 24 matrices together with
+<code>tod</code>, which indexes them for each time point.</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nll_seas</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">par</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">getAll</a></span><span class="op">(</span><span class="va">par</span>, <span class="va">dat</span><span class="op">)</span></span>
 <span>  <span class="va">Gamma</span> <span class="op">=</span> <span class="fu"><a href="../reference/tpm.html">tpm</a></span><span class="op">(</span><span class="va">beta</span>, <span class="va">Z_tod</span><span class="op">)</span></span>
-<span>  <span class="va">Delta</span> <span class="op">=</span> <span class="fu"><a href="../reference/stationary_p.html">stationary_p</a></span><span class="op">(</span><span class="va">Gamma</span><span class="op">)</span> <span class="co"># periodically stationary distribution</span></span>
+<span>  <span class="va">Delta</span> <span class="op">=</span> <span class="fu"><a href="../reference/stationary_p.html">stationary_p</a></span><span class="op">(</span><span class="va">Gamma</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span><span class="op">:</span><span class="fl">24</span>, <span class="fl">1</span><span class="op">)</span>, <span class="op">]</span> <span class="co"># periodically stationary distribution, row k for tod k</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">ADREPORT</a></span><span class="op">(</span><span class="va">Delta</span><span class="op">)</span></span>
 <span>  <span class="co"># Parameter transformations for strictly positive parameters</span></span>
 <span>  <span class="va">mu</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">log_mu</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">REPORT</a></span><span class="op">(</span><span class="va">mu</span><span class="op">)</span></span>
@@ -674,7 +679,7 @@ entire time series by indexing the 24 matrices using
 <span>  <span class="kw">for</span><span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">)</span><span class="op">{</span></span>
 <span>    <span class="va">allprobs</span><span class="op">[</span><span class="va">ind</span>,<span class="va">j</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="../reference/gamma2.html">dgamma2</a></span><span class="op">(</span><span class="va">step</span><span class="op">[</span><span class="va">ind</span><span class="op">]</span>, <span class="va">mu</span><span class="op">[</span><span class="va">j</span><span class="op">]</span>, <span class="va">sigma</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span></span>
 <span>  <span class="op">}</span></span>
-<span>  <span class="op">-</span><span class="fu"><a href="../reference/forward.html">forward</a></span><span class="op">(</span><span class="va">Delta</span><span class="op">[</span><span class="va">tod</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,<span class="op">]</span>, <span class="va">Gamma</span><span class="op">[</span>,,<span class="va">tod</span><span class="op">]</span>, <span class="va">allprobs</span><span class="op">)</span></span>
+<span>  <span class="op">-</span><span class="fu"><a href="../reference/forward.html">forward</a></span><span class="op">(</span><span class="va">Delta</span><span class="op">[</span><span class="va">tod</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,<span class="op">]</span>, <span class="va">Gamma</span>, <span class="va">allprobs</span>, tod <span class="op">=</span> <span class="va">tod</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>Let’s fit the model:</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">

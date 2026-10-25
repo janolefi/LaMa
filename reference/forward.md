@@ -87,7 +87,9 @@ forward(
 
   optional integer vector of length `nObs` with values in 1, ..., L,
   indexing the slices of `Gamma` for periodic models (e.g. time of day
-  with L = 24 for hourly data).
+  with L = 24 for hourly data). `Gamma[,,tod[t]]` is the transition into
+  time t, hence the periodically stationary initial distribution is
+  `stationary_p(Gamma, tod[1] %% L + 1)`.
 
 ## Value
 

@@ -64,6 +64,10 @@
 
 ### Bug fixes
 
+- Examples and vignettes: the periodically stationary initial
+  distribution matches forward()’s tod, where Gamma\[,,tod\[t\]\] is the
+  transition into t, i.e. stationary_p(Gamma, tod\[1\] %% L + 1)
+
 - lama(): the log-likelihood was evaluated at the last parameters the
   optimiser tried, not the best
 

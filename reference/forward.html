@@ -114,7 +114,8 @@ Only used with automatic differentiation; otherwise the exact likelihood is comp
 
 <dt id="arg-tod">tod<a class="anchor" aria-label="anchor" href="#arg-tod"></a></dt>
 <dd><p>optional integer vector of length <code>nObs</code> with values in 1, ..., L, indexing the slices of <code>Gamma</code> for periodic models
-(e.g. time of day with L = 24 for hourly data).</p></dd>
+(e.g. time of day with L = 24 for hourly data).
+<code>Gamma[,,tod[t]]</code> is the transition into time t, hence the periodically stationary initial distribution is <code>stationary_p(Gamma, tod[1] %% L + 1)</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">

@@ -60,6 +60,8 @@ statedens <- function(x, dens, ..., nStates = NULL, log = FALSE) {
   # stream for plot(mod), reported by forward()
   .lama_env$streams[[s]] <- list(x = x, dens = dens, name = paste(deparse(substitute(dens)), collapse = ""),
                                  pars = pars, nStates = nStates)
+  # simulation by obj$simulate() with x from OBS(): forward() simulates x, nothing to evaluate here
+  if(inherits(x, "simref")) return(matrix(if(log) 0 else 1, length(x), nStates))
   dens_matrix(x, dens, pars, nStates, log)
 }
 

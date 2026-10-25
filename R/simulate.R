@@ -161,10 +161,8 @@ sim_forward <- function(streams, delta, Gamma, allprobs, trackID, logspace, tod)
     st <- streams[[s]]
     x <- st$x
     if(!inherits(x, "simref")) next
-    st$x <- rep(NA_real_, length(x)) # all rows are drawn
-    draws <- sim_stream(st, states, .lama_env$rdens[[s]])
-    draws[is.na(x$orig)] <- NA # missing observations of the data stay missing
-    x$reverse.update(draws, seq_along(draws))
+    st$x <- x$orig # the data itself, so that sim_stream() keeps its missing values
+    x$reverse.update(sim_stream(st, states, .lama_env$rdens[[s]]), seq_along(x))
   }
   REPORT(states)
   0

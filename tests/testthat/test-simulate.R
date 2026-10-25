@@ -181,6 +181,13 @@ test_that("obj$simulate(): random effects first, then states and data given them
   expect_true(is.finite(obj_re$fn(obj_re$par)))
 })
 
+test_that("obj$simulate(): data that are NA throughout are simulated completely", {
+  nll <- nll_re; environment(nll) <- list2env(list(step_re = rep(NA_real_, n_re)), parent = environment(nll_re))
+  obj <- RTMB::MakeADFun(nll, par_re, random = "u", silent = TRUE)
+  sim <- obj$simulate(obj$env$last.par)
+  expect_false(anyNA(sim$step_re))
+})
+
 test_that("simulate(mod, random = TRUE) uses obj$simulate()", {
   mod <- report(obj_re)
   sim <- simulate(mod, random = TRUE, seed = 1)

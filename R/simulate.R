@@ -40,7 +40,8 @@ sim_stream <- function(st, Z, rdens = NULL) {
     rows <- which(Z == j)
     if(length(rows)) x[rows] <- do.call(r, c(list(length(rows)), state_pars(st$pars, j, rows)))
   }
-  x[is.na(st$x)] <- NA # keep the missing observations of the data
+  # keep the missing observations of the data, unless the stream is all NA (placeholder to simulate from)
+  if(!all(is.na(st$x))) x[is.na(st$x)] <- NA
   x
 }
 
@@ -58,7 +59,8 @@ sim_stream <- function(st, Z, rdens = NULL) {
 #' (homogeneous, track-specific, time-varying, periodic) work, as does a continuous-time model with one transition matrix
 #' per time interval (the simulation is then conditional on the observed time points).
 #' Each data stream is drawn from the random number generator belonging to its density, e.g. \code{rgamma2} for \code{dgamma2}.
-#' Missing observations of the data stay missing. Models with random effects are simulated conditional on the estimated random effects.
+#' Missing observations of the data stay missing, except for a stream that is missing completely: such a placeholder
+#' (e.g. \code{step = rep(NA, n)}) lets you simulate from a likelihood function without data, see the examples. Models with random effects are simulated conditional on the estimated random effects.
 #'
 #' @param object model object from \code{\link{report}} or \code{\link{qreml}} that was built with \code{\link{statedens}}
 #' @param nsim number of simulations
@@ -90,6 +92,14 @@ sim_stream <- function(st, Z, rdens = NULL) {
 #'
 #' sim <- simulate(mod, seed = 1)
 #' head(sim)
+#'
+#' # simulate without data: all-NA streams as placeholders, parameters of your choice, then refit
+#' dat$step <- dat$angle <- rep(NA, 500)
+#' obj0 <- MakeADFun(nll, par, silent = TRUE)
+#' sim <- simulate(report(obj0), seed = 1)
+#' dat$step <- sim$step; dat$angle <- sim$angle
+#' obj1 <- MakeADFun(nll, par, silent = TRUE)
+#' opt1 <- nlminb(obj1$par, obj1$fn, obj1$gr)
 simulate.LaMaModel <- function(object, nsim = 1, seed = NULL, rdens = NULL, ...) {
   # keep the random number stream of the session, as stats::simulate() methods do
   if(!is.null(seed)) {
@@ -105,7 +115,9 @@ simulate.LaMaModel <- function(object, nsim = 1, seed = NULL, rdens = NULL, ...)
     Z <- sim_states(inp)
     x <- lapply(names(st), function(s) sim_stream(st[[s]], Z, rdens[[s]]))
     names(x) <- names(st)
-    data.frame(trackID = object$trackID, state = Z, x)
+    out <- data.frame(state = Z, x)
+    if(!is.null(object$trackID)) out <- cbind(trackID = object$trackID, out)
+    out
   })
   if(nsim == 1) sims[[1]] else sims
 }

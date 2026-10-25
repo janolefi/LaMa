@@ -90,3 +90,36 @@ test_that("simulate(mod): errors without statedens() or for densities without ge
   expect_error(simulate(mod), "rdens")
   expect_equal(is.na(simulate(mod, rdens = list(step = rgamma2))$step), is.na(d_sim$step))
 })
+
+test_that("simulate(mod): all-NA streams as placeholders, simulate then fit", {
+  d <- d_sim; d$step[] <- NA; d$angle[] <- NA
+  nll <- nll_sim; environment(nll) <- list2env(list(d_sim = d), parent = environment(nll_sim))
+  par <- list(eta = c(-2, -2), log_mu = log(c(1, 10)), log_sigma = log(c(0.5, 2)), log_kappa = log(c(1, 5)))
+  mod0 <- report(RTMB::MakeADFun(nll, par, silent = TRUE))
+  sim <- simulate(mod0, seed = 1)
+  expect_false(anyNA(sim))
+  expect_equal(nrow(sim), 400)
+  # data from the chosen parameters
+  expect_equal(as.vector(tapply(sim$step, sim$state, mean)), c(1, 10), tolerance = 0.3)
+  # and the likelihood can be fitted to them
+  d$step <- sim$step; d$angle <- sim$angle
+  obj <- RTMB::MakeADFun(nll, par, silent = TRUE)
+  opt <- nlminb(obj$par, obj$fn, obj$gr)
+  expect_equal(opt$convergence, 0)
+  expect_lt(max(abs(opt$par[3:4] - log(c(1, 10)))), 0.5)
+})
+
+test_that("simulate(mod): no trackID column for a single track, parameters per observation", {
+  x <- rep(NA, 100); z <- seq(-1, 1, length = 100)
+  nll <- function(par) {
+    getAll(par)
+    Gamma <- tpm(eta)
+    -forward(stationary(Gamma), Gamma, statedens(x, dnorm, cbind(a[1] + b * z, a[2]), 1))
+  }
+  par <- list(eta = c(-3, -3), a = c(0, 10), b = 5)
+  sim <- simulate(report(RTMB::MakeADFun(nll, par, silent = TRUE)), seed = 1)
+  expect_named(sim, c("state", "x"))
+  expect_equal(nrow(sim), 100)
+  s1 <- sim$state == 1 # mean 5 * z in state 1
+  expect_gt(cor(sim$x[s1], z[s1]), 0.5)
+})

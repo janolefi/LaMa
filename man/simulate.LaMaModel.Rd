@@ -36,7 +36,8 @@ The states are drawn as in the decoding functions, so that all types of \code{Ga
 (homogeneous, track-specific, time-varying, periodic) work, as does a continuous-time model with one transition matrix
 per time interval (the simulation is then conditional on the observed time points).
 Each data stream is drawn from the random number generator belonging to its density, e.g. \code{rgamma2} for \code{dgamma2}.
-Missing observations of the data stay missing. Models with random effects are simulated conditional on the estimated random effects.
+Missing observations of the data stay missing, except for a stream that is missing completely: such a placeholder
+(e.g. \code{step = rep(NA, n)}) lets you simulate from a likelihood function without data, see the examples. Models with random effects are simulated conditional on the estimated random effects.
 }
 \examples{
 nll <- function(par) {
@@ -55,4 +56,12 @@ mod <- report(obj)
 
 sim <- simulate(mod, seed = 1)
 head(sim)
+
+# simulate without data: all-NA streams as placeholders, parameters of your choice, then refit
+dat$step <- dat$angle <- rep(NA, 500)
+obj0 <- MakeADFun(nll, par, silent = TRUE)
+sim <- simulate(report(obj0), seed = 1)
+dat$step <- sim$step; dat$angle <- sim$angle
+obj1 <- MakeADFun(nll, par, silent = TRUE)
+opt1 <- nlminb(obj1$par, obj1$fn, obj1$gr)
 }

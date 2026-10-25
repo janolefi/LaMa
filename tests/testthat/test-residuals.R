@@ -180,6 +180,24 @@ test_that("pseudo_res(mod): several data streams, one residual vector each", {
   dev.off()
 })
 
+test_that("pseudo_res(mod): two streams with statedens(), also on the log scale", {
+  d2 <- list(step = trex$step[1:300], angle = trex$angle[1:300])
+  par <- list(log_mu = log(c(0.3, 2.5)), log_sigma = log(c(0.2, 1.5)), log_kappa = log(c(0.5, 2)), eta = rep(-2, 2))
+  for(lg in c(FALSE, TRUE)) {
+    mod <- fit_mod(function(par) {
+      getAll(par, d2)
+      Gamma <- tpm(eta)
+      P1 <- statedens(step, dgamma2, exp(log_mu), exp(log_sigma), log = lg)
+      P2 <- statedens(angle, dvm, 0, exp(log_kappa), log = lg)
+      -forward(stationary(Gamma), Gamma, if(lg) P1 + P2 else P1 * P2, logspace = lg)
+    }, par)
+    p <- mod$par
+    r <- pseudo_res(mod)
+    expect_equal(r$step, pseudo_res(d2$step, "gamma2", list(mean = exp(p$log_mu), sd = exp(p$log_sigma)), mod = mod))
+    expect_equal(r$angle, pseudo_res(d2$angle, "vm", list(mu = 0, kappa = exp(p$log_kappa)), mod = mod))
+  }
+})
+
 test_that("pseudo_res(mod): loop over time, two streams summed on the log scale", {
   set.seed(3)
   s <- rep(1:2, each = 25, length.out = 300)

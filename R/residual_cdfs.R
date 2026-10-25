@@ -54,7 +54,8 @@ swapped_allprobs <- function(obj, par, dens, mode) {
     dfun <- get(d, envir = fenv, mode = "function")
     pfun <- get(sub("^d", "p", d), envir = fenv, mode = "function")
     assign(d, function(x, ...) {
-      s <- stream_name(substitute(x))
+      # set by statedens(), which calls the density with its own variable
+      s <- if(is.null(.lama_env$stream)) stream_name(substitute(x)) else .lama_env$stream
       fams[[s]] <<- union(fams[[s]], sub("^d", "", d))
       args <- list(...)
       lg <- isTRUE(args$log)

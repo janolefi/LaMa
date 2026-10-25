@@ -51,6 +51,9 @@
 #'   statedens(angle, dvm, 0, kappa, log = TRUE)
 statedens <- function(x, dens, ..., nStates = NULL, log = FALSE) {
   "[<-" <- ADoverload("[<-")
+  # name of the data stream for pseudo_res(mod), which swaps dens for its CDF
+  .lama_env$stream <- stream_name(substitute(x))
+  on.exit(.lama_env$stream <- NULL)
   pars <- list(...)
   # number of states from the parameters: columns of matrices, else the longest vector
   if(is.null(nStates)) nStates <- max(sapply(pars, function(p) if(is.matrix(p)) ncol(p) else length(p)))

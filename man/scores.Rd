@@ -7,7 +7,7 @@
 scores(obj, par = NULL)
 }
 \arguments{
-\item{obj}{optimised \code{RTMB} object from \code{\link[RTMB]{MakeADFun}}, or a model object from \code{\link{report}} or \code{\link{qreml}}}
+\item{obj}{optimised \code{RTMB} object from \code{\link[RTMB]{MakeADFun}}, or a model object from \code{\link{lama}} or \code{\link{qreml}}}
 
 \item{par}{optional parameter vector like \code{obj$par}, e.g. \code{opt$par}.
 Defaults to the estimates (for \code{\link{qreml}} models the final fit).}
@@ -50,7 +50,7 @@ step <- trex$step[1:200]
 par <- list(eta = c(-2, -2), mu = c(0.3, 2.5), sigma = c(0.2, 1.5))
 obj <- MakeADFun(nll, par, silent = TRUE)
 opt <- nlminb(obj$par, obj$fn, obj$gr)
-mod <- report(obj)
+mod <- lama(obj)
 U <- scores(mod)
 colSums(U) # ~ 0 at the MLE
 }

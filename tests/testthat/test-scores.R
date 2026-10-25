@@ -107,10 +107,10 @@ test_that("scores: respects map", {
   expect_equal(colSums(U), -obj$gr(est)[1, ], ignore_attr = TRUE)
 })
 
-test_that("scores: model object from report() and best parameters", {
+test_that("scores: model object from lama() and best parameters", {
   obj <- RTMB::MakeADFun(nll_sc, par_sc, silent = TRUE)
   opt <- nlminb(obj$par, obj$fn, obj$gr)
-  U <- scores(report(obj))
+  U <- scores(lama(obj))
   expect_equal(U, scores(obj, opt$par))
   expect_equal(unname(colSums(U)), rep(0, 8), tolerance = 1e-4) # MLE
 })

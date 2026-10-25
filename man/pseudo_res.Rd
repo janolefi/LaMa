@@ -16,7 +16,7 @@ pseudo_res(
 )
 }
 \arguments{
-\item{obs}{vector of observations (of length \code{nObs}), or a model object from \code{\link{report}}
+\item{obs}{vector of observations (of length \code{nObs}), or a model object from \code{\link{lama}}
 (or the \code{RTMB} object), in which case nothing else is needed (see \sQuote{Details})}
 
 \item{dist}{character string specifying which parametric CDF to use (e.g., \code{"norm"} for normal or \code{"pois"} for Poisson) or CDF function to evaluate directly.
@@ -32,7 +32,7 @@ This argument is as flexible as the parametric distribution allows. For example 
 \item{mod}{optional model object containing required quantities
 
 When using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
-Hence, you can pass the model object obtained from running \code{report()} or from \code{\link{qreml}} directly to this function and avoid calculating local state proabilities manually.
+Hence, you can pass the model object obtained from running \code{lama()} or from \code{\link{qreml}} directly to this function and avoid calculating local state proabilities manually.
 In this case, a call should look like \code{pseudo_res(obs, "norm", par, mod = mod)}.}
 
 \item{normal}{logical, if \code{TRUE}, returns Gaussian pseudo residuals
@@ -84,7 +84,7 @@ swapping in CDFs is valid. If not, e.g. for densities transformed by hand (trunc
 zero inflation via indicators) or a latent variable integrated out inside \code{allprobs}, it stops, and
 \code{pseudo_res(obs, dist, par, mod = mod)} needs to be used instead.
 Densities in your own helper functions called by the likelihood function are found as well,
-and \code{\link{qreml}} models work like models from \code{\link{report}}.
+and \code{\link{qreml}} models work like models from \code{\link{lama}}.
 The likelihood function needs to call \code{\link{forward}} once (use \code{trackID} for several tracks),
 and it is evaluated with the data as they are when \code{pseudo_res()} is called.
 }
@@ -137,7 +137,7 @@ par = list(logitGamma = c(-2,-2),
 obj = MakeADFun(nll, par, silent = TRUE)
 opt = nlminb(obj$par, obj$fn, obj$gr)
 
-mod = report(obj)
+mod = lama(obj)
 
 pres = pseudo_res(step,      # observation sequence
                   "gamma2",  # parametric family that was used

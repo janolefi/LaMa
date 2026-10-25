@@ -20,7 +20,8 @@
 #' initial distribution; either
 #'   \itemize{
 #'     \item a vector of length \code{nStates}, or
-#'     \item a matrix of dimension \code{c(nTracks, nStates)}, if \code{trackID} is provided.
+#'     \item a matrix of dimension \code{c(nTracks, nStates)}, if \code{trackID} is provided, or
+#'     \item \code{"stationary"}, for the (periodically) stationary distribution of \code{Gamma} at the start of each track (see \sQuote{Details}).
 #'   }
 #'   
 #' @param Gamma 
@@ -69,8 +70,17 @@
 #' Additionally, \code{delta} can be a vector (same initial distribution for each track) or a
 #' matrix of dimension \code{c(nTracks, nStates)} (track-specific initial distributions).
 #' 
+#' With \code{delta = "stationary"}, the initial distribution of each track is computed from \code{Gamma}:
+#'   \itemize{
+#'     \item the stationary distribution of \code{Gamma} (or of its slice for each track, if track-specific),
+#'     \item the periodically stationary distribution at the first time point of each track, if \code{tod} is provided (see \code{\link{stationary_p}}),
+#'     \item the stationary distribution of the first slice of each track, for time-varying transition probabilities, i.e. at the covariate values of the first observation.
+#'   }
+#' This requires \code{Gamma} to contain transition probability matrices (not, e.g., sub-stochastic matrices), which is checked without automatic differentiation.
+#' The computed \code{delta} is reported as a matrix of dimension \code{c(nTracks, nStates)}.
+#' 
 #' \strong{Note:} \code{forward} should only be called \strong{once} in the likelihood function, with a \code{trackID} argument for multiple tracks.
-#' Downstream functions like \code{\link{report}}, \code{\link{viterbi}}, \code{\link{stateprobs}} or \code{\link{pseudo_res}} rely on the quantities it reports,
+#' Downstream functions like \code{\link{lama}}, \code{\link{viterbi}}, \code{\link{stateprobs}} or \code{\link{pseudo_res}} rely on the quantities it reports,
 #' and only those of the last call are kept.
 #'
 #' @return HMM log-likelihood for given data and parameters
@@ -131,6 +141,7 @@ forward <- function(delta,
   # report quantities for easy use later
   if(report) {
     if(logspace) allprobs <- exp(allprobs)
+    if(is.character(delta)) delta <- inp$delta # computed stationary distribution(s)
     if(!is.null(tod)) REPORT(tod)
     if(!is.null(streams)) REPORT(streams)
     report_forward(delta, Gamma, allprobs, inp$trackID, inp$type)
@@ -181,31 +192,6 @@ prepare_forward <- function(delta, Gamma, allprobs, trackID = NULL,
   }
   end <- c(start[-1] - 1L, nObs)
 
-  ## handle delta
-  delta <- AD(as.matrix(delta))
-  d <- dim(delta)
-
-  # allow N x 1 and transpose
-  if (d[1] == nStates && d[2] == 1) {
-    delta <- t(delta)
-    d <- dim(delta)
-  }
-
-  # check dimensions depending on trackID
-  if (is.null(trackID)) {
-    # single track: must be 1 x N
-    if (!(d[1] == 1 && d[2] == nStates)) {
-      stop("delta must be a vector of length N or a matrix of size (1, N) or (N, 1) when no trackID is provided.")
-    }
-  } else {
-    # multiple tracks: allow vector, 1xN, or kxN
-    if (d[1] == 1 && d[2] == nStates) {
-      delta <- delta[rep(1, nTracks), , drop = FALSE]
-    } else if (!(d[1] == nTracks && d[2] == nStates)) {
-      stop("delta must have dimensions (k, N), (1, N), or be a vector of length N when trackID is provided.")
-    }
-  }
-
   ## handle Gamma
   Gamma <- AD(as.array(Gamma))
   dG <- dim(Gamma)
@@ -247,6 +233,35 @@ prepare_forward <- function(delta, Gamma, allprobs, trackID = NULL,
          " or nObs - 1 (time-varying, only without trackID).")
   }
 
+  ## handle delta
+  if (is.character(delta)) {
+    if (!identical(delta, "stationary")) stop("delta must be numeric or \"stationary\".")
+    delta <- stationary_delta(Gamma, gidx[start], type == "periodic")
+  }
+  delta <- AD(as.matrix(delta))
+  d <- dim(delta)
+
+  # allow N x 1 and transpose
+  if (d[1] == nStates && d[2] == 1) {
+    delta <- t(delta)
+    d <- dim(delta)
+  }
+
+  # check dimensions depending on trackID
+  if (is.null(trackID)) {
+    # single track: must be 1 x N
+    if (!(d[1] == 1 && d[2] == nStates)) {
+      stop("delta must be a vector of length N or a matrix of size (1, N) or (N, 1) when no trackID is provided.")
+    }
+  } else {
+    # multiple tracks: allow vector, 1xN, or kxN
+    if (d[1] == 1 && d[2] == nStates) {
+      delta <- delta[rep(1, nTracks), , drop = FALSE]
+    } else if (!(d[1] == nTracks && d[2] == nStates)) {
+      stop("delta must have dimensions (k, N), (1, N), or be a vector of length N when trackID is provided.")
+    }
+  }
+
   # if allprobs on log-scale, divide each row by its maximum:
   # exact, as each row scales the likelihood by a constant, and numerically stable
   shift <- 0
@@ -258,6 +273,25 @@ prepare_forward <- function(delta, Gamma, allprobs, trackID = NULL,
   list(delta = delta, Gamma = Gamma, allprobs = allprobs, shift = shift,
        gidx = as.integer(gidx), start = start, end = end,
        trackID = trackID, type = type, bw = bw)
+}
+
+# delta = "stationary": initial distribution of each track (matrix c(nTracks, nStates)),
+# given the slices g of Gamma at the track starts
+# - periodic: Gamma[,,s] leads into s, so the distribution at s is row s + 1 of stationary_p()
+#   (where Gamma[,,s] leads out of s)
+# - else: stationary distribution of slice g (for time-varying Gamma, at the first covariate values)
+stationary_delta <- function(Gamma, g, periodic = FALSE){
+  # check only possible without AD (e.g. when the likelihood is run once before MakeADFun())
+  if (!ad_context() && any(abs(colSums(aperm(Gamma, c(2, 1, 3))) - 1) > 1e-8)) {
+    stop("delta = \"stationary\" needs transition probability matrices in Gamma (rows summing to 1), ",
+         "e.g. not sub-stochastic matrices of MMPPs or state-space models.")
+  }
+  L <- dim(Gamma)[3]
+  if (periodic && L > 1) {
+    return(stationary_p(Gamma)[g %% L + 1, , drop = FALSE])
+  }
+  u <- unique(g) # each slice only once
+  stationary(Gamma[, , u, drop = FALSE])[match(g, u), , drop = FALSE]
 }
 
 # REPORT quantities of the forward algorithm (with these names)

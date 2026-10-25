@@ -130,10 +130,10 @@ opt$objective
 Note that the names `par` and `objective` are determined by `nlminb()`. If you use a different optimiser, these may be called differently.
 
 However, `RTMB` provides a nicer way to get the estimates. `obj` is automatically updated after the optimisation. Note that calling `obj$gr()` after optimisation now gives the gradient at the optimum, while `obj$par` is not updated but still the initial parameter vector (kind of confusing).
-To get our estimated parameters on their natural scale, we don't have to do the backtransformation manually. We can just run the reporting:
+To get our estimated parameters on their natural scale, we don't have to do the backtransformation manually. We can just call `lama()`, which runs the reporting and returns a model object:
 
 ```{r MLe}
-mod = report(obj) # runs the reporting from the negative log-likelihood once
+mod = lama(obj) # runs the reporting from the negative log-likelihood once
 (delta = mod$delta) # stationary distribution
 (Gamma = mod$Gamma) # estimated tpm
 (mu = mod$mu) # estimated state-dependent means
@@ -178,7 +178,7 @@ curve(delta[1]*dgamma2(x, mu[1], sigma[1]) + delta[2]*dgamma2(x, mu[2], sigma[2]
 legend("top", lwd = 2, col = color, legend = c("state 1", "state 2"), bty = "n")
 ```
 
-Note that because we have used `report()`, `mod` now has class "LaMaModel", which permits the use of `AIC()` and `BIC()`:
+Note that because we have used `lama()`, `mod` now has class "LaMaModel", which permits the use of `AIC()` and `BIC()`:
 
 ```{r AICBIC}
 AIC(mod)
@@ -297,7 +297,7 @@ This is needed when the densities are transformed by hand inside the likelihood,
 <!-- and we can look at the reported results. In this case, for simplicity I get standard errors for `Gamma` with the delta method while, in general, this is not advisable. -->
 
 <!-- ```{r MLE2, fig.width = 8, fig.height = 5} -->
-<!-- mod2 = report(obj2) -->
+<!-- mod2 = lama(obj2) -->
 
 <!-- sdr = sdreport(obj2) -->
 <!-- Gamma = as.list(sdr, "Estimate", report = TRUE)$Gamma -->

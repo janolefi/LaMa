@@ -1,8 +1,9 @@
-#' Get reported quantities from and \code{RTMB} object and return a \code{LaMaModel}
+#' Build a \code{LaMaModel} from an optimised \code{RTMB} object
 #' 
 #' Having fitted a latent Markov model using automatic differentiation via \code{RTMB}, this function calls \code{RTMB}'s \code{obj$report()} and does some additional processing.
 #' This then yields estimated parameters on their natural scale, allows for convenient calculation of \code{AIC} and \code{BIC}, state-decoding, and residual calculation.
 #' \code{print()} gives a short overview of the model, \code{\link[=summary.LaMaModel]{summary()}} the estimates.
+#' \code{report()} is the deprecated old name of \code{lama()}.
 #'
 #' @details
 #' The number of observations (used by \code{BIC}) is the number of rows of the reported \code{allprobs} that are not all 1,
@@ -49,7 +50,7 @@
 #' opt <- nlminb(obj$par, obj$fn, obj$gr)
 #' 
 #' ### reporting ###
-#' mod <- report(obj)
+#' mod <- lama(obj)
 #' mod          # short overview
 #' summary(mod) # estimated state process and reported quantities
 #'
@@ -77,7 +78,7 @@
 #'
 #' # or from the model object alone, and plotted
 #' plot(mod)
-report <- function(obj) {
+lama <- function(obj) {
   
   # get best parameter vector (potentially including random effects) from object
   p_hat <- tryCatch(
@@ -109,6 +110,13 @@ report <- function(obj) {
   return(mod)
 }
 
+#' @rdname lama
+#' @export
+report <- function(obj) {
+  .Deprecated("lama") # renamed, as it does much more than calling obj$report()
+  lama(obj)
+}
+
 # Number of observations: rows of allprobs that are not all 1,
 # as these are missing and contribute nothing to the likelihood
 count_nobs <- function(allprobs){
@@ -116,10 +124,10 @@ count_nobs <- function(allprobs){
   sum(rowSums(allprobs != 1) > 0)
 }
 
-# RTMB object from MakeADFun(), or the one stored by report() or qreml()
+# RTMB object from MakeADFun(), or the one stored by lama() or qreml()
 get_obj <- function(x){
   if(inherits(x, c("LaMaModel", "qremlModel"))) x <- x$obj
-  if(is.null(x$env)) stop("Expected an RTMB object from MakeADFun() or a model from report() or qreml().")
+  if(is.null(x$env)) stop("Expected an RTMB object from MakeADFun() or a model from lama() or qreml().")
   x
 }
 
@@ -130,7 +138,7 @@ est_par <- function(x){
 }
 
 #' Extract log-likelihood from LaMaModel object
-#' @param object A model fitted using RTMB and obtained via \code{report(obj)} of class "LaMaModel"
+#' @param object A model fitted using RTMB and obtained via \code{lama(obj)} of class "LaMaModel"
 #' @param ... Additional arguments (not used)
 #' @return An object of class "logLik"
 #' @export

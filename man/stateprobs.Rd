@@ -38,7 +38,7 @@ The observations of each track need to be consecutive.}
 \item{mod}{optional model object containing \code{delta}, \code{Gamma}, \code{allprobs}, and
 optionally \code{trackID}. When using \code{RTMB::MakeADFun} or \code{\link{qreml}} with
 \code{\link{forward}} in the likelihood, these are reported automatically after model fitting
-and the object returned by \code{RTMB::report()} or \code{\link{qreml}} can be passed directly.}
+and the object returned by \code{RTMB::lama()} or \code{\link{qreml}} can be passed directly.}
 
 \item{forecast}{logical, indicating if forecast probabilities \eqn{\Pr(\text{State}_t = j \mid X_1, ..., X_{t-1})} should be calculated instead.}
 

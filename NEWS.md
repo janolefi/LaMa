@@ -7,6 +7,9 @@
   observations are handled for each stream separately, and log = TRUE gives log-densities 
   for forward(..., logspace = TRUE); pseudo_res(mod) works with it
 * forward() without AD gives an error for negative allprobs, suggesting logspace = TRUE
+* forward(delta = "stationary") computes the initial distribution from Gamma: the stationary distribution 
+  (per track if track-specific, of the first slice of each track if time-varying) or, with tod, the 
+  periodically stationary distribution at the first time point of each track
 * plot(mod, type = "statedens") shows the state-dependent densities of each data stream built with 
   statedens() on a histogram, weighted by the local state probabilities (or decoded states, the 
   stationary distribution or given weights), which also works with covariates, several tracks and 
@@ -20,7 +23,7 @@
 * simulate(mod, random = TRUE) and obj$simulate() of RTMB work with forward() and statedens(): statedens() 
   registers its data like OBS(x), so random effects (with their density evaluated first, e.g. u %~% dnorm(...)) 
   are drawn first, then the states and data given them; forward() reports the simulated states as states
-* print() and summary() for models from report() and qreml(): print() gives a short overview, 
+* print() and summary() for models from lama() and qreml(): print() gives a short overview, 
   summary() the estimated state process (transition probability or generator matrix, stationary 
   distribution and mean dwell times, averaged over tracks if track-specific) and the reported 
   quantities, with those of length nStates in one table; summary.qremlModel() adds the smooth 
@@ -30,10 +33,11 @@
 
 ## Changes
 
-* report(): the log-likelihood is called llk (before ll), as for qreml()
-* report() and qreml(): nobs does not count missing observations (rows of allprobs that are all 1), 
+* report() is renamed to lama(), as it does much more than calling obj$report(); report() still works but is deprecated
+* lama(): the log-likelihood is called llk (before ll), as for qreml()
+* lama() and qreml(): nobs does not count missing observations (rows of allprobs that are all 1), 
   which changes BIC for data with missing observations
-* report() stores the maximum gradient component mgc to check convergence
+* lama() stores the maximum gradient component mgc to check convergence
 
 * pseudo_res(mod) computes pseudo-residuals from the model object alone: the likelihood function 
   is evaluated again with its densities replaced by their CDFs, after checking that this is valid; 
@@ -41,14 +45,14 @@
   helper functions
 
 * scores(mod) computes the score contribution of each observation for models using forward(), 
-  e.g. for robust (sandwich) standard errors; it takes the model from report() or the RTMB 
+  e.g. for robust (sandwich) standard errors; it takes the model from lama() or the RTMB 
   object, respects map, and the likelihood function does not need to change
-* report() also stores obj (the same object, not a copy), so MCreport() can be called on 
-  the model object from report() or qreml()
+* lama() also stores obj (the same object, not a copy), so MCreport() can be called on 
+  the model object from lama() or qreml()
 
 ## Bug fixes
 
-* report(): the log-likelihood was evaluated at the last parameters the optimiser tried, not the best
+* lama(): the log-likelihood was evaluated at the last parameters the optimiser tried, not the best
 * summary.qremlModel() failed for reported lists or character vectors, and if Gamma was not reported
   but delta was
 

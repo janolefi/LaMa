@@ -20,7 +20,8 @@ forward(
 \item{delta}{initial distribution; either
 \itemize{
   \item a vector of length \code{nStates}, or
-  \item a matrix of dimension \code{c(nTracks, nStates)}, if \code{trackID} is provided.
+  \item a matrix of dimension \code{c(nTracks, nStates)}, if \code{trackID} is provided, or
+  \item \code{"stationary"}, for the (periodically) stationary distribution of \code{Gamma} at the start of each track (see \sQuote{Details}).
 }}
 
 \item{Gamma}{transition probability matrix; either
@@ -68,8 +69,17 @@ contribution. In this case, \code{Gamma} can be
 Additionally, \code{delta} can be a vector (same initial distribution for each track) or a
 matrix of dimension \code{c(nTracks, nStates)} (track-specific initial distributions).
 
+With \code{delta = "stationary"}, the initial distribution of each track is computed from \code{Gamma}:
+  \itemize{
+    \item the stationary distribution of \code{Gamma} (or of its slice for each track, if track-specific),
+    \item the periodically stationary distribution at the first time point of each track, if \code{tod} is provided (see \code{\link{stationary_p}}),
+    \item the stationary distribution of the first slice of each track, for time-varying transition probabilities, i.e. at the covariate values of the first observation.
+  }
+This requires \code{Gamma} to contain transition probability matrices (not, e.g., sub-stochastic matrices), which is checked without automatic differentiation.
+The computed \code{delta} is reported as a matrix of dimension \code{c(nTracks, nStates)}.
+
 \strong{Note:} \code{forward} should only be called \strong{once} in the likelihood function, with a \code{trackID} argument for multiple tracks.
-Downstream functions like \code{\link{report}}, \code{\link{viterbi}}, \code{\link{stateprobs}} or \code{\link{pseudo_res}} rely on the quantities it reports,
+Downstream functions like \code{\link{lama}}, \code{\link{viterbi}}, \code{\link{stateprobs}} or \code{\link{pseudo_res}} rely on the quantities it reports,
 and only those of the last call are kept.
 }
 \examples{

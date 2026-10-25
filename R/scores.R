@@ -40,7 +40,7 @@ obj_frame <- function(obj){
 #' result follow the order of these calls. Only \code{\link{forward}} (and its deprecated
 #' \code{_g} and \code{_p} versions) is supported, and models with random effects are not.
 #'
-#' @param obj optimised \code{RTMB} object from \code{\link[RTMB]{MakeADFun}}, or a model object from \code{\link{report}} or \code{\link{qreml}}
+#' @param obj optimised \code{RTMB} object from \code{\link[RTMB]{MakeADFun}}, or a model object from \code{\link{lama}} or \code{\link{qreml}}
 #' @param par optional parameter vector like \code{obj$par}, e.g. \code{opt$par}.
 #' Defaults to the estimates (for \code{\link{qreml}} models the final fit).
 #'
@@ -60,7 +60,7 @@ obj_frame <- function(obj){
 #' par <- list(eta = c(-2, -2), mu = c(0.3, 2.5), sigma = c(0.2, 1.5))
 #' obj <- MakeADFun(nll, par, silent = TRUE)
 #' opt <- nlminb(obj$par, obj$fn, obj$gr)
-#' mod <- report(obj)
+#' mod <- lama(obj)
 #' U <- scores(mod)
 #' colSums(U) # ~ 0 at the MLE
 scores <- function(obj, par = NULL){

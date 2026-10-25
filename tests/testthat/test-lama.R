@@ -13,8 +13,8 @@ nll_rep <- function(par) {
 obj_rep <- RTMB::MakeADFun(nll_rep, par_rep, silent = TRUE)
 opt_rep <- nlminb(obj_rep$par, obj_rep$fn, obj_rep$gr)
 
-test_that("report: stores obj itself, get_obj() finds it", {
-  mod <- report(obj_rep)
+test_that("lama: stores obj itself, get_obj() finds it", {
+  mod <- lama(obj_rep)
   expect_s3_class(mod, "LaMaModel")
   expect_identical(mod$obj$env, obj_rep$env) # same environment, not a copy
   expect_identical(get_obj(mod), get_obj(obj_rep))
@@ -22,8 +22,8 @@ test_that("report: stores obj itself, get_obj() finds it", {
   expect_error(get_obj(list(a = 1)), "Expected an RTMB object")
 })
 
-test_that("report: log-likelihood, missing observations not counted, gradient", {
-  mod <- report(obj_rep)
+test_that("lama: log-likelihood, missing observations not counted, gradient", {
+  mod <- lama(obj_rep)
   expect_equal(mod$llk, -opt_rep$objective)
   expect_equal(mod$nobs, sum(!is.na(dat_rep$step)))
   expect_equal(attr(logLik(mod), "nobs"), mod$nobs)
@@ -31,14 +31,14 @@ test_that("report: log-likelihood, missing observations not counted, gradient", 
 })
 
 test_that("print: state process, missing observations and reported quantities", {
-  mod <- report(obj_rep)
+  mod <- lama(obj_rep)
   expect_output(print(mod), "2 states \\(discrete time, homogeneous\\)")
   expect_output(print(mod), "198 observations \\(2 missing\\), 6 parameters")
   expect_output(print(mod), "Reported: mu, sigma, delta, Gamma, allprobs")
 })
 
 test_that("summary: state process and reported quantities by state", {
-  mod <- report(obj_rep)
+  mod <- lama(obj_rep)
   s <- summary(mod)
   expect_s3_class(s, "summary.LaMaModel")
   expect_equal(unname(s$Gamma), unname(mod$Gamma))
@@ -86,8 +86,13 @@ test_that("summary: qreml models add smooth terms", {
 })
 
 test_that("MCreport: model object gives the same as obj", {
-  mod <- report(obj_rep)
+  mod <- lama(obj_rep)
   set.seed(1); a <- suppressMessages(MCreport(obj_rep, nSamples = 20))
   set.seed(1); b <- suppressMessages(MCreport(mod, nSamples = 20))
   expect_equal(a, b)
+})
+
+test_that("report: deprecated, same as lama()", {
+  expect_warning(mod <- report(obj_rep), "deprecated")
+  expect_equal(mod, lama(obj_rep))
 })

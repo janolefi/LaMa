@@ -86,7 +86,7 @@ dat = list(
 # Fitting the model
 obj_multi = MakeADFun(nll_multi, par, silent = TRUE)
 opt_multi = nlminb(obj_multi$par, obj_multi$fn, obj_multi$gr)
-mod_multi = report(obj_multi) # reporting from fitted model
+mod_multi = lama(obj_multi) # reporting from fitted model
 ```
 
 Building `allprobs` with a loop over states as above is perfectly valid and gives full control. As a shortcut, `statedens()` builds the matrix of one data stream, with one parameter per state (or a single value for all states), and the matrices of several streams are multiplied:
@@ -115,7 +115,7 @@ With `log = TRUE`, `statedens()` returns log-densities, which are added over str
 
 As `statedens()` records the data, densities and parameters of each stream, the estimated state-dependent densities can also be plotted from the model object, weighted by the local state probabilities:
 ```{r statedens plot, fig.width = 8, fig.height = 4}
-mod_multi2 = report(obj_multi2)
+mod_multi2 = lama(obj_multi2)
 plot(mod_multi2, type = "statedens")
 ```
 
@@ -275,7 +275,7 @@ obj_cov = MakeADFun(nll_cov, par, silent = TRUE)
 system.time(
   opt <- nlminb(obj_cov$par, obj_cov$fn, obj_cov$gr)
 )
-mod_cov <- report(obj_cov) # reporting from fitted model
+mod_cov <- lama(obj_cov) # reporting from fitted model
 ```
 
 Let's plot the fitted model, starting with the estimated state-dependent densities. We can obtain approximate global state probabilities from decoded states.
@@ -423,7 +423,7 @@ dat = list(
 obj_msr = MakeADFun(nll_msr, par, silent = TRUE)
 opt_msr = nlminb(obj_msr$par, obj_msr$fn, obj_msr$gr)
 
-mod_msr = report(obj_msr)
+mod_msr = lama(obj_msr)
 ```
 
 ### Visualising results
@@ -518,7 +518,7 @@ Let's fit the model:
 obj_seas = MakeADFun(nll_seas, par, silent = TRUE)
 opt_seas = nlminb(obj_seas$par, obj_seas$fn, obj_seas$gr)
 sdr_seas = sdreport(obj_seas)
-mod_seas = report(obj_seas)
+mod_seas = lama(obj_seas)
 ```
 
 And look at the estimated periodically stationary distribution:

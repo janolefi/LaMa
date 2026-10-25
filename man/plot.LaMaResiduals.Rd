@@ -67,7 +67,7 @@ par = list(logitGamma = c(-2,-2),
 obj = MakeADFun(nll, par, silent = TRUE)
 opt = nlminb(obj$par, obj$fn, obj$gr)
 
-mod = report(obj)
+mod = lama(obj)
 
 pres_step = pseudo_res(step,      # observations
                        "gamma2",  # family that is used

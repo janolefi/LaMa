@@ -110,6 +110,7 @@ forward <- function(delta,
                     ){
 
   # streams from statedens(), cleared for the next evaluation of the likelihood
+  force(allprobs) # statedens() may be called in the argument, so evaluate it before reading the streams
   streams <- .lama_env$streams
   .lama_env$streams <- NULL
 

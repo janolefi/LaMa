@@ -113,6 +113,12 @@ c(-opt_multi$objective, -opt_multi2$objective)
 ```
 With `log = TRUE`, `statedens()` returns log-densities, which are added over streams and used with `forward(..., logspace = TRUE)`.
 
+As `statedens()` records the data, densities and parameters of each stream, the estimated state-dependent densities can also be plotted from the model object, weighted by the local state probabilities:
+```{r statedens plot, fig.width = 8, fig.height = 4}
+mod_multi2 = report(obj_multi2)
+plot(mod_multi2, type = "statedens")
+```
+
 We can now plot the estimated state-dependent densities separately for each state:
 
 ```{r state dist multi, fig.width = 8, fig.height = 4}

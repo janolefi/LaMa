@@ -7,6 +7,11 @@
   observations are handled for each stream separately, and log = TRUE gives log-densities 
   for forward(..., logspace = TRUE); pseudo_res(mod) works with it
 * forward() without AD gives an error for negative allprobs, suggesting logspace = TRUE
+* plot(mod, type = "statedens") shows the state-dependent densities of each data stream built with 
+  statedens() on a histogram, weighted by the local state probabilities (or decoded states, the 
+  stationary distribution or given weights), which also works with covariates, several tracks and 
+  inhomogeneous models; the weighted densities are returned invisibly
+* plot(mod, stream = ...) selects data streams, for residuals and state-dependent densities
 * print() and summary() for models from report() and qreml(): print() gives a short overview, 
   summary() the estimated state process (transition probability or generator matrix, stationary 
   distribution and mean dwell times, averaged over tracks if track-specific) and the reported 

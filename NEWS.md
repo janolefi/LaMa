@@ -2,6 +2,11 @@
 
 ## New features
 
+* statedens() builds the matrix of state-dependent densities of one data stream for allprobs, 
+  with parameters given per state, for all states or per observation and state; missing 
+  observations are handled for each stream separately, and log = TRUE gives log-densities 
+  for forward(..., logspace = TRUE); pseudo_res(mod) works with it
+* forward() without AD gives an error for negative allprobs, suggesting logspace = TRUE
 * print() and summary() for models from report() and qreml(): print() gives a short overview, 
   summary() the estimated state process (transition probability or generator matrix, stationary 
   distribution and mean dwell times, averaged over tracks if track-specific) and the reported 

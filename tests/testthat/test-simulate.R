@@ -123,3 +123,33 @@ test_that("simulate(mod): no trackID column for a single track, parameters per o
   s1 <- sim$state == 1 # mean 5 * z in state 1
   expect_gt(cor(sim$x[s1], z[s1]), 0.5)
 })
+
+# random effect on the mean of state 1 per track, data marked with OBS() for obj$simulate()
+n_re <- 2000; id_re <- rep(1:20, each = 100)
+step_re <- rep(1, n_re); step_re[5] <- NA
+nll_re <- function(par) {
+  getAll(par)
+  step_re <- OBS(step_re)
+  u %~% dnorm(0, exp(log_su))
+  mu <- cbind(exp(log_mu[1] + u[id_re]), exp(log_mu[2]))
+  Gamma <- tpm(eta)
+  .nll <- .nll - forward(stationary(Gamma), Gamma, statedens(step_re, dgamma2, mu, exp(log_sigma)), id_re)
+  .nll
+}
+par_re <- list(eta = c(-3, -3), log_mu = log(c(1, 10)), log_sigma = log(c(0.2, 1)), log_su = log(0.5), u = rep(0, 20))
+obj_re <- RTMB::MakeADFun(nll_re, par_re, random = "u", silent = TRUE)
+
+test_that("obj$simulate(): random effects first, then states and data given them", {
+  set.seed(1)
+  sim <- obj_re$simulate(obj_re$env$last.par)
+  expect_named(sim, c("u", "step_re", "states"))
+  expect_equal(is.na(sim$step_re), is.na(step_re))
+  expect_equal(as.vector(tapply(sim$step_re, sim$states, mean, na.rm = TRUE))[2], 10, tolerance = 0.1)
+  # data in state 1 follow the simulated random effect of their track
+  m1 <- tapply(log(sim$step_re[sim$states == 1]), id_re[sim$states == 1], mean, na.rm = TRUE)
+  expect_gt(cor(m1, sim$u[as.integer(names(m1))]), 0.9)
+  # new random effects in every simulation
+  expect_false(isTRUE(all.equal(sim$u, obj_re$simulate(obj_re$env$last.par)$u)))
+  # the likelihood itself is unchanged
+  expect_true(is.finite(obj_re$fn(obj_re$par)))
+})

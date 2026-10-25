@@ -114,6 +114,11 @@ forward <- function(delta,
   streams <- .lama_env$streams
   .lama_env$streams <- NULL
 
+  # obj$simulate() with data from OBS(): simulate the states and the data instead of evaluating the likelihood
+  if(any(vapply(streams, function(s) inherits(s$x, "simref"), logical(1)))) {
+    return(sim_forward(streams, delta, Gamma, allprobs, trackID, logspace, tod))
+  }
+
   # record mode of pseudo_res(): store allprobs instead of computing the likelihood
   if(!is.null(.lama_env$record)) {
     .lama_env$record[[length(.lama_env$record) + 1]] <- if(logspace) exp(allprobs) else allprobs

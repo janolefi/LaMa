@@ -121,3 +121,20 @@ simulate.LaMaModel <- function(object, nsim = 1, seed = NULL, rdens = NULL, ...)
   })
   if(nsim == 1) sims[[1]] else sims
 }
+
+# forward() in obj$simulate(): simulate the states and fill the data from OBS() (simref objects)
+# with draws from the streams, given the delta, Gamma and parameters of this call
+sim_forward <- function(streams, delta, Gamma, allprobs, trackID, logspace, tod) {
+  inp <- prepare_forward(delta, Gamma, allprobs, trackID, logspace, gidx = tod)
+  states <- sim_states(inp)
+  for(st in streams) {
+    x <- st$x
+    if(!inherits(x, "simref")) next
+    st$x <- rep(NA_real_, length(x)) # all rows are drawn
+    draws <- sim_stream(st, states)
+    draws[is.na(x$orig)] <- NA # missing observations of the data stay missing
+    x$reverse.update(draws, seq_along(draws))
+  }
+  REPORT(states)
+  0
+}

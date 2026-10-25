@@ -10,7 +10,7 @@ stationary_ct(Q)
 stationary_cont(Q)
 }
 \arguments{
-\item{Q}{infinitesimal generator matrix of dimension \code{c(N,N)} or array of such matrices of dimension \code{c(N,N,nTracks)} if the stationary distribution should be computed for several matrices at once}
+\item{Q}{infinitesimal generator matrix of dimension \code{c(N,N)} (dense or sparse, e.g. from \code{Matrix}) or array of such matrices of dimension \code{c(N,N,nTracks)} if the stationary distribution should be computed for several matrices at once}
 }
 \value{
 either a single stationary distribution of the continuous-time Markov chain (vector of length \code{N}) or a matrix of stationary distributions of dimension \code{c(nTracks,N)} with one stationary distribution in each row

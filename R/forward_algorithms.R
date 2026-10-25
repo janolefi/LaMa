@@ -109,6 +109,10 @@ forward <- function(delta,
                     tod = NULL
                     ){
 
+  # streams from statedens(), cleared for the next evaluation of the likelihood
+  streams <- .lama_env$streams
+  .lama_env$streams <- NULL
+
   # record mode of pseudo_res(): store allprobs instead of computing the likelihood
   if(!is.null(.lama_env$record)) {
     .lama_env$record[[length(.lama_env$record) + 1]] <- if(logspace) exp(allprobs) else allprobs
@@ -122,6 +126,7 @@ forward <- function(delta,
   if(report) {
     if(logspace) allprobs <- exp(allprobs)
     if(!is.null(tod)) REPORT(tod)
+    if(!is.null(streams)) REPORT(streams)
     report_forward(delta, Gamma, allprobs, inp$trackID, inp$type)
   }
 
@@ -293,6 +298,9 @@ run_forward <- function(inp, ad = NULL){
   if(!ad && anyNA(inp$allprobs)) {
     stop("allprobs contains NA values. For missing observations, keep the rows of allprobs at 1, ",
          "e.g. by only filling allprobs[ind, ] with ind = which(!is.na(x)).")
+  }
+  if(!ad && any(inp$allprobs < 0)) {
+    stop("allprobs contains negative values. For log-densities, use logspace = TRUE.")
   }
 
   # only one state: no hidden process

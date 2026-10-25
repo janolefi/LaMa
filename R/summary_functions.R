@@ -90,7 +90,7 @@ print.LaMaModel <- function(x, ...) {
     cat("! Maximum gradient component is", signif(x$mgc, 3), "- the optimiser may not have converged\n")
   }
 
-  reported <- setdiff(names(x), c(model_fields(x), "type")) # type is in the first line
+  reported <- setdiff(names(x), c(model_fields(x), "type", "streams")) # type is in the first line
   if(length(reported) > 0) cat(strwrap(paste("Reported:", paste(reported, collapse = ", ")), exdent = 2), sep = "\n")
 
   invisible(x)
@@ -99,15 +99,67 @@ print.LaMaModel <- function(x, ...) {
 #' Plot a \code{LaMaModel} object
 #'
 #' Plots the pseudo-residuals of a model from \code{\link{report}} or \code{\link{qreml}},
-#' computed by \code{\link{pseudo_res}} from the model object alone, with one row of plots per data stream.
+#' computed by \code{\link{pseudo_res}} from the model object alone, with one row of plots per data stream,
+#' or the estimated state-dependent densities of each data stream built with \code{\link{statedens}}.
+#'
+#' @details
+#' For \code{type = "statedens"}, each data stream is shown as a histogram with the state-dependent densities
+#' (probabilities for discrete distributions) weighted by the state probabilities, and their sum, the marginal density, as a dashed line.
+#' The weighted density of state \eqn{j} is the mean over the observations of \eqn{p_{tj} f_j(x; \theta_{tj})},
+#' which allows for parameters that depend on covariates, several tracks and inhomogeneous state processes.
+#' This needs \code{allprobs} to be the product of matrices from \code{\link{statedens}}, which is checked.
+#'
+#' Further arguments for \code{type = "statedens"}:
+#' \describe{
+#'   \item{\code{weights}}{state probabilities \eqn{p_{tj}}: \code{"stateprobs"} (default) for the local state probabilities from \code{\link{stateprobs}},
+#'   \code{"viterbi"} for the states decoded by \code{\link{viterbi}}, \code{"stationary"} for the stationary distribution
+#'   (averaged over tracks, or over the cycle for periodic models), or a vector of length \code{nStates}}
+#'   \item{\code{col}}{colours of the states, defaults to \code{\link{LaMaColors}}}
+#'   \item{\code{lwd}}{line width}
+#'   \item{\code{n}}{number of grid points for continuous distributions}
+#'   \item{\code{legend}}{position of the legend, e.g. \code{"topright"} (default), or \code{FALSE} for none}
+#'   \item{\dots}{arguments passed to \code{plot()} of the histogram, e.g. \code{breaks}, \code{main}, \code{xlab}, \code{xlim}, \code{ylim} or \code{border}}
+#' }
+#' Several streams are shown side by side, unless \code{par(mfrow)} has been set.
 #'
 #' @param x model object of class \code{"LaMaModel"}
-#' @param ... further arguments passed to \code{\link{plot.LaMaResiduals}}
+#' @param type \code{"residuals"} (default) for the pseudo-residuals, \code{"statedens"} for the state-dependent densities
+#' @param stream optional names of the data streams to plot, by default all
+#' @param ... further arguments passed to \code{\link{plot.LaMaResiduals}}, or for \code{type = "statedens"} see \sQuote{Details}
 #'
-#' @returns the pseudo-residuals, invisibly
+#' @returns for \code{type = "residuals"} the pseudo-residuals, for \code{type = "statedens"} a list with the grid \code{x},
+#' the weighted state-dependent densities \code{density} (one column per state), the state \code{weights} and the observations \code{data}
+#' (or a list of these for several streams), invisibly
+#' @importFrom graphics legend
 #' @export
-plot.LaMaModel <- function(x, ...) {
+#'
+#' @examples
+#' dat <- list(step = trex$step[1:500], angle = trex$angle[1:500])
+#' nll <- function(par) {
+#'   getAll(par, dat)
+#'   Gamma <- tpm(eta)
+#'   allprobs <- statedens(step, dgamma2, exp(log_mu), exp(log_sigma)) *
+#'     statedens(angle, dvm, 0, exp(log_kappa))
+#'   -forward(stationary(Gamma), Gamma, allprobs)
+#' }
+#' par <- list(eta = c(-2, -2), log_mu = log(c(0.3, 2.5)), log_sigma = log(c(0.2, 1.5)),
+#'             log_kappa = log(c(0.2, 1.5)))
+#' obj <- MakeADFun(nll, par, silent = TRUE)
+#' opt <- nlminb(obj$par, obj$fn, obj$gr)
+#' mod <- report(obj)
+#'
+#' plot(mod) # pseudo-residuals
+#' plot(mod, type = "statedens") # state-dependent densities of both streams
+#' plot(mod, type = "statedens", stream = "step", weights = "viterbi", breaks = 40, xlab = "step length")
+plot.LaMaModel <- function(x, type = c("residuals", "statedens"), stream = NULL, ...) {
+  type <- match.arg(type)
+  if(type == "statedens") return(invisible(plot_statedens(x, stream, ...)))
+
   pres <- pseudo_res(x)
+  # only the given streams, if there are several
+  if(!is.null(stream) && is.list(pres) && all(sapply(pres, inherits, "LaMaResiduals"))) {
+    pres <- if(length(stream) == 1) pres[[stream]] else structure(pres[stream], class = "LaMaResiduals")
+  }
   plot(pres, ...)
   invisible(pres) # no need to compute (or randomise) them again
 }
@@ -166,7 +218,7 @@ summary.LaMaModel <- function(object, ...) {
   }
   
   ### quantities reported by the likelihood function
-  internal <- c("delta", "Gamma", "allprobs", "trackID", "type", "tod",
+  internal <- c("delta", "Gamma", "allprobs", "trackID", "type", "tod", "streams",
                 "delta_sparse", "Gamma_sparse", "Delta_sparse", if(isTRUE(sp$ct)) "Q")
   reported <- object[setdiff(names(object), c(model_fields(object), internal))]
   

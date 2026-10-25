@@ -267,3 +267,15 @@ test_that("obj$simulate(): data in a list, explicit OBS(), no stale data after M
   step[3] <- NA
   expect_equal(statedens(step, dgamma2, c(1, 10), 1)[3, ], c(1, 1))
 })
+
+test_that("simulate(fill_na = TRUE) fills in missing observations", {
+  expect_true(anyNA(simulate(mod_sim, seed = 1)$step))
+  sim <- simulate(mod_sim, fill_na = TRUE, seed = 1)
+  expect_false(anyNA(sim))
+  # the other draws are the same: only the missing rows are added
+  expect_equal(sim$step[!is.na(d_sim$step)], simulate(mod_sim, seed = 1)$step[!is.na(d_sim$step)])
+  # with random = TRUE
+  mod <- report(obj_re)
+  expect_true(anyNA(simulate(mod, random = TRUE, seed = 1)$step_re))
+  expect_false(anyNA(simulate(mod, random = TRUE, fill_na = TRUE, seed = 1)))
+})

@@ -4,7 +4,15 @@
 \alias{simulate.LaMaModel}
 \title{Simulate from a fitted model}
 \usage{
-\method{simulate}{LaMaModel}(object, nsim = 1, seed = NULL, rdens = NULL, random = FALSE, ...)
+\method{simulate}{LaMaModel}(
+  object,
+  nsim = 1,
+  seed = NULL,
+  rdens = NULL,
+  random = FALSE,
+  fill_na = FALSE,
+  ...
+)
 }
 \arguments{
 \item{object}{model object from \code{\link{report}} or \code{\link{qreml}} that was built with \code{\link{statedens}}}
@@ -20,6 +28,10 @@ the others are the parameters as in the density.}
 \item{random}{logical; if \code{TRUE}, \code{obj$simulate()} of \code{RTMB} is used, so that random effects are drawn
 from their distribution first, see \sQuote{Details}. The data streams are those passed to \code{\link{statedens}}.
 Default is \code{FALSE}, which keeps the reported (estimated) random effects.}
+
+\item{fill_na}{logical; if \code{TRUE}, missing observations of the data are filled in by simulated values
+(their parameters need to be defined, e.g. covariates must not be missing). Default is \code{FALSE}, which keeps them missing.
+Streams that are missing completely are always simulated.}
 
 \item{...}{currently not used}
 }
@@ -41,7 +53,7 @@ The states are drawn as in the decoding functions, so that all types of \code{Ga
 per time interval (the simulation is then conditional on the observed time points).
 Each data stream is drawn from the random number generator belonging to its density, e.g. \code{rgamma2} for \code{dgamma2}.
 
-Missing observations of the data stay missing, except for a stream that is missing completely: such a placeholder
+Missing observations of the data stay missing (unless \code{fill_na = TRUE}), except for a stream that is missing completely: such a placeholder
 (e.g. \code{step = rep(NA, n)}) lets you simulate from a likelihood function without data, see the examples.
 
 Models with random effects are by default simulated conditional on the estimated random effects.

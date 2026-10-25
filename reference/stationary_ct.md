@@ -19,9 +19,10 @@ stationary_cont(Q)
 
 - Q:
 
-  infinitesimal generator matrix of dimension `c(N,N)` or array of such
-  matrices of dimension `c(N,N,nTracks)` if the stationary distribution
-  should be computed for several matrices at once
+  infinitesimal generator matrix of dimension `c(N,N)` (dense or sparse,
+  e.g. from `Matrix`) or array of such matrices of dimension
+  `c(N,N,nTracks)` if the stationary distribution should be computed for
+  several matrices at once
 
 ## Value
 

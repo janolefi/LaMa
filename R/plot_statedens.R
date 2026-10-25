@@ -3,7 +3,7 @@
 # streams of mod, after checking that allprobs is their product (nothing else entered it)
 get_streams <- function(mod) {
   st <- mod$streams
-  if(is.null(st)) stop("No data streams found: build allprobs with statedens() to plot the state-dependent densities.")
+  if(is.null(st)) stop("No data streams found: build allprobs with statedens() to plot or simulate the state-dependent densities.")
   P <- Reduce(`*`, lapply(st, function(s) dens_matrix(s$x, s$dens, s$pars, s$nStates)))
   if(!isTRUE(all.equal(P, mod$allprobs, check.attributes = FALSE))) {
     stop("allprobs is not the product of the data streams from statedens() (",

@@ -43,3 +43,69 @@ sim_stream <- function(st, Z, rdens = NULL) {
   x[is.na(st$x)] <- NA # keep the missing observations of the data
   x
 }
+
+#' Simulate from a fitted model
+#'
+#' Simulates states and observations from a model fitted with \code{\link{forward}} and \code{\link{statedens}},
+#' on the observed design: the tracks and their lengths, the initial distribution \code{delta},
+#' the transition probabilities \code{Gamma} and the parameters of the state-dependent densities
+#' are those reported by the model, i.e. conditional on the observed covariates.
+#' Simulating for new covariates is not possible; instead, rebuild the likelihood function for the new data
+#' and call \code{\link{report}} on the resulting object.
+#'
+#' @details
+#' The states are drawn as in the decoding functions, so that all types of \code{Gamma} that \code{\link{forward}} accepts
+#' (homogeneous, track-specific, time-varying, periodic) work, as does a continuous-time model with one transition matrix
+#' per time interval (the simulation is then conditional on the observed time points).
+#' Each data stream is drawn from the random number generator belonging to its density, e.g. \code{rgamma2} for \code{dgamma2}.
+#' Missing observations of the data stay missing. Models with random effects are simulated conditional on the estimated random effects.
+#'
+#' @param object model object from \code{\link{report}} or \code{\link{qreml}} that was built with \code{\link{statedens}}
+#' @param nsim number of simulations
+#' @param seed optional seed for the random number generator
+#' @param rdens optional named list of random number generators of the data streams, for densities without one named
+#' by replacing the leading \code{d} with \code{r} (e.g. from \code{\link{zero_inflate}}). The first argument is the number of draws,
+#' the others are the parameters as in the density.
+#' @param ... currently not used
+#'
+#' @return data frame with the columns \code{trackID} (if used), \code{state} and one column per data stream, for \code{nsim = 1},
+#' else a list of \code{nsim} such data frames.
+#' @export
+#' @importFrom stats simulate
+#'
+#' @examples
+#' nll <- function(par) {
+#'   getAll(par, dat)
+#'   Gamma <- tpm(eta)
+#'   allprobs <- statedens(step, dgamma2, exp(log_mu), exp(log_sigma)) *
+#'     statedens(angle, dvm, 0, exp(log_kappa))
+#'   -forward(stationary(Gamma), Gamma, allprobs)
+#' }
+#' dat <- list(step = trex$step[1:500], angle = trex$angle[1:500])
+#' par <- list(eta = c(-2, -2), log_mu = log(c(0.3, 2.5)), log_sigma = log(c(0.2, 1.5)),
+#'             log_kappa = log(c(0.2, 1.5)))
+#' obj <- MakeADFun(nll, par, silent = TRUE)
+#' opt <- nlminb(obj$par, obj$fn, obj$gr)
+#' mod <- report(obj)
+#'
+#' sim <- simulate(mod, seed = 1)
+#' head(sim)
+simulate.LaMaModel <- function(object, nsim = 1, seed = NULL, rdens = NULL, ...) {
+  # keep the random number stream of the session, as stats::simulate() methods do
+  if(!is.null(seed)) {
+    if(!exists(".Random.seed", envir = globalenv())) runif(1)
+    old <- get(".Random.seed", envir = globalenv())
+    on.exit(assign(".Random.seed", old, envir = globalenv()))
+    set.seed(seed)
+  }
+  st <- get_streams(object)
+  inp <- prepare_decoding(mod = object)
+
+  sims <- lapply(seq_len(nsim), function(i) {
+    Z <- sim_states(inp)
+    x <- lapply(names(st), function(s) sim_stream(st[[s]], Z, rdens[[s]]))
+    names(x) <- names(st)
+    data.frame(trackID = object$trackID, state = Z, x)
+  })
+  if(nsim == 1) sims[[1]] else sims
+}

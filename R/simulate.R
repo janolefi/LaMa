@@ -20,3 +20,26 @@ sim_states <- function(inp) {
   }
   Z
 }
+
+# random number generator of a stream: rdens if given, else r<family> for the density d<family> from statedens()
+get_rdens <- function(st, rdens = NULL) {
+  if(!is.null(rdens)) return(match.fun(rdens))
+  r <- paste0("r", sub("^d", "", sub("^.*::", "", st$name)))
+  env <- environment(st$dens)
+  f <- get0(r, envir = if(is.null(env)) globalenv() else env, mode = "function")
+  if(is.null(f)) stop("No random number generator ", r, "() found for ", st$name,
+                      ", provide one via rdens.")
+  f
+}
+
+# observations of one stream given the states: draws per state with the parameters of the rows in that state
+sim_stream <- function(st, Z, rdens = NULL) {
+  r <- get_rdens(st, rdens)
+  x <- rep(NA_real_, length(Z))
+  for(j in seq_len(st$nStates)) {
+    rows <- which(Z == j)
+    if(length(rows)) x[rows] <- do.call(r, c(list(length(rows)), state_pars(st$pars, j, rows)))
+  }
+  x[is.na(st$x)] <- NA # keep the missing observations of the data
+  x
+}

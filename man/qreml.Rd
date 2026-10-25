@@ -86,7 +86,7 @@ A tolerance in nats is not comparable across models, which is why it is the fall
 \item{saveall}{logical, if \code{TRUE}, then all model objects from each iteration are saved in the final model object}
 }
 \value{
-model object of class \code{"qremlModel"}, inheriting from \code{"LaMaModel"} (see \code{\link{report}}), carrying the fitted quantities, the smoothness selection diagnostics shown by \code{\link{summary.qremlModel}}, and \code{outer_hessian()}, the outer Hessian that \code{\link{sdreport_outer}} turns into standard errors
+model object of class \code{"qremlModel"}, inheriting from \code{"LaMaModel"} (see \code{\link{lama}}), carrying the fitted quantities, the smoothness selection diagnostics shown by \code{\link{summary.qremlModel}}, and \code{outer_hessian()}, the outer Hessian that \code{\link{sdreport_outer}} turns into standard errors
 }
 \description{
 Efficiently fits models involving quadratic penalties of the form

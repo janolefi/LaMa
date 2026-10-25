@@ -15,7 +15,7 @@
   stationary distribution or given weights), which also works with covariates, several tracks and 
   inhomogeneous models; the weighted densities are returned invisibly
 * plot(mod, stream = ...) selects data streams, for residuals and state-dependent densities
-* print() and summary() for models from report() and qreml(): print() gives a short overview, 
+* print() and summary() for models from lama() and qreml(): print() gives a short overview, 
   summary() the estimated state process (transition probability or generator matrix, stationary 
   distribution and mean dwell times, averaged over tracks if track-specific) and the reported 
   quantities, with those of length nStates in one table; summary.qremlModel() adds the smooth 
@@ -25,10 +25,11 @@
 
 ## Changes
 
-* report(): the log-likelihood is called llk (before ll), as for qreml()
-* report() and qreml(): nobs does not count missing observations (rows of allprobs that are all 1), 
+* report() is renamed to lama(), as it does much more than calling obj$report(); report() still works but is deprecated
+* lama(): the log-likelihood is called llk (before ll), as for qreml()
+* lama() and qreml(): nobs does not count missing observations (rows of allprobs that are all 1), 
   which changes BIC for data with missing observations
-* report() stores the maximum gradient component mgc to check convergence
+* lama() stores the maximum gradient component mgc to check convergence
 
 * pseudo_res(mod) computes pseudo-residuals from the model object alone: the likelihood function 
   is evaluated again with its densities replaced by their CDFs, after checking that this is valid; 
@@ -36,14 +37,14 @@
   helper functions
 
 * scores(mod) computes the score contribution of each observation for models using forward(), 
-  e.g. for robust (sandwich) standard errors; it takes the model from report() or the RTMB 
+  e.g. for robust (sandwich) standard errors; it takes the model from lama() or the RTMB 
   object, respects map, and the likelihood function does not need to change
-* report() also stores obj (the same object, not a copy), so MCreport() can be called on 
-  the model object from report() or qreml()
+* lama() also stores obj (the same object, not a copy), so MCreport() can be called on 
+  the model object from lama() or qreml()
 
 ## Bug fixes
 
-* report(): the log-likelihood was evaluated at the last parameters the optimiser tried, not the best
+* lama(): the log-likelihood was evaluated at the last parameters the optimiser tried, not the best
 * summary.qremlModel() failed for reported lists or character vectors, and if Gamma was not reported
   but delta was
 

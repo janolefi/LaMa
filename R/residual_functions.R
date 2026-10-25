@@ -105,13 +105,13 @@ finish_res <- function(upper, lower = NULL, observed = !is.na(upper), normal = T
 #' zero inflation via indicators) or a latent variable integrated out inside \code{allprobs}, it stops, and
 #' \code{pseudo_res(obs, dist, par, mod = mod)} needs to be used instead.
 #' Densities in your own helper functions called by the likelihood function are found as well,
-#' and \code{\link{qreml}} models work like models from \code{\link{report}}.
+#' and \code{\link{qreml}} models work like models from \code{\link{lama}}.
 #' The likelihood function needs to call \code{\link{forward}} once (use \code{trackID} for several tracks),
 #' and it is evaluated with the data as they are when \code{pseudo_res()} is called.
 #'
 #' @seealso \code{\link{plot.LaMaResiduals}} for plotting pseudo-residuals.
 #' 
-#' @param obs vector of observations (of length \code{nObs}), or a model object from \code{\link{report}}
+#' @param obs vector of observations (of length \code{nObs}), or a model object from \code{\link{lama}}
 #' (or the \code{RTMB} object), in which case nothing else is needed (see \sQuote{Details})
 #' @param dist character string specifying which parametric CDF to use (e.g., \code{"norm"} for normal or \code{"pois"} for Poisson) or CDF function to evaluate directly.
 #' If a discrete CDF function is passed, the \code{discrete} argument needs to be set to \code{TRUE} because this cannot determined automatically.
@@ -123,7 +123,7 @@ finish_res <- function(upper, lower = NULL, observed = !is.na(upper), normal = T
 #' @param mod optional model object containing required quantities
 #' 
 #' When using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
-#' Hence, you can pass the model object obtained from running \code{report()} or from \code{\link{qreml}} directly to this function and avoid calculating local state proabilities manually.
+#' Hence, you can pass the model object obtained from running \code{lama()} or from \code{\link{qreml}} directly to this function and avoid calculating local state proabilities manually.
 #' In this case, a call should look like \code{pseudo_res(obs, "norm", par, mod = mod)}.
 #' @param normal logical, if \code{TRUE}, returns Gaussian pseudo residuals
 #'
@@ -189,7 +189,7 @@ finish_res <- function(upper, lower = NULL, observed = !is.na(upper), normal = T
 #' obj = MakeADFun(nll, par, silent = TRUE)
 #' opt = nlminb(obj$par, obj$fn, obj$gr)
 #' 
-#' mod = report(obj)
+#' mod = lama(obj)
 #' 
 #' pres = pseudo_res(step,      # observation sequence
 #'                   "gamma2",  # parametric family that was used
@@ -308,7 +308,7 @@ pseudo_res <- function(obs,
 #' obj = MakeADFun(nll, par, silent = TRUE)
 #' opt = nlminb(obj$par, obj$fn, obj$gr)
 #' 
-#' mod = report(obj)
+#' mod = lama(obj)
 #' 
 #' pres_step = pseudo_res(step,      # observations
 #'                        "gamma2",  # family that is used

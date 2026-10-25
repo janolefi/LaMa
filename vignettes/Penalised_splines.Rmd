@@ -225,7 +225,7 @@ obj = MakeADFun(nll, par, silent = TRUE)
 opt = nlminb(obj$par, obj$fn, obj$gr)
 
 # reporting to get calculated quantities
-mod = report(obj)
+mod = lama(obj)
 
 # visualising the results
 color = LaMaColors(3)

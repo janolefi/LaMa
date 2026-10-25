@@ -15,7 +15,7 @@
 \code{x}, invisibly
 }
 \description{
-Prints a short overview of a model from \code{\link{report}} or \code{\link{qreml}}:
+Prints a short overview of a model from \code{\link{lama}} or \code{\link{qreml}}:
 the state process, observations, parameters, log-likelihood, AIC and BIC, and the names of the reported quantities.
 Use \code{summary()} for the estimates.
 }

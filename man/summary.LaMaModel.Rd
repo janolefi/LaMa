@@ -23,7 +23,7 @@
 e.g. \code{Gamma}, \code{stationary}, \code{dwell} and \code{bystate}. \code{print()} returns \code{x} invisibly.
 }
 \description{
-Summarises a model from \code{\link{report}} or \code{\link{qreml}}.
+Summarises a model from \code{\link{lama}} or \code{\link{qreml}}.
 Besides the overview of \code{print()}, this contains
 \itemize{
   \item for a homogeneous state process (or one per track) with at most 10 states: the transition probability matrix

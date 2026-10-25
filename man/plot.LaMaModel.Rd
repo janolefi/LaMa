@@ -21,7 +21,7 @@ the weighted state-dependent densities \code{density} (one column per state), th
 (or a list of these for several streams), invisibly
 }
 \description{
-Plots the pseudo-residuals of a model from \code{\link{report}} or \code{\link{qreml}},
+Plots the pseudo-residuals of a model from \code{\link{lama}} or \code{\link{qreml}},
 computed by \code{\link{pseudo_res}} from the model object alone, with one row of plots per data stream,
 or the estimated state-dependent densities of each data stream built with \code{\link{statedens}}.
 }
@@ -58,7 +58,7 @@ par <- list(eta = c(-2, -2), log_mu = log(c(0.3, 2.5)), log_sigma = log(c(0.2, 1
             log_kappa = log(c(0.2, 1.5)))
 obj <- MakeADFun(nll, par, silent = TRUE)
 opt <- nlminb(obj$par, obj$fn, obj$gr)
-mod <- report(obj)
+mod <- lama(obj)
 
 plot(mod) # pseudo-residuals
 plot(mod, type = "statedens") # state-dependent densities of both streams

@@ -25,7 +25,7 @@ The observations of each track need to be consecutive.}
 \item{mod}{optional model object containing \code{delta}, \code{Gamma}, \code{allprobs}, and
 optionally \code{trackID}. When using \code{RTMB::MakeADFun} or \code{\link{qreml}} with
 \code{\link{forward_g}} in the likelihood, these are reported automatically after model fitting
-and the object returned by \code{RTMB::report()} or \code{\link{qreml}} can be passed directly.}
+and the object returned by \code{RTMB::lama()} or \code{\link{qreml}} can be passed directly.}
 }
 \value{
 vector of decoded states of length \code{nObs}

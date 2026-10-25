@@ -141,7 +141,7 @@ test_that("pseudo_res: parameters per observation with missing observations", {
 fit_mod <- function(nll, par) {
   obj <- RTMB::MakeADFun(nll, par, silent = TRUE)
   nlminb(obj$par, obj$fn, obj$gr)
-  report(obj)
+  lama(obj)
 }
 
 test_that("pseudo_res(mod): same as with family and parameters given", {

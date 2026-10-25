@@ -1,4 +1,4 @@
-# Fields of the model object set by report() or qreml(), not reported by the likelihood function
+# Fields of the model object set by lama() or qreml(), not reported by the likelihood function
 model_fields <- function(x){
   fields <- c("par", "llk", "df", "nobs", "mgc", "obs", "obj")
   if(inherits(x, "qremlModel")){
@@ -71,7 +71,7 @@ fit_line <- function(x){
 
 #' Print a \code{LaMaModel} object
 #'
-#' Prints a short overview of a model from \code{\link{report}} or \code{\link{qreml}}:
+#' Prints a short overview of a model from \code{\link{lama}} or \code{\link{qreml}}:
 #' the state process, observations, parameters, log-likelihood, AIC and BIC, and the names of the reported quantities.
 #' Use \code{summary()} for the estimates.
 #'
@@ -98,7 +98,7 @@ print.LaMaModel <- function(x, ...) {
 
 #' Plot a \code{LaMaModel} object
 #'
-#' Plots the pseudo-residuals of a model from \code{\link{report}} or \code{\link{qreml}},
+#' Plots the pseudo-residuals of a model from \code{\link{lama}} or \code{\link{qreml}},
 #' computed by \code{\link{pseudo_res}} from the model object alone, with one row of plots per data stream,
 #' or the estimated state-dependent densities of each data stream built with \code{\link{statedens}}.
 #'
@@ -146,7 +146,7 @@ print.LaMaModel <- function(x, ...) {
 #'             log_kappa = log(c(0.2, 1.5)))
 #' obj <- MakeADFun(nll, par, silent = TRUE)
 #' opt <- nlminb(obj$par, obj$fn, obj$gr)
-#' mod <- report(obj)
+#' mod <- lama(obj)
 #'
 #' plot(mod) # pseudo-residuals
 #' plot(mod, type = "statedens") # state-dependent densities of both streams
@@ -167,7 +167,7 @@ plot.LaMaModel <- function(x, type = c("residuals", "statedens"), stream = NULL,
 #' Summary of a \code{LaMaModel} object
 #'
 #' @description
-#' Summarises a model from \code{\link{report}} or \code{\link{qreml}}.
+#' Summarises a model from \code{\link{lama}} or \code{\link{qreml}}.
 #' Besides the overview of \code{print()}, this contains
 #' \itemize{
 #'   \item for a homogeneous state process (or one per track) with at most 10 states: the transition probability matrix

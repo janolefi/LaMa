@@ -63,7 +63,7 @@ nll_sd <- function(par) {
 par_sd <- list(eta = c(-2, -2), log_mu = log(c(0.3, 2.5)), log_sigma = log(c(0.2, 1.5)), log_kappa = log(c(0.2, 1.5)))
 obj_sd <- RTMB::MakeADFun(nll_sd, par_sd, silent = TRUE)
 opt_sd <- nlminb(obj_sd$par, obj_sd$fn, obj_sd$gr)
-mod_sd <- report(obj_sd)
+mod_sd <- lama(obj_sd)
 
 test_that("forward() reports the streams of statedens() and clears them", {
   expect_named(mod_sd$streams, c("step", "angle"))

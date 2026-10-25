@@ -80,7 +80,7 @@
 #' The computed \code{delta} is reported as a matrix of dimension \code{c(nTracks, nStates)}.
 #' 
 #' \strong{Note:} \code{forward} should only be called \strong{once} in the likelihood function, with a \code{trackID} argument for multiple tracks.
-#' Downstream functions like \code{\link{report}}, \code{\link{viterbi}}, \code{\link{stateprobs}} or \code{\link{pseudo_res}} rely on the quantities it reports,
+#' Downstream functions like \code{\link{lama}}, \code{\link{viterbi}}, \code{\link{stateprobs}} or \code{\link{pseudo_res}} rely on the quantities it reports,
 #' and only those of the last call are kept.
 #'
 #' @return HMM log-likelihood for given data and parameters

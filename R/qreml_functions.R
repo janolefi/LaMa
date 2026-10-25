@@ -145,7 +145,7 @@ gen_inverse <- function(S) {
 #' @param joint_unc logical, if \code{TRUE}, joint \code{RTMB} object is returned allowing for joint uncertainty quantification
 #' @param saveall logical, if \code{TRUE}, then all model objects from each iteration are saved in the final model object
 #'
-#' @return model object of class \code{"qremlModel"}, inheriting from \code{"LaMaModel"} (see \code{\link{report}}), carrying the fitted quantities, the smoothness selection diagnostics shown by \code{\link{summary.qremlModel}}, and \code{outer_hessian()}, the outer Hessian that \code{\link{sdreport_outer}} turns into standard errors
+#' @return model object of class \code{"qremlModel"}, inheriting from \code{"LaMaModel"} (see \code{\link{lama}}), carrying the fitted quantities, the smoothness selection diagnostics shown by \code{\link{summary.qremlModel}}, and \code{outer_hessian()}, the outer Hessian that \code{\link{sdreport_outer}} turns into standard errors
 #'
 #' @export
 #'
@@ -448,7 +448,7 @@ qreml <- function(pnll, # penalised negative log-likelihood function
     invisible(try(obj$fn(start + 1e-8 * (1 + abs(start))), silent = TRUE))
 
     opt <- stats::optim(start, obj$fn, newgrad, method = method, control = ctl)
-    gr <- obj$gr(opt$par) # forces evaluation at opt$par so that report() matches
+    gr <- obj$gr(opt$par) # forces evaluation at opt$par so that obj$report() matches
     if(silent == 0) cat("iter", counter_env$count, "- inner mgc:", round(max(abs(gr)), 5), "\n")
 
     mod <- obj$report()

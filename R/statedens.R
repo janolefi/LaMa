@@ -57,6 +57,16 @@ statedens <- function(x, dens, ..., nStates = NULL, log = FALSE) {
   # number of states from the parameters: columns of matrices, else the longest vector
   if(is.null(nStates)) nStates <- max(sapply(pars, function(p) if(is.matrix(p)) ncol(p) else length(p)))
 
+  # obj$simulate(): random effects that are not simulated yet cannot enter the parameters.
+  # Their transformations stay "simref", but cbind() of them gives a matrix without one row per observation.
+  unsimulated <- vapply(pars, function(p) inherits(p, "simref") ||
+                          (inherits(x, "simref") && is.matrix(p) && nrow(p) != length(x)), logical(1))
+  if(any(unsimulated)) {
+    stop("Automatic simulation requires the likelihood to follow the model hierarchy: random effects first, ",
+         "then data given those random effects. Evaluate the density of each random effect ",
+         "(u %~% dnorm(...) or nll <- nll - sum(dnorm(u, ...))) before using it in the parameters of statedens().")
+  }
+
   # stream for plot(mod), reported by forward()
   .lama_env$streams[[s]] <- list(x = x, dens = dens, name = paste(deparse(substitute(dens)), collapse = ""),
                                  pars = pars, nStates = nStates)

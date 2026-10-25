@@ -31,10 +31,6 @@ get_rdens <- function(st, rdens = NULL) {
 # observations of one stream given the states: draws per state with the parameters of the rows in that state
 sim_stream <- function(st, Z, rdens = NULL) {
   r <- get_rdens(st, rdens)
-  if(any(vapply(st$pars, function(p) is.matrix(p) && nrow(p) != length(Z), logical(1)))) {
-    stop("Parameters per observation and state do not have one row per observation. With random = TRUE, ",
-         "random effects need their density evaluated before they are used, see ?simulate.LaMaModel.")
-  }
   x <- rep(NA_real_, length(Z))
   for(j in seq_len(st$nStates)) {
     rows <- which(Z == j)

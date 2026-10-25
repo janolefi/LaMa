@@ -226,5 +226,20 @@ test_that("random = TRUE: density of the random effect as a sum, before its use"
     nll - sum(dnorm(u, 0, exp(log_su), log = TRUE))
   }
   obj <- RTMB::MakeADFun(nll_late, par_re, random = "u", silent = TRUE)
-  expect_error(simulate(report(obj), random = TRUE), "before they are used")
+  expect_error(simulate(report(obj), random = TRUE), "model hierarchy")
+})
+
+test_that("statedens(): informative error for random effects that are not simulated yet", {
+  # random effect passed directly, and in a vector of parameters per state
+  for(mean_par in list(quote(u), quote(exp(1 + u)))) {
+    nll <- eval(bquote(function(par) {
+      getAll(par)
+      step_re <- OBS(step_re)
+      Gamma <- tpm(eta)
+      nll <- -forward(stationary(Gamma), Gamma, statedens(step_re, dnorm, .(mean_par), 1))
+      nll - sum(dnorm(u, 0, 1, log = TRUE))
+    }))
+    obj <- RTMB::MakeADFun(nll, list(eta = c(-3, -3), u = c(0, 5)), random = "u", silent = TRUE)
+    expect_error(obj$simulate(), "model hierarchy")
+  }
 })

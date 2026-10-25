@@ -145,32 +145,34 @@ simulate.LaMaModel <- function(object, nsim = 1, seed = NULL, rdens = NULL, rand
   if(!is.null(seed)) {
     if(!exists(".Random.seed", envir = globalenv())) runif(1)
     old <- get(".Random.seed", envir = globalenv())
-    on.exit(assign(".Random.seed", old, envir = globalenv()))
+    on.exit(assign(".Random.seed", old, envir = globalenv()), add = TRUE)
     set.seed(seed)
   }
+
+  # one simulation: list of the states and the data streams
   if(random) {
     obj <- get_obj(object)
     if(!length(obj$env$obs)) stop("No data marked with OBS() in the likelihood function, see ?simulate.LaMaModel.")
-    .lama_env$rdens <- rdens
+    .lama_env$rdens <- rdens # for sim_forward(), called by forward() inside obj$simulate()
     on.exit(.lama_env$rdens <- NULL, add = TRUE)
-  } else {
-    st <- get_streams(object)
-    inp <- prepare_decoding(mod = object)
-  }
-
-  sims <- lapply(seq_len(nsim), function(i) {
-    if(random) {
+    sim_once <- function() {
       # RTMB draws the random effects, forward() the states and data given them
       sim <- obj$simulate(obj$env$last.par.best)
       if(is.null(sim$states)) stop("No states were simulated: the likelihood needs forward() with statedens().")
-      Z <- sim$states
-      x <- sim[intersect(names(obj$env$obs), names(sim))]
-    } else {
-      Z <- sim_states(inp)
-      x <- lapply(names(st), function(s) sim_stream(st[[s]], Z, rdens[[s]]))
-      names(x) <- names(st)
+      list(states = sim$states, streams = sim[intersect(names(obj$env$obs), names(sim))])
     }
-    out <- data.frame(state = Z, x)
+  } else {
+    st <- get_streams(object)
+    inp <- prepare_decoding(mod = object)
+    sim_once <- function() {
+      Z <- sim_states(inp)
+      list(states = Z, streams = sapply(names(st), function(s) sim_stream(st[[s]], Z, rdens[[s]]), simplify = FALSE))
+    }
+  }
+
+  sims <- lapply(seq_len(nsim), function(i) {
+    sim <- sim_once()
+    out <- data.frame(state = sim$states, sim$streams)
     if(!is.null(object$trackID)) out <- cbind(trackID = object$trackID, out)
     out
   })

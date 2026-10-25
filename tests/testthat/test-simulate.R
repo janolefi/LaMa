@@ -201,3 +201,30 @@ test_that("simulate(mod, random = TRUE) uses obj$simulate()", {
   expect_gt(mean(sapply(simulate(mod, random = TRUE, nsim = 5), spread)), 0.3) # sd of u is 0.5
   expect_error(simulate(mod_sim, random = TRUE), "OBS")
 })
+
+test_that("random = TRUE: density of the random effect as a sum, before its use", {
+  nll_sum <- function(par) {
+    getAll(par)
+    step_re <- OBS(step_re)
+    nll <- -sum(dnorm(u, 0, exp(log_su), log = TRUE))
+    mu <- cbind(exp(log_mu[1] + u[id_re]), exp(log_mu[2]))
+    Gamma <- tpm(eta)
+    nll - forward(stationary(Gamma), Gamma, statedens(step_re, dgamma2, mu, exp(log_sigma)), id_re)
+  }
+  obj <- RTMB::MakeADFun(nll_sum, par_re, random = "u", silent = TRUE)
+  sim <- simulate(report(obj), random = TRUE, seed = 1)
+  expect_named(sim, c("trackID", "state", "step_re"))
+  expect_equal(sim, simulate(report(obj_re), random = TRUE, seed = 1)) # same as with %~%
+
+  # density only after the use: random effect not simulated yet
+  nll_late <- function(par) {
+    getAll(par)
+    step_re <- OBS(step_re)
+    mu <- cbind(exp(log_mu[1] + u[id_re]), exp(log_mu[2]))
+    Gamma <- tpm(eta)
+    nll <- -forward(stationary(Gamma), Gamma, statedens(step_re, dgamma2, mu, exp(log_sigma)), id_re)
+    nll - sum(dnorm(u, 0, exp(log_su), log = TRUE))
+  }
+  obj <- RTMB::MakeADFun(nll_late, par_re, random = "u", silent = TRUE)
+  expect_error(simulate(report(obj), random = TRUE), "before they are used")
+})

@@ -31,6 +31,10 @@ get_rdens <- function(st, rdens = NULL) {
 # observations of one stream given the states: draws per state with the parameters of the rows in that state
 sim_stream <- function(st, Z, rdens = NULL) {
   r <- get_rdens(st, rdens)
+  if(any(vapply(st$pars, function(p) is.matrix(p) && nrow(p) != length(Z), logical(1)))) {
+    stop("Parameters per observation and state do not have one row per observation. With random = TRUE, ",
+         "random effects need their density evaluated before they are used, see ?simulate.LaMaModel.")
+  }
   x <- rep(NA_real_, length(Z))
   for(j in seq_len(st$nStates)) {
     rows <- which(Z == j)
@@ -76,8 +80,9 @@ sim_forward <- function(streams, delta, Gamma, allprobs, trackID, logspace, tod)
 #' (e.g. \code{step = rep(NA, n)}) lets you simulate from a likelihood function without data, see the examples.
 #'
 #' Models with random effects are by default simulated conditional on the estimated random effects.
-#' With \code{random = TRUE}, \code{RTMB} draws the random effects first, which requires that each random effect is
-#' declared in the likelihood function by \code{u \%~\% dnorm(...)} (or another density).
+#' With \code{random = TRUE}, \code{RTMB} draws the random effects first, which requires that the density of each random effect
+#' is evaluated in the likelihood function \emph{before} the random effect is used, either by \code{u \%~\% dnorm(...)}
+#' or by \code{nll <- nll - sum(dnorm(u, ..., log = TRUE))} (or another density).
 #' The states and data are then simulated given these draws, so that every simulation has new random effects.
 #' This also requires that \code{allprobs} is the product of the data streams built by \code{\link{statedens}},
 #' with each data stream passed once.

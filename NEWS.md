@@ -17,6 +17,9 @@
   for continuous-time models on the observed time points); missing observations stay missing, and rdens 
   gives random number generators for densities without a matching r-function; a data stream that is NA 
   throughout is a placeholder, so a likelihood function can be used to simulate data and then be fitted to them
+* simulate(mod, random = TRUE) and obj$simulate() of RTMB work with forward() and statedens(): for data marked 
+  by x <- OBS(x), random effects (x %~% dnorm()) are drawn first, then the states and data given them; 
+  forward() reports the simulated states as states
 * print() and summary() for models from report() and qreml(): print() gives a short overview, 
   summary() the estimated state process (transition probability or generator matrix, stationary 
   distribution and mean dwell times, averaged over tracks if track-specific) and the reported 

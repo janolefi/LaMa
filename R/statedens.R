@@ -50,23 +50,35 @@
 #' logprobs <- statedens(step, dgamma2, mu, sigma, log = TRUE) +
 #'   statedens(angle, dvm, 0, kappa, log = TRUE)
 statedens <- function(x, dens, ..., nStates = NULL, log = FALSE) {
-  "[<-" <- ADoverload("[<-")
   # name of the data stream for pseudo_res(mod), which swaps dens for its CDF
-  .lama_env$stream <- stream_name(substitute(x))
+  s <- .lama_env$stream <- stream_name(substitute(x))
   on.exit(.lama_env$stream <- NULL)
   pars <- list(...)
   # number of states from the parameters: columns of matrices, else the longest vector
   if(is.null(nStates)) nStates <- max(sapply(pars, function(p) if(is.matrix(p)) ncol(p) else length(p)))
+
+  # stream for plot(mod), reported by forward()
+  .lama_env$streams[[s]] <- list(x = x, dens = dens, name = paste(deparse(substitute(dens)), collapse = ""),
+                                 pars = pars, nStates = nStates)
+  dens_matrix(x, dens, pars, nStates, log)
+}
+
+# matrix of state-dependent densities of x, as returned by statedens()
+dens_matrix <- function(x, dens, pars, nStates, log = FALSE) {
+  "[<-" <- ADoverload("[<-")
   # log-densities from dens itself if it can, else log() afterwards
   dlog <- log && "log" %in% names(formals(dens))
 
   ind <- which(!is.na(x))
   allprobs <- matrix(if(log) 0 else 1, length(x), nStates)
   for(j in 1:nStates) {
-    # parameters of state j at the observed rows
-    pj <- lapply(pars, function(p) if(is.matrix(p)) p[ind, j] else if(length(p) == 1) p else p[j])
-    d <- do.call(dens, c(list(x[ind]), pj, if(dlog) list(log = TRUE)))
+    d <- do.call(dens, c(list(x[ind]), state_pars(pars, j, ind), if(dlog) list(log = TRUE)))
     allprobs[ind, j] <- if(log && !dlog) base::log(d) else d
   }
   allprobs
+}
+
+# parameters of state j at the given rows: matrices have one column per state, vectors one entry
+state_pars <- function(pars, j, rows) {
+  lapply(pars, function(p) if(is.matrix(p)) p[rows, j] else if(length(p) == 1) p else p[j])
 }

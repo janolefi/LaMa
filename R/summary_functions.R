@@ -90,7 +90,7 @@ print.LaMaModel <- function(x, ...) {
     cat("! Maximum gradient component is", signif(x$mgc, 3), "- the optimiser may not have converged\n")
   }
 
-  reported <- setdiff(names(x), c(model_fields(x), "type")) # type is in the first line
+  reported <- setdiff(names(x), c(model_fields(x), "type", "streams")) # type is in the first line
   if(length(reported) > 0) cat(strwrap(paste("Reported:", paste(reported, collapse = ", ")), exdent = 2), sep = "\n")
 
   invisible(x)
@@ -166,7 +166,7 @@ summary.LaMaModel <- function(object, ...) {
   }
   
   ### quantities reported by the likelihood function
-  internal <- c("delta", "Gamma", "allprobs", "trackID", "type", "tod",
+  internal <- c("delta", "Gamma", "allprobs", "trackID", "type", "tod", "streams",
                 "delta_sparse", "Gamma_sparse", "Delta_sparse", if(isTRUE(sp$ct)) "Q")
   reported <- object[setdiff(names(object), c(model_fields(object), internal))]
   

@@ -51,3 +51,23 @@ test_that("statedens(log = TRUE): log-densities, also without a log argument", {
   expect_equal(forward(delta, Gamma, statedens(step, zig, 0.1, mu, sigma, log = TRUE), logspace = TRUE),
                forward(delta, Gamma, statedens(step, zig, 0.1, mu, sigma)))
 })
+
+# two-stream model built with statedens(), for the tests below
+d_sd <- list(step = trex$step[1:300], angle = trex$angle[1:300])
+nll_sd <- function(par) {
+  getAll(par, d_sd)
+  Gamma <- tpm(eta)
+  allprobs <- statedens(step, dgamma2, exp(log_mu), exp(log_sigma)) * statedens(angle, dvm, 0, exp(log_kappa))
+  -forward(stationary(Gamma), Gamma, allprobs)
+}
+par_sd <- list(eta = c(-2, -2), log_mu = log(c(0.3, 2.5)), log_sigma = log(c(0.2, 1.5)), log_kappa = log(c(0.2, 1.5)))
+obj_sd <- RTMB::MakeADFun(nll_sd, par_sd, silent = TRUE)
+opt_sd <- nlminb(obj_sd$par, obj_sd$fn, obj_sd$gr)
+mod_sd <- report(obj_sd)
+
+test_that("forward() reports the streams of statedens() and clears them", {
+  expect_named(mod_sd$streams, c("step", "angle"))
+  expect_equal(mod_sd$streams$step$name, "dgamma2")
+  expect_equal(mod_sd$streams$angle$pars[[2]], exp(mod_sd$par$log_kappa))
+  expect_null(getFromNamespace(".lama_env", "LaMa")$streams)
+})

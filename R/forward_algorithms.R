@@ -109,6 +109,10 @@ forward <- function(delta,
                     tod = NULL
                     ){
 
+  # streams from statedens(), cleared for the next evaluation of the likelihood
+  streams <- .lama_env$streams
+  .lama_env$streams <- NULL
+
   # record mode of pseudo_res(): store allprobs instead of computing the likelihood
   if(!is.null(.lama_env$record)) {
     .lama_env$record[[length(.lama_env$record) + 1]] <- if(logspace) exp(allprobs) else allprobs
@@ -122,6 +126,7 @@ forward <- function(delta,
   if(report) {
     if(logspace) allprobs <- exp(allprobs)
     if(!is.null(tod)) REPORT(tod)
+    if(!is.null(streams)) REPORT(streams)
     report_forward(delta, Gamma, allprobs, inp$trackID, inp$type)
   }
 

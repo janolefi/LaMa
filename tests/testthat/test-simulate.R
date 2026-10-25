@@ -19,6 +19,33 @@ test_that("sim_states(): time-varying Gamma uses the slice into t", {
   expect_gt(mean(Z[seq(2, n, 2)] != Z[seq(1, n - 1, 2)]), 0.95)
 })
 
+test_that("sim_states(): track-specific, periodic, continuous-time Gamma and one state", {
+  set.seed(4)
+  n <- 20000
+  # share of transitions 1 -> 2 among the transitions into the given rows
+  p12 <- function(Z, rows) mean(Z[rows][Z[rows - 1] == 1] == 2)
+  G2 <- array(c(tpm(c(-2, -2)), tpm(c(1, 1))), c(2, 2, 2)) # two different matrices
+
+  # one Gamma per track
+  Z <- sim_states(prepare_decoding(c(0.5, 0.5), G2, matrix(1, n, 2), rep(1:2, each = n / 2)))
+  expect_equal(c(p12(Z, 2:(n / 2)), p12(Z, (n / 2 + 2):n)), c(G2[1, 2, 1], G2[1, 2, 2]), tolerance = 0.1)
+
+  # periodic: tod indexes the slices
+  tod <- rep(1:2, length.out = n)
+  Z <- sim_states(prepare_decoding(c(0.5, 0.5), G2, matrix(1, n, 2), tod = tod))
+  expect_equal(c(p12(Z, which(tod == 1)[-1]), p12(Z, which(tod == 2))), c(G2[1, 2, 1], G2[1, 2, 2]), tolerance = 0.1)
+
+  # continuous time: nObs - 1 matrices, slice t - 1 is the transition into t
+  timediff <- rexp(n - 1, 2)
+  Gt <- tpm_cont(generator(c(-1, -1.5)), timediff)
+  Z <- sim_states(prepare_decoding(c(0.5, 0.5), Gt, matrix(1, n, 2)))
+  from1 <- which(Z[-n] == 1)
+  expect_equal(mean(Z[from1 + 1] == 2), mean(Gt[1, 2, from1]), tolerance = 0.1)
+
+  # one state
+  expect_equal(sim_states(prepare_decoding(1, matrix(1), matrix(1, 5, 1))), rep(1L, 5))
+})
+
 test_that("sim_stream(): per state, per observation, missing values, r-function lookup", {
   set.seed(3)
   n <- 20000

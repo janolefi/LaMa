@@ -18,8 +18,7 @@ by replacing the leading \code{d} with \code{r} (e.g. from \code{\link{zero_infl
 the others are the parameters as in the density.}
 
 \item{random}{logical; if \code{TRUE}, \code{obj$simulate()} of \code{RTMB} is used, so that random effects are drawn
-from their distribution first, see \sQuote{Details}. The data in the likelihood function need to be marked by
-\code{x <- OBS(x)} (with the same name on both sides) and passed to \code{\link{statedens}}.
+from their distribution first, see \sQuote{Details}. The data streams are those passed to \code{\link{statedens}}.
 Default is \code{FALSE}, which keeps the reported (estimated) random effects.}
 
 \item{...}{currently not used}
@@ -82,7 +81,6 @@ opt1 <- nlminb(obj1$par, obj1$fn, obj1$gr)
 # random effects: RTMB draws them first, then the states and data are simulated given them
 nll_re <- function(par) {
   getAll(par, dat)
-  step <- OBS(step) # data to be simulated, with the same name on both sides
   u \%~\% dnorm(0, exp(log_su)) # track-level random effect on the mean step length in state 1
   mu <- exp(cbind(log_mu[1] + u[id], log_mu[2]))
   Gamma <- tpm(eta)

@@ -151,12 +151,11 @@ test_that("simulate(mod): no trackID column for a single track, parameters per o
   expect_gt(cor(sim$x[s1], z[s1]), 0.5)
 })
 
-# random effect on the mean of state 1 per track, data marked with OBS() for obj$simulate()
+# random effect on the mean of state 1 per track, for obj$simulate()
 n_re <- 2000; id_re <- rep(1:20, each = 100)
 step_re <- rep(1, n_re); step_re[5] <- NA
 nll_re <- function(par) {
   getAll(par)
-  step_re <- OBS(step_re)
   u %~% dnorm(0, exp(log_su))
   mu <- cbind(exp(log_mu[1] + u[id_re]), exp(log_mu[2]))
   Gamma <- tpm(eta)
@@ -199,14 +198,15 @@ test_that("simulate(mod, random = TRUE) uses obj$simulate()", {
   spread <- function(s) sd(tapply(log(s$step_re[s$state == 1]), s$trackID[s$state == 1], mean, na.rm = TRUE))
   set.seed(2)
   expect_gt(mean(sapply(simulate(mod, random = TRUE, nsim = 5), spread)), 0.3) # sd of u is 0.5
-  expect_error(simulate(mod_sim, random = TRUE), "OBS")
+  mod <- mod_sim
+  mod$obj <- RTMB::MakeADFun(function(par) -forward(c(0.5, 0.5), tpm(par), matrix(1, 5, 2)), c(-2, -2), silent = TRUE)
+  expect_error(simulate(mod, random = TRUE), "statedens")
 })
 
 test_that("random = TRUE: density of the random effect as a sum, before its use", {
   nll_sum <- function(par) {
     getAll(par)
-    step_re <- OBS(step_re)
-    nll <- -sum(dnorm(u, 0, exp(log_su), log = TRUE))
+      nll <- -sum(dnorm(u, 0, exp(log_su), log = TRUE))
     mu <- cbind(exp(log_mu[1] + u[id_re]), exp(log_mu[2]))
     Gamma <- tpm(eta)
     nll - forward(stationary(Gamma), Gamma, statedens(step_re, dgamma2, mu, exp(log_sigma)), id_re)
@@ -219,8 +219,7 @@ test_that("random = TRUE: density of the random effect as a sum, before its use"
   # density only after the use: random effect not simulated yet
   nll_late <- function(par) {
     getAll(par)
-    step_re <- OBS(step_re)
-    mu <- cbind(exp(log_mu[1] + u[id_re]), exp(log_mu[2]))
+      mu <- cbind(exp(log_mu[1] + u[id_re]), exp(log_mu[2]))
     Gamma <- tpm(eta)
     nll <- -forward(stationary(Gamma), Gamma, statedens(step_re, dgamma2, mu, exp(log_sigma)), id_re)
     nll - sum(dnorm(u, 0, exp(log_su), log = TRUE))
@@ -234,12 +233,37 @@ test_that("statedens(): informative error for random effects that are not simula
   for(mean_par in list(quote(u), quote(exp(1 + u)))) {
     nll <- eval(bquote(function(par) {
       getAll(par)
-      step_re <- OBS(step_re)
-      Gamma <- tpm(eta)
+          Gamma <- tpm(eta)
       nll <- -forward(stationary(Gamma), Gamma, statedens(step_re, dnorm, .(mean_par), 1))
       nll - sum(dnorm(u, 0, 1, log = TRUE))
     }))
     obj <- RTMB::MakeADFun(nll, list(eta = c(-3, -3), u = c(0, 5)), random = "u", silent = TRUE)
     expect_error(obj$simulate(), "model hierarchy")
   }
+})
+
+test_that("obj$simulate(): data in a list, explicit OBS(), no stale data after MakeTape", {
+  dat <- list(step = replace(rep(1, 100), 7, NA))
+  nll <- function(par) {
+    getAll(par, dat)
+    Gamma <- tpm(eta)
+    -forward(stationary(Gamma), Gamma, statedens(step, dgamma2, exp(log_mu), 1))
+  }
+  par <- list(eta = c(-3, -3), log_mu = log(c(1, 10)))
+  sim <- RTMB::MakeADFun(nll, par, silent = TRUE)$simulate()
+  expect_named(sim, c("step", "states"))
+  expect_equal(is.na(sim$step), is.na(dat$step))
+  # same with the data as dat$step, and with OBS() called by the user
+  nll2 <- function(par) {
+    getAll(par)
+    step <- OBS(dat$step)
+    Gamma <- tpm(eta)
+    -forward(stationary(Gamma), Gamma, statedens(dat$step, dgamma2, exp(log_mu), 1))
+  }
+  expect_named(RTMB::MakeADFun(nll2, par, silent = TRUE)$simulate(), c("step", "states"))
+  # the registration of the data in a tape does not change later calls of statedens()
+  step <- dat$step
+  RTMB::MakeTape(function(p) sum(statedens(step, dgamma2, exp(p), 1)), log(c(1, 10)))
+  step[3] <- NA
+  expect_equal(statedens(step, dgamma2, c(1, 10), 1)[3, ], c(1, 1))
 })

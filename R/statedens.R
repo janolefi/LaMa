@@ -18,6 +18,8 @@
 #' They are computed by \code{dens(..., log = TRUE)} if \code{dens} has an argument \code{log}, otherwise as \code{log(dens(...))}
 #' (e.g. for densities from \code{\link{zero_inflate}}).
 #'
+#' In \code{obj$simulate()} of \code{RTMB}, \code{x} is registered as data and simulated by \code{\link{forward}}, see \code{\link{simulate.LaMaModel}}.
+#'
 #' Writing the loop over states by hand is equally valid and gives the same result. \code{statedens()} is just a shortcut.
 #'
 #' @param x vector of observations of length \code{nObs}, possibly containing \code{NA}s
@@ -53,6 +55,9 @@ statedens <- function(x, dens, ..., nStates = NULL, log = FALSE) {
   # name of the data stream for pseudo_res(mod), which swaps dens for its CDF
   s <- .lama_env$stream <- stream_name(substitute(x))
   on.exit(.lama_env$stream <- NULL)
+  # register x as data for obj$simulate(), as OBS(x) would: there it returns a simref to be filled by forward()
+  xobs <- eval(call("OBS", as.name(s)), list2env(setNames(list(x), s)))
+  if(inherits(xobs, "simref")) x <- xobs
   pars <- list(...)
   # number of states from the parameters: columns of matrices, else the longest vector
   if(is.null(nStates)) nStates <- max(sapply(pars, function(p) if(is.matrix(p)) ncol(p) else length(p)))
@@ -70,7 +75,7 @@ statedens <- function(x, dens, ..., nStates = NULL, log = FALSE) {
   # stream for plot(mod), reported by forward()
   .lama_env$streams[[s]] <- list(x = x, dens = dens, name = paste(deparse(substitute(dens)), collapse = ""),
                                  pars = pars, nStates = nStates)
-  # simulation by obj$simulate() with x from OBS(): forward() simulates x, nothing to evaluate here
+  # simulation by obj$simulate(): forward() simulates x, nothing to evaluate here
   if(inherits(x, "simref")) return(matrix(if(log) 0 else 1, length(x), nStates))
   dens_matrix(x, dens, pars, nStates, log)
 }

@@ -41,7 +41,7 @@ sim_stream <- function(st, Z, rdens = NULL) {
   x
 }
 
-# forward() in obj$simulate(): simulate the states and fill the data from OBS() (simref objects)
+# forward() in obj$simulate(): simulate the states and fill the data of the streams (simref objects)
 # with draws from the streams, given the delta, Gamma and parameters of this call
 sim_forward <- function(streams, delta, Gamma, allprobs, trackID, logspace, tod) {
   inp <- prepare_forward(delta, Gamma, allprobs, trackID, logspace, gidx = tod)
@@ -50,6 +50,7 @@ sim_forward <- function(streams, delta, Gamma, allprobs, trackID, logspace, tod)
     st <- streams[[s]]
     x <- st$x
     if(!inherits(x, "simref")) next
+    assign(s, x) # RTMB finds the simref by its name in the frames of the call stack, to return the simulated data
     st$x <- x$orig # the data itself, so that sim_stream() keeps its missing values
     x$reverse.update(sim_stream(st, states, .lama_env$rdens[[s]]), seq_along(x))
   }
@@ -90,8 +91,7 @@ sim_forward <- function(streams, delta, Gamma, allprobs, trackID, logspace, tod)
 #' by replacing the leading \code{d} with \code{r} (e.g. from \code{\link{zero_inflate}}). The first argument is the number of draws,
 #' the others are the parameters as in the density.
 #' @param random logical; if \code{TRUE}, \code{obj$simulate()} of \code{RTMB} is used, so that random effects are drawn
-#' from their distribution first, see \sQuote{Details}. The data in the likelihood function need to be marked by
-#' \code{x <- OBS(x)} (with the same name on both sides) and passed to \code{\link{statedens}}.
+#' from their distribution first, see \sQuote{Details}. The data streams are those passed to \code{\link{statedens}}.
 #' Default is \code{FALSE}, which keeps the reported (estimated) random effects.
 #' @param ... currently not used
 #'
@@ -129,7 +129,6 @@ sim_forward <- function(streams, delta, Gamma, allprobs, trackID, logspace, tod)
 #' # random effects: RTMB draws them first, then the states and data are simulated given them
 #' nll_re <- function(par) {
 #'   getAll(par, dat)
-#'   step <- OBS(step) # data to be simulated, with the same name on both sides
 #'   u %~% dnorm(0, exp(log_su)) # track-level random effect on the mean step length in state 1
 #'   mu <- exp(cbind(log_mu[1] + u[id], log_mu[2]))
 #'   Gamma <- tpm(eta)
@@ -153,7 +152,7 @@ simulate.LaMaModel <- function(object, nsim = 1, seed = NULL, rdens = NULL, rand
   # one simulation: list of the states and the data streams
   if(random) {
     obj <- get_obj(object)
-    if(!length(obj$env$obs)) stop("No data marked with OBS() in the likelihood function, see ?simulate.LaMaModel.")
+    if(!length(obj$env$obs)) stop("No data streams found: build allprobs with statedens() to simulate with random = TRUE.")
     .lama_env$rdens <- rdens # for sim_forward(), called by forward() inside obj$simulate()
     on.exit(.lama_env$rdens <- NULL, add = TRUE)
     sim_once <- function() {

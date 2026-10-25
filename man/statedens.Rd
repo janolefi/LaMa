@@ -39,6 +39,8 @@ With \code{log = TRUE}, the log-densities are returned, to be added over data st
 They are computed by \code{dens(..., log = TRUE)} if \code{dens} has an argument \code{log}, otherwise as \code{log(dens(...))}
 (e.g. for densities from \code{\link{zero_inflate}}).
 
+In \code{obj$simulate()} of \code{RTMB}, \code{x} is registered as data and simulated by \code{\link{forward}}, see \code{\link{simulate.LaMaModel}}.
+
 Writing the loop over states by hand is equally valid and gives the same result. \code{statedens()} is just a shortcut.
 }
 \examples{

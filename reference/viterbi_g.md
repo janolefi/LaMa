@@ -45,7 +45,8 @@ viterbi_g(delta, Gamma, allprobs, trackID = NULL, mod = NULL)
   [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md) with
   [`forward_g`](https://janolefi.github.io/LaMa/reference/forward_g.md)
   in the likelihood, these are reported automatically after model
-  fitting and the object returned by `RTMB::lama()` or
+  fitting and the object returned by `obj$report()`,
+  [`lama`](https://janolefi.github.io/LaMa/reference/lama.md) or
   [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md) can be
   passed directly.
 

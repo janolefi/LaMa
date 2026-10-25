@@ -69,8 +69,8 @@ pseudo_res(
   [`forward`](https://janolefi.github.io/LaMa/reference/forward.md) in
   your likelihood function, the objects needed for state decoding are
   automatically reported after model fitting. Hence, you can pass the
-  model object obtained from running
-  [`lama()`](https://janolefi.github.io/LaMa/reference/lama.md) or from
+  model object obtained from `obj$report()`,
+  [`lama`](https://janolefi.github.io/LaMa/reference/lama.md) or
   [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md) directly
   to this function and avoid calculating local state proabilities
   manually. In this case, a call should look like

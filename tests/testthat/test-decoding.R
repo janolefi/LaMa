@@ -38,6 +38,13 @@ test_that("decoding: periodic model reports L slices and decodes as with one sli
   }
 })
 
+test_that("decoding: stationary_p(Gamma, tod[1] %% L + 1) is periodically stationary under forward()'s tod", {
+  Gp <- tpm_p(1:4, L = 4, beta = matrix(c(-1, -2, 1, -1, 0, 1), 2)); tod <- rep(c(3, 4, 1, 2), 5)
+  # no information in allprobs: stateprobs are the marginal state distributions
+  P <- stateprobs(stationary_p(Gp, tod[1] %% 4 + 1), Gp, matrix(1, 20, 2), tod = tod)
+  expect_equal(unname(P), unname(stationary_p(Gp)[tod %% 4 + 1, ]))
+})
+
 test_that("decoding: forecast probabilities reproduce the log-likelihood", {
   ap <- exp(logP_test)
   llk_fc <- function(fc) sum(log(rowSums(fc * ap))) # sum of log f(x_t | x_1, ..., x_t-1)

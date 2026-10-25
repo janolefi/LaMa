@@ -75,7 +75,7 @@ pnll = function(par) {
   # cbinding intercept and spline coefs, because intercept is not penalised
   Gamma = tpm(cbind(beta0, betaSpline), Z)
   # computing all periodically stationary distributions for easy access later
-  Delta = stationary_p(Gamma); REPORT(Delta)
+  Delta = stationary_p(Gamma)[c(2:24, 1), ]; REPORT(Delta) # row k for tod k
   # parameter transformations
   mu = exp(logmu); REPORT(mu)
   sigma = exp(logsigma); REPORT(sigma)
@@ -86,7 +86,7 @@ pnll = function(par) {
   for(j in 1:N){
     allprobs[ind,j] = dgamma2(step[ind],mu[j],sigma[j]) * dvm(angle[ind],0,kappa[j])
   }
-  -forward(Delta[tod[1],], Gamma[,,tod], allprobs) + # regular forward algorithm
+  -forward(Delta[tod[1],], Gamma, allprobs, tod = tod) + # regular forward algorithm
     penalty(betaSpline, S, lambda) # this does all the penalisation work
 }
 ```

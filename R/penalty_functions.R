@@ -73,7 +73,7 @@
 #' pnll = function(par) {
 #'   getAll(par, dat) # makes everything contained available without $
 #'   Gamma = tpm_g(Z, cbind(beta0, betaspline)) # transition probabilities
-#'   delta = stationary_p(Gamma, t = 1) # initial distribution
+#'   delta = stationary_p(Gamma, t = tod[1] %% 24 + 1) # initial distribution
 #'   mu = exp(logmu) # step mean
 #'   sigma = exp(logsigma) # step sd
 #'   # calculating all state-dependent densities
@@ -241,7 +241,7 @@ penalty = function(re_coef, S, lambda) {
 #' pnll = function(par) {
 #'   getAll(par, dat) # makes everything contained available without $
 #'   Gamma = tpm_g(Z, cbind(beta0, betaspline)) # transition probabilities
-#'   delta = stationary_p(Gamma, t = 1) # initial distribution
+#'   delta = stationary_p(Gamma, t = tod[1] %% 24 + 1) # initial distribution
 #'   mu = exp(logmu) # step mean
 #'   sigma = exp(logsigma) # step sd
 #'   # calculating all state-dependent densities

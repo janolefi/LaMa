@@ -57,7 +57,8 @@
 #' @param tod 
 #' optional integer vector of length \code{nObs} with values in 1, ..., L, indexing the slices of \code{Gamma} for periodic models
 #' (e.g. time of day with L = 24 for hourly data).
-#'   
+#' \code{Gamma[,,tod[t]]} is the transition into time t, hence the periodically stationary initial distribution is \code{stationary_p(Gamma, tod[1] \%\% L + 1)}.
+#'
 #' @details
 #' If \code{trackID} is provided, the total log-likelihood is the sum of each track's likelihood
 #' contribution. In this case, \code{Gamma} can be
@@ -615,7 +616,7 @@ forward_g <- function(delta,
 #'  # parameter transformations for unconstrained optimisation
 #'  beta = matrix(par[1:6], nrow = 2)
 #'  Gamma = tpm_p(1:24, beta = beta) # multinomial logit link for each time point
-#'  delta = stationary_p(Gamma, tod[1]) # stationary HMM
+#'  delta = stationary_p(Gamma, tod[1] %% 24 + 1) # stationary HMM
 #'  mu = exp(par[7:8])
 #'  sigma = exp(par[9:10])
 #'  # calculate all state-dependent probabilities

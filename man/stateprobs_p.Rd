@@ -50,7 +50,7 @@ for periodically inhomogeneous HMMs
 L = 24
 beta = matrix(c(-1, 2, -1, -2, 1, -1), nrow = 2, byrow = TRUE)
 Gamma = tpm_p(1:L, L, beta, degree = 1)
-delta = stationary_p(Gamma, 1)
+delta = stationary_p(Gamma, 2) # for tod[1] = 1
 allprobs = matrix(runif(200), nrow = 100, ncol = 2)
 tod = rep(1:24, 5)[1:100]
 

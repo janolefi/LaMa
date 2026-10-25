@@ -152,7 +152,7 @@ dat$S = modmat$S # penalty matrix
 pnll = function(par) {
   getAll(par, dat) # makes everything contained available without $
   Gamma = tpm(cbind(beta0, beta_spline), Z) # transition probabilities
-  delta = stationary_p(Gamma, t = 1) # initial distribution
+  delta = stationary_p(Gamma, t = tod[1] \%\% 24 + 1) # initial distribution
   mu = exp(logmu) # step mean
   sigma = exp(logsigma) # step sd
   # calculating all state-dependent densities

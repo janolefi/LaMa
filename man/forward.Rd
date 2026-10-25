@@ -48,7 +48,8 @@ Only used with automatic differentiation; otherwise the exact likelihood is comp
 \item{ad}{logical; whether to use automatic differentiation. Determined automatically — for debugging only.}
 
 \item{tod}{optional integer vector of length \code{nObs} with values in 1, ..., L, indexing the slices of \code{Gamma} for periodic models
-(e.g. time of day with L = 24 for hourly data).}
+(e.g. time of day with L = 24 for hourly data).
+\code{Gamma[,,tod[t]]} is the transition into time t, hence the periodically stationary initial distribution is \code{stationary_p(Gamma, tod[1] \%\% L + 1)}.}
 }
 \value{
 HMM log-likelihood for given data and parameters

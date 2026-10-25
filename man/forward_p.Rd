@@ -63,7 +63,7 @@ nll = function(par, step, tod) {
  # parameter transformations for unconstrained optimisation
  beta = matrix(par[1:6], nrow = 2)
  Gamma = tpm_p(1:24, beta = beta) # multinomial logit link for each time point
- delta = stationary_p(Gamma, tod[1]) # stationary HMM
+ delta = stationary_p(Gamma, tod[1] \%\% 24 + 1) # stationary HMM
  mu = exp(par[7:8])
  sigma = exp(par[9:10])
  # calculate all state-dependent probabilities

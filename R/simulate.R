@@ -1,5 +1,7 @@
-# Simulation from a fitted model, on the observed design: tracks, their lengths and
-# the reported delta, Gamma and parameters are kept fixed
+# Simulation of states and data streams from models built with forward() and statedens():
+# - simulate(mod): on the observed design, with delta, Gamma and parameters as reported
+# - simulate(mod, random = TRUE) and obj$simulate(): forward() simulates inside RTMB's simulation
+#   (sim_forward()), after RTMB has drawn the random effects
 
 # states from the output of prepare_decoding():
 # first state of each track ~ delta, then Z_t ~ Gamma[Z_(t-1), , gidx[t]]
@@ -39,10 +41,26 @@ sim_stream <- function(st, Z, rdens = NULL) {
   x
 }
 
+# forward() in obj$simulate(): simulate the states and fill the data from OBS() (simref objects)
+# with draws from the streams, given the delta, Gamma and parameters of this call
+sim_forward <- function(streams, delta, Gamma, allprobs, trackID, logspace, tod) {
+  inp <- prepare_forward(delta, Gamma, allprobs, trackID, logspace, gidx = tod)
+  states <- sim_states(inp)
+  for(s in names(streams)) {
+    st <- streams[[s]]
+    x <- st$x
+    if(!inherits(x, "simref")) next
+    st$x <- x$orig # the data itself, so that sim_stream() keeps its missing values
+    x$reverse.update(sim_stream(st, states, .lama_env$rdens[[s]]), seq_along(x))
+  }
+  REPORT(states)
+  0
+}
+
 #' Simulate from a fitted model
 #'
-#' Simulates states and observations from a model fitted with \code{\link{forward}} and \code{\link{statedens}},
-#' on the observed design: the tracks and their lengths, the initial distribution \code{delta},
+#' Simulates states and observations from a model fitted with \code{\link{forward}} and \code{\link{statedens}}.
+#' By default, this is done on the observed design: the tracks and their lengths, the initial distribution \code{delta},
 #' the transition probabilities \code{Gamma} and the parameters of the state-dependent densities
 #' are those reported by the model, i.e. conditional on the observed covariates.
 #' Simulating for new covariates is not possible; instead, rebuild the likelihood function for the new data
@@ -53,8 +71,16 @@ sim_stream <- function(st, Z, rdens = NULL) {
 #' (homogeneous, track-specific, time-varying, periodic) work, as does a continuous-time model with one transition matrix
 #' per time interval (the simulation is then conditional on the observed time points).
 #' Each data stream is drawn from the random number generator belonging to its density, e.g. \code{rgamma2} for \code{dgamma2}.
+#'
 #' Missing observations of the data stay missing, except for a stream that is missing completely: such a placeholder
-#' (e.g. \code{step = rep(NA, n)}) lets you simulate from a likelihood function without data, see the examples. Models with random effects are by default simulated conditional on the estimated random effects, see \code{random}.
+#' (e.g. \code{step = rep(NA, n)}) lets you simulate from a likelihood function without data, see the examples.
+#'
+#' Models with random effects are by default simulated conditional on the estimated random effects.
+#' With \code{random = TRUE}, \code{RTMB} draws the random effects first, which requires that each random effect is
+#' declared in the likelihood function by \code{u \%~\% dnorm(...)} (or another density).
+#' The states and data are then simulated given these draws, so that every simulation has new random effects.
+#' This also requires that \code{allprobs} is the product of the data streams built by \code{\link{statedens}},
+#' with each data stream passed once.
 #'
 #' @param object model object from \code{\link{report}} or \code{\link{qreml}} that was built with \code{\link{statedens}}
 #' @param nsim number of simulations
@@ -62,15 +88,14 @@ sim_stream <- function(st, Z, rdens = NULL) {
 #' @param rdens optional named list of random number generators of the data streams, for densities without one named
 #' by replacing the leading \code{d} with \code{r} (e.g. from \code{\link{zero_inflate}}). The first argument is the number of draws,
 #' the others are the parameters as in the density.
-#' @param random logical; if \code{TRUE}, \code{obj$simulate()} of \code{RTMB} is used, so that random effects (declared with
-#' \code{\%~\%}) are drawn from their distribution first, and the states and data are simulated given them.
-#' The data in the likelihood function need to be marked by \code{x <- OBS(x)} (with the same name on both sides) and
-#' passed to \code{\link{statedens}}; the design is that of the likelihood function as built. Default is \code{FALSE},
-#' which keeps the reported (estimated) random effects.
+#' @param random logical; if \code{TRUE}, \code{obj$simulate()} of \code{RTMB} is used, so that random effects are drawn
+#' from their distribution first, see \sQuote{Details}. The data in the likelihood function need to be marked by
+#' \code{x <- OBS(x)} (with the same name on both sides) and passed to \code{\link{statedens}}.
+#' Default is \code{FALSE}, which keeps the reported (estimated) random effects.
 #' @param ... currently not used
 #'
-#' @return data frame with the columns \code{trackID} (if used), \code{state} and one column per data stream, for \code{nsim = 1},
-#' else a list of \code{nsim} such data frames.
+#' @return data frame with the columns \code{trackID} (index of the track, if used), \code{state} and one column per data stream,
+#' for \code{nsim = 1}, else a list of \code{nsim} such data frames.
 #' @export
 #' @importFrom stats simulate
 #'
@@ -103,16 +128,16 @@ sim_stream <- function(st, Z, rdens = NULL) {
 #' # random effects: RTMB draws them first, then the states and data are simulated given them
 #' nll_re <- function(par) {
 #'   getAll(par, dat)
-#'   step <- OBS(step) # data to be simulated, same name on both sides
-#'   u %~% dnorm(0, exp(log_su)) # random effect for the means of the step length
+#'   step <- OBS(step) # data to be simulated, with the same name on both sides
+#'   u %~% dnorm(0, exp(log_su)) # track-level random effect on the mean step length in state 1
+#'   mu <- exp(cbind(log_mu[1] + u[id], log_mu[2]))
 #'   Gamma <- tpm(eta)
-#'   mu <- exp(cbind(log_mu[1] + u, log_mu[2]))
-#'   .nll <- .nll - forward(stationary(Gamma), Gamma, statedens(step, dgamma2, mu, exp(log_sigma)))
+#'   .nll <- .nll - forward(stationary(Gamma), Gamma, statedens(step, dgamma2, mu, exp(log_sigma)), id)
 #'   .nll
 #' }
-#' dat <- list(step = trex$step[1:500])
+#' dat <- list(step = trex$step[1:500], id = rep(1:5, each = 100))
 #' par_re <- list(eta = c(-2, -2), log_mu = log(c(0.3, 2.5)), log_sigma = log(c(0.2, 1.5)),
-#'                log_su = log(0.1), u = rep(0, 500))
+#'                log_su = log(0.3), u = rep(0, 5))
 #' obj_re <- MakeADFun(nll_re, par_re, random = "u", silent = TRUE)
 #' sim_re <- simulate(report(obj_re), random = TRUE, seed = 1)
 simulate.LaMaModel <- function(object, nsim = 1, seed = NULL, rdens = NULL, random = FALSE, ...) {
@@ -150,20 +175,4 @@ simulate.LaMaModel <- function(object, nsim = 1, seed = NULL, rdens = NULL, rand
     out
   })
   if(nsim == 1) sims[[1]] else sims
-}
-
-# forward() in obj$simulate(): simulate the states and fill the data from OBS() (simref objects)
-# with draws from the streams, given the delta, Gamma and parameters of this call
-sim_forward <- function(streams, delta, Gamma, allprobs, trackID, logspace, tod) {
-  inp <- prepare_forward(delta, Gamma, allprobs, trackID, logspace, gidx = tod)
-  states <- sim_states(inp)
-  for(s in names(streams)) {
-    st <- streams[[s]]
-    x <- st$x
-    if(!inherits(x, "simref")) next
-    st$x <- x$orig # the data itself, so that sim_stream() keeps its missing values
-    x$reverse.update(sim_stream(st, states, .lama_env$rdens[[s]]), seq_along(x))
-  }
-  REPORT(states)
-  0
 }

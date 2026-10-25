@@ -82,7 +82,7 @@ nll_sim <- function(par) {
 par_sim <- list(eta = c(-2, -2), log_mu = log(c(0.3, 2.5)), log_sigma = log(c(0.2, 1.5)), log_kappa = log(c(0.2, 1.5)))
 obj_sim <- RTMB::MakeADFun(nll_sim, par_sim, silent = TRUE)
 nlminb(obj_sim$par, obj_sim$fn, obj_sim$gr)
-mod_sim <- report(obj_sim)
+mod_sim <- lama(obj_sim)
 
 test_that("simulate(mod): observed design, missing values, seed", {
   sim <- simulate(mod_sim, seed = 1)
@@ -122,7 +122,7 @@ test_that("simulate(mod): all-NA streams as placeholders, simulate then fit", {
   d <- d_sim; d$step[] <- NA; d$angle[] <- NA
   nll <- nll_sim; environment(nll) <- list2env(list(d_sim = d), parent = environment(nll_sim))
   par <- list(eta = c(-2, -2), log_mu = log(c(1, 10)), log_sigma = log(c(0.5, 2)), log_kappa = log(c(1, 5)))
-  mod0 <- report(RTMB::MakeADFun(nll, par, silent = TRUE))
+  mod0 <- lama(RTMB::MakeADFun(nll, par, silent = TRUE))
   sim <- simulate(mod0, seed = 1)
   expect_false(anyNA(sim))
   expect_equal(nrow(sim), 400)
@@ -144,7 +144,7 @@ test_that("simulate(mod): no trackID column for a single track, parameters per o
     -forward(stationary(Gamma), Gamma, statedens(x, dnorm, cbind(a[1] + b * z, a[2]), 1))
   }
   par <- list(eta = c(-3, -3), a = c(0, 10), b = 5)
-  sim <- simulate(report(RTMB::MakeADFun(nll, par, silent = TRUE)), seed = 1)
+  sim <- simulate(lama(RTMB::MakeADFun(nll, par, silent = TRUE)), seed = 1)
   expect_named(sim, c("state", "x"))
   expect_equal(nrow(sim), 100)
   s1 <- sim$state == 1 # mean 5 * z in state 1
@@ -188,7 +188,7 @@ test_that("obj$simulate(): data that are NA throughout are simulated completely"
 })
 
 test_that("simulate(mod, random = TRUE) uses obj$simulate()", {
-  mod <- report(obj_re)
+  mod <- lama(obj_re)
   sim <- simulate(mod, random = TRUE, seed = 1)
   expect_named(sim, c("trackID", "state", "step_re"))
   expect_equal(is.na(sim$step_re), is.na(step_re))
@@ -212,9 +212,9 @@ test_that("random = TRUE: density of the random effect as a sum, before its use"
     nll - forward(stationary(Gamma), Gamma, statedens(step_re, dgamma2, mu, exp(log_sigma)), id_re)
   }
   obj <- RTMB::MakeADFun(nll_sum, par_re, random = "u", silent = TRUE)
-  sim <- simulate(report(obj), random = TRUE, seed = 1)
+  sim <- simulate(lama(obj), random = TRUE, seed = 1)
   expect_named(sim, c("trackID", "state", "step_re"))
-  expect_equal(sim, simulate(report(obj_re), random = TRUE, seed = 1)) # same as with %~%
+  expect_equal(sim, simulate(lama(obj_re), random = TRUE, seed = 1)) # same as with %~%
 
   # density only after the use: random effect not simulated yet
   nll_late <- function(par) {
@@ -225,7 +225,7 @@ test_that("random = TRUE: density of the random effect as a sum, before its use"
     nll - sum(dnorm(u, 0, exp(log_su), log = TRUE))
   }
   obj <- RTMB::MakeADFun(nll_late, par_re, random = "u", silent = TRUE)
-  expect_error(simulate(report(obj), random = TRUE), "model hierarchy")
+  expect_error(simulate(lama(obj), random = TRUE), "model hierarchy")
 })
 
 test_that("statedens(): informative error for random effects that are not simulated yet", {
@@ -275,7 +275,7 @@ test_that("simulate(fill_na = TRUE) fills in missing observations", {
   # the other draws are the same: only the missing rows are added
   expect_equal(sim$step[!is.na(d_sim$step)], simulate(mod_sim, seed = 1)$step[!is.na(d_sim$step)])
   # with random = TRUE
-  mod <- report(obj_re)
+  mod <- lama(obj_re)
   expect_true(anyNA(simulate(mod, random = TRUE, seed = 1)$step_re))
   expect_false(anyNA(simulate(mod, random = TRUE, fill_na = TRUE, seed = 1)))
 })

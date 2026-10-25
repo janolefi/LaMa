@@ -65,7 +65,7 @@ sim_forward <- function(streams, delta, Gamma, allprobs, trackID, logspace, tod)
 #' the transition probabilities \code{Gamma} and the parameters of the state-dependent densities
 #' are those reported by the model, i.e. conditional on the observed covariates.
 #' Simulating for new covariates is not possible; instead, rebuild the likelihood function for the new data
-#' and call \code{\link{report}} on the resulting object.
+#' and call \code{\link{lama}} on the resulting object.
 #'
 #' @details
 #' The states are drawn as in the decoding functions, so that all types of \code{Gamma} that \code{\link{forward}} accepts
@@ -84,7 +84,7 @@ sim_forward <- function(streams, delta, Gamma, allprobs, trackID, logspace, tod)
 #' This also requires that \code{allprobs} is the product of the data streams built by \code{\link{statedens}},
 #' with each data stream passed once.
 #'
-#' @param object model object from \code{\link{report}} or \code{\link{qreml}} that was built with \code{\link{statedens}}
+#' @param object model object from \code{\link{lama}} or \code{\link{qreml}} that was built with \code{\link{statedens}}
 #' @param nsim number of simulations
 #' @param seed optional seed for the random number generator
 #' @param rdens optional named list of random number generators of the data streams, for densities without one named
@@ -116,7 +116,7 @@ sim_forward <- function(streams, delta, Gamma, allprobs, trackID, logspace, tod)
 #'             log_kappa = log(c(0.2, 1.5)))
 #' obj <- MakeADFun(nll, par, silent = TRUE)
 #' opt <- nlminb(obj$par, obj$fn, obj$gr)
-#' mod <- report(obj)
+#' mod <- lama(obj)
 #'
 #' sim <- simulate(mod, seed = 1)
 #' head(sim)
@@ -124,7 +124,7 @@ sim_forward <- function(streams, delta, Gamma, allprobs, trackID, logspace, tod)
 #' # simulate without data: all-NA streams as placeholders, parameters of your choice, then refit
 #' dat$step <- dat$angle <- rep(NA, 500)
 #' obj0 <- MakeADFun(nll, par, silent = TRUE)
-#' sim <- simulate(report(obj0), seed = 1)
+#' sim <- simulate(lama(obj0), seed = 1)
 #' dat$step <- sim$step; dat$angle <- sim$angle
 #' obj1 <- MakeADFun(nll, par, silent = TRUE)
 #' opt1 <- nlminb(obj1$par, obj1$fn, obj1$gr)
@@ -142,7 +142,7 @@ sim_forward <- function(streams, delta, Gamma, allprobs, trackID, logspace, tod)
 #' par_re <- list(eta = c(-2, -2), log_mu = log(c(0.3, 2.5)), log_sigma = log(c(0.2, 1.5)),
 #'                log_su = log(0.3), u = rep(0, 5))
 #' obj_re <- MakeADFun(nll_re, par_re, random = "u", silent = TRUE)
-#' sim_re <- simulate(report(obj_re), random = TRUE, seed = 1)
+#' sim_re <- simulate(lama(obj_re), random = TRUE, seed = 1)
 simulate.LaMaModel <- function(object, nsim = 1, seed = NULL, rdens = NULL, random = FALSE, fill_na = FALSE, ...) {
   # keep the random number stream of the session, as stats::simulate() methods do
   if(!is.null(seed)) {

@@ -114,6 +114,6 @@ test_that("forward() reports the streams of statedens() called in its argument",
     -forward(stationary(Gamma), Gamma, statedens(x, dnorm, cbind(a[1] + b * z, a[2]), 1))
   }
   obj <- RTMB::MakeADFun(nll, list(eta = c(-2, -2), a = c(0, 3), b = 0.5), silent = TRUE)
-  mod <- report(obj) # first report: used to hold the streams of the taping instead
+  mod <- lama(obj) # first report: used to hold the streams of the taping instead
   expect_equal(mod$streams$x$pars[[1]], cbind(0 + 0.5 * z, 3))
 })

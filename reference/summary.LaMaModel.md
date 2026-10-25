@@ -1,7 +1,7 @@
 # Summary of a `LaMaModel` object
 
 Summarises a model from
-[`report`](https://janolefi.github.io/LaMa/reference/report.md) or
+[`lama`](https://janolefi.github.io/LaMa/reference/lama.md) or
 [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md). Besides
 the overview of [`print()`](https://rdrr.io/r/base/print.html), this
 contains

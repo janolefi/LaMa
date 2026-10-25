@@ -31,9 +31,8 @@ pseudo_res(
 - obs:
 
   vector of observations (of length `nObs`), or a model object from
-  [`report`](https://janolefi.github.io/LaMa/reference/report.md) (or
-  the `RTMB` object), in which case nothing else is needed (see
-  ‘Details’)
+  [`lama`](https://janolefi.github.io/LaMa/reference/lama.md) (or the
+  `RTMB` object), in which case nothing else is needed (see ‘Details’)
 
 - dist:
 
@@ -71,10 +70,10 @@ pseudo_res(
   your likelihood function, the objects needed for state decoding are
   automatically reported after model fitting. Hence, you can pass the
   model object obtained from running
-  [`report()`](https://janolefi.github.io/LaMa/reference/report.md) or
-  from [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md)
-  directly to this function and avoid calculating local state
-  proabilities manually. In this case, a call should look like
+  [`lama()`](https://janolefi.github.io/LaMa/reference/lama.md) or from
+  [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md) directly
+  to this function and avoid calculating local state proabilities
+  manually. In this case, a call should look like
   `pseudo_res(obs, "norm", par, mod = mod)`.
 
 - normal:
@@ -142,7 +141,7 @@ instead. Densities in your own helper functions called by the likelihood
 function are found as well, and
 [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md) models
 work like models from
-[`report`](https://janolefi.github.io/LaMa/reference/report.md). The
+[`lama`](https://janolefi.github.io/LaMa/reference/lama.md). The
 likelihood function needs to call
 [`forward`](https://janolefi.github.io/LaMa/reference/forward.md) once
 (use `trackID` for several tracks), and it is evaluated with the data as
@@ -209,7 +208,7 @@ par = list(logitGamma = c(-2,-2),
 obj = MakeADFun(nll, par, silent = TRUE)
 opt = nlminb(obj$par, obj$fn, obj$gr)
 
-mod = report(obj)
+mod = lama(obj)
 
 pres = pseudo_res(step,      # observation sequence
                   "gamma2",  # parametric family that was used

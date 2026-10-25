@@ -79,7 +79,7 @@ and can be used to quantify whether an observation is extreme relative to its mo
 
 
 <dl><dt id="arg-obs">obs<a class="anchor" aria-label="anchor" href="#arg-obs"></a></dt>
-<dd><p>vector of observations (of length <code>nObs</code>), or a model object from <code><a href="report.html">report</a></code>
+<dd><p>vector of observations (of length <code>nObs</code>), or a model object from <code><a href="lama.html">lama</a></code>
 (or the <code>RTMB</code> object), in which case nothing else is needed (see ‘Details’)</p></dd>
 
 
@@ -101,7 +101,7 @@ This argument is as flexible as the parametric distribution allows. For example 
 <dt id="arg-mod">mod<a class="anchor" aria-label="anchor" href="#arg-mod"></a></dt>
 <dd><p>optional model object containing required quantities</p>
 <p>When using automatic differentiation either with <code>RTMB::MakeADFun</code> or <code><a href="qreml.html">qreml</a></code> and include <code><a href="forward.html">forward</a></code> in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
-Hence, you can pass the model object obtained from running <code><a href="report.html">report()</a></code> or from <code><a href="qreml.html">qreml</a></code> directly to this function and avoid calculating local state proabilities manually.
+Hence, you can pass the model object obtained from running <code><a href="lama.html">lama()</a></code> or from <code><a href="qreml.html">qreml</a></code> directly to this function and avoid calculating local state proabilities manually.
 In this case, a call should look like <code>pseudo_res(obs, "norm", par, mod = mod)</code>.</p></dd>
 
 
@@ -150,7 +150,7 @@ swapping in CDFs is valid. If not, e.g. for densities transformed by hand (trunc
 zero inflation via indicators) or a latent variable integrated out inside <code>allprobs</code>, it stops, and
 <code>pseudo_res(obs, dist, par, mod = mod)</code> needs to be used instead.
 Densities in your own helper functions called by the likelihood function are found as well,
-and <code><a href="qreml.html">qreml</a></code> models work like models from <code><a href="report.html">report</a></code>.
+and <code><a href="qreml.html">qreml</a></code> models work like models from <code><a href="lama.html">lama</a></code>.
 The likelihood function needs to call <code><a href="forward.html">forward</a></code> once (use <code>trackID</code> for several tracks),
 and it is evaluated with the data as they are when <code>pseudo_res()</code> is called.</p>
     </div>
@@ -214,7 +214,7 @@ and it is evaluated with the data as they are when <code>pseudo_res()</code> is 
 <span class="r-in"><span><span class="va">obj</span> <span class="op">=</span> <span class="fu">MakeADFun</span><span class="op">(</span><span class="va">nll</span>, <span class="va">par</span>, silent <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">opt</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></span><span class="op">(</span><span class="va">obj</span><span class="op">$</span><span class="va">par</span>, <span class="va">obj</span><span class="op">$</span><span class="va">fn</span>, <span class="va">obj</span><span class="op">$</span><span class="va">gr</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">mod</span> <span class="op">=</span> <span class="fu"><a href="report.html">report</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">mod</span> <span class="op">=</span> <span class="fu"><a href="lama.html">lama</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">pres</span> <span class="op">=</span> <span class="fu">pseudo_res</span><span class="op">(</span><span class="va">step</span>,      <span class="co"># observation sequence</span></span></span>
 <span class="r-in"><span>                  <span class="st">"gamma2"</span>,  <span class="co"># parametric family that was used</span></span></span>

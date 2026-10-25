@@ -90,7 +90,7 @@ dat = list(
 # Fitting the model
 obj_multi = MakeADFun(nll_multi, par, silent = TRUE)
 opt_multi = nlminb(obj_multi$par, obj_multi$fn, obj_multi$gr)
-mod_multi = report(obj_multi) # reporting from fitted model
+mod_multi = lama(obj_multi) # reporting from fitted model
 ```
 
 Building `allprobs` with a loop over states as above is perfectly valid
@@ -143,7 +143,7 @@ weighted by the local state probabilities:
 
 ``` r
 
-mod_multi2 = report(obj_multi2)
+mod_multi2 = lama(obj_multi2)
 plot(mod_multi2, type = "statedens")
 ```
 
@@ -359,8 +359,8 @@ system.time(
   opt <- nlminb(obj_cov$par, obj_cov$fn, obj_cov$gr)
 )
 #>    user  system elapsed 
-#>   0.037   0.000   0.037
-mod_cov <- report(obj_cov) # reporting from fitted model
+#>   0.019   0.000   0.019
+mod_cov <- lama(obj_cov) # reporting from fitted model
 ```
 
 Let’s plot the fitted model, starting with the estimated state-dependent
@@ -542,7 +542,7 @@ dat = list(
 obj_msr = MakeADFun(nll_msr, par, silent = TRUE)
 opt_msr = nlminb(obj_msr$par, obj_msr$fn, obj_msr$gr)
 
-mod_msr = report(obj_msr)
+mod_msr = lama(obj_msr)
 ```
 
 #### Visualising results
@@ -690,7 +690,7 @@ Let’s fit the model:
 obj_seas = MakeADFun(nll_seas, par, silent = TRUE)
 opt_seas = nlminb(obj_seas$par, obj_seas$fn, obj_seas$gr)
 sdr_seas = sdreport(obj_seas)
-mod_seas = report(obj_seas)
+mod_seas = lama(obj_seas)
 ```
 
 And look at the estimated periodically stationary distribution:

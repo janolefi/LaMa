@@ -206,8 +206,8 @@ example in models with local state dependence — the default
 <span>  <span class="va">opt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></span><span class="op">(</span><span class="va">obj</span><span class="op">$</span><span class="va">par</span>, <span class="va">obj</span><span class="op">$</span><span class="va">fn</span>, <span class="va">obj</span><span class="op">$</span><span class="va">gr</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.654   0.000   0.654</span></span>
-<span><span class="va">mod</span> <span class="op">=</span> <span class="fu"><a href="../reference/report.html">report</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.671   0.000   0.671</span></span>
+<span><span class="va">mod</span> <span class="op">=</span> <span class="fu"><a href="../reference/lama.html">lama</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="results">Results<a class="anchor" aria-label="anchor" href="#results"></a>
@@ -307,8 +307,8 @@ marginalises over it internally.</p>
 <span>  <span class="va">opt_lap</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></span><span class="op">(</span><span class="va">obj_lap</span><span class="op">$</span><span class="va">par</span>, <span class="va">obj_lap</span><span class="op">$</span><span class="va">fn</span>, <span class="va">obj_lap</span><span class="op">$</span><span class="va">gr</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.191   0.001   0.191</span></span>
-<span><span class="va">mod_lap</span> <span class="op">=</span> <span class="fu"><a href="../reference/report.html">report</a></span><span class="op">(</span><span class="va">obj_lap</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.256   0.276   0.185</span></span>
+<span><span class="va">mod_lap</span> <span class="op">=</span> <span class="fu"><a href="../reference/lama.html">lama</a></span><span class="op">(</span><span class="va">obj_lap</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_lap</span><span class="op">$</span><span class="va">phi</span>    <span class="co"># true: 0.95</span></span>
 <span><span class="co">#&gt; [1] 0.9525517</span></span>

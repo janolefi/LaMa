@@ -55,7 +55,7 @@ viterbi_p(delta, Gamma, allprobs, tod, trackID = NULL, mod = NULL)
   [`forward_p`](https://janolefi.github.io/LaMa/reference/forward_p.md)
   in your likelihood function, the objects needed for state decoding are
   automatically reported after model fitting. Hence, you can pass the
-  model object obtained from running `RTMB::report()` or from
+  model object obtained from running `RTMB::lama()` or from
   [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md) directly
   to this function.
 

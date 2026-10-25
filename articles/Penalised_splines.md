@@ -198,14 +198,13 @@ system.time(
 #> outer 2 - lambda: 1 1 
 #> outer 3 - lambda: 0.113 0.1 
 #> outer 4 - lambda: 0.289 0.11 
-#> outer 5 - lambda: 0.298 0.111 
+#> outer 5 - lambda: 0.308 0.112 
 #> outer 6 - lambda: 0.307 0.112 
-#> outer 7 - lambda: 0.306 0.112 
-#> outer 8 - lambda: 0.306 0.112 
-#> outer 9 - lambda: 0.306 0.112 
-#> outer 10 - lambda: 0.306 0.112
+#> outer 7 - lambda: 0.307 0.112 
+#> outer 8 - lambda: 0.307 0.112 
+#> outer 9 - lambda: 0.307 0.112
 #>    user  system elapsed 
-#>  17.122   0.069  17.192
+#>   7.389   0.050   7.441
 ```
 
 The `mod` object is now a list that contains everything that is reported
@@ -339,7 +338,7 @@ obj = MakeADFun(nll, par, silent = TRUE)
 opt = nlminb(obj$par, obj$fn, obj$gr)
 
 # reporting to get calculated quantities
-mod = report(obj)
+mod = lama(obj)
 
 # visualising the results
 color = LaMaColors(3)
@@ -459,7 +458,7 @@ system.time(
 #> Converged
 #> Final model fit with lambda: 0.962 0.996 1.661
 #>    user  system elapsed 
-#>  32.692   9.491  31.632
+#>  11.107   2.273  10.568
 ```
 
 After fitting the model, we can easily visualise the smooth densities
@@ -599,15 +598,15 @@ system.time(
 #> outer 6 - lambda: 22.44 8.001 8.239 4.601 
 #> outer 7 - lambda: 22.666 6.697 8.279 3.935 
 #> outer 8 - lambda: 22.504 7.615 8.252 4.315 
-#> outer 9 - lambda: 22.56 7.267 8.261 4.198 
-#> outer 10 - lambda: 22.563 7.243 8.261 4.187 
-#> outer 11 - lambda: 22.565 7.23 8.262 4.181 
-#> outer 12 - lambda: 22.565 7.214 8.262 4.174 
-#> outer 13 - lambda: 22.565 7.214 8.262 4.174
+#> outer 9 - lambda: 22.559 7.267 8.26 4.198 
+#> outer 10 - lambda: 22.562 7.243 8.261 4.187 
+#> outer 11 - lambda: 22.563 7.238 8.261 4.184 
+#> outer 12 - lambda: 22.563 7.238 8.261 4.184 
+#> outer 13 - lambda: 22.563 7.238 8.261 4.184
 #> Converged
-#> Final model fit with lambda: 22.565 7.214 8.262 4.174
+#> Final model fit with lambda: 22.563 7.238 8.261 4.184
 #>    user  system elapsed 
-#>  28.722   0.008  28.735
+#>  10.357   0.008  10.368
 ```
 
 Having fitted the model, we can visualise the results. We first decode

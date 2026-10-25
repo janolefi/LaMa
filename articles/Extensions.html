@@ -156,7 +156,7 @@ concentration parameters and fit the model:</p>
 <span><span class="co"># Fitting the model</span></span>
 <span><span class="va">obj_multi</span> <span class="op">=</span> <span class="fu">MakeADFun</span><span class="op">(</span><span class="va">nll_multi</span>, <span class="va">par</span>, silent <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">opt_multi</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></span><span class="op">(</span><span class="va">obj_multi</span><span class="op">$</span><span class="va">par</span>, <span class="va">obj_multi</span><span class="op">$</span><span class="va">fn</span>, <span class="va">obj_multi</span><span class="op">$</span><span class="va">gr</span><span class="op">)</span></span>
-<span><span class="va">mod_multi</span> <span class="op">=</span> <span class="fu"><a href="../reference/report.html">report</a></span><span class="op">(</span><span class="va">obj_multi</span><span class="op">)</span> <span class="co"># reporting from fitted model</span></span></code></pre></div>
+<span><span class="va">mod_multi</span> <span class="op">=</span> <span class="fu"><a href="../reference/lama.html">lama</a></span><span class="op">(</span><span class="va">obj_multi</span><span class="op">)</span> <span class="co"># reporting from fitted model</span></span></code></pre></div>
 <p>Building <code>allprobs</code> with a loop over states as above is
 perfectly valid and gives full control. As a shortcut,
 <code><a href="../reference/statedens.html">statedens()</a></code> builds the matrix of one data stream, with one
@@ -192,7 +192,7 @@ parameters of each stream, the estimated state-dependent densities can
 also be plotted from the model object, weighted by the local state
 probabilities:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mod_multi2</span> <span class="op">=</span> <span class="fu"><a href="../reference/report.html">report</a></span><span class="op">(</span><span class="va">obj_multi2</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">mod_multi2</span> <span class="op">=</span> <span class="fu"><a href="../reference/lama.html">lama</a></span><span class="op">(</span><span class="va">obj_multi2</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">mod_multi2</span>, type <span class="op">=</span> <span class="st">"statedens"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="Extensions_files/figure-html/statedens%20plot-1.png" class="r-plt" alt="" width="85%" style="display: block; margin: auto;"></p>
 <p>We can now plot the estimated state-dependent densities separately
@@ -389,8 +389,8 @@ shape. Model fitting is also extremely quick:</p>
 <span>  <span class="va">opt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></span><span class="op">(</span><span class="va">obj_cov</span><span class="op">$</span><span class="va">par</span>, <span class="va">obj_cov</span><span class="op">$</span><span class="va">fn</span>, <span class="va">obj_cov</span><span class="op">$</span><span class="va">gr</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.037   0.000   0.037</span></span>
-<span><span class="va">mod_cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/report.html">report</a></span><span class="op">(</span><span class="va">obj_cov</span><span class="op">)</span> <span class="co"># reporting from fitted model</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.019   0.000   0.019</span></span>
+<span><span class="va">mod_cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/lama.html">lama</a></span><span class="op">(</span><span class="va">obj_cov</span><span class="op">)</span> <span class="co"># reporting from fitted model</span></span></code></pre></div>
 <p>Let’s plot the fitted model, starting with the estimated
 state-dependent densities. We can obtain approximate global state
 probabilities from decoded states.</p>
@@ -553,7 +553,7 @@ dimension <span class="math inline">T \times 2</span>.</p>
 <span><span class="va">obj_msr</span> <span class="op">=</span> <span class="fu">MakeADFun</span><span class="op">(</span><span class="va">nll_msr</span>, <span class="va">par</span>, silent <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">opt_msr</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></span><span class="op">(</span><span class="va">obj_msr</span><span class="op">$</span><span class="va">par</span>, <span class="va">obj_msr</span><span class="op">$</span><span class="va">fn</span>, <span class="va">obj_msr</span><span class="op">$</span><span class="va">gr</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">mod_msr</span> <span class="op">=</span> <span class="fu"><a href="../reference/report.html">report</a></span><span class="op">(</span><span class="va">obj_msr</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">mod_msr</span> <span class="op">=</span> <span class="fu"><a href="../reference/lama.html">lama</a></span><span class="op">(</span><span class="va">obj_msr</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="visualising-results">Visualising results<a class="anchor" aria-label="anchor" href="#visualising-results"></a>
@@ -681,7 +681,7 @@ entire time series by indexing the 24 matrices using
 <code class="sourceCode R"><span><span class="va">obj_seas</span> <span class="op">=</span> <span class="fu">MakeADFun</span><span class="op">(</span><span class="va">nll_seas</span>, <span class="va">par</span>, silent <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">opt_seas</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></span><span class="op">(</span><span class="va">obj_seas</span><span class="op">$</span><span class="va">par</span>, <span class="va">obj_seas</span><span class="op">$</span><span class="va">fn</span>, <span class="va">obj_seas</span><span class="op">$</span><span class="va">gr</span><span class="op">)</span></span>
 <span><span class="va">sdr_seas</span> <span class="op">=</span> <span class="fu">sdreport</span><span class="op">(</span><span class="va">obj_seas</span><span class="op">)</span></span>
-<span><span class="va">mod_seas</span> <span class="op">=</span> <span class="fu"><a href="../reference/report.html">report</a></span><span class="op">(</span><span class="va">obj_seas</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">mod_seas</span> <span class="op">=</span> <span class="fu"><a href="../reference/lama.html">lama</a></span><span class="op">(</span><span class="va">obj_seas</span><span class="op">)</span></span></code></pre></div>
 <p>And look at the estimated periodically stationary distribution:</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">Delta</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">as.list</a></span><span class="op">(</span><span class="va">sdr_seas</span>, <span class="st">"Est"</span>, report <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">$</span><span class="va">Delta</span></span>

@@ -1,7 +1,7 @@
 # Print a `LaMaModel` object
 
 Prints a short overview of a model from
-[`report`](https://janolefi.github.io/LaMa/reference/report.md) or
+[`lama`](https://janolefi.github.io/LaMa/reference/lama.md) or
 [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md): the state
 process, observations, parameters, log-likelihood, AIC and BIC, and the
 names of the reported quantities. Use

@@ -135,7 +135,7 @@ dimension `c(nTracks, nStates)`.
 **Note:** `forward` should only be called **once** in the likelihood
 function, with a `trackID` argument for multiple tracks. Downstream
 functions like
-[`report`](https://janolefi.github.io/LaMa/reference/report.md),
+[`lama`](https://janolefi.github.io/LaMa/reference/lama.md),
 [`viterbi`](https://janolefi.github.io/LaMa/reference/viterbi.md),
 [`stateprobs`](https://janolefi.github.io/LaMa/reference/stateprobs.md)
 or

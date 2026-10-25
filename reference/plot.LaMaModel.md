@@ -1,7 +1,7 @@
 # Plot a `LaMaModel` object
 
 Plots the pseudo-residuals of a model from
-[`report`](https://janolefi.github.io/LaMa/reference/report.md) or
+[`lama`](https://janolefi.github.io/LaMa/reference/lama.md) or
 [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md), computed
 by
 [`pseudo_res`](https://janolefi.github.io/LaMa/reference/pseudo_res.md)
@@ -112,7 +112,7 @@ par <- list(eta = c(-2, -2), log_mu = log(c(0.3, 2.5)), log_sigma = log(c(0.2, 1
             log_kappa = log(c(0.2, 1.5)))
 obj <- MakeADFun(nll, par, silent = TRUE)
 opt <- nlminb(obj$par, obj$fn, obj$gr)
-mod <- report(obj)
+mod <- lama(obj)
 
 plot(mod) # pseudo-residuals
 

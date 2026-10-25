@@ -120,8 +120,8 @@ system.time(
   opt_pool <- nlminb(obj_pool$par, obj_pool$fn, obj_pool$gr)
 )
 #>    user  system elapsed 
-#>   0.169   0.000   0.170
-mod_pool = report(obj_pool)
+#>   0.086   0.000   0.087
+mod_pool = lama(obj_pool)
 ```
 
 We can inspect the estimated parameters, which should be close to the
@@ -240,8 +240,8 @@ system.time(
   opt_partial <- nlminb(obj_partial$par, obj_partial$fn, obj_partial$gr)
 )
 #>    user  system elapsed 
-#>   0.018   0.000   0.019
-mod_partial = report(obj_partial)
+#>   0.010   0.001   0.009
+mod_partial = lama(obj_partial)
 ```
 
 The estimated regression coefficients for the transition probabilities
@@ -388,8 +388,8 @@ system.time(
   opt_re <- nlminb(obj_re$par, obj_re$fn, obj_re$gr)
 )
 #>    user  system elapsed 
-#>   4.338   0.025   4.364
-mod_re = report(obj_re)
+#>   1.538   0.028   1.567
+mod_re = lama(obj_re)
 ```
 
 The estimated standard deviations of the random effects tell us how much

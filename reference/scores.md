@@ -19,7 +19,7 @@ scores(obj, par = NULL)
 - obj:
 
   optimised `RTMB` object from `MakeADFun`, or a model object from
-  [`report`](https://janolefi.github.io/LaMa/reference/report.md) or
+  [`lama`](https://janolefi.github.io/LaMa/reference/lama.md) or
   [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md)
 
 - par:
@@ -72,7 +72,7 @@ step <- trex$step[1:200]
 par <- list(eta = c(-2, -2), mu = c(0.3, 2.5), sigma = c(0.2, 1.5))
 obj <- MakeADFun(nll, par, silent = TRUE)
 opt <- nlminb(obj$par, obj$fn, obj$gr)
-mod <- report(obj)
+mod <- lama(obj)
 U <- scores(mod)
 colSums(U) # ~ 0 at the MLE
 #>           eta           eta            mu            mu         sigma 

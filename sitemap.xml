@@ -36,6 +36,7 @@
 <url><loc>https://janolefi.github.io/LaMa/reference/generator_g.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/grapes-sp-grapes.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/index.html</loc></url>
+<url><loc>https://janolefi.github.io/LaMa/reference/lama.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/logLik.LaMaModel.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/make_matrices.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/make_matrices_dens.html</loc></url>
@@ -55,7 +56,6 @@
 <url><loc>https://janolefi.github.io/LaMa/reference/pseudo_res.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/qreml.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/qreml_old.html</loc></url>
-<url><loc>https://janolefi.github.io/LaMa/reference/report.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/scores.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/sdreportMC.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/sdreport_outer.html</loc></url>

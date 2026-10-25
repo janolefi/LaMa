@@ -13,7 +13,7 @@ logLik(object, ...)
 
 - object:
 
-  A model fitted using RTMB and obtained via `report(obj)` of class
+  A model fitted using RTMB and obtained via `lama(obj)` of class
   "LaMaModel"
 
 - ...:

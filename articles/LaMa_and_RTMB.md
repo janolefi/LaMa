@@ -207,11 +207,12 @@ automatically updated after the optimisation. Note that calling
 while `obj$par` is not updated but still the initial parameter vector
 (kind of confusing). To get our estimated parameters on their natural
 scale, we don’t have to do the backtransformation manually. We can just
-run the reporting:
+call [`lama()`](https://janolefi.github.io/LaMa/reference/lama.md),
+which runs the reporting and returns a model object:
 
 ``` r
 
-mod = report(obj) # runs the reporting from the negative log-likelihood once
+mod = lama(obj) # runs the reporting from the negative log-likelihood once
 (delta = mod$delta) # stationary distribution
 #>        S1        S2 
 #> 0.4817329 0.5182671
@@ -311,8 +312,8 @@ legend("top", lwd = 2, col = color, legend = c("state 1", "state 2"), bty = "n")
 ![](LaMa_and_RTMB_files/figure-html/statedepdist-1.png)
 
 Note that because we have used
-[`report()`](https://janolefi.github.io/LaMa/reference/report.md), `mod`
-now has class “LaMaModel”, which permits the use of
+[`lama()`](https://janolefi.github.io/LaMa/reference/lama.md), `mod` now
+has class “LaMaModel”, which permits the use of
 [`AIC()`](https://rdrr.io/r/stats/AIC.html) and
 [`BIC()`](https://rdrr.io/r/stats/AIC.html):
 

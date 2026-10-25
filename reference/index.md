@@ -92,6 +92,11 @@
 - [`` `%sp%` ``](https://janolefi.github.io/LaMa/reference/grapes-sp-grapes.md)
   : Sparsity-retaining matrix multiplication
 
+- [`lama()`](https://janolefi.github.io/LaMa/reference/lama.md)
+  [`report()`](https://janolefi.github.io/LaMa/reference/lama.md) :
+
+  Build a `LaMaModel` from an optimised `RTMB` object
+
 - [`logLik(`*`<LaMaModel>`*`)`](https://janolefi.github.io/LaMa/reference/logLik.LaMaModel.md)
   : Extract log-likelihood from LaMaModel object
 
@@ -167,11 +172,6 @@
 - [`qreml_old()`](https://janolefi.github.io/LaMa/reference/qreml_old.md)
   : Quasi restricted maximum likelihood (qREML) algorithm, previous
   version
-
-- [`report()`](https://janolefi.github.io/LaMa/reference/report.md) :
-
-  Get reported quantities from and `RTMB` object and return a
-  `LaMaModel`
 
 - [`scores()`](https://janolefi.github.io/LaMa/reference/scores.md) :
   Per-observation score contributions

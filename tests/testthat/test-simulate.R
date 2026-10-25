@@ -153,3 +153,17 @@ test_that("obj$simulate(): random effects first, then states and data given them
   # the likelihood itself is unchanged
   expect_true(is.finite(obj_re$fn(obj_re$par)))
 })
+
+test_that("simulate(mod, random = TRUE) uses obj$simulate()", {
+  mod <- report(obj_re)
+  sim <- simulate(mod, random = TRUE, seed = 1)
+  expect_named(sim, c("trackID", "state", "step_re"))
+  expect_equal(is.na(sim$step_re), is.na(step_re))
+  expect_equal(simulate(mod, random = TRUE, seed = 1), sim)
+  expect_length(simulate(mod, random = TRUE, nsim = 2), 2)
+  # fixed random effects (default) differ from freshly drawn ones: spread of the track means in state 1
+  spread <- function(s) sd(tapply(log(s$step_re[s$state == 1]), s$trackID[s$state == 1], mean, na.rm = TRUE))
+  set.seed(2)
+  expect_gt(mean(sapply(simulate(mod, random = TRUE, nsim = 5), spread)), 0.3) # sd of u is 0.5
+  expect_error(simulate(mod_sim, random = TRUE), "OBS")
+})

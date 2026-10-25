@@ -60,7 +60,7 @@ sim_stream <- function(st, Z, rdens = NULL) {
 #' per time interval (the simulation is then conditional on the observed time points).
 #' Each data stream is drawn from the random number generator belonging to its density, e.g. \code{rgamma2} for \code{dgamma2}.
 #' Missing observations of the data stay missing, except for a stream that is missing completely: such a placeholder
-#' (e.g. \code{step = rep(NA, n)}) lets you simulate from a likelihood function without data, see the examples. Models with random effects are simulated conditional on the estimated random effects.
+#' (e.g. \code{step = rep(NA, n)}) lets you simulate from a likelihood function without data, see the examples. Models with random effects are by default simulated conditional on the estimated random effects, see \code{random}.
 #'
 #' @param object model object from \code{\link{report}} or \code{\link{qreml}} that was built with \code{\link{statedens}}
 #' @param nsim number of simulations
@@ -68,6 +68,11 @@ sim_stream <- function(st, Z, rdens = NULL) {
 #' @param rdens optional named list of random number generators of the data streams, for densities without one named
 #' by replacing the leading \code{d} with \code{r} (e.g. from \code{\link{zero_inflate}}). The first argument is the number of draws,
 #' the others are the parameters as in the density.
+#' @param random logical; if \code{TRUE}, \code{obj$simulate()} of \code{RTMB} is used, so that random effects (declared with
+#' \code{\%~\%}) are drawn from their distribution first, and the states and data are simulated given them.
+#' The data in the likelihood function need to be marked by \code{x <- OBS(x)} (with the same name on both sides) and
+#' passed to \code{\link{statedens}}; the design is that of the likelihood function as built. Default is \code{FALSE},
+#' which keeps the reported (estimated) random effects.
 #' @param ... currently not used
 #'
 #' @return data frame with the columns \code{trackID} (if used), \code{state} and one column per data stream, for \code{nsim = 1},
@@ -100,7 +105,23 @@ sim_stream <- function(st, Z, rdens = NULL) {
 #' dat$step <- sim$step; dat$angle <- sim$angle
 #' obj1 <- MakeADFun(nll, par, silent = TRUE)
 #' opt1 <- nlminb(obj1$par, obj1$fn, obj1$gr)
-simulate.LaMaModel <- function(object, nsim = 1, seed = NULL, rdens = NULL, ...) {
+#'
+#' # random effects: RTMB draws them first, then the states and data are simulated given them
+#' nll_re <- function(par) {
+#'   getAll(par, dat)
+#'   step <- OBS(step) # data to be simulated, same name on both sides
+#'   u %~% dnorm(0, exp(log_su)) # random effect for the means of the step length
+#'   Gamma <- tpm(eta)
+#'   mu <- exp(cbind(log_mu[1] + u, log_mu[2]))
+#'   .nll <- .nll - forward(stationary(Gamma), Gamma, statedens(step, dgamma2, mu, exp(log_sigma)))
+#'   .nll
+#' }
+#' dat <- list(step = trex$step[1:500])
+#' par_re <- list(eta = c(-2, -2), log_mu = log(c(0.3, 2.5)), log_sigma = log(c(0.2, 1.5)),
+#'                log_su = log(0.1), u = rep(0, 500))
+#' obj_re <- MakeADFun(nll_re, par_re, random = "u", silent = TRUE)
+#' sim_re <- simulate(report(obj_re), random = TRUE, seed = 1)
+simulate.LaMaModel <- function(object, nsim = 1, seed = NULL, rdens = NULL, random = FALSE, ...) {
   # keep the random number stream of the session, as stats::simulate() methods do
   if(!is.null(seed)) {
     if(!exists(".Random.seed", envir = globalenv())) runif(1)
@@ -108,13 +129,28 @@ simulate.LaMaModel <- function(object, nsim = 1, seed = NULL, rdens = NULL, ...)
     on.exit(assign(".Random.seed", old, envir = globalenv()))
     set.seed(seed)
   }
-  st <- get_streams(object)
-  inp <- prepare_decoding(mod = object)
+  if(random) {
+    obj <- get_obj(object)
+    if(!length(obj$env$obs)) stop("No data marked with OBS() in the likelihood function, see ?simulate.LaMaModel.")
+    .lama_env$rdens <- rdens
+    on.exit(.lama_env$rdens <- NULL, add = TRUE)
+  } else {
+    st <- get_streams(object)
+    inp <- prepare_decoding(mod = object)
+  }
 
   sims <- lapply(seq_len(nsim), function(i) {
-    Z <- sim_states(inp)
-    x <- lapply(names(st), function(s) sim_stream(st[[s]], Z, rdens[[s]]))
-    names(x) <- names(st)
+    if(random) {
+      # RTMB draws the random effects, forward() the states and data given them
+      sim <- obj$simulate(obj$env$last.par.best)
+      if(is.null(sim$states)) stop("No states were simulated: the likelihood needs forward() with statedens().")
+      Z <- sim$states
+      x <- sim[intersect(names(obj$env$obs), names(sim))]
+    } else {
+      Z <- sim_states(inp)
+      x <- lapply(names(st), function(s) sim_stream(st[[s]], Z, rdens[[s]]))
+      names(x) <- names(st)
+    }
     out <- data.frame(state = Z, x)
     if(!is.null(object$trackID)) out <- cbind(trackID = object$trackID, out)
     out
@@ -127,11 +163,12 @@ simulate.LaMaModel <- function(object, nsim = 1, seed = NULL, rdens = NULL, ...)
 sim_forward <- function(streams, delta, Gamma, allprobs, trackID, logspace, tod) {
   inp <- prepare_forward(delta, Gamma, allprobs, trackID, logspace, gidx = tod)
   states <- sim_states(inp)
-  for(st in streams) {
+  for(s in names(streams)) {
+    st <- streams[[s]]
     x <- st$x
     if(!inherits(x, "simref")) next
     st$x <- rep(NA_real_, length(x)) # all rows are drawn
-    draws <- sim_stream(st, states)
+    draws <- sim_stream(st, states, .lama_env$rdens[[s]])
     draws[is.na(x$orig)] <- NA # missing observations of the data stay missing
     x$reverse.update(draws, seq_along(draws))
   }

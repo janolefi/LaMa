@@ -4,7 +4,7 @@
 \alias{simulate.LaMaModel}
 \title{Simulate from a fitted model}
 \usage{
-\method{simulate}{LaMaModel}(object, nsim = 1, seed = NULL, rdens = NULL, ...)
+\method{simulate}{LaMaModel}(object, nsim = 1, seed = NULL, rdens = NULL, random = FALSE, ...)
 }
 \arguments{
 \item{object}{model object from \code{\link{report}} or \code{\link{qreml}} that was built with \code{\link{statedens}}}
@@ -16,6 +16,12 @@
 \item{rdens}{optional named list of random number generators of the data streams, for densities without one named
 by replacing the leading \code{d} with \code{r} (e.g. from \code{\link{zero_inflate}}). The first argument is the number of draws,
 the others are the parameters as in the density.}
+
+\item{random}{logical; if \code{TRUE}, \code{obj$simulate()} of \code{RTMB} is used, so that random effects (declared with
+\code{\%~\%}) are drawn from their distribution first, and the states and data are simulated given them.
+The data in the likelihood function need to be marked by \code{x <- OBS(x)} (with the same name on both sides) and
+passed to \code{\link{statedens}}; the design is that of the likelihood function as built. Default is \code{FALSE},
+which keeps the reported (estimated) random effects.}
 
 \item{...}{currently not used}
 }
@@ -37,7 +43,7 @@ The states are drawn as in the decoding functions, so that all types of \code{Ga
 per time interval (the simulation is then conditional on the observed time points).
 Each data stream is drawn from the random number generator belonging to its density, e.g. \code{rgamma2} for \code{dgamma2}.
 Missing observations of the data stay missing, except for a stream that is missing completely: such a placeholder
-(e.g. \code{step = rep(NA, n)}) lets you simulate from a likelihood function without data, see the examples. Models with random effects are simulated conditional on the estimated random effects.
+(e.g. \code{step = rep(NA, n)}) lets you simulate from a likelihood function without data, see the examples. Models with random effects are by default simulated conditional on the estimated random effects, see \code{random}.
 }
 \examples{
 nll <- function(par) {
@@ -64,4 +70,20 @@ sim <- simulate(report(obj0), seed = 1)
 dat$step <- sim$step; dat$angle <- sim$angle
 obj1 <- MakeADFun(nll, par, silent = TRUE)
 opt1 <- nlminb(obj1$par, obj1$fn, obj1$gr)
+
+# random effects: RTMB draws them first, then the states and data are simulated given them
+nll_re <- function(par) {
+  getAll(par, dat)
+  step <- OBS(step) # data to be simulated, same name on both sides
+  u \%~\% dnorm(0, exp(log_su)) # random effect for the means of the step length
+  Gamma <- tpm(eta)
+  mu <- exp(cbind(log_mu[1] + u, log_mu[2]))
+  .nll <- .nll - forward(stationary(Gamma), Gamma, statedens(step, dgamma2, mu, exp(log_sigma)))
+  .nll
+}
+dat <- list(step = trex$step[1:500])
+par_re <- list(eta = c(-2, -2), log_mu = log(c(0.3, 2.5)), log_sigma = log(c(0.2, 1.5)),
+               log_su = log(0.1), u = rep(0, 500))
+obj_re <- MakeADFun(nll_re, par_re, random = "u", silent = TRUE)
+sim_re <- simulate(report(obj_re), random = TRUE, seed = 1)
 }

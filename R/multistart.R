@@ -23,7 +23,12 @@
 #' Only converged runs (convergence code 0 and maximum gradient component below 0.01) count for stopping. With \code{stop = "bayes"}, the Bayesian stopping rule of
 #' Boender and Rinnooy Kan (1987) is used: after \eqn{k} runs with \eqn{w} distinct optima, the expected number of optima is
 #' \eqn{w(k-1)/(k-w-2)}, and \code{multistart()} stops when this is below \eqn{w + 0.5}, i.e. probably no optimum is missed.
-#' This needs at least 8 converged runs. With \code{stop = "hits"}, it stops once the best optimum was reached \code{hits} times.
+#' The rule assumes that the starts are independent draws from one distribution, in which each optimum has an unknown probability
+#' of being reached (the probability mass of its basin of attraction), with a uniform prior on these probabilities.
+#' Hence, only the random starts count, not the first run from \code{obj$par}, and the rule is not used for given \code{starts}.
+#' It needs at least 8 converged random starts. "No optimum missed" is relative to the distribution of the starts: optima far away
+#' from it, or with a small basin of attraction, can be missed.
+#' With \code{stop = "hits"}, it stops once the best optimum was reached \code{hits} times.
 #' In any case, at most \code{nstarts} starts are run.
 #'
 #' @param obj \code{RTMB} object from \code{MakeADFun()}
@@ -33,7 +38,7 @@
 #' @param starts optional matrix of starting values, one per row, with columns as \code{obj$par}; then \code{nstarts} and \code{sd} are ignored
 #' @param scale \code{"fixed"} for perturbations of \code{obj$par} with \code{sd}, or \code{"unit_info"} for perturbations of the first fit
 #' scaled by the unit information, see \sQuote{Details}
-#' @param stop stopping rule: \code{"bayes"}, \code{"hits"} or \code{"none"}, see \sQuote{Details}
+#' @param stop stopping rule: \code{"bayes"} (not used for given \code{starts}), \code{"hits"} or \code{"none"}, see \sQuote{Details}
 #' @param hits number of times the best optimum needs to be reached for \code{stop = "hits"}
 #' @param sd_max largest standard deviation for \code{scale = "unit_info"}
 #' @param tol relative tolerance for two runs to reach the same optimum
@@ -133,9 +138,11 @@ multistart <- function(obj, nstarts = 20, sd = 1, starts = NULL, scale = c("fixe
       if(stop == "hits" && sum(nll - best <= tol * max(1, abs(best))) >= hits) {
         stopped <- "best optimum reached often enough"; break
       }
-      k <- length(nll)
-      w <- n_optima(nll, tol)
-      if(stop == "bayes" && k > w + 2 && w * (k - 1) / (k - w - 2) < w + 0.5) {
+      # Bayesian rule only on random draws: not run 1 (obj$par) or given starts
+      nll_r <- runs$nll[setdiff(converged(runs), 1)]
+      k <- length(nll_r)
+      w <- if(k) n_optima(nll_r, tol) else 0
+      if(stop == "bayes" && is.null(starts) && k > w + 2 && w * (k - 1) / (k - w - 2) < w + 0.5) {
         stopped <- "Bayesian stopping rule"; break
       }
     }

@@ -33,7 +33,7 @@ or a named list with one value per parameter (names as in the parameter list)}
 \item{scale}{\code{"fixed"} for perturbations of \code{obj$par} with \code{sd}, or \code{"unit_info"} for perturbations of the first fit
 scaled by the unit information, see \sQuote{Details}}
 
-\item{stop}{stopping rule: \code{"bayes"}, \code{"hits"} or \code{"none"}, see \sQuote{Details}}
+\item{stop}{stopping rule: \code{"bayes"} (not used for given \code{starts}), \code{"hits"} or \code{"none"}, see \sQuote{Details}}
 
 \item{hits}{number of times the best optimum needs to be reached for \code{stop = "hits"}}
 
@@ -79,7 +79,12 @@ If the Hessian is not positive definite (or \code{allprobs} is not reported, so 
 Only converged runs (convergence code 0 and maximum gradient component below 0.01) count for stopping. With \code{stop = "bayes"}, the Bayesian stopping rule of
 Boender and Rinnooy Kan (1987) is used: after \eqn{k} runs with \eqn{w} distinct optima, the expected number of optima is
 \eqn{w(k-1)/(k-w-2)}, and \code{multistart()} stops when this is below \eqn{w + 0.5}, i.e. probably no optimum is missed.
-This needs at least 8 converged runs. With \code{stop = "hits"}, it stops once the best optimum was reached \code{hits} times.
+The rule assumes that the starts are independent draws from one distribution, in which each optimum has an unknown probability
+of being reached (the probability mass of its basin of attraction), with a uniform prior on these probabilities.
+Hence, only the random starts count, not the first run from \code{obj$par}, and the rule is not used for given \code{starts}.
+It needs at least 8 converged random starts. "No optimum missed" is relative to the distribution of the starts: optima far away
+from it, or with a small basin of attraction, can be missed.
+With \code{stop = "hits"}, it stops once the best optimum was reached \code{hits} times.
 In any case, at most \code{nstarts} starts are run.
 }
 \examples{

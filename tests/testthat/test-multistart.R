@@ -42,10 +42,12 @@ test_that("multistart: sd per parameter block and given starts", {
 
 test_that("multistart: stopping rules", {
   obj <- RTMB::MakeADFun(nll_ms, par_ms, silent = TRUE)
-  # starts at the same point: one optimum, hits stops after 3, Bayes after 8
+  # starts at the same point: one optimum, hits stops after 3
   S <- matrix(obj$par, 20, length(obj$par), byrow = TRUE)
   expect_equal(nrow(multistart(obj, starts = S, stop = "hits", silent = TRUE)$runs), 3)
-  expect_equal(nrow(multistart(obj, starts = S, stop = "bayes", silent = TRUE)$runs), 8)
+  # Bayes: not for given starts, else after 8 random starts besides obj$par
+  expect_equal(nrow(multistart(obj, starts = S, stop = "bayes", silent = TRUE)$runs), 20)
+  expect_equal(nrow(multistart(obj, sd = 0, stop = "bayes", silent = TRUE)$runs), 9)
   expect_equal(n_optima(c(1, 1 + 1e-9, 2), 1e-6), 2)
   expect_output(multistart(obj, starts = S[1:2, ], stop = "none"), "2 starts, 2 converged, 1 distinct optima")
 })

@@ -135,7 +135,7 @@ make_matrices_flat <- function(formula, data, knots = NULL) {
         stop("'", sm$label, "' is unpenalised (e.g. fx = TRUE), which is not supported.")
       }
 
-      if (is.null(sm$margin)) {
+      if (length(sm$S) == 1) {
         # Single-penalty smooth
         S[[label]] <- gam_setup$S[[counter]]
         pardim[[sm$label]] <- nrow(S[[label]])
@@ -143,9 +143,9 @@ make_matrices_flat <- function(formula, data, knots = NULL) {
         sp0[label] <- sp_init[counter]
         counter <- counter + 1
       } else {
-        # Tensor product smooth
-        n_pen <- length(sm$margin)
-        margin_names <- sapply(sm$margin, `[[`, "term")
+        # several penalties: one per margin for a tensor product, but also e.g. bs = "fs"
+        n_pen <- length(sm$S)
+        margin_names <- if(length(sm$margin) == n_pen) sapply(sm$margin, `[[`, "term") else seq_len(n_pen)
         penalty_list <- gam_setup$S[counter:(counter + n_pen - 1)]
         names(penalty_list) <- margin_names
         S[[label]] <- penalty_list

@@ -117,7 +117,7 @@ by combining automatic differentiation via <code>RTMB</code> with a custom imple
 
 
 <dt id="arg-tol-edf">tol_edf<a class="anchor" aria-label="anchor" href="#arg-tol-edf"></a></dt>
-<dd><p>convergence tolerance on the <strong>effective degrees of freedom</strong>. Defaults to 0.001.</p>
+<dd><p>convergence tolerance on the <strong>effective degrees of freedom</strong>.</p>
 <p>This is the primary convergence criterion. The iteration stops once no smooth's effective degrees of freedom has changed by more than <code>tol_edf</code> across the last four outer iterations, provided the step in <code>log(lambda)</code> is also small.
 The effective degrees of freedom are what say whether the <strong>fitted smooth</strong> is still changing, and unlike a tolerance on the restricted likelihood they mean the same thing on every model, being measured in effective parameters rather than in nats.
 The penalty strengths themselves are a poor proxy: <code>lambda</code> can slide along a flat ridge for many iterations, moving substantially in relative terms, while neither the criterion nor the fit changes appreciably.</p></dd>

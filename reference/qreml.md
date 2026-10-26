@@ -82,7 +82,6 @@ qreml(
 - tol_edf:
 
   convergence tolerance on the **effective degrees of freedom**.
-  Defaults to 0.001.
 
   This is the primary convergence criterion. The iteration stops once no
   smooth's effective degrees of freedom has changed by more than

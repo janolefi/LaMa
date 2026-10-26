@@ -334,45 +334,24 @@ rep_sp <- function(model_matrices, N) {
 #' @seealso \code{\link{make_matrices}}
 #' @export
 print.LaMa_matrices <- function(x, ...) {
-  # flatten the formula tree into rows: a stream name has no right-hand side,
-  # a formula has both, and depth drives the indentation
-  rows <- list()
-  walk <- function(f, name, depth) {
-    if(inherits(f, "formula")){
-      has_lhs <- length(f) == 3
-      lhs <- if(has_lhs) deparse(f[[2]]) else if(!is.null(name)) name else ""
-      rhs <- paste(deparse(f[[length(f)]]), collapse = " ")
-      rows[[length(rows) + 1]] <<- list(depth = depth, lhs = lhs,
-                                        rhs = gsub("\\s+", " ", rhs))
-    } else {
-      nms <- names(f)
-      for(i in seq_along(f)){
-        nm <- if(is.null(nms)) NULL else nms[i]
-        if(inherits(f[[i]], "formula")){
-          walk(f[[i]], nm, depth)
-        } else { # a further level of nesting, e.g. one entry per data stream
-          rows[[length(rows) + 1]] <<- list(depth = depth,
-                                            lhs = if(is.null(nm)) paste0("stream", i) else nm,
-                                            rhs = NULL)
-          walk(f[[i]], NULL, depth + 1)
-        }
-      }
-    }
+  # one line per formula, named as in the rest of the object, tildes lined up
+  show <- function(f, nms, pad, width) {
+    rhs <- vapply(f, function(g) paste(deparse(g[[length(g)]]), collapse = " "), "")
+    lhs <- if(is.null(nms)) "" else paste0(formatC(nms, width = width, flag = "-"), " ")
+    cat(paste0(pad, lhs, "~ ", gsub("\\s+", " ", rhs), "\n"), sep = "")
   }
-  walk(x$formula, NULL, 0)
-
+  f <- x$formula
   cat("Model matrices for\n\n")
-  fml_rows <- vapply(rows, function(r) !is.null(r$rhs), TRUE)
-  # line the tildes up, per indentation level
-  width <- stats::setNames(rep(0L, 10), as.character(0:9))
-  for(r in rows[fml_rows]) width[as.character(r$depth)] <-
-    max(width[as.character(r$depth)], nchar(r$lhs))
-  for(r in rows){
-    pad <- strrep("  ", r$depth + 1)
-    if(is.null(r$rhs)) cat(pad, r$lhs, "\n", sep = "")
-    else if(!nzchar(r$lhs)) cat(pad, "~ ", r$rhs, "\n", sep = "") # right-side only
-    else cat(pad, formatC(r$lhs, width = width[as.character(r$depth)], flag = "-"),
-             " ~ ", r$rhs, "\n", sep = "")
+  if(inherits(f, "formula")){
+    show(list(f), get_name(f), "  ", 0)
+  } else if(inherits(f[[1]], "formula")){
+    show(f, names(f), "  ", max(nchar(names(f))))
+  } else { # one entry per data stream
+    width <- max(0, nchar(unlist(lapply(f, names))))
+    for(s in names(f)){
+      cat("  ", s, "\n", sep = "")
+      show(f[[s]], names(f[[s]]), "    ", width)
+    }
   }
 
   cat("\n---\n\n")

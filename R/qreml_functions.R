@@ -807,7 +807,8 @@ qreml <- function(pnll, # penalised negative log-likelihood function
       for(i in 1:n_re){
         for(j in 1:nrow(re_inds[[i]])){
           r <- ranks[i]
-          loglam <- if(i == 1) par$loglambda[j] else par$loglambda[re_lengths[i-1] + j]
+          offset <- if(i == 1) 0 else sum(re_lengths[1:(i-1)])
+          loglam <- par$loglambda[offset + j]
           const <- const - r * log(2*pi) + r * loglam + logdetS[i]
         }
       }

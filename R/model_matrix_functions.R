@@ -546,7 +546,7 @@ predict.LaMa_matrices <- function(object, newdata, what = NULL, exclude = NULL, 
   } else {
     if(inherits(object$gam0, "gam")){
       if(!is.null(what)){
-        message("'model_matrics' only contains a single gam object, 'what' is not used.")
+        message("'object' only contains a single gam object, 'what' is not used.")
       }
       gam_setup0 <- object$gam0
     } else {
@@ -595,7 +595,7 @@ predict.LaMa_matrices <- function(object, newdata, what = NULL, exclude = NULL, 
 #'
 #' @param model_matrices model_matrices object as returned from \code{\link{make_matrices}}
 #' @param newdata data frame containing the variables in the formula and new data for which to evaluate the basis
-#' @param what optional character string specifying which formula to use for prediction, if \code{object} contains multiple formulas. If \code{NULL}, the first formula is used.
+#' @param what optional character string specifying which formula to use for prediction if \code{model_matrices} contains multiple formulas.
 #' @param exclude optional vector of terms to set to zero in the predicted design matrix. Useful for predicting main effects only when e.g. \code{sd(..., bs = "re")} terms are present. See \code{mgcv::predict.gam} for more details.
 #' @return prediction design matrix for \code{newdata} with the same basis as used for \code{model_matrices}
 #'

@@ -57,12 +57,6 @@ new_LaMa_matrices <- function(Z, S, pardim, coef, sp0, formula, data, gam, gam0,
 ## single flat list of penalty matrices. 'prefix' qualifies their names with the
 ## component name, which is what distinguishes a nested formula list from a flat one.
 combine_LaMa_matrices <- function(res, data, prefix = FALSE) {
-  if(prefix) for(nm in names(res)){
-    names(res[[nm]]$S) <- paste0(nm, ".", names(res[[nm]]$S))
-    names(res[[nm]]$coef) <- paste0(nm, ".", names(res[[nm]]$coef))
-    names(res[[nm]]$sp0) <- paste0(nm, ".", names(res[[nm]]$sp0))
-  }
-
   # NULL components are dropped, because the accumulating loop this replaces used
   # res[[name]] <- NULL, which deletes rather than assigns. Matters for 'knots',
   # which is NULL whenever the caller supplied none
@@ -71,8 +65,8 @@ combine_LaMa_matrices <- function(res, data, prefix = FALSE) {
     keep <- !vapply(v, is.null, TRUE)
     if(any(keep)) v[keep] else list()
   }
-  # unname() first: c() would otherwise qualify the names a second time
-  flat <- function(what) do.call(c, unname(per(what)))
+  # c() qualifies the names by the component name, wanted only with 'prefix'
+  flat <- function(what) do.call(c, if(prefix) per(what) else unname(per(what)))
 
   new_LaMa_matrices(Z = per("Z"), S = flat("S"), pardim = per("pardim"),
                     coef = flat("coef"), sp0 = flat("sp0"),

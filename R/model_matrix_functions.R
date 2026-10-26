@@ -131,7 +131,10 @@ make_matrices_flat <- function(formula, data, knots = NULL) {
       } else {
         label <- paste0(name, ".", sm$label)
       }
-      
+      if(length(sm$S) == 0){
+        stop("'", sm$label, "' is unpenalised (e.g. fx = TRUE), which is not supported.")
+      }
+
       if (is.null(sm$margin)) {
         # Single-penalty smooth
         S[[label]] <- gam_setup$S[[counter]]

@@ -57,9 +57,7 @@ new_LaMa_matrices <- function(Z, S, pardim, coef, sp0, formula, data, gam, gam0,
 ## single flat list of penalty matrices. 'prefix' qualifies their names with the
 ## component name, which is what distinguishes a nested formula list from a flat one.
 combine_LaMa_matrices <- function(res, data, prefix = FALSE) {
-  # NULL components are dropped, because the accumulating loop this replaces used
-  # res[[name]] <- NULL, which deletes rather than assigns. Matters for 'knots',
-  # which is NULL whenever the caller supplied none
+  # drop NULL entries, e.g. knots when none were supplied
   per <- function(what) {
     v <- lapply(res, `[[`, what)
     keep <- !vapply(v, is.null, TRUE)
@@ -104,10 +102,8 @@ make_matrices_flat <- function(formula, data, knots = NULL) {
     # mgcv's initial guesses, one per penalty matrix and in the same order as
     # gam_setup$S, so the loop below can name them as it walks the smooths
     sp_init <- initial.sp(Z, gam_setup$S, gam_setup$off)
-    # started well above mgcv's guess: the inner fits are better behaved when
-    # constrained initially, and the outer iteration relaxes the penalty from
-    # there. Capped, so that a term whose basis carries a large covariate scale
-    # does not start somewhere absurd
+    # started well above mgcv's guess, as the inner fits are better behaved when
+    # constrained initially; capped for terms with a large covariate scale
     sp_init <- pmin(100 * sp_init, 1e6)
 
     S <- list()
@@ -203,18 +199,12 @@ make_matrices_flat <- function(formula, data, knots = NULL) {
 #' \item{\code{S}}{list of penalty matrices (with names based on the response terms of the formulas as well as the smooth terms and covariates). For tensorproduct smooths, corresponding entries are themselves lists, containing the \eqn{d} marginal penalty matrices if \eqn{d} is the dimension of the tensor product)}
 #' \item{\code{pardim}}{list of parameter dimensions (fixed and penalised separately) for each formula, for ease of setting up initial parameters}
 #' \item{\code{coef}}{list of coefficient vectors filled with zeros of the correct length for each formula, for ease of setting up initial parameters}
-#' \item{\code{sp0}}{named vector of \strong{initial penalty strengths}, with one entry per penalty matrix and names matching \code{S} (a tensor product contributes one entry per margin, named \code{<smooth>.<margin>}).
+#' \item{\code{sp0}}{named vector of \strong{initial penalty strengths}, with one entry per penalty matrix and names matching \code{S} (a smooth with several penalties, e.g. a tensor product, contributes one entry each, named \code{<smooth>.<margin>}).
 #'
-#' These are \code{\link[mgcv]{initial.sp}}'s relative guesses raised by a factor of 100 and capped at \code{1e6}. The factor is deliberate: for the models this package targets, the inner optimisation is better behaved when it starts constrained, and the outer iteration relaxes the penalty from there, whereas an under-penalised first fit can settle in a poor local optimum that later iterations inherit through the warm start. The cap keeps a term whose basis carries a large covariate scale, such as a \code{by =} smooth with a large covariate, from starting absurdly high.
+#' These are \code{\link[mgcv]{initial.sp}}'s guesses times 100, capped at \code{1e6}: the inner optimisation is better behaved when it starts constrained, and the outer iteration relaxes the penalty from there.
 #'
 #' It can be passed straight to \code{\link{penalty}} or \code{\link{penalty2}} when each smooth appears once. 
-#' When a smooth is replicated, e.g. one spline per state or per off-diagonal element of the transition probability matrix, the entries have to be repeated, and \code{lambda} runs over replicates \strong{within} each smooth. 
-#' A single \code{rep()} over \code{sp0} is therefore only correct for some models: use \code{each = N} if every smooth carries one penalty, \code{times = N} if there is a single tensor product, and neither if the two are mixed. Repeating per smooth always works:
-#' \preformatted{
-#' n <- sapply(modmat$S, function(x) if(is.matrix(x)) 1 else length(x))
-#' lambda <- unlist(lapply(split(modmat$sp0, rep(seq_along(n), n)),
-#'                         rep, times = N))
-#' }}
+#' When a smooth is replicated, e.g. one spline per state, use \code{\link{rep_sp}}, as a single \code{rep()} over \code{sp0} is only correct for some models.}
 #' \item{\code{formula}}{the formula(s) as supplied, in the same nesting as \code{Z}}
 #' \item{\code{data}}{the data frame used for the model(s)}
 #' \item{\code{gam}}{unfitted \code{mgcv::gam} object used for construction of \code{Z} and \code{S} (or list of such objects if \code{formula} is a list). Its \code{X} element is not kept, as it is returned as \code{Z}}

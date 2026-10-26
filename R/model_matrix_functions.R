@@ -516,11 +516,12 @@ process_hid_formulas <- function(formulas,
 #' @param object model matrices object as returned from \code{\link{make_matrices}}
 #' @param newdata data frame containing the variables in the formula and new data for which to evaluate the basis
 #' @param what optional character string specifying which formula to use for prediction if \code{object} contains multiple formulas.
-#' @param ... passed on to \code{\link{pred_matrix}}, in particular \code{exclude} to set terms to zero in the predicted design matrix
+#' @param exclude optional vector of terms to set to zero in the predicted design matrix. Useful for predicting main effects only when e.g. \code{s(..., bs = "re")} terms are present. See \code{mgcv::predict.gam} for more details.
+#' @param ... for method consistency only
 #'
 #' @seealso \code{\link{make_matrices}} for creating objects of class \code{LaMa_matrices} which can be used for prediction by this function.
 #'
-#' @return prediction design matrix for \code{newdata} with the same basis as used for \code{model_matrices}
+#' @return prediction design matrix for \code{newdata} with the same basis as used for \code{object}
 #' @export
 #' 
 #'
@@ -535,50 +536,42 @@ process_hid_formulas <- function(formulas,
 #' form = list(stream1 = list(mu ~ s(x), sigma ~ s(x, bs = "ps")))
 #' modmat = make_matrices(form, data = data.frame(x = 1:10))
 #' Z_p = predict(modmat, data.frame(x = 1:10 - 0.5), what = c("stream1", "mu"))
-predict.LaMa_matrices <- function(object, newdata, what = NULL, ...){
-  pred_matrix_internal(object, newdata = newdata, what = what, ...) # ... carries 'exclude'
-}
-
-
 #' @importFrom mgcv gam
 #' @importFrom mgcv s
 #' @importFrom mgcv predict.gam
-#' @noRd
-## the worker behind predict.LaMa_matrices(); pred_matrix() is a deprecated
-## wrapper around it, so the deprecation warning is not raised by predict()
-pred_matrix_internal <- function(model_matrices, newdata, what = NULL, exclude = NULL) {
+predict.LaMa_matrices <- function(object, newdata, what = NULL, exclude = NULL, ...){
   
-  if(is.null(model_matrices$gam0)){
-    stop("'model_matrices' contains no 'gam0' object; rebuild it with make_matrices()")
+  if(is.null(object$gam0)){
+    stop("'object' contains no 'gam0' object; rebuild it with make_matrices()")
   } else {
-    if(inherits(model_matrices$gam0, "gam")){
+    if(inherits(object$gam0, "gam")){
       if(!is.null(what)){
         message("'model_matrics' only contains a single gam object, 'what' is not used.")
       }
-      gam_setup0 <- model_matrices$gam0
+      gam_setup0 <- object$gam0
     } else {
-      if(!inherits(model_matrices$gam0[[1]], "gam")){ # nested list of formulas
+      if(!inherits(object$gam0[[1]], "gam")){ # nested list of formulas
         if(is.null(what)){
           stop("'what' must be specified and contain a top-level name of the formula list and a name/ response variable from your original formulas.")
         }
         if(length(what) != 2 | !is.character(what)){
           stop("'what' must be a character vector of length 2, containing the top-level name of the formula list and a name/ response variable from your original formulas.")
         }
-        if(!what[1] %in% names(model_matrices$gam0)){
+        if(!what[1] %in% names(object$gam0)){
           stop("'what[1]' must be a top-level name of your formula list.")
         }
-        if(!what[2] %in% names(model_matrices$gam0[[what[1]]])){
+        if(!what[2] %in% names(object$gam0[[what[1]]])){
           stop("'what[2]' must be one of the names/ response variables of your original formulas.")
         }
-        gam_setup0 <- model_matrices$gam0[[what[1]]][[what[2]]]
+        gam_setup0 <- object$gam0[[what[1]]][[what[2]]]
       } else { # flat list of formulas
         if(is.null(what)){
           stop("'what' must be specified and be one of the names/ response variables from your original formulas.")
         }
-        if(!what %in% names(model_matrices$gam0)){
+        if(!what %in% names(object$gam0)){
           stop("'what' must be one of the names of your original formulas.")
         }
-        gam_setup0 <- model_matrices$gam0[[what]]
+        gam_setup0 <- object$gam0[[what]]
       }
     }
   }
@@ -622,7 +615,7 @@ pred_matrix = function(model_matrices,
   .Deprecated("predict", package = "LaMa",
               msg = paste("'pred_matrix()' is deprecated; use 'predict()' on the object",
                           "returned by 'make_matrices()' instead."))
-  pred_matrix_internal(model_matrices, newdata = newdata, what = what, exclude = exclude)
+  predict.LaMa_matrices(model_matrices, newdata = newdata, what = what, exclude = exclude)
 }
 
 

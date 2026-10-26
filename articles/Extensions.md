@@ -359,7 +359,7 @@ system.time(
   opt <- nlminb(obj_cov$par, obj_cov$fn, obj_cov$gr)
 )
 #>    user  system elapsed 
-#>   0.036   0.000   0.035
+#>   0.028   0.000   0.028
 mod_cov <- lama(obj_cov) # reporting from fitted model
 ```
 

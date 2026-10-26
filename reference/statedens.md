@@ -63,6 +63,11 @@ by `dens(..., log = TRUE)` if `dens` has an argument `log`, otherwise as
 `log(dens(...))` (e.g. for densities from
 [`zero_inflate`](https://janolefi.github.io/LaMa/reference/zero_inflate.md)).
 
+In `obj$simulate()` of `RTMB`, `x` is registered as data and simulated
+by [`forward`](https://janolefi.github.io/LaMa/reference/forward.md),
+see
+[`simulate.LaMaModel`](https://janolefi.github.io/LaMa/reference/simulate.LaMaModel.md).
+
 Writing the loop over states by hand is equally valid and gives the same
 result. `statedens()` is just a shortcut.
 

@@ -24,6 +24,20 @@
   returned invisibly
 - plot(mod, stream = …) selects data streams, for residuals and
   state-dependent densities
+- simulate(mod) simulates states and observations of models built with
+  statedens() on the observed design: same tracks and lengths, with
+  delta, Gamma and the parameters as reported (conditional on the
+  covariates, for continuous-time models on the observed time points);
+  missing observations stay missing unless fill_na = TRUE, and rdens
+  gives random number generators for densities without a matching
+  r-function; a data stream that is NA throughout is a placeholder, so a
+  likelihood function can be used to simulate data and then be fitted to
+  them
+- simulate(mod, random = TRUE) and obj\$simulate() of RTMB work with
+  forward() and statedens(): statedens() registers its data like OBS(x),
+  so random effects (with their density evaluated first, e.g. u %~%
+  dnorm(…)) are drawn first, then the states and data given them;
+  forward() reports the simulated states as states
 - print() and summary() for models from lama() and qreml(): print()
   gives a short overview, summary() the estimated state process
   (transition probability or generator matrix, stationary distribution

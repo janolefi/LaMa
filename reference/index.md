@@ -185,6 +185,9 @@
   : Report uncertainty of the estimated smoothing parameters or
   variances
 
+- [`simulate(`*`<LaMaModel>`*`)`](https://janolefi.github.io/LaMa/reference/simulate.LaMaModel.md)
+  : Simulate from a fitted model
+
 - [`dskewnorm()`](https://janolefi.github.io/LaMa/reference/skewnorm.md)
   [`pskewnorm()`](https://janolefi.github.io/LaMa/reference/skewnorm.md)
   [`qskewnorm()`](https://janolefi.github.io/LaMa/reference/skewnorm.md)

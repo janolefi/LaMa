@@ -30,6 +30,10 @@
   terms and returns an object now
 * qreml() models have class c("qremlModel", "LaMaModel"), so all LaMaModel methods apply to them
 * forward() reports type "track-specific" for one Gamma per track (before "homogeneous")
+* multistart(obj) optimises an RTMB object from several starting values (obj$par and perturbations 
+  of it, or of the first fit scaled by the unit information with scale = "unit_info"), stops by a 
+  Bayesian stopping rule or once the best optimum is reached often enough, and returns the best fit 
+  with a table of all runs; lama(obj) then builds the model from the best fit
 
 ## Changes
 

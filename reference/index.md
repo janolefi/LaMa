@@ -120,6 +120,11 @@
   [`min0_smooth()`](https://janolefi.github.io/LaMa/reference/minmax0_smooth.md)
   : Smooth approximations to max(x, 0) and min(x, 0)
 
+- [`multistart()`](https://janolefi.github.io/LaMa/reference/multistart.md)
+  :
+
+  Optimise an `RTMB` object from several starting values
+
 - [`nessi`](https://janolefi.github.io/LaMa/reference/nessi.md) : Loch
   Ness Monster Acceleration Data
 

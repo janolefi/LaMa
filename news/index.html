@@ -57,6 +57,7 @@
 <li>print() and summary() for models from lama() and qreml(): print() gives a short overview, summary() the estimated state process (transition probability or generator matrix, stationary distribution and mean dwell times, averaged over tracks if track-specific) and the reported quantities, with those of length nStates in one table; summary.qremlModel() adds the smooth terms and returns an object now</li>
 <li>qreml() models have class c(“qremlModel”, “LaMaModel”), so all LaMaModel methods apply to them</li>
 <li>forward() reports type “track-specific” for one Gamma per track (before “homogeneous”)</li>
+<li>multistart(obj) optimises an RTMB object from several starting values (obj$par and perturbations of it, or of the first fit scaled by the unit information with scale = “unit_info”), stops by a Bayesian stopping rule or once the best optimum is reached often enough, and returns the best fit with a table of all runs; lama(obj) then builds the model from the best fit</li>
 </ul></div>
 <div class="section level3">
 <h3 id="changes-development-version">Changes<a class="anchor" aria-label="anchor" href="#changes-development-version"></a></h3>

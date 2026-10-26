@@ -50,6 +50,9 @@ HMM log-likelihood for given data and parameters
 Calculates the log-likelihood of a sequence of observations under a hidden Markov model with periodically varying transition probabilities using the \strong{forward algorithm}.
 }
 \details{
+\strong{Deprecated:} please use \code{\link{forward}} with argument \code{tod} instead.
+
+
 When the transition probability matrix only varies periodically (e.g. as a function of time of day), there are only \eqn{L} unique matrices if \eqn{L} is the period length (e.g. \eqn{L=24} for hourly data and time-of-day variation).
 Thus, it is much more efficient to only calculate these \eqn{L} matrices and index them by a time variable (e.g. time of day or day of year) instead of calculating such a matrix for each index in the data set (which would be redundant).
 This function allows for that by only expecting a transition probability matrix for each time point in a period and an integer valued (\eqn{1, \dots, L}) time variable that maps the data index to the according time.
@@ -60,7 +63,7 @@ nll = function(par, step, tod) {
  # parameter transformations for unconstrained optimisation
  beta = matrix(par[1:6], nrow = 2)
  Gamma = tpm_p(1:24, beta = beta) # multinomial logit link for each time point
- delta = stationary_p(Gamma, tod[1]) # stationary HMM
+ delta = stationary_p(Gamma, tod[1] \%\% 24 + 1) # stationary HMM
  mu = exp(par[7:8])
  sigma = exp(par[9:10])
  # calculate all state-dependent probabilities

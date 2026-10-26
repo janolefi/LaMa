@@ -16,7 +16,8 @@ pseudo_res(
 )
 }
 \arguments{
-\item{obs}{vector of continuous-valued observations (of length \code{nObs})}
+\item{obs}{vector of observations (of length \code{nObs}), or a model object from \code{\link{lama}}
+(or the \code{RTMB} object), in which case nothing else is needed (see \sQuote{Details})}
 
 \item{dist}{character string specifying which parametric CDF to use (e.g., \code{"norm"} for normal or \code{"pois"} for Poisson) or CDF function to evaluate directly.
 If a discrete CDF function is passed, the \code{discrete} argument needs to be set to \code{TRUE} because this cannot determined automatically.}
@@ -26,12 +27,12 @@ If a discrete CDF function is passed, the \code{discrete} argument needs to be s
 Names need to correspond to the parameter names in the specified distribution (e.g. \code{list(mean = c(1,2), sd = c(1,1))} for a normal distribution and 2 states).
 This argument is as flexible as the parametric distribution allows. For example you can have a matrix of parameters with one row for each observation and one column for each state.}
 
-\item{stateprobs}{matrix of local state probabilities for each observation (of dimension c(nObs, nStates)) as computed by \code{\link{stateprobs}}, \code{\link{stateprobs_g}} or \code{\link{stateprobs_p}}}
+\item{stateprobs}{matrix of local state probabilities for each observation (of dimension c(nObs, nStates)) as computed by \code{\link{stateprobs}}}
 
 \item{mod}{optional model object containing required quantities
 
-When using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward}}, \code{\link{forward_g}} or \code{\link{forward_p}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
-Hence, you can pass the model object obtained from running \code{report()} or from \code{\link{qreml}} directly to this function and avoid calculating local state proabilities manually.
+When using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
+Hence, you can pass the model object obtained from \code{obj$report()}, \code{\link{lama}} or \code{\link{qreml}} directly to this function and avoid calculating local state proabilities manually.
 In this case, a call should look like \code{pseudo_res(obs, "norm", par, mod = mod)}.}
 
 \item{normal}{logical, if \code{TRUE}, returns Gaussian pseudo residuals
@@ -47,6 +48,7 @@ When used with a special discrete distribution, set to \code{TRUE} manually.}
 }
 \value{
 vector of pseudo residuals of class \code{LaMaResiduals} or list containing \code{lower}, \code{upper}, and \code{mean} if discrete residuals are not randomised.
+For \code{pseudo_res(mod)} with several data streams, a named list of these, one per stream, also of class \code{LaMaResiduals}.
 }
 \description{
 For HMMs, pseudo-residuals are used to assess the overall goodness-of-fit of the model. 
@@ -54,7 +56,7 @@ These are based on the cumulative distribution function (CDF)
 \deqn{F_{X_t}(x_t) = F(x_t \mid x_1, \dots, x_{t-1})}
 and can be used to quantify whether an observation is extreme relative to its model-implied distribution.
 
-This function calculates such residuals via the probability integral transform, based on the local state probabilities obtained by \code{\link{stateprobs}} or \code{\link{stateprobs_g}} and the respective parametric family.
+This function calculates such residuals via the probability integral transform, based on the local state probabilities obtained by \code{\link{stateprobs}} and the respective parametric family.
 }
 \details{
 Pseudo-residuals are based on the probability integral transform. 
@@ -69,6 +71,22 @@ corresponding to \eqn{F(X-1)} and \eqn{F(X)}, respectively.
 If \code{randomise = TRUE}, a value is drawn uniformly 
 between the lower and upper bounds. In this case, the resulting pseudo-residuals 
 are again approximately standard normal after applying the standard normal quantile function.
+
+\strong{Model object only:} \code{pseudo_res(mod)} needs no observations, family or parameters.
+It evaluates the likelihood function stored in the model again, with each density
+(e.g. \code{dgamma2()}) replaced by its CDF (\code{pgamma2()}) with the same arguments, so
+that the likelihood function itself builds the CDFs in place of \code{allprobs}. This works for
+loops over states or time, \code{cbind()}, covariate-dependent parameters, densities on the log scale,
+mixtures within a state and several data streams (multiplied, or summed on the log scale),
+giving one set of residuals per stream, named after the data variable.
+Before, it checks that the densities enter \code{allprobs} as a product or mixture, so that
+swapping in CDFs is valid. If not, e.g. for densities transformed by hand (truncation, Jacobians,
+zero inflation via indicators) or a latent variable integrated out inside \code{allprobs}, it stops, and
+\code{pseudo_res(obs, dist, par, mod = mod)} needs to be used instead.
+Densities in your own helper functions called by the likelihood function are found as well,
+and \code{\link{qreml}} models work like models from \code{\link{lama}}.
+The likelihood function needs to call \code{\link{forward}} once (use \code{trackID} for several tracks),
+and it is evaluated with the data as they are when \code{pseudo_res()} is called.
 }
 \examples{
 ## continuous-valued observations
@@ -119,12 +137,15 @@ par = list(logitGamma = c(-2,-2),
 obj = MakeADFun(nll, par, silent = TRUE)
 opt = nlminb(obj$par, obj$fn, obj$gr)
 
-mod = report(obj)
+mod = lama(obj)
 
 pres = pseudo_res(step,      # observation sequence
                   "gamma2",  # parametric family that was used
                   list(mean = mod$mu, sd = mod$sigma), # parameters for that family
                   mod = mod) # model object
+
+# or, from the model object alone
+pres = pseudo_res(mod)
 
 plot(pres)
 }

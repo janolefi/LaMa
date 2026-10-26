@@ -26,12 +26,13 @@ For a single track, an array of dimension \code{c(nStates, nStates, nObs-1)} is 
 
 \item{allprobs}{matrix of state-dependent probabilities or density values of dimension \code{c(nObs, nStates)}}
 
-\item{trackID}{optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks}
+\item{trackID}{optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks.
+The observations of each track need to be consecutive.}
 
 \item{mod}{optional model object containing \code{delta}, \code{Gamma}, \code{allprobs}, and
 optionally \code{trackID}. When using \code{RTMB::MakeADFun} or \code{\link{qreml}} with
 \code{\link{forward_g}} in the likelihood, these are reported automatically after model fitting
-and the object returned by \code{RTMB::report()} or \code{\link{qreml}} can be passed directly.}
+and the object returned by \code{obj$report()}, \code{\link{lama}} or \code{\link{qreml}} can be passed directly.}
 
 \item{forecast}{logical, indicating if forecast probabilities \eqn{\Pr(\text{State}_t = j \mid X_1, ..., X_{t-1})} should be calculated instead.}
 }
@@ -42,6 +43,9 @@ matrix of conditional state probabilities of dimension \code{c(nObs, nStates)}
 Computes
 \deqn{\Pr(\text{State}_t = j \mid X_1, ..., X_T)}
 for inhomogeneous HMMs
+}
+\details{
+\strong{Deprecated:} please use \code{\link{stateprobs}} for all model types instead.
 }
 \examples{
 Gamma = tpm_g(runif(10), matrix(c(-1,-1,1,-2), nrow = 2, byrow = TRUE))

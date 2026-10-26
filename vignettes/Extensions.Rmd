@@ -86,7 +86,37 @@ dat = list(
 # Fitting the model
 obj_multi = MakeADFun(nll_multi, par, silent = TRUE)
 opt_multi = nlminb(obj_multi$par, obj_multi$fn, obj_multi$gr)
-mod_multi = report(obj_multi) # reporting from fitted model
+mod_multi = lama(obj_multi) # reporting from fitted model
+```
+
+Building `allprobs` with a loop over states as above is perfectly valid and gives full control. As a shortcut, `statedens()` builds the matrix of one data stream, with one parameter per state (or a single value for all states), and the matrices of several streams are multiplied:
+
+```{r statedens}
+nll_multi2 = function(par) {
+  getAll(par, dat)
+  Gamma = tpm(eta)
+  delta = stationary(Gamma)
+  mu = exp(log_mu); REPORT(mu)
+  sigma = exp(log_sigma); REPORT(sigma)
+  kappa = exp(log_kappa); REPORT(kappa)
+  allprobs = statedens(step, dgamma2, mu, sigma) * statedens(angle, dvm, 0, kappa)
+  -forward(delta, Gamma, allprobs)
+}
+
+obj_multi2 = MakeADFun(nll_multi2, par, silent = TRUE)
+opt_multi2 = nlminb(obj_multi2$par, obj_multi2$fn, obj_multi2$gr)
+```
+
+One difference: `statedens()` handles missing values for each stream separately, so a step length whose turning angle is missing still enters the likelihood, while the loop above drops it. In the `trex` data this concerns a single observation, hence the log-likelihoods differ slightly:
+```{r statedens llk}
+c(-opt_multi$objective, -opt_multi2$objective)
+```
+With `log = TRUE`, `statedens()` returns log-densities, which are added over streams and used with `forward(..., logspace = TRUE)`.
+
+As `statedens()` records the data, densities and parameters of each stream, the estimated state-dependent densities can also be plotted from the model object, weighted by the local state probabilities:
+```{r statedens plot, fig.width = 8, fig.height = 4}
+mod_multi2 = lama(obj_multi2)
+plot(mod_multi2, type = "statedens")
 ```
 
 We can now plot the estimated state-dependent densities separately for each state:
@@ -119,6 +149,12 @@ for(j in 1:2) curve(delta[j] * dvm(x, 0, kappa[j]), lwd = 2, add = TRUE, col = c
 curve(delta[1] * dvm(x, 0, kappa[1]) + delta[2] * dvm(x, 0, kappa[2]), 
       lwd = 2, lty = 2, add = TRUE)
 par(oldpar)
+```
+
+The pseudo-residuals of both data streams are obtained from the model object alone, with one row of plots per stream:
+
+```{r pres multi, fig.width = 8, fig.height = 6}
+plot(mod_multi)
 ```
 
 
@@ -239,7 +275,7 @@ obj_cov = MakeADFun(nll_cov, par, silent = TRUE)
 system.time(
   opt <- nlminb(obj_cov$par, obj_cov$fn, obj_cov$gr)
 )
-mod_cov <- report(obj_cov) # reporting from fitted model
+mod_cov <- lama(obj_cov) # reporting from fitted model
 ```
 
 Let's plot the fitted model, starting with the estimated state-dependent densities. We can obtain approximate global state probabilities from decoded states.
@@ -387,7 +423,7 @@ dat = list(
 obj_msr = MakeADFun(nll_msr, par, silent = TRUE)
 opt_msr = nlminb(obj_msr$par, obj_msr$fn, obj_msr$gr)
 
-mod_msr = report(obj_msr)
+mod_msr = lama(obj_msr)
 ```
 
 ### Visualising results
@@ -456,13 +492,14 @@ dat = list(
 ```
 
 In the likelihood function, we only compute the unique 24 transition matrices and then, based on these, the corresponding stationary distribution(s) using `stationary_p()`.
-When running the forward algorithm in the last line, we then have to i) pick the stationary distribution corresponding to the first time of day value (`Delta[tod[1],]`) and ii) build an array of tpms for the entire time series by indexing the 24 matrices using (`Gamma[,,tod]`).
+As `forward()` uses `Gamma[,,tod[t]]` for the transition *into* time $t$, while `stationary_p()` treats `Gamma[,,t]` as the transition from $t$ to $t+1$, we shift the rows of `Delta` by one, such that row $k$ is the distribution at time of day $k$.
+When running the forward algorithm in the last line, we then i) pick the stationary distribution corresponding to the first time of day value (`Delta[tod[1],]`) and ii) pass the 24 matrices together with `tod`, which indexes them for each time point.
 
 ```{r nll seasonal}
 nll_seas = function(par) {
   getAll(par, dat)
   Gamma = tpm(beta, Z_tod)
-  Delta = stationary_p(Gamma) # periodically stationary distribution
+  Delta = stationary_p(Gamma)[c(2:24, 1), ] # periodically stationary distribution, row k for tod k
   ADREPORT(Delta)
   # Parameter transformations for strictly positive parameters
   mu = exp(log_mu); REPORT(mu)
@@ -473,7 +510,7 @@ nll_seas = function(par) {
   for(j in 1:N){
     allprobs[ind,j] = dgamma2(step[ind], mu[j], sigma[j])
   }
-  -forward(Delta[tod[1],], Gamma[,,tod], allprobs)
+  -forward(Delta[tod[1],], Gamma, allprobs, tod = tod)
 }
 ```
 
@@ -482,7 +519,7 @@ Let's fit the model:
 obj_seas = MakeADFun(nll_seas, par, silent = TRUE)
 opt_seas = nlminb(obj_seas$par, obj_seas$fn, obj_seas$gr)
 sdr_seas = sdreport(obj_seas)
-mod_seas = report(obj_seas)
+mod_seas = lama(obj_seas)
 ```
 
 And look at the estimated periodically stationary distribution:

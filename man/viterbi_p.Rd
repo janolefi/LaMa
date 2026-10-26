@@ -19,18 +19,21 @@ This could e.g. be the periodically stationary distribution (for each track).}
 
 For half-hourly data L = 48. It could, however, also be day of year for daily data and L = 365.}
 
-\item{trackID}{optional vector of k track IDs, if multiple tracks need to be decoded separately}
+\item{trackID}{optional vector of k track IDs, if multiple tracks need to be decoded separately. The observations of each track need to be consecutive.}
 
 \item{mod}{optional model object containing initial distribution \code{delta}, transition probability matrix \code{Gamma}, matrix of state-dependent probabilities \code{allprobs}, and potentially a \code{trackID} variable
 
 If you are using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward_p}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
-Hence, you can pass the model object obtained from running \code{RTMB::report()} or from \code{\link{qreml}} directly to this function.}
+Hence, you can pass the model object obtained from \code{obj$report()}, \code{\link{lama}} or \code{\link{qreml}} directly to this function.}
 }
 \value{
 vector of decoded states of length n
 }
 \description{
 The Viterbi algorithm allows one to decode the most probable state sequence of an HMM.
+}
+\details{
+\strong{Deprecated:} please use \code{\link{viterbi}} with argument \code{tod} instead.
 }
 \examples{
 delta = c(0.5, 0.5)

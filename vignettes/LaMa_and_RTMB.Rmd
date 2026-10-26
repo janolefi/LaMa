@@ -130,18 +130,26 @@ opt$objective
 Note that the names `par` and `objective` are determined by `nlminb()`. If you use a different optimiser, these may be called differently.
 
 However, `RTMB` provides a nicer way to get the estimates. `obj` is automatically updated after the optimisation. Note that calling `obj$gr()` after optimisation now gives the gradient at the optimum, while `obj$par` is not updated but still the initial parameter vector (kind of confusing).
-To get our estimated parameters on their natural scale, we don't have to do the backtransformation manually. We can just run the reporting:
+To get our estimated parameters on their natural scale, we don't have to do the backtransformation manually. We can just call `lama()`, which runs the reporting and returns a model object:
 
 ```{r MLe}
-mod = report(obj) # runs the reporting from the negative log-likelihood once
+mod = lama(obj) # runs the reporting from the negative log-likelihood once
 (delta = mod$delta) # stationary distribution
 (Gamma = mod$Gamma) # estimated tpm
 (mu = mod$mu) # estimated state-dependent means
 (sigma = mod$sigma) # estimated state-dependent sds
 ```
 This works because of the `REPORT()` statements in the likelihood function. 
-Note that `delta`, `Gamma` and `allprobs` are always reported by default when using `forward()` which is very useful for downstream tasks like state decoding or residuals calculation. The `viterbi` and `stateprobs` functions either take these as arguments or, more conveniently, can also take the whole reported `mod` object as an input. 
-Because the state-dependent parameters depend on the specific model formulation, these need to be reported manually by the user specifying the likelihood. Having all the parameters, we can plot the decoded time series
+Note that `delta`, `Gamma` and `allprobs` are always reported by default when using `forward()` which is very useful for downstream tasks like state decoding or residuals calculation. The `viterbi` and `stateprobs` functions either take these as arguments or, more conveniently, can also take the whole reported `mod` object as an input. For this to work, `forward()` should only be called once in the likelihood function, with the `trackID` argument for several tracks (see the vignette on longitudinal data).
+Because the state-dependent parameters depend on the specific model formulation, these need to be reported manually by the user specifying the likelihood.
+
+Printing `mod` gives a short overview of the model, while `summary()` shows the estimated state process, i.e. the transition probability matrix with its stationary distribution and mean dwell times, together with all quantities reported in the likelihood function:
+
+```{r summary}
+summary(mod)
+```
+
+Having all the parameters, we can plot the decoded time series
 
 ```{r decoding, fig.width = 7, fig.height = 4}
 # manually
@@ -170,7 +178,7 @@ curve(delta[1]*dgamma2(x, mu[1], sigma[1]) + delta[2]*dgamma2(x, mu[2], sigma[2]
 legend("top", lwd = 2, col = color, legend = c("state 1", "state 2"), bty = "n")
 ```
 
-Note that because we have used `report()`, `mod` now has class "LaMaModel", which permits the use of `AIC()` and `BIC()`:
+Note that because we have used `lama()`, `mod` now has class "LaMaModel", which permits the use of `AIC()` and `BIC()`:
 
 ```{r AICBIC}
 AIC(mod)
@@ -202,15 +210,22 @@ as.list(sdr, "Estimate", report = TRUE)
 as.list(sdr, "Std", report = TRUE)
 ```
 
-Lastly, the automatic reporting with `LaMa` and `RTMB` together makes calculating pseudo-residuals really convenient:
+Lastly, the automatic reporting with `LaMa` and `RTMB` together makes calculating pseudo-residuals really convenient. `pseudo_res(mod)` computes them from the model object alone, by evaluating the likelihood function again with the densities replaced by their CDFs, and `plot(mod)` plots them directly (with one row per data stream):
 
 ```{r pres, fig.width = 8, fig.height = 4}
+plot(mod)
+```
+
+Alternatively, we can specify the observations, the parametric family and the estimated parameters manually, which gives the same residuals:
+
+```{r pres_manual, fig.width = 8, fig.height = 4}
 pres_step = pseudo_res(obs = trex$step, # observation sequence
                        dist = "gamma2", # which parametric CDF to use
                        par = list(mean = mu, sd = sigma), # estimated pars for that CDF
                        mod = mod) # model object
-plot(pres_step, hist = TRUE)
+all.equal(pres_step, pseudo_res(mod))
 ```
+This is needed when the densities are transformed by hand inside the likelihood, e.g. for zero-inflation, where swapping in CDFs is not valid. `plot(pres_step)` then gives the same plots as above.
 
 
 <!-- ### Covariate effects -->
@@ -282,7 +297,7 @@ plot(pres_step, hist = TRUE)
 <!-- and we can look at the reported results. In this case, for simplicity I get standard errors for `Gamma` with the delta method while, in general, this is not advisable. -->
 
 <!-- ```{r MLE2, fig.width = 8, fig.height = 5} -->
-<!-- mod2 = report(obj2) -->
+<!-- mod2 = lama(obj2) -->
 
 <!-- sdr = sdreport(obj2) -->
 <!-- Gamma = as.list(sdr, "Estimate", report = TRUE)$Gamma -->
@@ -464,9 +479,9 @@ plot(pres_step, hist = TRUE)
 
 <!-- ```{r results refit, fig.width = 8, fig.height = 5}
 mod4 = obj4$report()
-mod4$Gamma = tpm_g(Z, mod4$beta) # calculating 24 tpms
+mod4$Gamma = tpm(mod4$beta, Z) # calculating 24 tpms
 
-Gamma_plot = tpm_g(Z_pred, mod4$beta)
+Gamma_plot = tpm(mod4$beta, Z_pred)
 plot(tod_seq, Gamma_plot[1,2,], type = "l", lwd = 2, ylim = c(0,1),
      xlab = "time of day", ylab = "transition probability", bty = "n")
 lines(tod_seq, Gamma_plot[2,1,], lwd = 2, lty = 3)

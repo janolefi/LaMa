@@ -117,7 +117,7 @@ gen_inverse <- function(S) {
 #' @param map optional map argument, containing factor vectors to indicate parameter sharing or fixing
 #' @param silent integer silencing level: 0 corresponds to full printing of inner and outer iterations, 1 to printing of outer iterations only, and 2 to no printing
 #' @param spname optional name given to the penalty strength parameter in \code{dat}. Defaults to \code{"lambda"}
-#' @param tol_edf convergence tolerance on the \strong{effective degrees of freedom}. Defaults to 0.001.
+#' @param tol_edf convergence tolerance on the \strong{effective degrees of freedom}.
 #' 
 #' This is the primary convergence criterion. The iteration stops once no smooth's effective degrees of freedom has changed by more than \code{tol_edf} across the last four outer iterations, provided the step in \code{log(lambda)} is also small.
 #' The effective degrees of freedom are what say whether the \strong{fitted smooth} is still changing, and unlike a tolerance on the restricted likelihood they mean the same thing on every model, being measured in effective parameters rather than in nats.
@@ -145,7 +145,7 @@ gen_inverse <- function(S) {
 #' @param joint_unc logical, if \code{TRUE}, joint \code{RTMB} object is returned allowing for joint uncertainty quantification
 #' @param saveall logical, if \code{TRUE}, then all model objects from each iteration are saved in the final model object
 #'
-#' @return model object of class \code{"qremlModel"}, carrying the fitted quantities, the smoothness selection diagnostics shown by \code{\link{summary.qremlModel}}, and \code{outer_hessian()}, the outer Hessian that \code{\link{sdreport_outer}} turns into standard errors
+#' @return model object of class \code{"qremlModel"}, inheriting from \code{"LaMaModel"} (see \code{\link{lama}}), carrying the fitted quantities, the smoothness selection diagnostics shown by \code{\link{summary.qremlModel}}, and \code{outer_hessian()}, the outer Hessian that \code{\link{sdreport_outer}} turns into standard errors
 #'
 #' @export
 #'
@@ -177,7 +177,7 @@ gen_inverse <- function(S) {
 #' pnll = function(par) {
 #'   getAll(par, dat) # makes everything contained available without $
 #'   Gamma = tpm(cbind(beta0, beta_spline), Z) # transition probabilities
-#'   delta = stationary_p(Gamma, t = 1) # initial distribution
+#'   delta = stationary_p(Gamma, t = tod[1] %% 24 + 1) # initial distribution
 #'   mu = exp(logmu) # step mean
 #'   sigma = exp(logsigma) # step sd
 #'   # calculating all state-dependent densities
@@ -448,7 +448,7 @@ qreml <- function(pnll, # penalised negative log-likelihood function
     invisible(try(obj$fn(start + 1e-8 * (1 + abs(start))), silent = TRUE))
 
     opt <- stats::optim(start, obj$fn, newgrad, method = method, control = ctl)
-    gr <- obj$gr(opt$par) # forces evaluation at opt$par so that report() matches
+    gr <- obj$gr(opt$par) # forces evaluation at opt$par so that obj$report() matches
     if(silent == 0) cat("iter", counter_env$count, "- inner mgc:", round(max(abs(gr)), 5), "\n")
 
     mod <- obj$report()
@@ -737,7 +737,8 @@ qreml <- function(pnll, # penalised negative log-likelihood function
             "; refitting with a smaller 'lsp_max' usually resolves it.", call. = FALSE)
   }
 
-  if(!is.null(mod$allprobs)) mod$nobs <- nrow(mod$allprobs)
+  mod$nobs <- count_nobs(mod$allprobs)
+  mod$mgc <- final$mgc # maximum gradient component of the inner problem
 
   mod$Hessian_conditional <- hessian_at(final$opt$par)
   mod$llk_restricted <- -crit_hist[seq_len(iter)]
@@ -805,9 +806,10 @@ qreml <- function(pnll, # penalised negative log-likelihood function
       const <- 0
       for(i in 1:n_re){
         for(j in 1:nrow(re_inds[[i]])){
-          k <- length(re_inds[[i]][j, ])
-          loglam <- if(i == 1) par$loglambda[j] else par$loglambda[re_lengths[i-1] + j]
-          const <- const - k * log(2*pi) + k * loglam + logdetS[i]
+          r <- ranks[i]
+          offset <- if(i == 1) 0 else sum(re_lengths[1:(i-1)])
+          loglam <- par$loglambda[offset + j]
+          const <- const - r * log(2*pi) + r * loglam + logdetS[i]
         }
       }
       -(l_p + 0.5 * const)
@@ -819,6 +821,6 @@ qreml <- function(pnll, # penalised negative log-likelihood function
                                map = map)
   }
 
-  class(mod) <- "qremlModel"
+  class(mod) <- c("qremlModel", "LaMaModel")
   return(mod)
 }

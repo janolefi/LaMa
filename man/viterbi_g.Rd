@@ -19,18 +19,22 @@ For a single track, an array of dimension \code{c(nStates, nStates, nObs-1)} is 
 
 \item{allprobs}{matrix of state-dependent probabilities or density values of dimension \code{c(nObs, nStates)}}
 
-\item{trackID}{optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks}
+\item{trackID}{optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks.
+The observations of each track need to be consecutive.}
 
 \item{mod}{optional model object containing \code{delta}, \code{Gamma}, \code{allprobs}, and
 optionally \code{trackID}. When using \code{RTMB::MakeADFun} or \code{\link{qreml}} with
 \code{\link{forward_g}} in the likelihood, these are reported automatically after model fitting
-and the object returned by \code{RTMB::report()} or \code{\link{qreml}} can be passed directly.}
+and the object returned by \code{obj$report()}, \code{\link{lama}} or \code{\link{qreml}} can be passed directly.}
 }
 \value{
 vector of decoded states of length \code{nObs}
 }
 \description{
 The Viterbi algorithm decodes the most probable state sequence of an HMM.
+}
+\details{
+\strong{Deprecated:} please use \code{\link{viterbi}} for all model types instead.
 }
 \examples{
 delta = c(0.5, 0.5)

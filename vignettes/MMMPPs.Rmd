@@ -160,7 +160,7 @@ obj = MakeADFun(nll, par, silent = TRUE)
 system.time(
   opt <- nlminb(obj$par, obj$fn, obj$gr)
 )
-mod = report(obj)
+mod = lama(obj)
 ```
 
 ### Results
@@ -296,7 +296,7 @@ obj2 = MakeADFun(nll2, par, silent = TRUE)
 system.time(
   opt2 <- nlminb(obj2$par, obj2$fn, obj2$gr)
 )
-mod2 = report(obj2)
+mod2 = lama(obj2)
 ```
 
 ### Results

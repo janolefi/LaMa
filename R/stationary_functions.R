@@ -68,7 +68,9 @@ stationary = function(Gamma){
 #' This happens, because the thinned Markov chain, which has a full cycle as each time step, has homogeneous transition probability matrix
 #' \deqn{\Gamma_t = \Gamma^{(t)} \Gamma^{(t+1)} \dots \Gamma^{(t+L-1)}} for all \eqn{t = 1, \dots, L.}
 #' The stationary distribution for time \eqn{t} satifies \eqn{\delta^{(t)} \Gamma_t = \delta^{(t)}}.
-#' 
+#' Here, \code{Gamma[,,t]} is the transition from \eqn{t} to \eqn{t+1}. \code{\link{forward}} with \code{tod} uses \code{Gamma[,,tod[t]]} for the transition into \eqn{t},
+#' so there, the initial distribution is \code{stationary_p(Gamma, tod[1] \%\% L + 1)}, and \code{stationary_p(Gamma)[c(2:L, 1), ]} has the distribution at \code{tod = k} in row \code{k}.
+#'
 #' This function calculates said periodically stationary distribution.
 #' 
 #' @references 
@@ -186,7 +188,7 @@ stationary_p = function(Gamma, t = NULL, ad = NULL){
 #'
 #' @seealso \code{\link{generator}} to create a generator matrix
 #
-#' @param Q infinitesimal generator matrix of dimension \code{c(N,N)} or array of such matrices of dimension \code{c(N,N,nTracks)} if the stationary distribution should be computed for several matrices at once
+#' @param Q infinitesimal generator matrix of dimension \code{c(N,N)} (dense or sparse, e.g. from \code{Matrix}) or array of such matrices of dimension \code{c(N,N,nTracks)} if the stationary distribution should be computed for several matrices at once
 #'
 #' @return either a single stationary distribution of the continuous-time Markov chain (vector of length \code{N}) or a matrix of stationary distributions of dimension \code{c(nTracks,N)} with one stationary distribution in each row
 #' 
@@ -213,7 +215,12 @@ stationary_ct = function(Q){
   statenames <- paste0("S", 1:N)
   
   ## check if Gamma is matrix or array
-  if(length(Q_dim) == 2){ # matrix
+  if(methods::is(Q, "anysparse")){ # sparse matrix (Matrix or RTMB adsparse)
+    # Q + 1 would be dense -> only add 1 to last column: pi (Q + E) = e_N
+    E <- Matrix::sparseMatrix(1:N, rep(N, N), x = 1, dims = c(N, N))
+    Pi <- RTMB::solve(Matrix::t(Q + E), c(rep(0, N-1), 1))
+    names(Pi) <- statenames
+  } else if(length(Q_dim) == 2){ # matrix
     Pi <- RTMB::solve(t(Q + 1), rep(1,N))
     names(Pi) <- statenames
   } else if(length(Q_dim) == 3){ # array

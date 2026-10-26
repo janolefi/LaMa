@@ -103,7 +103,7 @@
 #' pnll = function(par) {
 #'   getAll(par, dat) # makes everything contained available without $
 #'   Gamma = tpm_g(Z, cbind(beta0, betaspline), ad = TRUE) # transition probabilities
-#'   delta = stationary_p(Gamma, t = 1, ad = TRUE) # initial distribution
+#'   delta = stationary_p(Gamma, t = tod[1] %% 24 + 1, ad = TRUE) # initial distribution
 #'   mu = exp(logmu) # step mean
 #'   sigma = exp(logsigma) # step sd
 #'   # calculating all state-dependent densities
@@ -817,7 +817,7 @@ qreml_old <- function(pnll, # penalized negative log-likelihood function
   mod$edf <- Edfs # seperated by smooth
   
   if(!is.null(mod$allprobs)){
-    mod$nobs <- nrow(mod$allprobs) # number of observations
+    mod$nobs <- count_nobs(mod$allprobs) # number of observations
   }
   
   # assing conditinoal Hessian
@@ -890,6 +890,6 @@ qreml_old <- function(pnll, # penalized negative log-likelihood function
     }
   } 
   
-  class(mod) = "qremlModel"
+  class(mod) = c("qremlModel", "LaMaModel")
   return(mod)
 }

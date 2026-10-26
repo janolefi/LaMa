@@ -16,7 +16,8 @@
 )
 }
 \arguments{
-\item{x}{pseudo-residuals as returned by \code{\link{pseudo_res}}}
+\item{x}{pseudo-residuals as returned by \code{\link{pseudo_res}}.
+For several data streams (from \code{pseudo_res(mod)}), one row of plots per stream, titled by the stream name.}
 
 \item{col}{character, color for the QQ-line (and density curve if \code{histogram = TRUE})}
 
@@ -35,6 +36,7 @@ NULL, plots the pseudo-residuals in a 3-panel layout
 }
 \description{
 Plot pseudo-residuals computed by \code{\link{pseudo_res}}.
+The QQ plot shows a pointwise 95\% band (in gray) for the sample quantiles under a correct model.
 }
 \examples{
 ## pseudo-residuals for the trex data
@@ -65,7 +67,7 @@ par = list(logitGamma = c(-2,-2),
 obj = MakeADFun(nll, par, silent = TRUE)
 opt = nlminb(obj$par, obj$fn, obj$gr)
 
-mod = report(obj)
+mod = lama(obj)
 
 pres_step = pseudo_res(step,      # observations
                        "gamma2",  # family that is used
@@ -86,4 +88,7 @@ plot(pres_step, main = c("", "Step Length", ""),
      axis.lab = list(hist = c("Step residuals", "Density")))
 plot(pres_angle, main = c("", "Turning Angle", ""),
      axis.lab = list(hist = c("Angle residuals", "Density")))
+
+# or from the model object alone, one row per stream
+plot(pseudo_res(mod))
 }

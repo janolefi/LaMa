@@ -12,35 +12,44 @@ forward(
   logspace = FALSE,
   bw = NULL,
   report = TRUE,
-  ad = NULL
+  ad = NULL,
+  tod = NULL
 )
 }
 \arguments{
 \item{delta}{initial distribution; either
 \itemize{
   \item a vector of length \code{nStates}, or
-  \item a matrix of dimension \code{c(nTracks, nStates)}, if \code{trackID} is provided.
+  \item a matrix of dimension \code{c(nTracks, nStates)}, if \code{trackID} is provided, or
+  \item \code{"stationary"}, for the (periodically) stationary distribution of \code{Gamma} at the start of each track (see \sQuote{Details}).
 }}
 
 \item{Gamma}{transition probability matrix; either
 \itemize{
-  \item a matrix of dimension \code{c(nStates, nStates)}, or
-  \item an array of dimension \code{c(nStates, nStates, nTracks)} if \code{trackID} is provided, or
-  \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities, in which case \code{\link{forward_g}} is called internally.
+  \item a matrix of dimension \code{c(nStates, nStates)},
+  \item an array of dimension \code{c(nStates, nStates, nTracks)} if \code{trackID} is provided,
+  \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities, or
+  \item an array of dimension \code{c(nStates, nStates, L)} for periodic transition probabilities, if \code{tod} is provided.
 }}
 
 \item{allprobs}{matrix of state-dependent probabilities or density values of dimension \code{c(nObs, nStates)}}
 
-\item{trackID}{optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks (see \sQuote{Details}).}
+\item{trackID}{optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks (see \sQuote{Details}).
+The observations of each track need to be consecutive.}
 
-\item{logspace}{logical; if \code{TRUE}, \code{allprobs} is assumed to be on the log-scale, improving numerical stability for small probabilities. Only supported with \code{RTMB}.}
+\item{logspace}{logical; if \code{TRUE}, \code{allprobs} is assumed to be on the log-scale, improving numerical stability for small probabilities.}
 
 \item{bw}{optional positive integer specifying the bandwidth for a banded approximation of the forward algorithm, inducing a banded Hessian w.r.t. the observations. 
-Defaults to \code{NULL} (exact algorithm). Approximation error decays geometrically in \code{bw}.}
+Defaults to \code{NULL} (exact algorithm). Approximation error decays geometrically in \code{bw}.
+Only used with automatic differentiation; otherwise the exact likelihood is computed.}
 
 \item{report}{logical; if \code{TRUE} (default), \code{delta}, \code{Gamma}, \code{allprobs}, and \code{trackID} are reported from the fitted model. Requires \code{ad = TRUE}.}
 
 \item{ad}{logical; whether to use automatic differentiation. Determined automatically — for debugging only.}
+
+\item{tod}{optional integer vector of length \code{nObs} with values in 1, ..., L, indexing the slices of \code{Gamma} for periodic models
+(e.g. time of day with L = 24 for hourly data).
+\code{Gamma[,,tod[t]]} is the transition into time t, hence the periodically stationary initial distribution is \code{stationary_p(Gamma, tod[1] \%\% L + 1)}.}
 }
 \value{
 HMM log-likelihood for given data and parameters
@@ -55,13 +64,24 @@ contribution. In this case, \code{Gamma} can be
   \itemize{
     \item a matrix (same transition probabilities for each track),
     \item an array of dimension \code{c(nStates, nStates, nTracks)} (track-specific transition probability matrix), or
-    \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities, in which case \code{\link{forward_g}} is called internally.
+    \item an array of dimension \code{c(nStates, nStates, nObs)} for time-varying transition probabilities, or
+    \item an array of dimension \code{c(nStates, nStates, L)} for periodic transition probabilities, if \code{tod} is provided.
   }
 Additionally, \code{delta} can be a vector (same initial distribution for each track) or a
 matrix of dimension \code{c(nTracks, nStates)} (track-specific initial distributions).
 
-\strong{Note:} When there are multiple tracks, for compatibility with downstream functions like \code{\link{viterbi}}, \code{\link{stateprobs}} or \code{\link{pseudo_res}}, 
-\code{forward} should only be called \strong{once} with a \code{trackID} argument.
+With \code{delta = "stationary"}, the initial distribution of each track is computed from \code{Gamma}:
+  \itemize{
+    \item the stationary distribution of \code{Gamma} (or of its slice for each track, if track-specific),
+    \item the periodically stationary distribution at the first time point of each track, if \code{tod} is provided (see \code{\link{stationary_p}}),
+    \item the stationary distribution of the first slice of each track, for time-varying transition probabilities, i.e. at the covariate values of the first observation.
+  }
+This requires \code{Gamma} to contain transition probability matrices (not, e.g., sub-stochastic matrices), which is checked without automatic differentiation.
+The computed \code{delta} is reported as a matrix of dimension \code{c(nTracks, nStates)}.
+
+\strong{Note:} \code{forward} should only be called \strong{once} in the likelihood function, with a \code{trackID} argument for multiple tracks.
+Downstream functions like \code{\link{lama}}, \code{\link{viterbi}}, \code{\link{stateprobs}} or \code{\link{pseudo_res}} rely on the quantities it reports,
+and only those of the last call are kept.
 }
 \examples{
 ## negative log likelihood function

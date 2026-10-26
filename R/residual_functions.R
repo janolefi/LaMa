@@ -13,10 +13,12 @@
         if(nrow(param) != nObs | ncol(param) != N){
           stop("Parameter matrix dimensions must match observations and states.")
         }
-        param[, state]
+        param[ind, state] # observed rows, like x[ind]
       } else if(is.vector(param)){
-        if(length(param) == 1 | length(param) == nObs){
+        if(length(param) == 1){
           param
+        } else if(length(param) == nObs){
+          param[ind]
         } else{
           if(length(param) != N){
             stop("Parameter vector must have length equal to number of states.")
@@ -39,6 +41,33 @@
   rowSums(cdf_values * stateprobs)
 }
 
+# pseudo-residuals from the predictive CDF at the observations (upper) and, for discrete data,
+# at the observations minus one (lower); NA where not observed
+finish_res <- function(upper, lower = NULL, observed = !is.na(upper), normal = TRUE, randomise = TRUE){
+  upper[!observed] <- NA
+  if(!is.null(lower)) lower[!observed] <- NA
+  q <- if(normal) qnorm else identity
+
+  if(!is.null(lower)){
+    message("Calculating discrete pseudo-residuals")
+    if(!randomise){
+      out <- list(lower = q(lower), upper = q(upper), mean = q((lower + upper) / 2))
+      class(out) <- "LaMaResiduals"
+      return(out)
+    }
+    message("Randomised between lower and upper")
+    u <- rep(NA_real_, length(upper))
+    u[observed] <- runif(sum(observed), lower[observed], upper[observed])
+  } else{
+    u <- upper
+  }
+
+  u <- q(u)
+  u[is.infinite(u)] <- NA
+  class(u) <- "LaMaResiduals"
+  u
+}
+
 
 #' Calculate pseudo-residuals
 #' 
@@ -48,7 +77,7 @@
 #' \deqn{F_{X_t}(x_t) = F(x_t \mid x_1, \dots, x_{t-1})}
 #' and can be used to quantify whether an observation is extreme relative to its model-implied distribution.
 #' 
-#' This function calculates such residuals via the probability integral transform, based on the local state probabilities obtained by \code{\link{stateprobs}} or \code{\link{stateprobs_g}} and the respective parametric family.
+#' This function calculates such residuals via the probability integral transform, based on the local state probabilities obtained by \code{\link{stateprobs}} and the respective parametric family.
 #'
 #' @details
 #' Pseudo-residuals are based on the probability integral transform. 
@@ -63,21 +92,38 @@
 #' If \code{randomise = TRUE}, a value is drawn uniformly 
 #' between the lower and upper bounds. In this case, the resulting pseudo-residuals 
 #' are again approximately standard normal after applying the standard normal quantile function.
+#' 
+#' \strong{Model object only:} \code{pseudo_res(mod)} needs no observations, family or parameters.
+#' It evaluates the likelihood function stored in the model again, with each density
+#' (e.g. \code{dgamma2()}) replaced by its CDF (\code{pgamma2()}) with the same arguments, so
+#' that the likelihood function itself builds the CDFs in place of \code{allprobs}. This works for
+#' loops over states or time, \code{cbind()}, covariate-dependent parameters, densities on the log scale,
+#' mixtures within a state and several data streams (multiplied, or summed on the log scale),
+#' giving one set of residuals per stream, named after the data variable.
+#' Before, it checks that the densities enter \code{allprobs} as a product or mixture, so that
+#' swapping in CDFs is valid. If not, e.g. for densities transformed by hand (truncation, Jacobians,
+#' zero inflation via indicators) or a latent variable integrated out inside \code{allprobs}, it stops, and
+#' \code{pseudo_res(obs, dist, par, mod = mod)} needs to be used instead.
+#' Densities in your own helper functions called by the likelihood function are found as well,
+#' and \code{\link{qreml}} models work like models from \code{\link{lama}}.
+#' The likelihood function needs to call \code{\link{forward}} once (use \code{trackID} for several tracks),
+#' and it is evaluated with the data as they are when \code{pseudo_res()} is called.
 #'
 #' @seealso \code{\link{plot.LaMaResiduals}} for plotting pseudo-residuals.
 #' 
-#' @param obs vector of continuous-valued observations (of length \code{nObs})
+#' @param obs vector of observations (of length \code{nObs}), or a model object from \code{\link{lama}}
+#' (or the \code{RTMB} object), in which case nothing else is needed (see \sQuote{Details})
 #' @param dist character string specifying which parametric CDF to use (e.g., \code{"norm"} for normal or \code{"pois"} for Poisson) or CDF function to evaluate directly.
 #' If a discrete CDF function is passed, the \code{discrete} argument needs to be set to \code{TRUE} because this cannot determined automatically.
 #' @param par named parameter list for the parametric CDF
 #' 
 #' Names need to correspond to the parameter names in the specified distribution (e.g. \code{list(mean = c(1,2), sd = c(1,1))} for a normal distribution and 2 states).
 #' This argument is as flexible as the parametric distribution allows. For example you can have a matrix of parameters with one row for each observation and one column for each state.
-#' @param stateprobs matrix of local state probabilities for each observation (of dimension c(nObs, nStates)) as computed by \code{\link{stateprobs}}, \code{\link{stateprobs_g}} or \code{\link{stateprobs_p}}
+#' @param stateprobs matrix of local state probabilities for each observation (of dimension c(nObs, nStates)) as computed by \code{\link{stateprobs}}
 #' @param mod optional model object containing required quantities
 #' 
-#' When using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward}}, \code{\link{forward_g}} or \code{\link{forward_p}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
-#' Hence, you can pass the model object obtained from running \code{report()} or from \code{\link{qreml}} directly to this function and avoid calculating local state proabilities manually.
+#' When using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
+#' Hence, you can pass the model object obtained from \code{obj$report()}, \code{\link{lama}} or \code{\link{qreml}} directly to this function and avoid calculating local state proabilities manually.
 #' In this case, a call should look like \code{pseudo_res(obs, "norm", par, mod = mod)}.
 #' @param normal logical, if \code{TRUE}, returns Gaussian pseudo residuals
 #'
@@ -89,6 +135,7 @@
 #' @param randomise for discrete pseudo residuals only. Logical, if \code{TRUE}, return randomised pseudo residuals. Recommended for discrete observations.
 #'
 #' @return vector of pseudo residuals of class \code{LaMaResiduals} or list containing \code{lower}, \code{upper}, and \code{mean} if discrete residuals are not randomised.
+#' For \code{pseudo_res(mod)} with several data streams, a named list of these, one per stream, also of class \code{LaMaResiduals}.
 #' 
 #' @importFrom stats runif
 #' @export
@@ -142,12 +189,15 @@
 #' obj = MakeADFun(nll, par, silent = TRUE)
 #' opt = nlminb(obj$par, obj$fn, obj$gr)
 #' 
-#' mod = report(obj)
+#' mod = lama(obj)
 #' 
 #' pres = pseudo_res(step,      # observation sequence
 #'                   "gamma2",  # parametric family that was used
 #'                   list(mean = mod$mu, sd = mod$sigma), # parameters for that family
 #'                   mod = mod) # model object
+#'
+#' # or, from the model object alone
+#' pres = pseudo_res(mod)
 #'
 #' plot(pres)
 pseudo_res <- function(obs,
@@ -159,30 +209,15 @@ pseudo_res <- function(obs,
                        discrete = NULL,
                        randomise = TRUE) {
   
-  # handle model input
+  # pseudo_res(mod): everything from the model object
+  if(missing(obs) || inherits(obs, c("LaMaModel", "qremlModel")) || (is.list(obs) && !is.null(obs$env))) {
+    if(!missing(obs)) mod <- obs
+    return(pseudo_res_mod(mod, normal, randomise))
+  }
+  
+  # handle model input: forecast probabilities, checks in stateprobs()
   if(!is.null(mod)){
-    # checks
-    if(is.null(mod$type)){
-      stop("'mod' contains no type.")
-    }
-    if(!(mod$type) %in% c("homogeneous","inhomogeneous","periodic","continuous_time")){
-      stop("'mod' contains invalid type.")
-    }
-    if(is.null(mod$delta)) stop("'mod' contains no initial distribution.")
-    if(is.null(mod$Gamma)) stop("'mod' contains no transition matrix.")
-    if(is.null(mod$allprobs)) stop("'mod' contains no state-dependent probabilities.")
-    if(mod$type == "periodic" && is.null(mod$tod)){
-      stop("'mod' contains no cyclic indexing variable.")
-    }
-    if(mod$type == "homogeneous"){
-      stateprobs = stateprobs(mod = mod, forecast = TRUE)
-    }
-    if(mod$type %in% c("inhomogeneous","continuous_time")){
-      stateprobs = stateprobs_g(mod = mod, forecast = TRUE)
-    }
-    if(mod$type == "periodic"){
-      stateprobs = stateprobs_p(mod = mod, forecast = TRUE)
-    }
+    stateprobs = stateprobs(mod = mod, forecast = TRUE)
   }
   
   nObs <- length(obs)
@@ -194,9 +229,7 @@ pseudo_res <- function(obs,
   # determine discrete automatically if possible
   if(is.null(discrete)){
     if(is.character(dist)){
-      discrete <- dist %in% c("pois","binom","geom","nbinom","nbinom2",
-                              "betabinom","genpois","zibinom","zibinom2",
-                              "zipois","ztbinom","ztnbinom","ztnbinom2", "ztpois")
+      discrete <- dist %in% .discrete_fams
     } else if(is.function(dist)){
       discrete <- FALSE
       message("Assuming 'dist' evaluates a continuous CDF. Set 'discrete = TRUE' if not.")
@@ -212,49 +245,14 @@ pseudo_res <- function(obs,
     stop("'dist' must be a character string or function.")
   }
   
+  observed <- !is.na(obs)
   if(discrete){
-    message("Calculating discrete pseudo-residuals")
-    
-    u_upper <- .eval_cdf_states(obs, par, stateprobs, cdf_func)
-    u_lower <- .eval_cdf_states(obs - 1, par, stateprobs, cdf_func)
-    
-    if(randomise){
-      message("Randomised between lower and upper")
-      u <- rep(NA_real_, nObs)
-      ind <- which(!is.na(obs))
-      u[ind] <- runif(length(ind), u_lower[ind], u_upper[ind])
-    } else{
-      if(normal){
-        out <- list(
-          lower = qnorm(u_lower),
-          upper = qnorm(u_upper),
-          mean  = qnorm((u_lower + u_upper)/2)
-        )
-        class(out) <- "LaMaResiduals"
-        return(out)
-      } else{
-        out <- list(
-          lower = u_lower,
-          upper = u_upper,
-          mean  = (u_lower + u_upper)/2
-        )
-        class(out) <- "LaMaResiduals"
-        return(out)
-      }
-    }
+    upper <- .eval_cdf_states(obs, par, stateprobs, cdf_func)
+    lower <- .eval_cdf_states(obs - 1, par, stateprobs, cdf_func)
+    finish_res(upper, lower, observed, normal, randomise)
   } else{
-    u <- .eval_cdf_states(obs, par, stateprobs, cdf_func)
+    finish_res(.eval_cdf_states(obs, par, stateprobs, cdf_func), observed = observed, normal = normal)
   }
-  
-  if(normal){
-    u <- qnorm(u)
-  }
-  
-  u[is.infinite(u)] <- NA
-  
-  class(u) <- "LaMaResiduals"
-  
-  return(u)
 }
 
 
@@ -262,8 +260,10 @@ pseudo_res <- function(obs,
 #' 
 #' @description
 #' Plot pseudo-residuals computed by \code{\link{pseudo_res}}.
+#' The QQ plot shows a pointwise 95\% band (in gray) for the sample quantiles under a correct model.
 #' 
-#' @param x pseudo-residuals as returned by \code{\link{pseudo_res}}
+#' @param x pseudo-residuals as returned by \code{\link{pseudo_res}}.
+#' For several data streams (from \code{pseudo_res(mod)}), one row of plots per stream, titled by the stream name.
 #' @param col character, color for the QQ-line (and density curve if \code{histogram = TRUE})
 #' @param lwd numeric, line width for the QQ-line (and density curve if \code{histogram = TRUE})
 #' @param main optional character vector of main titles for the plots of length 2 (or 3 if \code{histogram = TRUE})
@@ -274,8 +274,8 @@ pseudo_res <- function(obs,
 #' @returns NULL, plots the pseudo-residuals in a 3-panel layout
 #' @export
 #'
-#' @importFrom graphics par lines hist abline
-#' @importFrom stats acf na.pass qqnorm
+#' @importFrom graphics par lines hist abline polygon points
+#' @importFrom stats acf na.pass qqnorm ppoints
 #' @importFrom RTMB dnorm
 #' @importFrom utils modifyList
 #'
@@ -308,7 +308,7 @@ pseudo_res <- function(obs,
 #' obj = MakeADFun(nll, par, silent = TRUE)
 #' opt = nlminb(obj$par, obj$fn, obj$gr)
 #' 
-#' mod = report(obj)
+#' mod = lama(obj)
 #' 
 #' pres_step = pseudo_res(step,      # observations
 #'                        "gamma2",  # family that is used
@@ -329,6 +329,9 @@ pseudo_res <- function(obs,
 #'      axis.lab = list(hist = c("Step residuals", "Density")))
 #' plot(pres_angle, main = c("", "Turning Angle", ""),
 #'      axis.lab = list(hist = c("Angle residuals", "Density")))
+#'
+#' # or from the model object alone, one row per stream
+#' plot(pseudo_res(mod))
 plot.LaMaResiduals <- function(
     x, 
     col = "darkblue", 
@@ -347,7 +350,17 @@ plot.LaMaResiduals <- function(
   )
   
   axis.lab <- modifyList(default_axis, axis.lab)
-  
+
+  # several streams: one row per stream, titled by its name
+  if (is.list(x) && all(sapply(x, inherits, "LaMaResiduals"))) {
+    old <- par(mfrow = c(length(x), 3))
+    on.exit(par(old))
+    for (s in names(x)) {
+      plot(x[[s]], col = col, lwd = lwd, main = c("", s, ""), breaks = breaks, axis.lab = axis.lab)
+    }
+    return(invisible(NULL))
+  }
+
   # Extract mean if residuals is a list
   res <- if (is.list(x)) x$mean else x
   res_clean <- na.omit(res)
@@ -366,11 +379,18 @@ plot.LaMaResiduals <- function(
     on.exit(par(old))
   }
   
-  # QQ Plot
-  qqnorm(res_clean, main = main[1], 
-         xlab = axis.lab$qq[1], 
+  # QQ Plot with pointwise 95% band, i-th order statistic of n uniforms is Beta(i, n-i+1)
+  n <- length(res_clean)
+  q <- qnorm(ppoints(n))
+  lo <- qnorm(qbeta(0.025, 1:n, n:1))
+  hi <- qnorm(qbeta(0.975, 1:n, n:1))
+  qqnorm(res_clean, main = main[1],
+         xlab = axis.lab$qq[1],
          ylab = axis.lab$qq[2],
-         bty = "n", pch = 16, col = "#00000070")
+         ylim = range(res_clean, lo, hi),
+         bty = "n", type = "n")
+  polygon(c(q, rev(q)), c(lo, rev(hi)), col = "gray90", border = NA)
+  points(qqnorm(res_clean, plot.it = FALSE), pch = 16, col = "#00000070")
   abline(a = 0, b = 1, col = col, lwd = lwd)
   
   # Histogram

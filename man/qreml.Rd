@@ -45,7 +45,7 @@ qreml(
 
 \item{spname}{optional name given to the penalty strength parameter in \code{dat}. Defaults to \code{"lambda"}}
 
-\item{tol_edf}{convergence tolerance on the \strong{effective degrees of freedom}. Defaults to 0.001.
+\item{tol_edf}{convergence tolerance on the \strong{effective degrees of freedom}.
 
 This is the primary convergence criterion. The iteration stops once no smooth's effective degrees of freedom has changed by more than \code{tol_edf} across the last four outer iterations, provided the step in \code{log(lambda)} is also small.
 The effective degrees of freedom are what say whether the \strong{fitted smooth} is still changing, and unlike a tolerance on the restricted likelihood they mean the same thing on every model, being measured in effective parameters rather than in nats.
@@ -86,7 +86,7 @@ A tolerance in nats is not comparable across models, which is why it is the fall
 \item{saveall}{logical, if \code{TRUE}, then all model objects from each iteration are saved in the final model object}
 }
 \value{
-model object of class \code{"qremlModel"}, carrying the fitted quantities, the smoothness selection diagnostics shown by \code{\link{summary.qremlModel}}, and \code{outer_hessian()}, the outer Hessian that \code{\link{sdreport_outer}} turns into standard errors
+model object of class \code{"qremlModel"}, inheriting from \code{"LaMaModel"} (see \code{\link{lama}}), carrying the fitted quantities, the smoothness selection diagnostics shown by \code{\link{summary.qremlModel}}, and \code{outer_hessian()}, the outer Hessian that \code{\link{sdreport_outer}} turns into standard errors
 }
 \description{
 Efficiently fits models involving quadratic penalties of the form
@@ -152,7 +152,7 @@ dat$S = modmat$S # penalty matrix
 pnll = function(par) {
   getAll(par, dat) # makes everything contained available without $
   Gamma = tpm(cbind(beta0, beta_spline), Z) # transition probabilities
-  delta = stationary_p(Gamma, t = 1) # initial distribution
+  delta = stationary_p(Gamma, t = tod[1] \%\% 24 + 1) # initial distribution
   mu = exp(logmu) # step mean
   sigma = exp(logsigma) # step sd
   # calculating all state-dependent densities

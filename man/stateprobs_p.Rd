@@ -26,12 +26,12 @@ This could e.g. be the periodically stationary distribution (for each track) as 
 \item{tod}{(Integer valued) variable for cycle indexing in 1, ..., L, mapping the data index to a generalised time of day (length n).
 For half-hourly data L = 48. It could, however, also be day of year for daily data and L = 365.}
 
-\item{trackID}{optional vector of k track IDs, if multiple tracks need to be decoded separately}
+\item{trackID}{optional vector of k track IDs, if multiple tracks need to be decoded separately. The observations of each track need to be consecutive.}
 
 \item{mod}{optional model object containing initial distribution \code{delta}, transition probability matrix \code{Gamma}, matrix of state-dependent probabilities \code{allprobs}, and potentially a \code{trackID} variable
 
 If you are using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward_p}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
-Hence, you can pass the model object obtained from running \code{RTMB::report()} or from \code{\link{qreml}} directly to this function.}
+Hence, you can pass the model object obtained from \code{obj$report()}, \code{\link{lama}} or \code{\link{qreml}} directly to this function.}
 
 \item{forecast}{logical, indicating if forecast probabilities \eqn{\Pr(S_t = j \mid X_1, ..., X_{t-1})} should be calculated instead.}
 }
@@ -43,11 +43,14 @@ Computes
 \deqn{\Pr(S_t = j \mid X_1, ..., X_T)}
 for periodically inhomogeneous HMMs
 }
+\details{
+\strong{Deprecated:} please use \code{\link{stateprobs}} with argument \code{tod} instead.
+}
 \examples{
 L = 24
 beta = matrix(c(-1, 2, -1, -2, 1, -1), nrow = 2, byrow = TRUE)
 Gamma = tpm_p(1:L, L, beta, degree = 1)
-delta = stationary_p(Gamma, 1)
+delta = stationary_p(Gamma, 2) # for tod[1] = 1
 allprobs = matrix(runif(200), nrow = 100, ncol = 2)
 tod = rep(1:24, 5)[1:100]
 

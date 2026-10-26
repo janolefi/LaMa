@@ -145,6 +145,8 @@ nll = function(par, x){
 }
 ```
 
+We write the loop in step 3 to make the structure of the `allprobs` matrix explicit. The shortcut `allprobs = statedens(x, dnorm, mu, sigma)` gives the same matrix and also handles missing observations (see `?statedens`), but the loop is equally valid.
+
 We can now fit the model to data by defining a vector of initial parameter values on the transformed scale and calling `nlm()` to numerically maximise the likelihood. The initial parameters are not chosen too well here, but the estimation procedure still converges to the correct values. In practice, it is advisable to try several different sets of initial parameters to ensure convergence to the global maximum.
 
 The `tpm()` function uses the multinomial logistic (softmax) link to map unconstrained real-valued parameters to valid transition probabilities. To initialise near a specific off-diagonal probability $p$, we therefore supply $\text{logit}(p) = \log(p / (1-p))$, i.e. `qlogis(p)`, as the starting value. Here we start near 0.05 for both off-diagonal entries — not too far from the truth but intentionally imperfect:
@@ -201,14 +203,14 @@ probs = stateprobs(delta, Gamma, allprobs)
 
 Then, we can pass the observations, the state probabilities, the parametric family and the estimated parameters to the `pseudo_res()` function to get pseudo-residuals for model validation. These should be standard normally distributed if the model is correct.
 
-```{r pseudores}
+```{r pseudores, fig.dim = c(8, 4)}
 pres = pseudo_res(x, # observations
                   "norm", # parametric distribution to use
                   list(mean = mu, sd = sigma), # parameters for that distribution
                   probs) # local state probabilities
 
 # use the plotting method for LaMaResiduals
-plot(pres, hist = TRUE)
+plot(pres)
 ```
 
 In this case, our model looks really good -- which it should because it is correctly specified.

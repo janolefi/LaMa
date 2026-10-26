@@ -26,6 +26,8 @@ If the transition probability matrix of an inhomogeneous Markov chain varies onl
 This happens, because the thinned Markov chain, which has a full cycle as each time step, has homogeneous transition probability matrix
 \deqn{\Gamma_t = \Gamma^{(t)} \Gamma^{(t+1)} \dots \Gamma^{(t+L-1)}} for all \eqn{t = 1, \dots, L.}
 The stationary distribution for time \eqn{t} satifies \eqn{\delta^{(t)} \Gamma_t = \delta^{(t)}}.
+Here, \code{Gamma[,,t]} is the transition from \eqn{t} to \eqn{t+1}. \code{\link{forward}} with \code{tod} uses \code{Gamma[,,tod[t]]} for the transition into \eqn{t},
+so there, the initial distribution is \code{stationary_p(Gamma, tod[1] \%\% L + 1)}, and \code{stationary_p(Gamma)[c(2:L, 1), ]} has the distribution at \code{tod = k} in row \code{k}.
 
 This function calculates said periodically stationary distribution.
 }

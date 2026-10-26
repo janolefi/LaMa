@@ -112,7 +112,7 @@ obj_pool = MakeADFun(nll_pool, par, silent = TRUE)
 system.time(
   opt_pool <- nlminb(obj_pool$par, obj_pool$fn, obj_pool$gr)
 )
-mod_pool = report(obj_pool)
+mod_pool = lama(obj_pool)
 ```
 
 We can inspect the estimated parameters, which should be close to the true values used in the simulation:
@@ -207,7 +207,7 @@ obj_partial = MakeADFun(nll_partial, par, silent = TRUE)
 system.time(
   opt_partial <- nlminb(obj_partial$par, obj_partial$fn, obj_partial$gr)
 )
-mod_partial = report(obj_partial)
+mod_partial = lama(obj_partial)
 ```
 
 The estimated regression coefficients for the transition probabilities and the shared state-dependent parameters:
@@ -325,7 +325,7 @@ obj_re = MakeADFun(jnll_re, par, random = "u", silent = TRUE)
 system.time(
   opt_re <- nlminb(obj_re$par, obj_re$fn, obj_re$gr)
 )
-mod_re = report(obj_re)
+mod_re = lama(obj_re)
 ```
 
 The estimated standard deviations of the random effects tell us how much the transition probabilities vary across individuals. We can check the key population-level estimates against the true values used in the simulation:

@@ -103,9 +103,7 @@ make_matrices_flat <- function(formula, data, knots = NULL) {
     
     # mgcv's initial guesses, one per penalty matrix and in the same order as
     # gam_setup$S, so the loop below can name them as it walks the smooths
-    sp_init <- if(length(gam_setup$S)) {
-      mgcv::initial.sp(Z, gam_setup$S, gam_setup$off)
-    } else numeric(0)
+    sp_init <- initial.sp(Z, gam_setup$S, gam_setup$off)
     # started well above mgcv's guess: the inner fits are better behaved when
     # constrained initially, and the outer iteration relaxes the penalty from
     # there. Capped, so that a term whose basis carries a large covariate scale

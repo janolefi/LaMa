@@ -145,7 +145,9 @@ make_matrices_flat <- function(formula, data, knots = NULL) {
       } else {
         # several penalties: one per margin for a tensor product, but also e.g. bs = "fs"
         n_pen <- length(sm$S)
-        margin_names <- if(length(sm$margin) == n_pen) sapply(sm$margin, `[[`, "term") else seq_len(n_pen)
+        margin_names <- if(length(sm$margin) == n_pen) {
+          vapply(sm$margin, function(m) paste(m$term, collapse = ","), "") # "x,y" for a 2-d margin
+        } else seq_len(n_pen)
         penalty_list <- gam_setup$S[counter:(counter + n_pen - 1)]
         names(penalty_list) <- margin_names
         S[[label]] <- penalty_list

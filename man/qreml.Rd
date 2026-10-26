@@ -45,7 +45,7 @@ qreml(
 
 \item{spname}{optional name given to the penalty strength parameter in \code{dat}. Defaults to \code{"lambda"}}
 
-\item{tol_edf}{convergence tolerance on the \strong{effective degrees of freedom}. Defaults to 0.001.
+\item{tol_edf}{convergence tolerance on the \strong{effective degrees of freedom}.
 
 This is the primary convergence criterion. The iteration stops once no smooth's effective degrees of freedom has changed by more than \code{tol_edf} across the last four outer iterations, provided the step in \code{log(lambda)} is also small.
 The effective degrees of freedom are what say whether the \strong{fitted smooth} is still changing, and unlike a tolerance on the restricted likelihood they mean the same thing on every model, being measured in effective parameters rather than in nats.

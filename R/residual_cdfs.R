@@ -81,7 +81,7 @@ swapped_allprobs <- function(obj, par, dens, mode) {
 
   .lama_env$record <- list()
   on.exit(.lama_env$record <- NULL)
-  parlist <- obj$env$parList(par)
+  parlist <- obj$env$parList(par = par) # par is the full vector, incl. random effects
   attr(parlist, "check.passed") <- NULL
   f(parlist)
   rec <- .lama_env$record

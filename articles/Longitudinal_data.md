@@ -388,7 +388,7 @@ system.time(
   opt_re <- nlminb(obj_re$par, obj_re$fn, obj_re$gr)
 )
 #>    user  system elapsed 
-#>   4.037   0.025   4.062
+#>   4.098   0.027   4.125
 mod_re = lama(obj_re)
 ```
 

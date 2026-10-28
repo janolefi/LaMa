@@ -29,6 +29,9 @@
 - plot(mod, stream = …) selects data streams, for residuals and
   state-dependent densities
 
+- plot(mod, type = “statedens”, xlim = …) evaluates the density curves
+  on the plotted range, not only the range of the data
+
 - simulate(mod) simulates states and observations of models built with
   statedens() on the observed design: same tracks and lengths, with
   delta, Gamma and the parameters as reported (conditional on the

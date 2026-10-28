@@ -136,6 +136,8 @@ qreml_old <- function(pnll, # penalized negative log-likelihood function
                   saveall = FALSE # save all intermediate models?
                   )
 {
+  deprecated("qreml_old() is deprecated, please use qreml() instead.")
+
   ### input checking arguments
   if(!is.function(pnll)){
     stop("pnll needs to be a function")

@@ -77,6 +77,7 @@ make_matrices_old = function(formula,
                          data, 
                          knots = NULL
                          ){
+  deprecated("make_matrices_old() is deprecated, please use make_matrices() instead.")
   
   ## Potenially expand cosinor terms
   formula = expand_cosinor(formula)

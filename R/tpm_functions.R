@@ -387,6 +387,7 @@ tpm_g2 <- function(Z,
                    ad = NULL, 
                    report = TRUE,
                    ref = NULL){
+  deprecated("tpm_g2() is deprecated, please use tpm(beta, Z), or tpm(Eta = Eta) with a matrix of linear predictors for different design matrices, instead.")
   
   # two things can happen:
   # either Z and beta are lists when different regressions for each off diagonal element

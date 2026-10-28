@@ -24,25 +24,24 @@ make_matrices_dens(
 
 \item{degree}{degree of the B-spline basis functions, defaults to cubic B-splines}
 
-\item{knots}{optional vector of knots (including the boundary knots) to be used for basis construction. 
+\item{knots}{optional vector of knots (including the boundary knots) to be used for basis construction.
 If not provided, the knots are placed equidistantly for \code{"real"} and \code{"circular"} and using polynomial spacing for \code{"positive"}.
 
-For \code{"real"} and \code{"positive"} \code{k - degree + 1} knots are needed, for \code{"circular"} \code{k + 1} knots are needed.
-# @param quantile logical, if \code{TRUE} use quantile-based knot spacing (instead of equidistant or polynomial)}
+For \code{"real"} and \code{"positive"} \code{k - degree + 1} knots are needed, for \code{"circular"} \code{k + 1} knots are needed.}
 
-\item{diff_order}{order of differencing used for the P-Spline penalty matrix for each data stream. Defaults to second-order differences.}
+\item{diff_order}{order of differencing used for the P-Spline penalty matrix. Defaults to second-order differences.}
 
-\item{pow}{power for polynomial knot spacing}
+\item{pow}{power for polynomial knot spacing, only used for \code{type = "positive"}}
 
-\item{npoints}{number of points used in the numerical integration for normalizing the B-spline basis functions
-
-Such non-equidistant knot spacing is only used for \code{type = "positive"}.}
+\item{npoints}{number of points used in the numerical integration for normalizing the B-spline basis functions}
 }
 \value{
 list containing the design matrix \code{Z}, the penalty matrix \code{S}, the prediction design matrix \code{Z_predict}, the prediction grid \code{xseq}, and details for the basis expansion.
+
+The penalty matrix leaves out the last coefficient, which is fixed at zero for identifiability.
 }
 \description{
-This function builds the B-spline design matrix for a given data vector. 
+This function builds the B-spline design matrix for a given data vector.
 Importantly, the B-spline basis functions are normalised such that the integral of each basis function is 1, hence this basis can be used for spline-based density estimation, when the basis functions are weighted by non-negative weights summing to one.
 }
 \examples{

@@ -613,26 +613,25 @@ pred_matrix = function(model_matrices,
 ###### Density estimation setting ----------------------------------------------
 
 #' Build a standardised P-Spline design matrix and the associated P-Spline penalty matrix
-#' 
-#' This function builds the B-spline design matrix for a given data vector. 
+#'
+#' This function builds the B-spline design matrix for a given data vector.
 #' Importantly, the B-spline basis functions are normalised such that the integral of each basis function is 1, hence this basis can be used for spline-based density estimation, when the basis functions are weighted by non-negative weights summing to one.
 #'
 #' @param x data vector
 #' @param k number of basis functions
 #' @param type type of the data, either \code{"real"} for data on the reals, \code{"positive"} for data on the positive reals or \code{"circular"} for circular data like angles.
 #' @param degree degree of the B-spline basis functions, defaults to cubic B-splines
-#' @param knots optional vector of knots (including the boundary knots) to be used for basis construction. 
+#' @param knots optional vector of knots (including the boundary knots) to be used for basis construction.
 #' If not provided, the knots are placed equidistantly for \code{"real"} and \code{"circular"} and using polynomial spacing for \code{"positive"}.
 #'
 #' For \code{"real"} and \code{"positive"} \code{k - degree + 1} knots are needed, for \code{"circular"} \code{k + 1} knots are needed.
-#' # @param quantile logical, if \code{TRUE} use quantile-based knot spacing (instead of equidistant or polynomial)
-#' @param diff_order order of differencing used for the P-Spline penalty matrix for each data stream. Defaults to second-order differences.
-#' @param pow power for polynomial knot spacing
+#' @param diff_order order of differencing used for the P-Spline penalty matrix. Defaults to second-order differences.
+#' @param pow power for polynomial knot spacing, only used for \code{type = "positive"}
 #' @param npoints number of points used in the numerical integration for normalizing the B-spline basis functions
-#' 
-#' Such non-equidistant knot spacing is only used for \code{type = "positive"}.
 #'
 #' @return list containing the design matrix \code{Z}, the penalty matrix \code{S}, the prediction design matrix \code{Z_predict}, the prediction grid \code{xseq}, and details for the basis expansion.
+#'
+#' The penalty matrix leaves out the last coefficient, which is fixed at zero for identifiability.
 #' @export
 #' @importFrom splines2 bSpline
 #' @importFrom mgcv cSplineDes
@@ -656,224 +655,82 @@ make_matrices_dens = function(x, # data vector
                               type = "real", # type of the data
                               degree = 3, # degree of the B-Spline basis
                               knots = NULL, # default to automatic knots spacing, if provided, need to be k - degree + 1
-                              # quantile = FALSE, # if TRUE, use quantile-based knots
                               diff_order = 2, # order of the differences for the penalty matrix
                               pow = 0.5, # power for polynomial knot spacing for positive values
                               npoints = 1e4 # number of points for numerical integration
 ){
-  nObs <- length(x)
-  
-  quantile <- FALSE # no quantile spacing if knots are not custom
+  type <- match.arg(type, c("real", "positive", "circular"))
 
-  if(type != "circular"){
-    
-    # getting the data range
-    rangex <- range(x, na.rm = TRUE)
-    # slightly inflating the range
-    rangex <- rangex + c(-1, 1) * diff(rangex) / 20
-    # computing the number of knots
-    nrknots <- k - degree + 1 
-    
-    if(type == "real"){ # real data, defaults to equidistant knots
-      # grid for numerical integration (normalisation)
-      # xseq <- seq(rangex[1] + 1e-3, rangex[2] - 1e-3, length = npoints)
-      
-      # if knots not supplied, default to equidistant knots
-      if(is.null(knots)){
-        if(quantile){ # quantile spacing
-          knots <- quantile(x, probs = seq(0, 1, length = nrknots), na.rm = TRUE)
-          knots[1] <- rangex[1]
-          knots[nrknots] <- rangex[2]
-        } else { # equidistant spacing
-          knots <- seq(rangex[1], rangex[2], length = nrknots)
-        }
-      } else{
-        if(length(knots) != nrknots){
-          stop("Number of knots provided is wrong. It should be 'k - degree + 1'.")
-        }
-      }
-      
-      boundary_knots <- knots[c(1, length(knots))] # set boundary knots
-      knots <- knots[2:(length(knots)-1)] # only keep interior knots
-      
-      xseq <- seq(boundary_knots[1] + 1e-3, boundary_knots[2] - 1e-3, 
-                  length = npoints)
-      
-      # numerical integration for normalizing the B-spline basis functions
-      B0 <- bSpline(
-        x = xseq, 
-        knots = knots, 
-        Boundary.knots = boundary_knots,
-        degree = degree, 
-        intercept = TRUE
-        ) # unnormalised spline design matrix
+  if(type == "circular"){
 
-      # interval width for numerical integration
-      h <- xseq[2] - xseq[1]
-      # numerical integration of each basis function
-      w <- (h * colSums(B0))^-1
-      
-      # normalising
-      B0 <- t(t(B0) * w)
-      
-      # actual data design matrix
-      B <- matrix(NA, nrow = nObs, ncol = k)
-      ind <- which(!is.na(x))
-      B[ind,] <- bSpline(
-        x = x[ind], 
-        knots = knots, 
-        Boundary.knots = boundary_knots,
-        degree = degree, 
-        intercept = TRUE
-      ) # unnormalised spline design matrix
-      
-      # normalising
-      B[ind,] <- t(t(B[ind,]) * w)
- 
-      # basis positions for initial values later (expected value of each basis function)
-      basis_pos = colSums(xseq * t(t(B0) / rowSums(t(B0))))
-      # basis_pos = knots[(degree):(length(knots)-degree+1)]
-      
-      # second-order difference matrix
-      L <- diff(diag(k), differences = diff_order)
+    x <- (x + pi) %% (2 * pi) - pi # wrap angles to [-pi, pi)
 
-    } else if(type == "positive") { # non-equidistant knots, no mass on < 0
-      
-      if(min(x, na.rm = TRUE) <= 0){
-        stop("When type = 'positive', 'x' can only contain positive values")
-      } 
-      
-      # square-root spacing
-      rangex[1] <- 0 # always from 0 to max(x)
-      
-      # grid for numerical integration (normalisation)
-      # xseq <- seq(rangex[1] + 1e-3, rangex[2] - 1e-3, length = npoints)
-      
-      # if knots not supplied, default to square-root-spaced knots
-      if(is.null(knots)){
-        if(quantile){ # quantile spacing
-          knots <- quantile(x, probs = seq(0, 1, length = nrknots), na.rm = TRUE)
-          knots[1] <- rangex[1]
-          knots[nrknots] <- rangex[2]
-        } else { # polynomial spacing
-          knots <- seq(rangex[1]^pow, rangex[2]^pow, length = nrknots)^(1/pow)
-        }
-      } else{
-        if(length(knots) != nrknots){
-          stop("Number of knots provided is wrong. It should be 'k - degree + 1'.")
-        }
-      }
-      
-      boundary_knots <- knots[c(1, length(knots))] # set boundary knots
-      knots <- knots[2:(length(knots)-1)] # only keep interior knots
-      
-      xseq <- seq(boundary_knots[1] + 1e-3, boundary_knots[2] - 1e-3, 
-                  length = npoints)
-      
-      # numerical integration for normalizing the B-spline basis functions
-      B0 <- bSpline(
-        x = xseq, 
-        knots = knots, 
-        Boundary.knots = boundary_knots,
-        degree = degree, 
-        intercept = TRUE
-      ) # unnormalised spline design matrix
-      
-      # interval width for numerical integration
-      h <- xseq[2] - xseq[1]
-      
-      # numerical integration of each basis function
-      w <- (h * colSums(B0))^-1
-      
-      # normalising
-      B0 <- t(t(B0) * w)
-      
-      # basis positions for initial values later (expected value of each basis function)
-      basis_pos <- colSums(xseq * t(t(B0) / rowSums(t(B0))))
-      
-      B <- matrix(NA, nrow = nObs, ncol = k)
-      ind <- which(!is.na(x))
-      B[ind,] <- bSpline(
-        x = x[ind], 
-        knots = knots, 
-        Boundary.knots = boundary_knots,
-        degree = degree, 
-        intercept = TRUE
-      ) # unnormalised spline design matrix
-      
-      # normalising
-      B[ind,] <- t(t(B[ind,]) * w)
-      
-      # second-order difference matrix
-      L <- diff(diag(k), differences = diff_order) 
-      
-    } else {
-      stop("type must be 'real', 'positive' or 'circular'")
-    }
-    
-  } else if(type == "circular"){
-    
     # if knots not supplied, default to equidistant knots
     if(is.null(knots)){
-      if(quantile){ # quantile spacing
-        knots <- quantile(x, probs = seq(0, 1, length = k+1), na.rm = TRUE)
-        knots[1] <- -pi
-        knots[length(knots)] <- pi
-      } else { # equidistant spacing
-        knots <- seq(-pi, pi, length = k + 1)
-      }
-    } else{
-      if(length(knots) != nrknots){
-        stop("Number of knots provided is wrong. For 'type = circular' it should be 'k + 1' with '-pi' and 'pi' as first and last entries.")
-      }
+      knots <- seq(-pi, pi, length = k + 1)
+    } else if(length(knots) != k + 1){
+      stop("Number of knots provided is wrong. For 'type = circular' it should be 'k + 1' with '-pi' and 'pi' as first and last entries.")
     }
-    
-    xseq <- seq(-pi, pi, length = npoints)
-    B0 <- cSplineDes(
-      xseq, 
-      knots, 
-      ord = degree + 1
-      )
-    
-    # interval width for numerical integration
-    h <- xseq[2] - xseq[1]
-    
-    # numerical integration of each basis function
-    w <- (h * colSums(B0))^-1
-    
-    # normalising
-    B0 <- t(t(B0) * w)
-    
-    # basis positions for initial values later (expected value of each basis function)
-    basis_pos <- colSums(xseq * t(t(B0) / rowSums(t(B0))))
-    
-    # actual data design matrix
-    B <- matrix(NA, nrow = nObs, ncol = k)
-    ind <- which(!is.na(x))
-    B[ind,] <- cSplineDes(
-      x[ind], 
-      knots, 
-      ord = degree + 1
-    )
-    # normalising
-    B[ind,] <- t(t(B[ind,]) * w)
-    
-    # difference matrix for circular P-Spline penalty
-    L <- diff(rbind(diag(k), diag(k)[1:diff_order,]), differences = diff_order)
+
+  } else {
+
+    if(type == "positive" && min(x, na.rm = TRUE) <= 0){
+      stop("When type = 'positive', 'x' can only contain positive values")
+    }
+
+    # computing the number of knots
+    nrknots <- k - degree + 1
+
+    if(is.null(knots)){
+      # slightly inflated data range
+      rangex <- range(x, na.rm = TRUE)
+      rangex <- rangex + c(-1, 1) * diff(rangex) / 20
+
+      if(type == "real"){ # equidistant knots
+        knots <- seq(rangex[1], rangex[2], length = nrknots)
+      } else { # polynomial spacing, always from 0 to max(x)
+        knots <- seq(0, rangex[2]^pow, length = nrknots)^(1/pow)
+      }
+    } else if(length(knots) != nrknots){
+      stop("Number of knots provided is wrong. It should be 'k - degree + 1'.")
+    }
   }
-  
+
+  # midpoint grid for numerical integration
+  h <- diff(range(knots)) / npoints
+  xseq <- min(knots) + (seq_len(npoints) - 0.5) * h
+
+  # numerical integration for normalizing the B-spline basis functions
+  B0 <- dens_basis(xseq, type, knots, degree) # unnormalised spline design matrix
+  w <- (h * colSums(B0))^-1
+  B0 <- t(t(B0) * w)
+
+  # basis positions for initial values later (expected value of each basis function)
+  basis_pos <- colSums(xseq * t(t(B0) / rowSums(t(B0))))
+
+  # actual data design matrix, NA rows stay NA
+  B <- matrix(NA, nrow = length(x), ncol = k)
+  ind <- which(!is.na(x))
+  B[ind,] <- t(t(dens_basis(x[ind], type, knots, degree)) * w)
+
+  # difference matrix, cyclic for circular
+  if(type == "circular"){
+    L <- diff(rbind(diag(k), diag(k)[1:diff_order,]), differences = diff_order)
+  } else{
+    L <- diff(diag(k), differences = diff_order)
+  }
+
   # constructing penalty matrix
-  S <- crossprod(L[,-k], L[,-k]) # leaving out last column because parameter set to zero
-  message("Leaving out last column of the penalty matrix, fix the last spline coefficient at zero for identifiability!")
-  
+  S <- crossprod(L[,-k]) # leaving out last column because parameter set to zero
+
   basis <- list(
-    type = type, 
-    knots = knots, 
-    w = w, 
-    degree = degree, 
+    type = type,
+    knots = knots,
+    w = w,
+    degree = degree,
     basis_pos = basis_pos
     )
-  
+
   out <- list(
     Z = B,
     S = S,
@@ -881,201 +738,254 @@ make_matrices_dens = function(x, # data vector
     xseq = xseq[(1:500)* (npoints/500) -(npoints/500)/2],
     basis = basis
   )
-  
+
   return(out)
 }
 
 # helper function, not exported
-make_splinecoef = function(model_matrices, 
-                           type = "real", 
+# unnormalised B-spline basis at x, knots including the boundary knots
+dens_basis = function(x, type, knots, degree){
+  if(type == "circular"){
+    cSplineDes(x, knots, ord = degree + 1)
+  } else{
+    nk <- length(knots)
+    bSpline(x, knots = knots[-c(1, nk)], Boundary.knots = knots[c(1, nk)],
+            degree = degree, intercept = TRUE)
+  }
+}
+
+# helper function, not exported
+make_splinecoef = function(model_matrices,
+                           type = "real",
                            par){
   basis_pos = model_matrices$basis$basis_pos
   k = length(basis_pos)
-  
-  # scaling
-  dens1 = rowSums(model_matrices$Z_predict)
-  scaling = sapply(1:k, function(i) dens1[which.min(abs(basis_pos[i] - model_matrices$xseq))])
-  
-  if(type == "real"){ # if density has support on the reals -> use normal distribution to initialize
-    beta = sapply(basis_pos, dnorm, mean = par$mean, sd = par$sd, log = TRUE)
-    if(is.vector(beta)) beta = matrix(beta, nrow = 1)
-    # rescaling to account for non-equidistant knot spacing
-    beta = t(t(beta) - log(apply(model_matrices$Z_predict, 2, max)))
-  } else if(type == "positive") { # if density has support on positive continuous -> use gamma distribution
-    # transformation to scale and shape
-    beta = sapply(basis_pos, dgamma2, mean = par$mean, sd = par$sd, log = TRUE)
-    if(is.vector(beta)) beta = matrix(beta, nrow = 1)
-    # rescaling to account for non-equidistant knot spacing
-    beta = t(t(beta) - log(apply(model_matrices$Z_predict, 2, max)))
-  } else if(type == "circular") {
-    beta = sapply(basis_pos, LaMa::dvm, mu = par$mean, kappa = par$concentration, log = TRUE)
-    if(is.vector(beta)) beta = matrix(beta, nrow = 1)
+
+  if(type == "circular") {
+    kappa = if(is.null(par$kappa)) par$concentration else par$kappa # accept both names
+    beta = sapply(basis_pos, dvm, mu = par$mean, kappa = kappa, log = TRUE)
+  } else { # normal on the reals, gamma on the positive reals
+    ddist = if(type == "real") dnorm else dgamma2
+    beta = sapply(basis_pos, ddist, mean = par$mean, sd = par$sd, log = TRUE)
   }
+  if(is.vector(beta)) beta = matrix(beta, nrow = 1)
+
+  # rescaling to account for non-equidistant knot spacing
+  if(type != "circular") beta = t(t(beta) - log(apply(model_matrices$Z_predict, 2, max)))
 
   beta = beta - beta[,k]
-  # beta = beta - beta[,k-1]
-  message("Parameter matrix excludes the last column. Add zero column using 'cbind(coef, 0)' in your loss function!\n")
-  return(beta[,-k])
+  return(beta[,-k, drop = FALSE]) # stays a matrix for one state
 }
 
 #' Build the design and penalty matrices for smooth density estimation
-#' 
+#'
 #' @description
 #' This high-level function can be used to prepare objects needed to estimate mixture models of smooth densities using P-Splines.
-#' 
+#'
 #' @details
 #' Under the hood, \code{\link{make_matrices_dens}} is used for the actual construction of the design and penalty matrices.
 #'
 #' You can provide one or multiple data streams of different types (real, positive, circular) and specify initial means and standard deviations/ concentrations for each data stream. This information is then converted into suitable spline coefficients.
-#' \code{smooth_dens_construct} then constructs the design and penalty matrices for standardised B-splines basis functions (integrating to one) for each data stream.
+#' \code{smoothdens} then constructs the design and penalty matrices for standardised B-splines basis functions (integrating to one) for each data stream.
 #' For types \code{"real"} and \code{"circular"} the knots are placed equidistant in the range of the data, for type \code{"positive"} the knots are placed using polynomial spacing.
 #'
-#' @param data named data frame of 1 or multiple data streams
-#' @param par nested named list of initial means and sds/concentrations for each data stream
-#' @param type vector of length 1 or number of data streams containing the type of each data stream, either \code{"real"} for data on the reals, \code{"positive"} for data on the positive reals or \code{"circular"} for angular data.
-#' @param k vector of length 1 or number of data streams containing the number of basis functions for each data stream
-#' @param knots optional list of knots vectors (including the boundary knots) to be used for basis construction. 
+#' The last spline coefficient of each state is fixed at zero for identifiability, hence \code{coef} has \code{k - 1} columns.
+#' \code{density(beta)} takes care of this: it maps the coefficient matrix to the \code{allprobs} matrix, with rows of missing observations equal to one.
+#'
+#' @param x data vector for one data stream, or named data frame or list of several data streams
+#' @param par list of initial means and sds (\code{"real"}, \code{"positive"}) or means and concentrations (\code{"circular"}, called \code{kappa} or \code{concentration}), one value per state.
+#' For several data streams, a named list of such lists.
+#' @param type type of each data stream, either \code{"real"} for data on the reals, \code{"positive"} for data on the positive reals or \code{"circular"} for angular data.
+#' @param k number of basis functions for each data stream
+#' @param knots optional vector of knots (including the boundary knots) to be used for basis construction, for several data streams a named list of such vectors.
 #' If not provided, the knots are placed equidistantly for \code{"real"} and \code{"circular"} and using polynomial spacing for \code{"positive"}.
 #'
 #' For \code{"real"} and \code{"positive"} \code{k - degree + 1} knots are needed, for \code{"circular"} \code{k + 1} knots are needed.
 #' @param degree degree of the B-spline basis functions for each data stream, defaults to cubic B-splines
 #' @param diff_order order of differencing used for the P-Spline penalty matrix for each data stream. Defaults to second-order differences.
+#' @param pow power for polynomial knot spacing, only used for \code{type = "positive"}
+#' @param npoints number of points used in the numerical integration for normalizing the B-spline basis functions
 #'
-#' @return a nested list containing the design matrices \code{Z}, the penalty matrices \code{S}, the initial coefficients \code{coef} the prediction design matrices \code{Z_predict}, the prediction grids \code{xseq}, and details for the basis expansion for each data stream.
+#' \code{type}, \code{k}, \code{degree}, \code{diff_order}, \code{pow} and \code{npoints} can be of length 1 or one per data stream (named or in the order of \code{x}).
+#'
+#' @return For one data stream, an object of class \code{"smoothdens"}: a list containing the design matrix \code{Z}, the penalty matrix \code{S}, the initial coefficients \code{coef}, the prediction design matrix \code{Z_predict}, the prediction grid \code{xseq}, details for the basis expansion \code{basis}, and the function \code{density(beta)}.
+#' For several data streams, a named list of such objects.
+#' @seealso \code{\link[=predict.smoothdens]{predict}} for the estimated densities
 #' @export
 #'
 #' @examples
-#' ## 3 data streams, each with one distribution
-#' # normal data with mean 0 and sd 1
-#' x1 = rnorm(100, mean = 0, sd = 1)
-#' # gamma data with mean 5 and sd 3
-#' x2 = rgamma2(100, mean = 5, sd = 3)
-#' # circular data
-#' x3 = rvm(100, mu = 0, kappa = 2)
-#' 
-#' data = data.frame(x1 = x1, x2 = x2, x3 = x3)
-#' 
+#' ## one data stream, mixture of two normals
+#' x = c(rnorm(100, 0, 1), rnorm(100, 5, 1))
+#' dens = smoothdens(x, par = list(mean = c(0, 5), sd = c(1, 1)))
+#'
+#' Z = dens$Z # design matrix
+#' S = dens$S # penalty matrix
+#' beta = dens$coef # initial coefficients
+#' allprobs = dens$density(beta) # use this in the likelihood function
+#'
+#' ## 3 data streams
+#' data = data.frame(x1 = rnorm(100, mean = 0, sd = 1),
+#'                   x2 = rgamma2(100, mean = 5, sd = 3),
+#'                   x3 = rvm(100, mu = 0, kappa = 2))
+#'
 #' par = list(x1 = list(mean = 0, sd = 1),
 #'            x2 = list(mean = 5, sd = 3),
-#'            x3 = list(mean = 0, concentration = 2))
-#' 
-#' SmoothDens = smooth_dens_construct(data, 
-#'                                    par,
-#'                                    type = c("real", "positive", "circular"))
-#'                              
-#' # extracting objects for x1
-#' Z1 = SmoothDens$Z$x1
-#' S1 = SmoothDens$S$x1
-#' coefs1 = SmoothDens$coef$x1
-#' 
-#' ## one data stream, but mixture of two distributions
-#' # normal data with mean 0 and sd 1
-#' x = rnorm(100, mean = 0, sd = 1)
-#' data = data.frame(x = x)
-#' 
-#' # now parameters for mixture of two normals
-#' par = list(x = list(mean = c(0, 5), sd = c(1,1)))
-#' 
-#' SmoothDens = smooth_dens_construct(data, par = par)
-#' 
-#' # extracting objects 
-#' Z = SmoothDens$Z$x
-#' S = SmoothDens$S$x
-#' coefs = SmoothDens$coef$x
+#'            x3 = list(mean = 0, kappa = 2))
+#'
+#' dens = smoothdens(data, par, type = c("real", "positive", "circular"))
+#'
+#' # objects for x1
+#' Z1 = dens$x1$Z
+#' allprobs = dens$x1$density(dens$x1$coef) *
+#'   dens$x2$density(dens$x2$coef) *
+#'   dens$x3$density(dens$x3$coef)
+smoothdens <- function(x,
+                       par,
+                       type = "real",
+                       k = 25,
+                       knots = NULL,
+                       degree = 3,
+                       diff_order = 2,
+                       pow = 0.5,
+                       npoints = 1e4
+){
+  # several data streams: one object per stream
+  if(is.list(x)){
+    varnames <- names(x)
+    if(is.null(varnames) || !all(varnames %in% names(par))){
+      stop("'par' must be a named nested list with names corresponding to the datastreams")
+    }
+    # value of an argument for stream i: length 1, named or in order
+    pick <- function(arg, i){
+      if(length(arg) == 1) return(arg)
+      if(length(arg) != length(varnames)){
+        stop(paste0("'", deparse(substitute(arg)), "' must be of length 1 or equal to the number of datastreams"))
+      }
+      if(is.null(names(arg))) arg[[i]] else arg[[varnames[i]]]
+    }
+    out <- lapply(seq_along(varnames), function(i){
+      thisname <- varnames[i]
+      smoothdens(x[[thisname]], par[[thisname]],
+                 type = pick(type, i), k = pick(k, i), knots = knots[[thisname]],
+                 degree = pick(degree, i), diff_order = pick(diff_order, i),
+                 pow = pick(pow, i), npoints = pick(npoints, i))
+    })
+    names(out) <- varnames
+    return(out)
+  }
+
+  if(is.null(par$mean)){
+    stop("'par' must contain initial means, e.g. list(mean = c(0, 5), sd = c(1, 1))")
+  }
+
+  modmat <- make_matrices_dens(x = x,
+                               type = type,
+                               k = k,
+                               knots = knots,
+                               degree = degree,
+                               diff_order = diff_order,
+                               pow = pow,
+                               npoints = npoints)
+  modmat$coef <- make_splinecoef(modmat, type = modmat$basis$type, par = par)
+  modmat$density <- dens_fun(modmat$Z)
+
+  out <- modmat[c("Z", "S", "coef", "Z_predict", "xseq", "basis", "density")]
+  class(out) <- "smoothdens"
+  return(out)
+}
+
+# helper function, not exported
+# weights from coefficients, last one fixed at zero (multinomial logit)
+dens_weights = function(beta){
+  alpha <- exp(cbind(beta, 0))
+  alpha / rowSums(alpha)
+}
+
+# helper function, not exported
+# function mapping beta to allprobs, only keeps Z in its environment
+dens_fun = function(Z){
+  ind <- which(!is.na(Z[,1])) # only for non-NA obs.
+  function(beta){
+    alpha <- dens_weights(beta)
+    allprobs <- matrix(1, nrow(Z), nrow(alpha))
+    allprobs[ind,] <- Z[ind,] %*% t(alpha)
+    allprobs
+  }
+}
+
+#' Estimated smooth densities
+#'
+#' Evaluates the smooth densities built with \code{\link{smoothdens}} for given spline coefficients, e.g. to plot the estimated state-dependent densities.
+#'
+#' @param object object of class \code{"smoothdens"} for one data stream
+#' @param coef coefficient matrix, one row per state, without the last column fixed at zero
+#' @param x optional points to evaluate the densities at, defaults to the prediction grid \code{object$xseq}
+#' @param ... unused
+#'
+#' @return list with the points \code{x} and the matrix \code{density} of densities, one row per point and one column per state
+#' @export
+#'
+#' @examples
+#' x = c(rnorm(100, 0, 1), rnorm(100, 5, 1))
+#' dens = smoothdens(x, par = list(mean = c(0, 5), sd = c(1, 1)))
+#' # densities at the initial coefficients
+#' pred = predict(dens, coef = dens$coef)
+#' matplot(pred$x, pred$density, type = "l", lty = 1)
+predict.smoothdens = function(object, coef, x = NULL, ...){
+  if(is.null(x)){
+    x <- object$xseq
+    Z <- object$Z_predict
+  } else{
+    b <- object$basis
+    xw <- if(b$type == "circular") (x + pi) %% (2 * pi) - pi else x # wrap angles to [-pi, pi)
+    Z <- t(t(dens_basis(xw, b$type, b$knots, b$degree)) * b$w)
+  }
+  list(x = x, density = Z %*% t(dens_weights(coef)))
+}
+
+#' Build the design and penalty matrices for smooth density estimation
+#'
+#' @description
+#' \code{smooth_dens_construct()} is deprecated, use \code{\link{smoothdens}} instead.
+#' It returns the same objects, but ordered by component first and data stream second.
+#'
+#' @param data named data frame of 1 or multiple data streams
+#' @inheritParams smoothdens
+#'
+#' @return a nested list containing the design matrices \code{Z}, the penalty matrices \code{S}, the initial coefficients \code{coef} the prediction design matrices \code{Z_predict}, the prediction grids \code{xseq}, and details for the basis expansion for each data stream.
+#' @export
+#' @keywords internal
+#'
+#' @examples
+#' data = data.frame(x = rnorm(100))
+#' # deprecated:
+#' # SmoothDens = smooth_dens_construct(data, par = list(x = list(mean = 0, sd = 1)))
+#' # use instead:
+#' dens = smoothdens(data$x, par = list(mean = 0, sd = 1))
 smooth_dens_construct <- function(data,
                                   par,
                                   type = "real",
                                   k = 25,
                                   knots = NULL,
-                                  # quantile = FALSE,
                                   degree = 3,
                                   diff_order = 2
 ){
-  quantile <- FALSE # no quantile spacing if knots are not custom
-  
+  .Deprecated("smoothdens", package = "LaMa",
+              msg = paste("'smooth_dens_construct()' is deprecated; use 'smoothdens()' instead."))
+
   if(!is.data.frame(data)){
     stop("data must be a data frame")
   }
-  
-  nStreams <- ncol(data)
-  nObs <- nrow(data)
-  varnames <- colnames(data)
-  
-  if(length(par) == length(varnames)){
-    if(is.null(names(par))){
-      stop("'par' must be a named nested list with names corresponding to the datastreams")
-    } else if(any(names(par) != varnames)){
-      stop("'par' must be a named nested list with names corresponding to the datastreams")
-    }
-  } else{
-    stop("'par' must be a named nested list with names corresponding to the datastreams")
-  }
-  
-  # processing input arguments
-  if(length(k) == 1){
-    k = rep(k, nStreams)
-  } else if(length(k) != nStreams){
-    stop("'k' must be a scalar or a vector of length equal to the number of datastreams")
-  }
-  if(length(type) == 1){
-    type = rep(type, nStreams)
-  } else if(length(type) != nStreams){
-    stop("'type' must be of length 1 or equal to the number of datastreams")
-  }
-  if(length(degree) == 1){
-    degree = rep(degree, nStreams)
-  } else if(length(degree) != nStreams){
-    stop("'degree' must be of length 1 or equal to the number of datastreams")
-  }
-  # if(length(quantile) == 1){
-  #   quantile = rep(quantile, nStreams)
-  # } else if(length(quantile) != nStreams){
-  #   stop("'quantile' must be of length 1 or equal to the number of datastreams")
-  # }
-  if(length(diff_order) == 1){
-    diff_order = rep(diff_order, nStreams)
-  } else if(length(diff_order) != nStreams){
-    stop("'diff_order' must be of length 1 or equal to the number of datastreams")
-  }
-  
-  listseed = vector("list", length = nStreams)
-  names(listseed) = varnames
-  Z = S = Z_predict = xseq = betastart = basis = listseed
-  
-  for(i in seq_len(nStreams)){
-    thisname = varnames[i]
-    
-    msg <- paste0("Data stream: ", thisname)
-    message(msg)
-    
-    modmat <- make_matrices_dens(x = data[[thisname]], 
-                                type = type[i], 
-                                k = k[i], 
-                                knots = knots[[thisname]],
-                                # quantile = quantile[i],
-                                degree = degree[i], 
-                                diff_order = diff_order[i])
-    Z[[thisname]] = modmat$Z
-    S[[thisname]] = modmat$S
-    Z_predict[[thisname]] = modmat$Z_predict
-    xseq[[thisname]] = modmat$xseq
-    basis[[thisname]] = modmat$basis
-    betastart[[thisname]] = make_splinecoef(modmat, type = type[i], par = par[[thisname]])
-  }
-  
-  out <- list(
-    Z = Z,
-    S = S,
-    coef = betastart,
-    Z_predict = Z_predict,
-    xseq = xseq,
-    basis = basis
-  )
-  
+  dens <- smoothdens(as.list(data), par, type = type, k = k, knots = knots,
+                     degree = degree, diff_order = diff_order)
+
+  # old layout: component first, then data stream
+  comps <- c("Z", "S", "coef", "Z_predict", "xseq", "basis")
+  out <- lapply(stats::setNames(comps, comps), function(n) lapply(dens, `[[`, n))
+
   class(out) <- "SmoothDens"
   return(out)
 }
-
 
 #' Compute the design matrix for a trigonometric basis expansion
 #'

@@ -246,6 +246,8 @@ tpm_inhom <- function(Z, beta,
   }
   
   if(is.null(Eta)) {
+    tpm_formula <- attr(Z, "formula") # set by modmat(), lost by cbind() below
+    if(report && !is.null(tpm_formula)) REPORT(tpm_formula)
     Z = as.matrix(Z)
     if(ncol(Z) == p){
       Z = cbind(1, Z) # adding intercept column

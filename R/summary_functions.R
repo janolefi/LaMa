@@ -90,7 +90,7 @@ print.LaMaModel <- function(x, ...) {
     cat("! Maximum gradient component is", signif(x$mgc, 3), "- the optimiser may not have converged\n")
   }
 
-  reported <- setdiff(names(x), c(model_fields(x), "type", "streams")) # type is in the first line
+  reported <- setdiff(names(x), c(model_fields(x), "type", "streams", "tpm_formula")) # type is in the first line
   if(length(reported) > 0) cat(strwrap(paste("Reported:", paste(reported, collapse = ", ")), exdent = 2), sep = "\n")
 
   invisible(x)
@@ -190,7 +190,8 @@ plot.LaMaModel <- function(x, type = c("residuals", "statedens"), stream = NULL,
 #' @export
 summary.LaMaModel <- function(object, ...) {
   sp <- state_process(object)
-  s <- list(header = model_header(object), fit = fit_line(object), mgc = object$mgc)
+  s <- list(header = model_header(object), fit = fit_line(object), mgc = object$mgc,
+            tpm_formula = object$tpm_formula)
   
   ### state process: matrix, stationary distribution and dwell times, only for few states
   if(!is.null(sp) && sp$N > 10){
@@ -219,7 +220,7 @@ summary.LaMaModel <- function(object, ...) {
   
   ### quantities reported by the likelihood function
   internal <- c("delta", "Gamma", "allprobs", "trackID", "type", "tod", "streams",
-                "delta_sparse", "Gamma_sparse", "Delta_sparse", if(isTRUE(sp$ct)) "Q")
+                "delta_sparse", "Gamma_sparse", "Delta_sparse", "tpm_formula", if(isTRUE(sp$ct)) "Q")
   reported <- object[setdiff(names(object), c(model_fields(object), internal))]
   
   # vectors with one entry per state form one table
@@ -250,6 +251,7 @@ summary.LaMaModel <- function(object, ...) {
 #' @export
 print.summary.LaMaModel <- function(x, digits = max(3, getOption("digits") - 3), ...) {
   cat(x$header, sep = "\n")
+  if(!is.null(x$tpm_formula)) cat("State process: ", x$tpm_formula, "\n", sep = "")
   
   ### state process
   avg <- if(isTRUE(x$nTracks > 1)) paste0(" (average over ", x$nTracks, " tracks)") else ""

@@ -97,6 +97,8 @@ make_matrices_flat <- function(formula, data, knots = NULL) {
     
     Z <- gam_setup$X
     colnames(Z) <- gam_setup$term.names
+    # right side as a string, reported by tpm() for summary()
+    attr(Z, "formula") <- paste("~", gsub("\\s+", " ", paste(deparse(fml_given[[length(fml_given)]]), collapse = " ")))
     gam_setup$X <- NULL # returned as Z, and a second copy is the largest thing here
     
     # mgcv's initial guesses, one per penalty matrix and in the same order as

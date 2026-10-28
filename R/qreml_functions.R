@@ -62,6 +62,20 @@ gen_inverse <- function(S) {
 }
 
 
+## pnll with dat bound to its name in a fresh environment on top of its own, so that it
+## cannot see qreml()'s internals, e.g. its local 'lambda' when dat calls it 'sp'
+bind_dat <- function(pnll, dat, argname_dat) {
+  env <- new.env(parent = environment(pnll))
+  # overloading assignment operators, currently necessary
+  env[["[<-"]] <- ADoverload("[<-")
+  env[["c"]] <- ADoverload("c")
+  env[["diag<-"]] <- ADoverload("diag<-")
+  assign(argname_dat, dat, envir = env)
+  environment(pnll) <- env
+  pnll
+}
+
+
 #' Automatic smoothness selection for arbitrary 
 #' statistical models with penalised splines, simple random effects, or tensorproducts
 #'
@@ -258,20 +272,12 @@ qreml <- function(pnll, # penalised negative log-likelihood function
 
   # creating the objective function as wrapper around pnll to pull lambda from local
   f <- function(par){
-    environment(pnll) = environment()
-
-    # overloading assignment operators, currently necessary
-    "[<-" <- ADoverload("[<-")
-    "c" <- ADoverload("c")
-    "diag<-" <- ADoverload("diag<-")
-
     # defining function that grabs lambda
     getLambda <- function(x) lambda
     dat[[spname]] <- DataEval(getLambda, rep(advector(1), 0))
 
-    # assigning dat to whatever it is called in pnll()
-    assign(argname_dat, dat, envir = environment())
-    pnll(par)
+    # dat under whatever it is called in pnll()
+    bind_dat(pnll, dat, argname_dat)(par)
   }
 
   ## mapping
@@ -808,12 +814,9 @@ qreml <- function(pnll, # penalised negative log-likelihood function
 
     # joint negative log-likelihood -> pnll with log normalisation constants 
     jnll <- function(par) {
-      environment(pnll) = environment()
       "[<-" <- ADoverload("[<-")
-      "c" <- ADoverload("c")
-      "diag<-" <- ADoverload("diag<-")
       dat[[spname]] <- exp(par$loglambda)
-      l_p <- -pnll(par[names(par) != "loglambda"])
+      l_p <- -bind_dat(pnll, dat, argname_dat)(par[names(par) != "loglambda"])
       const <- 0
       for(i in 1:n_re){
         for(j in 1:nrow(re_inds[[i]])){

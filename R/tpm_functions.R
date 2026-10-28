@@ -769,6 +769,7 @@ tpm_cont <- function(
     rates = NULL, 
     ad = NULL, 
     report = TRUE) {
+  deprecated("tpm_cont() is deprecated, please use tpm_ct() instead.")
   tpm_ct(Q=Q, timediff=timediff, rates=rates, ad=ad, report=report)
 } 
 

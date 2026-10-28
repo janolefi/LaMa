@@ -36,7 +36,7 @@ stationary = function(Gamma){
   stat <- function(G) {
     if(!ad_context()){
       if(all(abs(rowSums(G)) < 1e-10)) {
-        stop("Gamma seems to be a generator matrix - use stationary_cont()")
+        stop("Gamma seems to be a generator matrix - use stationary_ct()")
       }
     } 
     delta <- RTMB::solve(t(diag(N) - G + 1), rep(1, N))
@@ -240,6 +240,7 @@ stationary_ct = function(Q){
 #' @export
 #' @import RTMB
 stationary_cont <- function(Q){
+  deprecated("stationary_cont() is deprecated, please use stationary_ct() instead.")
   stationary_ct(Q)
 }
 

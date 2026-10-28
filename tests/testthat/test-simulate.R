@@ -37,7 +37,7 @@ test_that("sim_states(): track-specific, periodic, continuous-time Gamma and one
 
   # continuous time: nObs - 1 matrices, slice t - 1 is the transition into t
   timediff <- rexp(n - 1, 2)
-  Gt <- tpm_cont(generator(c(-1, -1.5)), timediff)
+  Gt <- tpm_ct(generator(c(-1, -1.5)), timediff)
   Z <- sim_states(prepare_decoding(c(0.5, 0.5), Gt, matrix(1, n, 2)))
   from1 <- which(Z[-n] == 1)
   expect_equal(mean(Z[from1 + 1] == 2), mean(Gt[1, 2, from1]), tolerance = 0.1)

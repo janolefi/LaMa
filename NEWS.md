@@ -39,6 +39,9 @@
   capped at 1e6), one per penalty matrix and named as S; rep_sp() repeats them as lambda for 
   smooths used more than once, e.g. one per state
 * print() for objects from make_matrices() shows the formulas and the initial penalty strengths
+* smoothdens() builds the objects for smooth (P-spline) densities from a data vector, or one object per 
+  stream from a data frame or list; density(beta) in the returned object gives the allprobs matrix 
+  and predict() the estimated densities, e.g. on the grid xseq
 
 ## Changes
 
@@ -66,6 +69,9 @@
 
 * pred_matrix() is deprecated, use predict() on the object from make_matrices() instead
 * make_matrices_old() is removed
+* smooth_dens_construct() is deprecated, use smoothdens() instead
+* make_matrices_dens() and smooth_dens_construct() no longer print messages; basis$knots 
+  includes the boundary knots
 
 ## Bug fixes
 
@@ -100,6 +106,12 @@
 * make_matrices(): tensor product margins over several covariates are named e.g. "x,y" (two 
   such margins failed); unpenalised smooths (fx = TRUE) give an informative error
 * predict() on objects from make_matrices() ignored exclude
+
+* smooth_dens_construct(): coefficients of one state are a matrix (before a vector, so cbind(coef, 0) 
+  was wrong); circular data with custom knots failed; angles outside [-pi, pi) are wrapped; 
+  par accepts kappa next to concentration
+* make_matrices_dens(): the basis is normalised on a midpoint grid (before a fixed 1e-3 offset, 
+  which gave negative weights for data on a small scale), which changes the weights very slightly
 
 ## Minor changes
 

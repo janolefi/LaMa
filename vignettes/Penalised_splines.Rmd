@@ -238,33 +238,23 @@ for(j in 1:3) curve(mod$delta[j] * dnorm(x, mod$mu[j], mod$sigma[j]),
 
 We see a clear lack-of-fit due to the inflexibility of the Gaussian state-dependent densities. Thus, we now fit a model with state-dependent densities based on P-Splines. 
 
-In a first step, this requires us to prepare the **design** and **penalty matrices** needed using `smooth_dens_construct()`. This function can take multiple data streams and a set of initial parameters (specifying initial means and standard deviations) for each data stream. It then builds the **P-Spline** design and penalty matrices for each data stream as well as a matrix of **initial spline coefficients** based on the provided parameters. The basis functions are standardised such that they integrate to one, which is needed for density estimation.
+In a first step, this requires us to prepare the **design** and **penalty matrices** needed using `smoothdens()`. This function takes the data and a set of initial parameters (specifying initial means and standard deviations for each state). It then builds the **P-Spline** design and penalty matrices as well as a matrix of **initial spline coefficients** based on the provided parameters. The basis functions are standardised such that they integrate to one, which is needed for density estimation. For several data streams, `smoothdens()` also takes a named data frame or list and returns one such object per data stream.
 
 ```{r smooth prep}
 # providing initial means and sds to initialise spline coefficients
-par0 = list(logODBA = list(mean = c(-4, -3.3, -2.8), sd = c(0.3, 0.2, 0.5)))
+par0 = list(mean = c(-4, -3.3, -2.8), sd = c(0.3, 0.2, 0.5))
 
-# construct the smooth density objects
-modmat = smooth_dens_construct(nessi["logODBA"], # only one data stream here
-                               par = par0)
-
-# par is nested named list: top layer: each data stream
-# for each data stream: initial means and standard deviations for each state
+# construct the smooth density object
+dens = smoothdens(nessi$logODBA, par = par0)
 
 # objects for model fitting
-Z = modmat$Z$logODBA # spline design matrix for logODBA
-S = modmat$S$logODBA # penalty matrix for logODBA
-beta = modmat$coef$logODBA # initial spline coefficients
-
-# objects for prediction
-Z_p = modmat$Z_predict$logODBA # prediction design matrix
-xseq = modmat$xseq$logODBA # prediction sequence of logODBA values
+S = dens$S # penalty matrix for logODBA
+beta = dens$coef # initial spline coefficients
 ```
 
-Then, we can specify the penalised negative log-likelihood function. The six lines in the middle are needed for P-Spline-based density estimation. 
-The coefficient matrix `beta` provided by `smooth_dens_construct()` has one column less than the number of basis functions, which is also printed when calling `buildSmoothDens()`. This is because the last column, i.e. the last coefficient for each state, needs to be fixed to zero for **identifiability** which we do by using `cbind(beta, 0)`. 
-Then, we transform the unconstrained parameter matrix to non-negative weights that sum to one (called `alpha`) for each state using the inverse multinomial logistic link (softmax). 
-The columns of the `allprobs` matrix are then computed as linear combinations of the columns of `Z` and the weights `alpha`. Lastly, we penalise the unconstrained coefficients `beta` (not the constrained `alpha`'s) using the `penalty()` function.
+Then, we can specify the penalised negative log-likelihood function. The coefficient matrix `beta` provided by `smoothdens()` has one column less than the number of basis functions. This is because the last column, i.e. the last coefficient for each state, needs to be fixed to zero for **identifiability**. 
+`dens$density(beta)` takes care of this: it adds the zero column and transforms the unconstrained parameter matrix to non-negative weights that sum to one (called `alpha`) for each state using the inverse multinomial logistic link (softmax). 
+The columns of the `allprobs` matrix are then computed as linear combinations of the columns of the design matrix `dens$Z` and the weights `alpha`, with rows of missing observations equal to one. Lastly, we penalise the unconstrained coefficients `beta` (not the constrained `alpha`'s) using the `penalty()` function.
 
 ```{r pnll2}
 pnll = function(par){
@@ -273,26 +263,19 @@ pnll = function(par){
   Gamma = tpm(eta)
   delta = stationary(Gamma)
   # smooth state-dependent densities
-  alpha = exp(cbind(beta, 0))
-  alpha = alpha / rowSums(alpha) # multinomial logit link
-  REPORT(alpha)
-  allprobs = matrix(1, nrow(Z), N)
-  ind = which(!is.na(Z[,1])) # only for non-NA obs.
-  allprobs[ind,] = Z[ind,] %*% t(alpha)
+  allprobs = dens$density(beta)
   # forward algorithm + penalty
   -forward(delta, Gamma, allprobs) + 
     penalty(beta, S, lambda)
 }
 ```
 
-Now we specify the initial parameter and data list and fit the model. In this case, we actually don't need to add the observations to our `dat` list anymore, as all the information is contained in the design matrix `Z`.
+Now we specify the initial parameter and data list and fit the model. In this case, we actually don't need to add the observations to our `dat` list, as all the information is contained in `dens`.
 ```{r nessi_spline_fit}
-par = list(beta = beta, # spline coefficients prepared by smooth_dens_construct()
+par = list(beta = beta, # spline coefficients prepared by smoothdens()
            eta = rep(-2, 6)) # initial transition matrix on logit scale
 
-dat = list(N = 3, # number of states
-           Z = Z, # spline design matrix
-           S = S, # spline penalty matrix
+dat = list(S = S, # spline penalty matrix
            lambda = rep(10, 3)) # initial penalty strength vector
 
 # fitting the model using qREML
@@ -301,10 +284,11 @@ system.time(
 )
 ```
 
-After fitting the model, we can easily visualise the smooth densities using the prepared prediction objects. We already have access to all reported quantities because `qreml()` automatically runs the reporting after model fitting.
+After fitting the model, we can easily visualise the smooth densities: `predict()` evaluates them for the estimated coefficients on the grid `dens$xseq`. We already have access to all reported quantities because `qreml()` automatically runs the reporting after model fitting.
 
 ```{r shark_smooth_results, fig.width = 9, fig.height = 5}
-sDens = Z_p %*% t(mod2$alpha) # all three state-dependent densities on a grid
+sDens = predict(dens, beta = mod2$par$beta) # all three state-dependent densities on a grid
+xseq = dens$xseq
 
 hist(nessi$logODBA, prob = TRUE, breaks = 50, bor = "white", main = "", xlab = "log(ODBA)")
 for(j in 1:3) lines(xseq, mod2$delta[j] * sDens[,j], col = color[j], lwd = 2)

@@ -17,13 +17,14 @@ smooth_dens_construct(
 \arguments{
 \item{data}{named data frame of 1 or multiple data streams}
 
-\item{par}{nested named list of initial means and sds/concentrations for each data stream}
+\item{par}{list of initial means and sds (\code{"real"}, \code{"positive"}) or means and concentrations (\code{"circular"}, called \code{kappa} or \code{concentration}), one value per state.
+For several data streams, a named list of such lists.}
 
-\item{type}{vector of length 1 or number of data streams containing the type of each data stream, either \code{"real"} for data on the reals, \code{"positive"} for data on the positive reals or \code{"circular"} for angular data.}
+\item{type}{type of each data stream, either \code{"real"} for data on the reals, \code{"positive"} for data on the positive reals or \code{"circular"} for angular data.}
 
-\item{k}{vector of length 1 or number of data streams containing the number of basis functions for each data stream}
+\item{k}{number of basis functions for each data stream}
 
-\item{knots}{optional list of knots vectors (including the boundary knots) to be used for basis construction. 
+\item{knots}{optional vector of knots (including the boundary knots) to be used for basis construction, for several data streams a named list of such vectors.
 If not provided, the knots are placed equidistantly for \code{"real"} and \code{"circular"} and using polynomial spacing for \code{"positive"}.
 
 For \code{"real"} and \code{"positive"} \code{k - degree + 1} knots are needed, for \code{"circular"} \code{k + 1} knots are needed.}
@@ -36,51 +37,14 @@ For \code{"real"} and \code{"positive"} \code{k - degree + 1} knots are needed, 
 a nested list containing the design matrices \code{Z}, the penalty matrices \code{S}, the initial coefficients \code{coef} the prediction design matrices \code{Z_predict}, the prediction grids \code{xseq}, and details for the basis expansion for each data stream.
 }
 \description{
-This high-level function can be used to prepare objects needed to estimate mixture models of smooth densities using P-Splines.
-}
-\details{
-Under the hood, \code{\link{make_matrices_dens}} is used for the actual construction of the design and penalty matrices.
-
-You can provide one or multiple data streams of different types (real, positive, circular) and specify initial means and standard deviations/ concentrations for each data stream. This information is then converted into suitable spline coefficients.
-\code{smooth_dens_construct} then constructs the design and penalty matrices for standardised B-splines basis functions (integrating to one) for each data stream.
-For types \code{"real"} and \code{"circular"} the knots are placed equidistant in the range of the data, for type \code{"positive"} the knots are placed using polynomial spacing.
+\code{smooth_dens_construct()} is deprecated, use \code{\link{smoothdens}} instead.
+It returns the same objects, but ordered by component first and data stream second.
 }
 \examples{
-## 3 data streams, each with one distribution
-# normal data with mean 0 and sd 1
-x1 = rnorm(100, mean = 0, sd = 1)
-# gamma data with mean 5 and sd 3
-x2 = rgamma2(100, mean = 5, sd = 3)
-# circular data
-x3 = rvm(100, mu = 0, kappa = 2)
-
-data = data.frame(x1 = x1, x2 = x2, x3 = x3)
-
-par = list(x1 = list(mean = 0, sd = 1),
-           x2 = list(mean = 5, sd = 3),
-           x3 = list(mean = 0, concentration = 2))
-
-SmoothDens = smooth_dens_construct(data, 
-                                   par,
-                                   type = c("real", "positive", "circular"))
-                             
-# extracting objects for x1
-Z1 = SmoothDens$Z$x1
-S1 = SmoothDens$S$x1
-coefs1 = SmoothDens$coef$x1
-
-## one data stream, but mixture of two distributions
-# normal data with mean 0 and sd 1
-x = rnorm(100, mean = 0, sd = 1)
-data = data.frame(x = x)
-
-# now parameters for mixture of two normals
-par = list(x = list(mean = c(0, 5), sd = c(1,1)))
-
-SmoothDens = smooth_dens_construct(data, par = par)
-
-# extracting objects 
-Z = SmoothDens$Z$x
-S = SmoothDens$S$x
-coefs = SmoothDens$coef$x
+data = data.frame(x = rnorm(100))
+# deprecated:
+# SmoothDens = smooth_dens_construct(data, par = list(x = list(mean = 0, sd = 1)))
+# use instead:
+dens = smoothdens(data$x, par = list(mean = 0, sd = 1))
 }
+\keyword{internal}

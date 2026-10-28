@@ -778,163 +778,213 @@ make_splinecoef = function(model_matrices,
 }
 
 #' Build the design and penalty matrices for smooth density estimation
-#' 
+#'
 #' @description
 #' This high-level function can be used to prepare objects needed to estimate mixture models of smooth densities using P-Splines.
-#' 
+#'
 #' @details
 #' Under the hood, \code{\link{make_matrices_dens}} is used for the actual construction of the design and penalty matrices.
 #'
 #' You can provide one or multiple data streams of different types (real, positive, circular) and specify initial means and standard deviations/ concentrations for each data stream. This information is then converted into suitable spline coefficients.
-#' \code{smooth_dens_construct} then constructs the design and penalty matrices for standardised B-splines basis functions (integrating to one) for each data stream.
+#' \code{smoothdens} then constructs the design and penalty matrices for standardised B-splines basis functions (integrating to one) for each data stream.
 #' For types \code{"real"} and \code{"circular"} the knots are placed equidistant in the range of the data, for type \code{"positive"} the knots are placed using polynomial spacing.
 #'
-#' @param data named data frame of 1 or multiple data streams
-#' @param par nested named list of initial means and sds/concentrations for each data stream
-#' @param type vector of length 1 or number of data streams containing the type of each data stream, either \code{"real"} for data on the reals, \code{"positive"} for data on the positive reals or \code{"circular"} for angular data.
-#' @param k vector of length 1 or number of data streams containing the number of basis functions for each data stream
-#' @param knots optional list of knots vectors (including the boundary knots) to be used for basis construction. 
+#' The last spline coefficient of each state is fixed at zero for identifiability, hence \code{coef} has \code{k - 1} columns.
+#' \code{density(beta)} takes care of this: it maps the coefficient matrix to the \code{allprobs} matrix, with rows of missing observations equal to one.
+#'
+#' @param x data vector for one data stream, or named data frame or list of several data streams
+#' @param par list of initial means and sds (\code{"real"}, \code{"positive"}) or means and concentrations (\code{"circular"}, called \code{kappa} or \code{concentration}), one value per state.
+#' For several data streams, a named list of such lists.
+#' @param type type of each data stream, either \code{"real"} for data on the reals, \code{"positive"} for data on the positive reals or \code{"circular"} for angular data.
+#' @param k number of basis functions for each data stream
+#' @param knots optional vector of knots (including the boundary knots) to be used for basis construction, for several data streams a named list of such vectors.
 #' If not provided, the knots are placed equidistantly for \code{"real"} and \code{"circular"} and using polynomial spacing for \code{"positive"}.
 #'
 #' For \code{"real"} and \code{"positive"} \code{k - degree + 1} knots are needed, for \code{"circular"} \code{k + 1} knots are needed.
 #' @param degree degree of the B-spline basis functions for each data stream, defaults to cubic B-splines
 #' @param diff_order order of differencing used for the P-Spline penalty matrix for each data stream. Defaults to second-order differences.
+#' @param pow power for polynomial knot spacing, only used for \code{type = "positive"}
+#' @param npoints number of points used in the numerical integration for normalizing the B-spline basis functions
 #'
-#' @return a nested list containing the design matrices \code{Z}, the penalty matrices \code{S}, the initial coefficients \code{coef} the prediction design matrices \code{Z_predict}, the prediction grids \code{xseq}, and details for the basis expansion for each data stream.
+#' \code{type}, \code{k}, \code{degree}, \code{diff_order}, \code{pow} and \code{npoints} can be of length 1 or one per data stream (named or in the order of \code{x}).
+#'
+#' @return For one data stream, an object of class \code{"smoothdens"}: a list containing the design matrix \code{Z}, the penalty matrix \code{S}, the initial coefficients \code{coef}, the prediction design matrix \code{Z_predict}, the prediction grid \code{xseq}, details for the basis expansion \code{basis}, and the function \code{density(beta)}.
+#' For several data streams, a named list of such objects.
+#' @seealso \code{\link[=predict.smoothdens]{predict}} for the estimated densities
 #' @export
 #'
 #' @examples
-#' ## 3 data streams, each with one distribution
-#' # normal data with mean 0 and sd 1
-#' x1 = rnorm(100, mean = 0, sd = 1)
-#' # gamma data with mean 5 and sd 3
-#' x2 = rgamma2(100, mean = 5, sd = 3)
-#' # circular data
-#' x3 = rvm(100, mu = 0, kappa = 2)
-#' 
-#' data = data.frame(x1 = x1, x2 = x2, x3 = x3)
-#' 
+#' ## one data stream, mixture of two normals
+#' x = c(rnorm(100, 0, 1), rnorm(100, 5, 1))
+#' dens = smoothdens(x, par = list(mean = c(0, 5), sd = c(1, 1)))
+#'
+#' Z = dens$Z # design matrix
+#' S = dens$S # penalty matrix
+#' beta = dens$coef # initial coefficients
+#' allprobs = dens$density(beta) # use this in the likelihood function
+#'
+#' ## 3 data streams
+#' data = data.frame(x1 = rnorm(100, mean = 0, sd = 1),
+#'                   x2 = rgamma2(100, mean = 5, sd = 3),
+#'                   x3 = rvm(100, mu = 0, kappa = 2))
+#'
 #' par = list(x1 = list(mean = 0, sd = 1),
 #'            x2 = list(mean = 5, sd = 3),
-#'            x3 = list(mean = 0, concentration = 2))
-#' 
-#' SmoothDens = smooth_dens_construct(data, 
-#'                                    par,
-#'                                    type = c("real", "positive", "circular"))
-#'                              
-#' # extracting objects for x1
-#' Z1 = SmoothDens$Z$x1
-#' S1 = SmoothDens$S$x1
-#' coefs1 = SmoothDens$coef$x1
-#' 
-#' ## one data stream, but mixture of two distributions
-#' # normal data with mean 0 and sd 1
-#' x = rnorm(100, mean = 0, sd = 1)
-#' data = data.frame(x = x)
-#' 
-#' # now parameters for mixture of two normals
-#' par = list(x = list(mean = c(0, 5), sd = c(1,1)))
-#' 
-#' SmoothDens = smooth_dens_construct(data, par = par)
-#' 
-#' # extracting objects 
-#' Z = SmoothDens$Z$x
-#' S = SmoothDens$S$x
-#' coefs = SmoothDens$coef$x
+#'            x3 = list(mean = 0, kappa = 2))
+#'
+#' dens = smoothdens(data, par, type = c("real", "positive", "circular"))
+#'
+#' # objects for x1
+#' Z1 = dens$x1$Z
+#' allprobs = dens$x1$density(dens$x1$coef) *
+#'   dens$x2$density(dens$x2$coef) *
+#'   dens$x3$density(dens$x3$coef)
+smoothdens <- function(x,
+                       par,
+                       type = "real",
+                       k = 25,
+                       knots = NULL,
+                       degree = 3,
+                       diff_order = 2,
+                       pow = 0.5,
+                       npoints = 1e4
+){
+  # several data streams: one object per stream
+  if(is.list(x)){
+    varnames <- names(x)
+    if(is.null(varnames) || !all(varnames %in% names(par))){
+      stop("'par' must be a named nested list with names corresponding to the datastreams")
+    }
+    # value of an argument for stream i: length 1, named or in order
+    pick <- function(arg, i){
+      if(length(arg) == 1) return(arg)
+      if(length(arg) != length(varnames)){
+        stop(paste0("'", deparse(substitute(arg)), "' must be of length 1 or equal to the number of datastreams"))
+      }
+      if(is.null(names(arg))) arg[[i]] else arg[[varnames[i]]]
+    }
+    out <- lapply(seq_along(varnames), function(i){
+      thisname <- varnames[i]
+      smoothdens(x[[thisname]], par[[thisname]],
+                 type = pick(type, i), k = pick(k, i), knots = knots[[thisname]],
+                 degree = pick(degree, i), diff_order = pick(diff_order, i),
+                 pow = pick(pow, i), npoints = pick(npoints, i))
+    })
+    names(out) <- varnames
+    return(out)
+  }
+
+  if(is.null(par$mean)){
+    stop("'par' must contain initial means, e.g. list(mean = c(0, 5), sd = c(1, 1))")
+  }
+
+  modmat <- make_matrices_dens(x = x,
+                               type = type,
+                               k = k,
+                               knots = knots,
+                               degree = degree,
+                               diff_order = diff_order,
+                               pow = pow,
+                               npoints = npoints)
+  modmat$coef <- make_splinecoef(modmat, type = modmat$basis$type, par = par)
+  modmat$density <- dens_fun(modmat$Z)
+
+  out <- modmat[c("Z", "S", "coef", "Z_predict", "xseq", "basis", "density")]
+  class(out) <- "smoothdens"
+  return(out)
+}
+
+# helper function, not exported
+# weights from coefficients, last one fixed at zero (multinomial logit)
+dens_weights = function(beta){
+  alpha <- exp(cbind(beta, 0))
+  alpha / rowSums(alpha)
+}
+
+# helper function, not exported
+# function mapping beta to allprobs, only keeps Z in its environment
+dens_fun = function(Z){
+  ind <- which(!is.na(Z[,1])) # only for non-NA obs.
+  function(beta){
+    alpha <- dens_weights(beta)
+    allprobs <- matrix(1, nrow(Z), nrow(alpha))
+    allprobs[ind,] <- Z[ind,] %*% t(alpha)
+    allprobs
+  }
+}
+
+#' Estimated smooth densities
+#'
+#' Evaluates the smooth densities built with \code{\link{smoothdens}} for given spline coefficients, e.g. to plot the estimated state-dependent densities.
+#'
+#' @param object object of class \code{"smoothdens"} for one data stream
+#' @param beta coefficient matrix, one row per state, without the last column fixed at zero
+#' @param x optional points to evaluate the densities at, defaults to the prediction grid \code{object$xseq}
+#' @param ... unused
+#'
+#' @return matrix of densities, one row per point and one column per state
+#' @export
+#'
+#' @examples
+#' x = c(rnorm(100, 0, 1), rnorm(100, 5, 1))
+#' dens = smoothdens(x, par = list(mean = c(0, 5), sd = c(1, 1)))
+#' # densities at the initial coefficients
+#' D = predict(dens, beta = dens$coef)
+#' matplot(dens$xseq, D, type = "l", lty = 1)
+predict.smoothdens = function(object, beta, x = NULL, ...){
+  if(is.null(x)){
+    Z <- object$Z_predict
+  } else{
+    b <- object$basis
+    if(b$type == "circular") x <- (x + pi) %% (2 * pi) - pi # wrap angles to [-pi, pi)
+    Z <- t(t(dens_basis(x, b$type, b$knots, b$degree)) * b$w)
+  }
+  Z %*% t(dens_weights(beta))
+}
+
+#' Build the design and penalty matrices for smooth density estimation
+#'
+#' @description
+#' \code{smooth_dens_construct()} is deprecated, use \code{\link{smoothdens}} instead.
+#' It returns the same objects, but ordered by component first and data stream second.
+#'
+#' @param data named data frame of 1 or multiple data streams
+#' @inheritParams smoothdens
+#'
+#' @return a nested list containing the design matrices \code{Z}, the penalty matrices \code{S}, the initial coefficients \code{coef} the prediction design matrices \code{Z_predict}, the prediction grids \code{xseq}, and details for the basis expansion for each data stream.
+#' @export
+#' @keywords internal
+#'
+#' @examples
+#' data = data.frame(x = rnorm(100))
+#' # deprecated:
+#' # SmoothDens = smooth_dens_construct(data, par = list(x = list(mean = 0, sd = 1)))
+#' # use instead:
+#' dens = smoothdens(data$x, par = list(mean = 0, sd = 1))
 smooth_dens_construct <- function(data,
                                   par,
                                   type = "real",
                                   k = 25,
                                   knots = NULL,
-                                  # quantile = FALSE,
                                   degree = 3,
                                   diff_order = 2
 ){
-  quantile <- FALSE # no quantile spacing if knots are not custom
-  
+  .Deprecated("smoothdens", package = "LaMa",
+              msg = paste("'smooth_dens_construct()' is deprecated; use 'smoothdens()' instead."))
+
   if(!is.data.frame(data)){
     stop("data must be a data frame")
   }
-  
-  nStreams <- ncol(data)
-  nObs <- nrow(data)
-  varnames <- colnames(data)
-  
-  if(length(par) == length(varnames)){
-    if(is.null(names(par))){
-      stop("'par' must be a named nested list with names corresponding to the datastreams")
-    } else if(any(names(par) != varnames)){
-      stop("'par' must be a named nested list with names corresponding to the datastreams")
-    }
-  } else{
-    stop("'par' must be a named nested list with names corresponding to the datastreams")
-  }
-  
-  # processing input arguments
-  if(length(k) == 1){
-    k = rep(k, nStreams)
-  } else if(length(k) != nStreams){
-    stop("'k' must be a scalar or a vector of length equal to the number of datastreams")
-  }
-  if(length(type) == 1){
-    type = rep(type, nStreams)
-  } else if(length(type) != nStreams){
-    stop("'type' must be of length 1 or equal to the number of datastreams")
-  }
-  if(length(degree) == 1){
-    degree = rep(degree, nStreams)
-  } else if(length(degree) != nStreams){
-    stop("'degree' must be of length 1 or equal to the number of datastreams")
-  }
-  # if(length(quantile) == 1){
-  #   quantile = rep(quantile, nStreams)
-  # } else if(length(quantile) != nStreams){
-  #   stop("'quantile' must be of length 1 or equal to the number of datastreams")
-  # }
-  if(length(diff_order) == 1){
-    diff_order = rep(diff_order, nStreams)
-  } else if(length(diff_order) != nStreams){
-    stop("'diff_order' must be of length 1 or equal to the number of datastreams")
-  }
-  
-  listseed = vector("list", length = nStreams)
-  names(listseed) = varnames
-  Z = S = Z_predict = xseq = betastart = basis = listseed
-  
-  for(i in seq_len(nStreams)){
-    thisname = varnames[i]
-    
-    msg <- paste0("Data stream: ", thisname)
-    message(msg)
-    
-    modmat <- make_matrices_dens(x = data[[thisname]], 
-                                type = type[i], 
-                                k = k[i], 
-                                knots = knots[[thisname]],
-                                # quantile = quantile[i],
-                                degree = degree[i], 
-                                diff_order = diff_order[i])
-    Z[[thisname]] = modmat$Z
-    S[[thisname]] = modmat$S
-    Z_predict[[thisname]] = modmat$Z_predict
-    xseq[[thisname]] = modmat$xseq
-    basis[[thisname]] = modmat$basis
-    betastart[[thisname]] = make_splinecoef(modmat, type = type[i], par = par[[thisname]])
-  }
-  
-  out <- list(
-    Z = Z,
-    S = S,
-    coef = betastart,
-    Z_predict = Z_predict,
-    xseq = xseq,
-    basis = basis
-  )
-  
+  dens <- smoothdens(as.list(data), par, type = type, k = k, knots = knots,
+                     degree = degree, diff_order = diff_order)
+
+  # old layout: component first, then data stream
+  comps <- c("Z", "S", "coef", "Z_predict", "xseq", "basis")
+  out <- lapply(stats::setNames(comps, comps), function(n) lapply(dens, `[[`, n))
+
   class(out) <- "SmoothDens"
   return(out)
 }
-
 
 #' Compute the design matrix for a trigonometric basis expansion
 #'

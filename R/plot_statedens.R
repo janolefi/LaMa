@@ -34,13 +34,14 @@ state_weights <- function(mod, weights) {
 
 # weighted state-dependent densities of stream st on a grid: column j is the mean over the observed rows
 # of p_tj f_j(x; theta_tj), so the columns add up to the fitted marginal density
-stream_curves <- function(st, W, n = 200) {
+stream_curves <- function(st, W, n = 200, xlim = NULL) {
   obs <- which(!is.na(st$x))
   W <- W[obs, , drop = FALSE]
   fam <- sub("^d", "", st$name)
   discrete <- fam %in% .discrete_fams
   circular <- fam %in% c("vm", "wrpcauchy")
   r <- range(st$x[obs])
+  if(!is.null(xlim) && !circular) r <- if(discrete) c(ceiling(xlim[1]), floor(xlim[2])) else xlim # grid on the plotted range
   x <- if(discrete) r[1]:r[2] else if(circular) seq(-pi, pi, length.out = n) else seq(r[1], r[2], length.out = n)
 
   dens <- sapply(1:st$nStates, function(j) {
@@ -70,7 +71,7 @@ plot_statedens <- function(mod, stream = NULL, weights = "stateprobs", col = NUL
   }
 
   out <- lapply(setNames(stream, stream), function(s) {
-    cv <- stream_curves(st[[s]], W, n)
+    cv <- stream_curves(st[[s]], W, n, list(...)$xlim)
     total <- rowSums(cv$density)
 
     # histogram, arguments in ... replace the defaults

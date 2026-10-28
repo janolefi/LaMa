@@ -14,7 +14,7 @@ print(x, ...)
 - x:
 
   object of class `LaMa_matrices` as returned by
-  [`make_matrices`](https://janolefi.github.io/LaMa/reference/make_matrices.md)
+  [`modmat`](https://janolefi.github.io/LaMa/reference/modmat.md)
 
 - ...:
 
@@ -26,4 +26,4 @@ print(x, ...)
 
 ## See also
 
-[`make_matrices`](https://janolefi.github.io/LaMa/reference/make_matrices.md)
+[`modmat`](https://janolefi.github.io/LaMa/reference/modmat.md)

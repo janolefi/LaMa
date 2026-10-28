@@ -48,14 +48,14 @@ T-rex’s **step lengths** and **turning angles** using state-dependent
 **gamma** and **von Mises** distributions.
 
 To ease with model specification, `LaMa` provides the function
-[`make_matrices()`](https://janolefi.github.io/LaMa/reference/make_matrices.md)
-which creates **design** and **penalty** matrices for regression
-settings based on the R package `mgcv`. The user only needs to specify
-the right side of a formula using `mgcv` syntax and provide data. Here,
-we use `s(tod, bs = "cp")` to create the matrices for cyclic P-splines
-(`cp`). This results in a cubic B-Spline basis, that is wrapped at
-boundary of the support (0 and 24). We then append both resulting
-matrices to the `dat` list.
+[`modmat()`](https://janolefi.github.io/LaMa/reference/modmat.md) which
+creates **design** and **penalty** matrices for regression settings
+based on the R package `mgcv`. The user only needs to specify the right
+side of a formula using `mgcv` syntax and provide data. Here, we use
+`s(tod, bs = "cp")` to create the matrices for cyclic P-splines (`cp`).
+This results in a cubic B-Spline basis, that is wrapped at boundary of
+the support (0 and 24). We then append both resulting matrices to the
+`dat` list.
 
 ``` r
 
@@ -74,7 +74,7 @@ head(trex)
 
 ``` r
 
-modmat = make_matrices(~ s(tod, bs = "cp"), # formula
+modmat = modmat(~ s(tod, bs = "cp"), # formula
                        data = data.frame(tod = 1:24), # data
                        knots = list(tod = c(0, 24))) # where to wrap the cyclic basis
 Z = modmat$Z # spline design matrix
@@ -205,7 +205,7 @@ system.time(
 #> outer 9 - lambda: 0.306 0.112 
 #> outer 10 - lambda: 0.306 0.112
 #>    user  system elapsed 
-#>  13.805   0.119  13.926
+#>   6.991   0.052   7.046
 ```
 
 The `mod` object is now a list that contains everything that is reported
@@ -441,7 +441,7 @@ system.time(
 #> Converged
 #> Final model fit with lambda: 0.962 0.996 1.661
 #>    user  system elapsed 
-#>  29.221   9.909  27.919
+#>   9.196   2.212   8.927
 ```
 
 After fitting the model, we can easily visualise the smooth densities:
@@ -500,11 +500,11 @@ head(energy)
 ```
 
 Similar to the first example, we can prepare the model matrices using
-[`make_matrices()`](https://janolefi.github.io/LaMa/reference/make_matrices.md):
+[`modmat()`](https://janolefi.github.io/LaMa/reference/modmat.md):
 
 ``` r
 
-modmat = make_matrices(~ s(Oil, k = 12, bs = "ps"), energy)
+modmat = modmat(~ s(Oil, k = 12, bs = "ps"), energy)
 Z = modmat$Z # design matrix
 S = modmat$S # penalty matrix (list)
 ```
@@ -520,11 +520,11 @@ to the
 function.
 
 We also pass the penalty matrix list `S` that is provided by
-[`make_matrices()`](https://janolefi.github.io/LaMa/reference/make_matrices.md).
-This could potentially be a list of length two if the two spline
-coefficient matrices were penalised differently (e.g. by us using a
-different spline basis). In this case, however, they are the same and we
-only pass the list of length one. It does not matter to
+[`modmat()`](https://janolefi.github.io/LaMa/reference/modmat.md). This
+could potentially be a list of length two if the two spline coefficient
+matrices were penalised differently (e.g. by us using a different spline
+basis). In this case, however, they are the same and we only pass the
+list of length one. It does not matter to
 [`penalty()`](https://janolefi.github.io/LaMa/reference/penalty.md) if
 we pass a list of length one or just one matrix.
 
@@ -584,15 +584,15 @@ system.time(
 #> outer 6 - lambda: 22.44 8.001 8.239 4.601 
 #> outer 7 - lambda: 22.666 6.697 8.279 3.935 
 #> outer 8 - lambda: 22.504 7.615 8.252 4.315 
-#> outer 9 - lambda: 22.56 7.267 8.261 4.198 
-#> outer 10 - lambda: 22.563 7.243 8.261 4.187 
-#> outer 11 - lambda: 22.565 7.23 8.262 4.181 
-#> outer 12 - lambda: 22.565 7.214 8.262 4.174 
-#> outer 13 - lambda: 22.565 7.214 8.262 4.174
+#> outer 9 - lambda: 22.559 7.267 8.26 4.198 
+#> outer 10 - lambda: 22.562 7.243 8.261 4.187 
+#> outer 11 - lambda: 22.563 7.238 8.261 4.184 
+#> outer 12 - lambda: 22.563 7.238 8.261 4.184 
+#> outer 13 - lambda: 22.563 7.238 8.261 4.184
 #> Converged
-#> Final model fit with lambda: 22.565 7.214 8.262 4.174
+#> Final model fit with lambda: 22.563 7.238 8.261 4.184
 #>    user  system elapsed 
-#>  23.856   0.015  23.872
+#>   9.068   0.006   9.076
 ```
 
 Having fitted the model, we can visualise the results. We first decode

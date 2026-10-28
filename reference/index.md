@@ -100,10 +100,6 @@
 - [`logLik(`*`<LaMaModel>`*`)`](https://janolefi.github.io/LaMa/reference/logLik.LaMaModel.md)
   : Extract log-likelihood from LaMaModel object
 
-- [`make_matrices()`](https://janolefi.github.io/LaMa/reference/make_matrices.md)
-  : Build the design and the penalty matrix for models involving
-  penalised splines based on a formula and a data set
-
 - [`make_matrices_dens()`](https://janolefi.github.io/LaMa/reference/make_matrices_dens.md)
   : Build a standardised P-Spline design matrix and the associated
   P-Spline penalty matrix
@@ -115,6 +111,11 @@
 - [`max0_smooth()`](https://janolefi.github.io/LaMa/reference/minmax0_smooth.md)
   [`min0_smooth()`](https://janolefi.github.io/LaMa/reference/minmax0_smooth.md)
   : Smooth approximations to max(x, 0) and min(x, 0)
+
+- [`modmat()`](https://janolefi.github.io/LaMa/reference/modmat.md)
+  [`make_matrices()`](https://janolefi.github.io/LaMa/reference/modmat.md)
+  : Build the design and the penalty matrix for models involving
+  penalised splines based on a formula and a data set
 
 - [`multistart()`](https://janolefi.github.io/LaMa/reference/multistart.md)
   :
@@ -146,13 +147,13 @@
   :
 
   Build the prediction design matrix based on new data and
-  model_matrices object created by `make_matrices`
+  model_matrices object created by `modmat`
 
 - [`predict(`*`<LaMa_matrices>`*`)`](https://janolefi.github.io/LaMa/reference/predict.LaMa_matrices.md)
   :
 
   Build the prediction design matrix based on new data and
-  model_matrices object created by `make_matrices`
+  model_matrices object created by `modmat`
 
 - [`predict(`*`<smoothdens>`*`)`](https://janolefi.github.io/LaMa/reference/predict.smoothdens.md)
   : Estimated smooth densities

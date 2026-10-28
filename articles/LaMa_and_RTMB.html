@@ -402,10 +402,10 @@ above.</p>
 <!-- \text{logit}(\gamma_{ij}^{(t)}) = \beta_0^{(ij)} + \beta_1^{(ij)} \sin \bigl(\frac{2 \pi t}{24}\bigr) + \beta_2^{(ij)} \cos \bigl(\frac{2 \pi t}{24}\bigr) + \beta_3^{(ij)} \sin \bigl(\frac{2 \pi t}{12}\bigr) + \beta_4^{(ij)} \cos \bigl(\frac{2 \pi t}{12}\bigr), -->
 <!-- $$ -->
 <!-- where $t$ is the time of day. -->
-<!-- To practically achieve this, we compute the trigonometric basis design matrix `Z` corresponding to above predictor and add the time of day to the `dat` list for indexing inside the likelihood function. The `LaMa` function `cosinor()` does this very conveniently. We can either call it directly to build the design matrix, or use it in a `formula` passed to `make_matrices()`. The latter is preferable when dealing with more complicated models. Note that the first option does not include an intercept column, while the second does. When used with `tpm_g()` this does not matter as it automatically checks if an intercept column is included. -->
+<!-- To practically achieve this, we compute the trigonometric basis design matrix `Z` corresponding to above predictor and add the time of day to the `dat` list for indexing inside the likelihood function. The `LaMa` function `cosinor()` does this very conveniently. We can either call it directly to build the design matrix, or use it in a `formula` passed to `modmat()`. The latter is preferable when dealing with more complicated models. Note that the first option does not include an intercept column, while the second does. When used with `tpm_g()` this does not matter as it automatically checks if an intercept column is included. -->
 <!-- ```{r tod} -->
 <!-- Z = cosinor(1:24, period = c(24, 12)) -->
-<!-- modmat = make_matrices(~ cosinor(tod, period = c(24, 12)),  -->
+<!-- modmat = modmat(~ cosinor(tod, period = c(24, 12)),  -->
 <!--                        data = data.frame(tod = 1:24)) -->
 <!-- Z = modmat$Z -->
 <!-- # only compute the 24 unique values and index later for entire time series -->
@@ -481,9 +481,9 @@ above.</p>
 <!-- $$ -->
 <!-- \text{logit}(\gamma_{ij}^{(t)}) = \beta_0^{(ij)} + s_{ij}(t), -->
 <!-- $$ -->
-<!-- where $s_{ij}(t)$ is a smooth periodic function of time of day. `LaMa` provides the function `make_matrices()` which creates design and penalty matrices based on the R package `mgcv` when provided with a formula and data. Hence, we can use standard `mgcv` syntax to create the matrices for cyclic P-splines (`cp`). We then append both to the `dat` list. -->
+<!-- where $s_{ij}(t)$ is a smooth periodic function of time of day. `LaMa` provides the function `modmat()` which creates design and penalty matrices based on the R package `mgcv` when provided with a formula and data. Hence, we can use standard `mgcv` syntax to create the matrices for cyclic P-splines (`cp`). We then append both to the `dat` list. -->
 <!-- ```{r tod2} -->
-<!-- modmat = make_matrices(~ s(tod, bs = "cp"),  -->
+<!-- modmat = modmat(~ s(tod, bs = "cp"),  -->
 <!--                        data = data.frame(tod = 1:24), -->
 <!--                        knots = list(tod = c(0,24))) # where to wrap the cyclic basis -->
 <!-- Z = modmat$Z # spline design matrix -->

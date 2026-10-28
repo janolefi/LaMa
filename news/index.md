@@ -65,13 +65,13 @@
   returns the best fit with a table of all runs; lama(obj) then builds
   the model from the best fit
 
-- make_matrices() returns sp0, initial penalty strengths from
+- modmat() returns sp0, initial penalty strengths from
   mgcv::initial.sp() (times 100, capped at 1e6), one per penalty matrix
   and named as S; rep_sp() repeats them as lambda for smooths used more
   than once, e.g. one per state
 
-- print() for objects from make_matrices() shows the formulas and the
-  initial penalty strengths
+- print() for objects from modmat() shows the formulas and the initial
+  penalty strengths
 
 - smoothdens() builds the objects for smooth (P-spline) densities from a
   data vector, or one object per stream from a data frame or list;
@@ -79,6 +79,8 @@
   predict() the estimated densities, e.g. on the grid xseq
 
 ### Changes
+
+- make_matrices() is renamed to modmat(); make_matrices() still works
 
 - report() is renamed to lama(), as it does much more than calling
   obj\$report(); report() still works but is deprecated
@@ -114,8 +116,8 @@
 - lama() also stores obj (the same object, not a copy), so MCreport()
   can be called on the model object from lama() or qreml()
 
-- pred_matrix() is deprecated, use predict() on the object from
-  make_matrices() instead
+- pred_matrix() is deprecated, use predict() on the object from modmat()
+  instead
 
 - make_matrices_old() is removed
 
@@ -170,18 +172,18 @@
   the filtered probabilities given x_1, so pseudo_res() is correct for
   the first observation
 
-- make_matrices(): smooths with several penalties but not one per margin
+- modmat(): smooths with several penalties but not one per margin
   (e.g. bs = “fs”, “ad” or t2(full = TRUE)) kept only the first, so
   later smooths got the wrong penalty matrices
 
-- make_matrices(): a nested formula list failed if one data stream had
-  no smooth terms
+- modmat(): a nested formula list failed if one data stream had no
+  smooth terms
 
-- make_matrices(): tensor product margins over several covariates are
-  named e.g. “x,y” (two such margins failed); unpenalised smooths (fx =
-  TRUE) give an informative error
+- modmat(): tensor product margins over several covariates are named
+  e.g. “x,y” (two such margins failed); unpenalised smooths (fx = TRUE)
+  give an informative error
 
-- predict() on objects from make_matrices() ignored exclude
+- predict() on objects from modmat() ignored exclude
 
 - smooth_dens_construct(): coefficients of one state are a matrix
   (before a vector, so cbind(coef, 0) was wrong); circular data with
@@ -214,8 +216,8 @@
 - tpm_g() and generator_g() are deprecated in favour of tpm(beta, Z) and
   generator(beta, Z), which also accept a single covariate vector Z; the
   sparse argument of tpm_g() is gone
-- make_matrices() sets up each basis once and no longer keeps gam\$X
-  (returned as Z), so it is faster and needs less memory
+- modmat() sets up each basis once and no longer keeps gam\$X (returned
+  as Z), so it is faster and needs less memory
 
 ## LaMa 2.1.1 (2026-05-13)
 

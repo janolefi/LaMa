@@ -1,11 +1,11 @@
-# Build the prediction design matrix based on new data and model_matrices object created by [`make_matrices`](https://janolefi.github.io/LaMa/reference/make_matrices.md)
+# Build the prediction design matrix based on new data and model_matrices object created by [`modmat`](https://janolefi.github.io/LaMa/reference/modmat.md)
 
 **Deprecated.** Use
 [`predict`](https://janolefi.github.io/LaMa/reference/predict.LaMa_matrices.md)
 on the object returned by
-[`make_matrices`](https://janolefi.github.io/LaMa/reference/make_matrices.md)
-instead, which does the same thing: `predict(modmat, newdata)` in place
-of `pred_matrix(modmat, newdata)`.
+[`modmat`](https://janolefi.github.io/LaMa/reference/modmat.md) instead,
+which does the same thing: `predict(modmat, newdata)` in place of
+`pred_matrix(modmat, newdata)`.
 
 ## Usage
 
@@ -18,7 +18,7 @@ pred_matrix(model_matrices, newdata, what = NULL, exclude = NULL)
 - model_matrices:
 
   model_matrices object as returned from
-  [`make_matrices`](https://janolefi.github.io/LaMa/reference/make_matrices.md)
+  [`modmat`](https://janolefi.github.io/LaMa/reference/modmat.md)
 
 - newdata:
 
@@ -51,7 +51,7 @@ which replaces this function
 ## Examples
 
 ``` r
-modmat = make_matrices(~ s(x), data.frame(x = 1:10))
+modmat = modmat(~ s(x), data.frame(x = 1:10))
 # deprecated:
 # Z_p = pred_matrix(modmat, data.frame(x = 1:10 - 0.5))
 # use instead:

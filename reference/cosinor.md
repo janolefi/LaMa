@@ -2,7 +2,7 @@
 
 Builds a design matrix of `sin`/`cos` pairs for use in models with
 periodic predictors. Can be used directly or inside formulas passed to
-`make_matrices` (where expansion is handled automatically).
+`modmat` (where expansion is handled automatically).
 
 ## Usage
 
@@ -117,5 +117,5 @@ cosinor(1:24, period = c(24, 12, 6))
 ## In model formulas (expand_cosinor handles the expansion):
 form <- ~ x + temp * cosinor(hour, c(24, 12))
 data <- data.frame(x = runif(24), temp = rnorm(24, 20), hour = 1:24)
-modmat <- make_matrices(form, data = data)
+modmat <- modmat(form, data = data)
 ```

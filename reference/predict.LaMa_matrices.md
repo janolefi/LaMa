@@ -1,8 +1,8 @@
-# Build the prediction design matrix based on new data and model_matrices object created by [`make_matrices`](https://janolefi.github.io/LaMa/reference/make_matrices.md)
+# Build the prediction design matrix based on new data and model_matrices object created by [`modmat`](https://janolefi.github.io/LaMa/reference/modmat.md)
 
 Build the prediction design matrix based on new data and model_matrices
 object created by
-[`make_matrices`](https://janolefi.github.io/LaMa/reference/make_matrices.md)
+[`modmat`](https://janolefi.github.io/LaMa/reference/modmat.md)
 
 ## Usage
 
@@ -16,7 +16,7 @@ predict(object, newdata, what = NULL, exclude = NULL, ...)
 - object:
 
   model matrices object as returned from
-  [`make_matrices`](https://janolefi.github.io/LaMa/reference/make_matrices.md)
+  [`modmat`](https://janolefi.github.io/LaMa/reference/modmat.md)
 
 - newdata:
 
@@ -47,21 +47,21 @@ prediction design matrix for `newdata` with the same basis as used for
 
 ## See also
 
-[`make_matrices`](https://janolefi.github.io/LaMa/reference/make_matrices.md)
-for creating objects of class `LaMa_matrices` which can be used for
+[`modmat`](https://janolefi.github.io/LaMa/reference/modmat.md) for
+creating objects of class `LaMa_matrices` which can be used for
 prediction by this function.
 
 ## Examples
 
 ``` r
 # single formula
-modmat = make_matrices(~ s(x), data.frame(x = 1:10))
+modmat = modmat(~ s(x), data.frame(x = 1:10))
 Z_p = predict(modmat, data.frame(x = 1:10 - 0.5))
 # with multiple formulas
-modmat = make_matrices(list(mu ~ s(x), sigma ~ s(x, bs = "ps")), data = data.frame(x = 1:10))
+modmat = modmat(list(mu ~ s(x), sigma ~ s(x, bs = "ps")), data = data.frame(x = 1:10))
 Z_p = predict(modmat, data.frame(x = 1:10 - 0.5), what = "mu")
 # nested formula list
 form = list(stream1 = list(mu ~ s(x), sigma ~ s(x, bs = "ps")))
-modmat = make_matrices(form, data = data.frame(x = 1:10))
+modmat = modmat(form, data = data.frame(x = 1:10))
 Z_p = predict(modmat, data.frame(x = 1:10 - 0.5), what = c("stream1", "mu"))
 ```

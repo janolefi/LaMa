@@ -1,8 +1,8 @@
 # Repeat initial penalty strengths for replicated smooths
 
 Expands the `sp0` element of a
-[`make_matrices`](https://janolefi.github.io/LaMa/reference/make_matrices.md)
-object into a `lambda` vector for
+[`modmat`](https://janolefi.github.io/LaMa/reference/modmat.md) object
+into a `lambda` vector for
 [`penalty`](https://janolefi.github.io/LaMa/reference/penalty.md) or
 [`penalty2`](https://janolefi.github.io/LaMa/reference/penalty2.md),
 when each smooth is used more than once, for example one spline per
@@ -19,7 +19,7 @@ rep_sp(model_matrices, N)
 - model_matrices:
 
   object of class `LaMa_matrices` as returned by
-  [`make_matrices`](https://janolefi.github.io/LaMa/reference/make_matrices.md)
+  [`modmat`](https://janolefi.github.io/LaMa/reference/modmat.md)
 
 - N:
 
@@ -42,17 +42,17 @@ smooth's penalty strengths separately, which is always correct.
 
 ## See also
 
-[`make_matrices`](https://janolefi.github.io/LaMa/reference/make_matrices.md),
-which computes `sp0`
+[`modmat`](https://janolefi.github.io/LaMa/reference/modmat.md), which
+computes `sp0`
 
 ## Examples
 
 ``` r
-modmat = make_matrices(~ s(x) + ti(x, y), data.frame(x = runif(100), y = runif(100)))
+modmat = modmat(~ s(x) + ti(x, y), data.frame(x = runif(100), y = runif(100)))
 modmat$sp0         # one value per penalty
 #>      s(x) ti(x,y).x ti(x,y).y 
-#>  71.94953 141.50099 129.06126 
+#>  58.74017 144.93454 161.40577 
 rep_sp(modmat, 2)  # ready to use as 'lambda' for two replicates of each smooth
 #>      s(x).1      s(x).2 ti(x,y).x.1 ti(x,y).y.1 ti(x,y).x.2 ti(x,y).y.2 
-#>    71.94953    71.94953   141.50099   129.06126   141.50099   129.06126 
+#>    58.74017    58.74017   144.93454   161.40577   144.93454   161.40577 
 ```

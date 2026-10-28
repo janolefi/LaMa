@@ -8,7 +8,7 @@ object created by
 
 ``` r
 # S3 method for class 'LaMa_matrices'
-predict(object, newdata, what = NULL, ...)
+predict(object, newdata, what = NULL, exclude = NULL, ...)
 ```
 
 ## Arguments
@@ -28,6 +28,14 @@ predict(object, newdata, what = NULL, ...)
   optional character string specifying which formula to use for
   prediction if `object` contains multiple formulas.
 
+- exclude:
+
+  optional vector of terms to set to zero in the predicted design
+  matrix. Useful for predicting main effects only when e.g.
+  `s(..., bs = "re")` terms are present. See
+  [`mgcv::predict.gam`](https://rdrr.io/pkg/mgcv/man/predict.gam.html)
+  for more details.
+
 - ...:
 
   for method consistency only
@@ -35,7 +43,7 @@ predict(object, newdata, what = NULL, ...)
 ## Value
 
 prediction design matrix for `newdata` with the same basis as used for
-`model_matrices`
+`object`
 
 ## See also
 

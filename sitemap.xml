@@ -40,7 +40,6 @@
 <url><loc>https://janolefi.github.io/LaMa/reference/logLik.LaMaModel.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/make_matrices.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/make_matrices_dens.html</loc></url>
-<url><loc>https://janolefi.github.io/LaMa/reference/make_matrices_old.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/minmax.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/minmax0_smooth.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/multistart.html</loc></url>
@@ -53,10 +52,12 @@
 <url><loc>https://janolefi.github.io/LaMa/reference/pred_matrix.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/predict.LaMa_matrices.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/print.LaMaModel.html</loc></url>
+<url><loc>https://janolefi.github.io/LaMa/reference/print.LaMa_matrices.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/process_hid_formulas.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/pseudo_res.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/qreml.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/qreml_old.html</loc></url>
+<url><loc>https://janolefi.github.io/LaMa/reference/rep_sp.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/scores.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/sdreportMC.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/sdreport_outer.html</loc></url>

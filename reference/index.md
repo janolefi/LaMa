@@ -108,10 +108,6 @@
   : Build a standardised P-Spline design matrix and the associated
   P-Spline penalty matrix
 
-- [`make_matrices_old()`](https://janolefi.github.io/LaMa/reference/make_matrices_old.md)
-  : Build the design and the penalty matrix for models involving
-  penalised splines based on a formula and a data set
-
 - [`min2()`](https://janolefi.github.io/LaMa/reference/minmax.md)
   [`max2()`](https://janolefi.github.io/LaMa/reference/minmax.md) :
   AD-compatible minimum and maximum functions
@@ -163,6 +159,11 @@
 
   Print a `LaMaModel` object
 
+- [`print(`*`<LaMa_matrices>`*`)`](https://janolefi.github.io/LaMa/reference/print.LaMa_matrices.md)
+  :
+
+  Print a `LaMa_matrices` object
+
 - [`process_hid_formulas()`](https://janolefi.github.io/LaMa/reference/process_hid_formulas.md)
   : Process and standardise formulas for the state process of hidden
   Markov models
@@ -177,6 +178,9 @@
 - [`qreml_old()`](https://janolefi.github.io/LaMa/reference/qreml_old.md)
   : Quasi restricted maximum likelihood (qREML) algorithm, previous
   version
+
+- [`rep_sp()`](https://janolefi.github.io/LaMa/reference/rep_sp.md) :
+  Repeat initial penalty strengths for replicated smooths
 
 - [`scores()`](https://janolefi.github.io/LaMa/reference/scores.md) :
   Per-observation score contributions

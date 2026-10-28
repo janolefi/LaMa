@@ -9,21 +9,26 @@
   or per observation and state; missing observations are handled for
   each stream separately, and log = TRUE gives log-densities for
   forward(…, logspace = TRUE); pseudo_res(mod) works with it
+
 - forward() without AD gives an error for negative allprobs, suggesting
   logspace = TRUE
+
 - forward(delta = “stationary”) computes the initial distribution from
   Gamma: the stationary distribution (per track if track-specific, of
   the first slice of each track if time-varying) or, with tod, the
   periodically stationary distribution at the first time point of each
   track
+
 - plot(mod, type = “statedens”) shows the state-dependent densities of
   each data stream built with statedens() on a histogram, weighted by
   the local state probabilities (or decoded states, the stationary
   distribution or given weights), which also works with covariates,
   several tracks and inhomogeneous models; the weighted densities are
   returned invisibly
+
 - plot(mod, stream = …) selects data streams, for residuals and
   state-dependent densities
+
 - simulate(mod) simulates states and observations of models built with
   statedens() on the observed design: same tracks and lengths, with
   delta, Gamma and the parameters as reported (conditional on the
@@ -33,27 +38,40 @@
   r-function; a data stream that is NA throughout is a placeholder, so a
   likelihood function can be used to simulate data and then be fitted to
   them
+
 - simulate(mod, random = TRUE) and obj\$simulate() of RTMB work with
   forward() and statedens(): statedens() registers its data like OBS(x),
   so random effects (with their density evaluated first, e.g. u %~%
   dnorm(…)) are drawn first, then the states and data given them;
   forward() reports the simulated states as states
+
 - print() and summary() for models from lama() and qreml(): print()
   gives a short overview, summary() the estimated state process
   (transition probability or generator matrix, stationary distribution
   and mean dwell times, averaged over tracks if track-specific) and the
   reported quantities, with those of length nStates in one table;
   summary.qremlModel() adds the smooth terms and returns an object now
+
 - qreml() models have class c(“qremlModel”, “LaMaModel”), so all
   LaMaModel methods apply to them
+
 - forward() reports type “track-specific” for one Gamma per track
   (before “homogeneous”)
+
 - multistart(obj) optimises an RTMB object from several starting values
   (obj\$par and perturbations of it, or of the first fit scaled by the
   unit information with scale = “unit_info”), stops by a Bayesian
   stopping rule or once the best optimum is reached often enough, and
   returns the best fit with a table of all runs; lama(obj) then builds
   the model from the best fit
+
+- make_matrices() returns sp0, initial penalty strengths from
+  mgcv::initial.sp() (times 100, capped at 1e6), one per penalty matrix
+  and named as S; rep_sp() repeats them as lambda for smooths used more
+  than once, e.g. one per state
+
+- print() for objects from make_matrices() shows the formulas and the
+  initial penalty strengths
 
 ### Changes
 
@@ -81,6 +99,11 @@
 
 - lama() also stores obj (the same object, not a copy), so MCreport()
   can be called on the model object from lama() or qreml()
+
+- pred_matrix() is deprecated, use predict() on the object from
+  make_matrices() instead
+
+- make_matrices_old() is removed
 
 ### Bug fixes
 
@@ -128,6 +151,19 @@
   the filtered probabilities given x_1, so pseudo_res() is correct for
   the first observation
 
+- make_matrices(): smooths with several penalties but not one per margin
+  (e.g. bs = “fs”, “ad” or t2(full = TRUE)) kept only the first, so
+  later smooths got the wrong penalty matrices
+
+- make_matrices(): a nested formula list failed if one data stream had
+  no smooth terms
+
+- make_matrices(): tensor product margins over several covariates are
+  named e.g. “x,y” (two such margins failed); unpenalised smooths (fx =
+  TRUE) give an informative error
+
+- predict() on objects from make_matrices() ignored exclude
+
 ### Minor changes
 
 - forward(), forward_g() and forward_p() share one implementation (one
@@ -150,6 +186,8 @@
 - tpm_g() and generator_g() are deprecated in favour of tpm(beta, Z) and
   generator(beta, Z), which also accept a single covariate vector Z; the
   sparse argument of tpm_g() is gone
+- make_matrices() sets up each basis once and no longer keeps gam\$X
+  (returned as Z), so it is faster and needs less memory
 
 ## LaMa 2.1.1 (2026-05-13)
 

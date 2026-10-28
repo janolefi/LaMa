@@ -1,8 +1,11 @@
 # Build the prediction design matrix based on new data and model_matrices object created by [`make_matrices`](https://janolefi.github.io/LaMa/reference/make_matrices.md)
 
-Build the prediction design matrix based on new data and model_matrices
-object created by
+**Deprecated.** Use
+[`predict`](https://janolefi.github.io/LaMa/reference/predict.LaMa_matrices.md)
+on the object returned by
 [`make_matrices`](https://janolefi.github.io/LaMa/reference/make_matrices.md)
+instead, which does the same thing: `predict(modmat, newdata)` in place
+of `pred_matrix(modmat, newdata)`.
 
 ## Usage
 
@@ -25,8 +28,7 @@ pred_matrix(model_matrices, newdata, what = NULL, exclude = NULL)
 - what:
 
   optional character string specifying which formula to use for
-  prediction, if `object` contains multiple formulas. If `NULL`, the
-  first formula is used.
+  prediction if `model_matrices` contains multiple formulas.
 
 - exclude:
 
@@ -41,17 +43,17 @@ pred_matrix(model_matrices, newdata, what = NULL, exclude = NULL)
 prediction design matrix for `newdata` with the same basis as used for
 `model_matrices`
 
+## See also
+
+[`predict`](https://janolefi.github.io/LaMa/reference/predict.LaMa_matrices.md),
+which replaces this function
+
 ## Examples
 
 ``` r
-# single formula
 modmat = make_matrices(~ s(x), data.frame(x = 1:10))
-Z_p = pred_matrix(modmat, data.frame(x = 1:10 - 0.5))
-# with multiple formulas
-modmat = make_matrices(list(mu ~ s(x), sigma ~ s(x, bs = "ps")), data = data.frame(x = 1:10))
-Z_p = pred_matrix(modmat, data.frame(x = 1:10 - 0.5), what = "mu")
-# nested formula list
-form = list(stream1 = list(mu ~ s(x), sigma ~ s(x, bs = "ps")))
-modmat = make_matrices(form, data = data.frame(x = 1:10))
-Z_p = pred_matrix(modmat, data.frame(x = 1:10 - 0.5), what = c("stream1", "mu"))
+# deprecated:
+# Z_p = pred_matrix(modmat, data.frame(x = 1:10 - 0.5))
+# use instead:
+Z_p = predict(modmat, data.frame(x = 1:10 - 0.5))
 ```

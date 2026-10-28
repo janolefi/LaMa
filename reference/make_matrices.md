@@ -62,6 +62,32 @@ a list of class `LaMa_matrices` containing:
   list of coefficient vectors filled with zeros of the correct length
   for each formula, for ease of setting up initial parameters
 
+- `sp0`:
+
+  named vector of **initial penalty strengths**, with one entry per
+  penalty matrix and names matching `S` (a smooth with several
+  penalties, e.g. a tensor product, contributes one entry each, named
+  `<smooth>.<margin>`).
+
+  These are
+  [`initial.sp`](https://rdrr.io/pkg/mgcv/man/initial.sp.html)'s guesses
+  times 100, capped at `1e6`: the inner optimisation is better behaved
+  when it starts constrained, and the outer iteration relaxes the
+  penalty from there.
+
+  It can be passed straight to
+  [`penalty`](https://janolefi.github.io/LaMa/reference/penalty.md) or
+  [`penalty2`](https://janolefi.github.io/LaMa/reference/penalty2.md)
+  when each smooth appears once. When a smooth is replicated, e.g. one
+  spline per state, use
+  [`rep_sp`](https://janolefi.github.io/LaMa/reference/rep_sp.md), as a
+  single [`rep()`](https://rdrr.io/r/base/rep.html) over `sp0` is only
+  correct for some models.
+
+- `formula`:
+
+  the formula(s) as supplied, in the same nesting as `Z`
+
 - `data`:
 
   the data frame used for the model(s)
@@ -70,7 +96,8 @@ a list of class `LaMa_matrices` containing:
 
   unfitted [`mgcv::gam`](https://rdrr.io/pkg/mgcv/man/gam.html) object
   used for construction of `Z` and `S` (or list of such objects if
-  `formula` is a list)
+  `formula` is a list). Its `X` element is not kept, as it is returned
+  as `Z`
 
 - `gam0`:
 

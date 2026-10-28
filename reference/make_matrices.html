@@ -88,11 +88,20 @@ See <code>mgcv</code> documentation for more details.</p>
 <dt><code>coef</code></dt>
 <dd><p>list of coefficient vectors filled with zeros of the correct length for each formula, for ease of setting up initial parameters</p></dd>
 
+<dt><code>sp0</code></dt>
+<dd><p>named vector of <strong>initial penalty strengths</strong>, with one entry per penalty matrix and names matching <code>S</code> (a smooth with several penalties, e.g. a tensor product, contributes one entry each, named <code>&lt;smooth&gt;.&lt;margin&gt;</code>).</p>
+<p>These are <code><a href="https://rdrr.io/pkg/mgcv/man/initial.sp.html" class="external-link">initial.sp</a></code>'s guesses times 100, capped at <code>1e6</code>: the inner optimisation is better behaved when it starts constrained, and the outer iteration relaxes the penalty from there.</p>
+<p>It can be passed straight to <code><a href="penalty.html">penalty</a></code> or <code><a href="penalty2.html">penalty2</a></code> when each smooth appears once.
+When a smooth is replicated, e.g. one spline per state, use <code><a href="rep_sp.html">rep_sp</a></code>, as a single <code><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep()</a></code> over <code>sp0</code> is only correct for some models.</p></dd>
+
+<dt><code>formula</code></dt>
+<dd><p>the formula(s) as supplied, in the same nesting as <code>Z</code></p></dd>
+
 <dt><code>data</code></dt>
 <dd><p>the data frame used for the model(s)</p></dd>
 
 <dt><code>gam</code></dt>
-<dd><p>unfitted <code><a href="https://rdrr.io/pkg/mgcv/man/gam.html" class="external-link">mgcv::gam</a></code> object used for construction of <code>Z</code> and <code>S</code> (or list of such objects if <code>formula</code> is a list)</p></dd>
+<dd><p>unfitted <code><a href="https://rdrr.io/pkg/mgcv/man/gam.html" class="external-link">mgcv::gam</a></code> object used for construction of <code>Z</code> and <code>S</code> (or list of such objects if <code>formula</code> is a list). Its <code>X</code> element is not kept, as it is returned as <code>Z</code></p></dd>
 
 <dt><code>gam0</code></dt>
 <dd><p>fitted <code><a href="https://rdrr.io/pkg/mgcv/man/gam.html" class="external-link">mgcv::gam</a></code> which is used internally to create prediction design matrices (or list of such objects if <code>formula</code> is a list)</p></dd>

@@ -271,7 +271,7 @@ the <code>spname</code> argument.</li>
 <span><span class="co">#&gt; outer 8 - sp: 0.309 0.11 </span></span>
 <span><span class="co">#&gt; outer 9 - sp: 0.309 0.11</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  12.247   0.058  12.306</span></span></code></pre></div>
+<span><span class="co">#&gt;  12.715   0.072  12.788</span></span></code></pre></div>
 <p>The <code>mod</code> object is now a list that contains everything
 that is reported by the likelihood function, but also the
 <code>RTMB</code> object created in the process. After fitting the
@@ -475,7 +475,7 @@ In this case, we actually don’t need to add the observations to our
 <span><span class="co">#&gt; Converged</span></span>
 <span><span class="co">#&gt; Final model fit with sp: 0.962 0.996 1.661</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  29.267   9.881  27.910</span></span></code></pre></div>
+<span><span class="co">#&gt;  30.588   9.754  29.118</span></span></code></pre></div>
 <p>After fitting the model, we can easily visualise the smooth
 densities: <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> evaluates them for the estimated
 coefficients on a grid and returns the grid <code>x</code> together with
@@ -610,7 +610,7 @@ intial penalty strength parameter in the <code>dat</code> list.</p>
 <span><span class="co">#&gt; Converged</span></span>
 <span><span class="co">#&gt; Final model fit with sp: 22.596 7.068 8.266 4.154</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  33.930   0.012  33.945</span></span></code></pre></div>
+<span><span class="co">#&gt;  35.763   0.011  35.776</span></span></code></pre></div>
 <p>Having fitted the model, we can visualise the results. We first
 decode the most probable state sequence and then plot the estimated
 state-dependent densities as a function of the oil price, as well as the

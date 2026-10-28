@@ -7,7 +7,7 @@
 rep_sp(model_matrices, N)
 }
 \arguments{
-\item{model_matrices}{object of class \code{LaMa_matrices} as returned by \code{\link{make_matrices}}}
+\item{model_matrices}{object of class \code{LaMa_matrices} as returned by \code{\link{modmat}}}
 
 \item{N}{number of replicates. Either a single number used for every smooth, or one number per
 smooth, i.e. per element of \code{model_matrices$S}}
@@ -17,7 +17,7 @@ named numeric vector of initial penalty strengths, of the length and in the orde
 expected for \code{lambda}
 }
 \description{
-Expands the \code{sp0} element of a \code{\link{make_matrices}} object into a
+Expands the \code{sp0} element of a \code{\link{modmat}} object into a
 \code{lambda} vector for \code{\link{penalty}} or \code{\link{penalty2}}, when each smooth is
 used more than once, for example one spline per state or per off-diagonal element of the
 transition probability matrix.
@@ -29,10 +29,10 @@ answer for some models, silently producing the right length but the wrong values
 This function repeats each smooth's penalty strengths separately, which is always correct.
 }
 \examples{
-modmat = make_matrices(~ s(x) + ti(x, y), data.frame(x = runif(100), y = runif(100)))
+modmat = modmat(~ s(x) + ti(x, y), data.frame(x = runif(100), y = runif(100)))
 modmat$sp0         # one value per penalty
 rep_sp(modmat, 2)  # ready to use as 'lambda' for two replicates of each smooth
 }
 \seealso{
-\code{\link{make_matrices}}, which computes \code{sp0}
+\code{\link{modmat}}, which computes \code{sp0}
 }

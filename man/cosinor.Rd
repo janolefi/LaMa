@@ -18,7 +18,7 @@ A numeric matrix with \code{2 * length(period)} columns named
 \description{
 Builds a design matrix of \code{sin}/\code{cos} pairs for use in models
 with periodic predictors. Can be used directly or inside formulas passed
-to \code{make_matrices} (where expansion is handled automatically).
+to \code{modmat} (where expansion is handled automatically).
 }
 \details{
 The resulting columns form the basis for linear predictors of the form
@@ -36,5 +36,5 @@ cosinor(1:24, period = c(24, 12, 6))
 ## In model formulas (expand_cosinor handles the expansion):
 form <- ~ x + temp * cosinor(hour, c(24, 12))
 data <- data.frame(x = runif(24), temp = rnorm(24, 20), hour = 1:24)
-modmat <- make_matrices(form, data = data)
+modmat <- modmat(form, data = data)
 }

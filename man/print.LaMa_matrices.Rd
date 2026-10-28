@@ -7,7 +7,7 @@
 \method{print}{LaMa_matrices}(x, ...)
 }
 \arguments{
-\item{x}{object of class \code{LaMa_matrices} as returned by \code{\link{make_matrices}}}
+\item{x}{object of class \code{LaMa_matrices} as returned by \code{\link{modmat}}}
 
 \item{...}{ignored}
 }
@@ -18,5 +18,5 @@
 Print a \code{LaMa_matrices} object
 }
 \seealso{
-\code{\link{make_matrices}}
+\code{\link{modmat}}
 }

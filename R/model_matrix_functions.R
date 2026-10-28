@@ -5,7 +5,7 @@
 #'
 #' Builds a design matrix of \code{sin}/\code{cos} pairs for use in models
 #' with periodic predictors. Can be used directly or inside formulas passed
-#' to \code{make_matrices} (where expansion is handled automatically).
+#' to \code{modmat} (where expansion is handled automatically).
 #'
 #' The resulting columns form the basis for linear predictors of the form
 #' \deqn{
@@ -29,7 +29,7 @@
 #' ## In model formulas (expand_cosinor handles the expansion):
 #' form <- ~ x + temp * cosinor(hour, c(24, 12))
 #' data <- data.frame(x = runif(24), temp = rnorm(24, 20), hour = 1:24)
-#' modmat <- make_matrices(form, data = data)
+#' modmat <- modmat(form, data = data)
 cosinor <- function(x, period = 24) {
   xname <- deparse(substitute(x))
   out   <- matrix(NA_real_, nrow = length(x), ncol = 0)
@@ -194,6 +194,8 @@ make_matrices_flat <- function(formula, data, knots = NULL) {
 #' 
 #' @seealso \code{\link{predict.LaMa_matrices}} for prediction design matrix construction based on the model matrices object created by this function.
 #'
+#' @details \code{make_matrices()} is the former name of \code{modmat()} and still works.
+#'
 #' @return a list of class \code{LaMa_matrices} containing:
 #' \item{\code{Z}}{design matrix (or list of such matrices if \code{formula} is a list))}
 #' \item{\code{S}}{list of penalty matrices (with names based on the response terms of the formulas as well as the smooth terms and covariates). For tensorproduct smooths, corresponding entries are themselves lists, containing the \eqn{d} marginal penalty matrices if \eqn{d} is the dimension of the tensor product)}
@@ -222,16 +224,16 @@ make_matrices_flat <- function(formula, data, knots = NULL) {
 #'                   g = factor(rep(1:10, each = 10)))
 #'
 #' # unvariate thin plate regression spline
-#' modmat = make_matrices(~ s(x), data)
+#' modmat = modmat(~ s(x), data)
 #' # univariate P-spline
-#' modmat = make_matrices(~ s(x, bs = "ps"), data)
+#' modmat = modmat(~ s(x, bs = "ps"), data)
 #' # adding random intercept
-#' modmat = make_matrices(~ s(g, bs = "re") + s(x, bs = "ps"), data)
+#' modmat = modmat(~ s(g, bs = "re") + s(x, bs = "ps"), data)
 #' # tensorproduct of x and y
-#' modmat = make_matrices(~ s(x) + s(y) + ti(x,y), data)
+#' modmat = modmat(~ s(x) + s(y) + ti(x,y), data)
 #' # multiple formulas at once
-#' modmat = make_matrices(list(mu ~ s(x) + y, sigma ~ s(g, bs = "re")), data = data)
-make_matrices <- function(formula, data, knots = NULL){
+#' modmat = modmat(list(mu ~ s(x) + y, sigma ~ s(g, bs = "re")), data = data)
+modmat <- function(formula, data, knots = NULL){
   ## 0 = a single formula, 1 = a list of formulas, 2 = a list of such lists
   is_formula_list <- function(x){
     is.list(x) && length(x) > 0 && all(vapply(x, inherits, TRUE, what = "formula"))
@@ -262,10 +264,15 @@ make_matrices <- function(formula, data, knots = NULL){
   make_matrices_flat(formula, data, knots)
 }
 
+# former name, still works
+#' @rdname modmat
+#' @export
+make_matrices <- modmat
+
 #' Repeat initial penalty strengths for replicated smooths
 #'
 #' @description
-#' Expands the \code{sp0} element of a \code{\link{make_matrices}} object into a
+#' Expands the \code{sp0} element of a \code{\link{modmat}} object into a
 #' \code{lambda} vector for \code{\link{penalty}} or \code{\link{penalty2}}, when each smooth is
 #' used more than once, for example one spline per state or per off-diagonal element of the
 #' transition probability matrix.
@@ -276,23 +283,23 @@ make_matrices <- function(formula, data, knots = NULL){
 #' answer for some models, silently producing the right length but the wrong values for others.
 #' This function repeats each smooth's penalty strengths separately, which is always correct.
 #'
-#' @param model_matrices object of class \code{LaMa_matrices} as returned by \code{\link{make_matrices}}
+#' @param model_matrices object of class \code{LaMa_matrices} as returned by \code{\link{modmat}}
 #' @param N number of replicates. Either a single number used for every smooth, or one number per
 #' smooth, i.e. per element of \code{model_matrices$S}
 #'
 #' @return named numeric vector of initial penalty strengths, of the length and in the order
 #' expected for \code{lambda}
 #'
-#' @seealso \code{\link{make_matrices}}, which computes \code{sp0}
+#' @seealso \code{\link{modmat}}, which computes \code{sp0}
 #' @export
 #'
 #' @examples
-#' modmat = make_matrices(~ s(x) + ti(x, y), data.frame(x = runif(100), y = runif(100)))
+#' modmat = modmat(~ s(x) + ti(x, y), data.frame(x = runif(100), y = runif(100)))
 #' modmat$sp0         # one value per penalty
 #' rep_sp(modmat, 2)  # ready to use as 'lambda' for two replicates of each smooth
 rep_sp <- function(model_matrices, N) {
   if(!inherits(model_matrices, "LaMa_matrices")){
-    stop("'model_matrices' needs to be an object returned by 'make_matrices()'")
+    stop("'model_matrices' needs to be an object returned by 'modmat()'")
   }
   sp0 <- model_matrices$sp0
   n_pen <- vapply(model_matrices$S, function(s) if(is.matrix(s)) 1L else length(s), 1L)
@@ -316,12 +323,12 @@ rep_sp <- function(model_matrices, N) {
 
 #' Print a \code{LaMa_matrices} object
 #'
-#' @param x object of class \code{LaMa_matrices} as returned by \code{\link{make_matrices}}
+#' @param x object of class \code{LaMa_matrices} as returned by \code{\link{modmat}}
 #' @param ... ignored
 #'
 #' @return \code{x}, invisibly. Called for its side effect of printing.
 #'
-#' @seealso \code{\link{make_matrices}}
+#' @seealso \code{\link{modmat}}
 #' @export
 print.LaMa_matrices <- function(x, ...) {
   # one line per formula, named as in the rest of the object, tildes lined up
@@ -501,15 +508,15 @@ process_hid_formulas <- function(formulas,
 
 
 
-#' Build the prediction design matrix based on new data and model_matrices object created by \code{\link{make_matrices}}
+#' Build the prediction design matrix based on new data and model_matrices object created by \code{\link{modmat}}
 #'
-#' @param object model matrices object as returned from \code{\link{make_matrices}}
+#' @param object model matrices object as returned from \code{\link{modmat}}
 #' @param newdata data frame containing the variables in the formula and new data for which to evaluate the basis
 #' @param what optional character string specifying which formula to use for prediction if \code{object} contains multiple formulas.
 #' @param exclude optional vector of terms to set to zero in the predicted design matrix. Useful for predicting main effects only when e.g. \code{s(..., bs = "re")} terms are present. See \code{mgcv::predict.gam} for more details.
 #' @param ... for method consistency only
 #'
-#' @seealso \code{\link{make_matrices}} for creating objects of class \code{LaMa_matrices} which can be used for prediction by this function.
+#' @seealso \code{\link{modmat}} for creating objects of class \code{LaMa_matrices} which can be used for prediction by this function.
 #'
 #' @return prediction design matrix for \code{newdata} with the same basis as used for \code{object}
 #' @export
@@ -517,14 +524,14 @@ process_hid_formulas <- function(formulas,
 #'
 #' @examples
 #' # single formula
-#' modmat = make_matrices(~ s(x), data.frame(x = 1:10))
+#' modmat = modmat(~ s(x), data.frame(x = 1:10))
 #' Z_p = predict(modmat, data.frame(x = 1:10 - 0.5))
 #' # with multiple formulas
-#' modmat = make_matrices(list(mu ~ s(x), sigma ~ s(x, bs = "ps")), data = data.frame(x = 1:10))
+#' modmat = modmat(list(mu ~ s(x), sigma ~ s(x, bs = "ps")), data = data.frame(x = 1:10))
 #' Z_p = predict(modmat, data.frame(x = 1:10 - 0.5), what = "mu")
 #' # nested formula list
 #' form = list(stream1 = list(mu ~ s(x), sigma ~ s(x, bs = "ps")))
-#' modmat = make_matrices(form, data = data.frame(x = 1:10))
+#' modmat = modmat(form, data = data.frame(x = 1:10))
 #' Z_p = predict(modmat, data.frame(x = 1:10 - 0.5), what = c("stream1", "mu"))
 #' @importFrom mgcv gam
 #' @importFrom mgcv s
@@ -532,7 +539,7 @@ process_hid_formulas <- function(formulas,
 predict.LaMa_matrices <- function(object, newdata, what = NULL, exclude = NULL, ...){
   
   if(is.null(object$gam0)){
-    stop("'object' contains no 'gam0' object; rebuild it with make_matrices()")
+    stop("'object' contains no 'gam0' object; rebuild it with modmat()")
   } else {
     if(inherits(object$gam0, "gam")){
       if(!is.null(what)){
@@ -577,13 +584,13 @@ predict.LaMa_matrices <- function(object, newdata, what = NULL, exclude = NULL, 
               exclude = exclude)
 }
 
-#' Build the prediction design matrix based on new data and model_matrices object created by \code{\link{make_matrices}}
+#' Build the prediction design matrix based on new data and model_matrices object created by \code{\link{modmat}}
 #'
 #' @description
-#' \strong{Deprecated.} Use \code{\link[=predict.LaMa_matrices]{predict}} on the object returned by \code{\link{make_matrices}} instead, which does the same thing:
+#' \strong{Deprecated.} Use \code{\link[=predict.LaMa_matrices]{predict}} on the object returned by \code{\link{modmat}} instead, which does the same thing:
 #' \code{predict(modmat, newdata)} in place of \code{pred_matrix(modmat, newdata)}.
 #'
-#' @param model_matrices model_matrices object as returned from \code{\link{make_matrices}}
+#' @param model_matrices model_matrices object as returned from \code{\link{modmat}}
 #' @param newdata data frame containing the variables in the formula and new data for which to evaluate the basis
 #' @param what optional character string specifying which formula to use for prediction if \code{model_matrices} contains multiple formulas.
 #' @param exclude optional vector of terms to set to zero in the predicted design matrix. Useful for predicting main effects only when e.g. \code{sd(..., bs = "re")} terms are present. See \code{mgcv::predict.gam} for more details.
@@ -593,7 +600,7 @@ predict.LaMa_matrices <- function(object, newdata, what = NULL, exclude = NULL, 
 #' @export
 #'
 #' @examples
-#' modmat = make_matrices(~ s(x), data.frame(x = 1:10))
+#' modmat = modmat(~ s(x), data.frame(x = 1:10))
 #' # deprecated:
 #' # Z_p = pred_matrix(modmat, data.frame(x = 1:10 - 0.5))
 #' # use instead:
@@ -604,7 +611,7 @@ pred_matrix = function(model_matrices,
                        exclude = NULL) {
   .Deprecated("predict", package = "LaMa",
               msg = paste("'pred_matrix()' is deprecated; use 'predict()' on the object",
-                          "returned by 'make_matrices()' instead."))
+                          "returned by 'modmat()' instead."))
   predict.LaMa_matrices(model_matrices, newdata = newdata, what = what, exclude = exclude)
 }
 

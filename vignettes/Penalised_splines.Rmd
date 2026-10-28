@@ -50,7 +50,7 @@ $$
 $$
 where $s_{ij}(t)$ is a smooth periodic function of time of day. We model the T-rex's **step lengths** and **turning angles** using state-dependent **gamma** and **von Mises** distributions.
 
-To ease with model specification, `LaMa` provides the function `make_matrices()` which creates **design** and **penalty** matrices for regression settings based on the R package `mgcv`. The user only needs to specify the right side of a formula using `mgcv` syntax and provide data. Here, we use `s(tod, bs = "cp")` to create the matrices for cyclic P-splines (`cp`). This results in a cubic B-Spline basis, that is wrapped at boundary of the support (0 and 24). We then append both resulting matrices to the `dat` list.
+To ease with model specification, `LaMa` provides the function `modmat()` which creates **design** and **penalty** matrices for regression settings based on the R package `mgcv`. The user only needs to specify the right side of a formula using `mgcv` syntax and provide data. Here, we use `s(tod, bs = "cp")` to create the matrices for cyclic P-splines (`cp`). This results in a cubic B-Spline basis, that is wrapped at boundary of the support (0 and 24). We then append both resulting matrices to the `dat` list.
 
 ```{r LaMa}
 library(LaMa)
@@ -60,7 +60,7 @@ head(trex)
 
 
 ```{r tod2}
-modmat = make_matrices(~ s(tod, bs = "cp"), # formula
+modmat = modmat(~ s(tod, bs = "cp"), # formula
                        data = data.frame(tod = 1:24), # data
                        knots = list(tod = c(0, 24))) # where to wrap the cyclic basis
 Z = modmat$Z # spline design matrix
@@ -316,10 +316,10 @@ data(energy, package = "MSwM")
 head(energy)
 ```
 
-Similar to the first example, we can prepare the model matrices using `make_matrices()`:
+Similar to the first example, we can prepare the model matrices using `modmat()`:
 
 ```{r modmat_energy}
-modmat = make_matrices(~ s(Oil, k = 12, bs = "ps"), energy)
+modmat = modmat(~ s(Oil, k = 12, bs = "ps"), energy)
 Z = modmat$Z # design matrix
 S = modmat$S # penalty matrix (list)
 ```
@@ -328,7 +328,7 @@ Then, we specify the penalised negative log-likelihood function. It differs from
 Additionally, we now have two separate spline-coefficient matrices called `betaSpline` and `alphaSpline` for the state-dependent means and standard deviations respectively.
 Thus, we need to pass them as a list to the `penalty()` function. 
 
-We also pass the penalty matrix list `S` that is provided by `make_matrices()`. This could potentially be a list of length two if the two spline coefficient matrices were penalised differently (e.g. by us using a different spline basis). In this case, however, they are the same and we only pass the list of length one. It does not matter to `penalty()` if we pass a list of length one or just one matrix.
+We also pass the penalty matrix list `S` that is provided by `modmat()`. This could potentially be a list of length two if the two spline coefficient matrices were penalised differently (e.g. by us using a different spline basis). In this case, however, they are the same and we only pass the list of length one. It does not matter to `penalty()` if we pass a list of length one or just one matrix.
 
 ```{r pnll3}
 pnll = function(par) {

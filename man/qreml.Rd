@@ -142,7 +142,7 @@ dat = list(step = data$step, # step length
            lambda = rep(20,2)) # initial penalty strength
 
 # building model matrices
-modmat = make_matrices(~ s(tod, bs = "cp"), 
+modmat = modmat(~ s(tod, bs = "cp"), 
                        data = data.frame(tod = 1:24), 
                        knots = list(tod = c(0,24))) # wrapping points
 dat$Z = modmat$Z # spline design matrix

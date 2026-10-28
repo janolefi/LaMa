@@ -2,12 +2,12 @@
 % Please edit documentation in R/model_matrix_functions.R
 \name{predict.LaMa_matrices}
 \alias{predict.LaMa_matrices}
-\title{Build the prediction design matrix based on new data and model_matrices object created by \code{\link{make_matrices}}}
+\title{Build the prediction design matrix based on new data and model_matrices object created by \code{\link{modmat}}}
 \usage{
 \method{predict}{LaMa_matrices}(object, newdata, what = NULL, exclude = NULL, ...)
 }
 \arguments{
-\item{object}{model matrices object as returned from \code{\link{make_matrices}}}
+\item{object}{model matrices object as returned from \code{\link{modmat}}}
 
 \item{newdata}{data frame containing the variables in the formula and new data for which to evaluate the basis}
 
@@ -21,20 +21,20 @@
 prediction design matrix for \code{newdata} with the same basis as used for \code{object}
 }
 \description{
-Build the prediction design matrix based on new data and model_matrices object created by \code{\link{make_matrices}}
+Build the prediction design matrix based on new data and model_matrices object created by \code{\link{modmat}}
 }
 \examples{
 # single formula
-modmat = make_matrices(~ s(x), data.frame(x = 1:10))
+modmat = modmat(~ s(x), data.frame(x = 1:10))
 Z_p = predict(modmat, data.frame(x = 1:10 - 0.5))
 # with multiple formulas
-modmat = make_matrices(list(mu ~ s(x), sigma ~ s(x, bs = "ps")), data = data.frame(x = 1:10))
+modmat = modmat(list(mu ~ s(x), sigma ~ s(x, bs = "ps")), data = data.frame(x = 1:10))
 Z_p = predict(modmat, data.frame(x = 1:10 - 0.5), what = "mu")
 # nested formula list
 form = list(stream1 = list(mu ~ s(x), sigma ~ s(x, bs = "ps")))
-modmat = make_matrices(form, data = data.frame(x = 1:10))
+modmat = modmat(form, data = data.frame(x = 1:10))
 Z_p = predict(modmat, data.frame(x = 1:10 - 0.5), what = c("stream1", "mu"))
 }
 \seealso{
-\code{\link{make_matrices}} for creating objects of class \code{LaMa_matrices} which can be used for prediction by this function.
+\code{\link{modmat}} for creating objects of class \code{LaMa_matrices} which can be used for prediction by this function.
 }

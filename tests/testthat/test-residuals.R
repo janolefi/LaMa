@@ -233,7 +233,7 @@ test_that("pseudo_res(mod): discrete, randomised as with family and parameters g
 })
 
 test_that("pseudo_res(mod) and scores(mod) for qreml() models use the final fit", {
-  modmat <- make_matrices(~ s(tod, bs = "cp"), data = data.frame(tod = 1:24), knots = list(tod = c(0, 24)))
+  modmat <- modmat(~ s(tod, bs = "cp"), data = data.frame(tod = 1:24), knots = list(tod = c(0, 24)))
   dat <- list(step = trex$step[1:500], angle = trex$angle[1:500], tod = trex$tod[1:500],
               Z = modmat$Z, S = modmat$S, lambda = rep(100, 2))
   pnll <- function(par) {

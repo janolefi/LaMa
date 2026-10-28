@@ -1,4 +1,10 @@
-# LaMa (development version)
+# LaMa 3.0.0
+
+This is a major release: models are now built around statedens() and lama(), which give 
+print(), summary(), plot(), simulate(), pseudo_res() and scores() from the model object alone. 
+Several functions are renamed (old names still work but are deprecated), a few are removed, 
+and some outputs change (e.g. llk instead of ll, sp instead of lambda), so existing code may 
+need small adjustments.
 
 ## New features
 

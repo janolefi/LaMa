@@ -61,7 +61,8 @@
 #'   getAll(par, dat)
 #'   Gamma <- tpm(eta)
 #'   mu <- exp(log_mu); REPORT(mu)
-#'   allprobs <- cbind(dgamma2(step, mu[1], exp(log_sigma[1])), dgamma2(step, mu[2], exp(log_sigma[2])))
+#'   allprobs <- cbind(dgamma2(step, mu[1], exp(log_sigma[1])),
+#'                    dgamma2(step, mu[2], exp(log_sigma[2])))
 #'   -forward(stationary(Gamma), Gamma, allprobs)
 #' }
 #' dat <- list(step = trex$step[1:500])

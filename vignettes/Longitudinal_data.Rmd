@@ -95,7 +95,7 @@ nll_pool = function(par) {
 
 ### Estimating the model
 
-```{r model_pool, warning = FALSE, cache = TRUE}
+```{r model_pool, warning = FALSE}
 par = list(
   eta = rep(-2, N*(N-1)),    # initial t.p.m. parameters (logit scale)
   log_mu = log(c(15, 60)),   # initial state-dependent means (log scale)
@@ -305,7 +305,7 @@ jnll_re = function(par) {
 
 The random effects matrix `u` is declared via `random = "u"`, telling `RTMB` to integrate it out. The optimiser only sees the marginal (random-effects-free) likelihood as a function of the fixed-effect parameters `beta_0`, `log_sigma_u`, `log_mu`, and `log_sigma`.
 
-```{r model_re, warning = FALSE, cache = TRUE}
+```{r model_re, warning = FALSE}
 par = list(
   beta_0 = rep(-2, N*(N-1)),      # population-level intercepts
   log_sigma_u = log(c(1, 1)),     # log-SDs of random effects

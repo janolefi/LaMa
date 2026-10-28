@@ -661,8 +661,9 @@ make_matrices_dens = function(x, # data vector
                               pow = 0.5, # power for polynomial knot spacing for positive values
                               npoints = 1e4 # number of points for numerical integration
 ){
+  type <- match.arg(type, c("real", "positive", "circular"))
   nObs <- length(x)
-  
+
   quantile <- FALSE # no quantile spacing if knots are not custom
 
   if(type != "circular"){
@@ -812,7 +813,9 @@ make_matrices_dens = function(x, # data vector
     }
     
   } else if(type == "circular"){
-    
+
+    x <- (x + pi) %% (2 * pi) - pi # wrap angles to [-pi, pi)
+
     # if knots not supplied, default to equidistant knots
     if(is.null(knots)){
       if(quantile){ # quantile spacing
@@ -823,7 +826,7 @@ make_matrices_dens = function(x, # data vector
         knots <- seq(-pi, pi, length = k + 1)
       }
     } else{
-      if(length(knots) != nrknots){
+      if(length(knots) != k + 1){
         stop("Number of knots provided is wrong. For 'type = circular' it should be 'k + 1' with '-pi' and 'pi' as first and last entries.")
       }
     }
@@ -908,14 +911,15 @@ make_splinecoef = function(model_matrices,
     # rescaling to account for non-equidistant knot spacing
     beta = t(t(beta) - log(apply(model_matrices$Z_predict, 2, max)))
   } else if(type == "circular") {
-    beta = sapply(basis_pos, LaMa::dvm, mu = par$mean, kappa = par$concentration, log = TRUE)
+    kappa = if(is.null(par$kappa)) par$concentration else par$kappa # accept both names
+    beta = sapply(basis_pos, LaMa::dvm, mu = par$mean, kappa = kappa, log = TRUE)
     if(is.vector(beta)) beta = matrix(beta, nrow = 1)
   }
 
   beta = beta - beta[,k]
   # beta = beta - beta[,k-1]
   message("Parameter matrix excludes the last column. Add zero column using 'cbind(coef, 0)' in your loss function!\n")
-  return(beta[,-k])
+  return(beta[,-k, drop = FALSE]) # stays a matrix for one state
 }
 
 #' Build the design and penalty matrices for smooth density estimation

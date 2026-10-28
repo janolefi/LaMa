@@ -88,26 +88,25 @@ Importantly, the B-spline basis functions are normalised such that the integral 
 <dt id="arg-knots">knots<a class="anchor" aria-label="anchor" href="#arg-knots"></a></dt>
 <dd><p>optional vector of knots (including the boundary knots) to be used for basis construction.
 If not provided, the knots are placed equidistantly for <code>"real"</code> and <code>"circular"</code> and using polynomial spacing for <code>"positive"</code>.</p>
-<p>For <code>"real"</code> and <code>"positive"</code> <code>k - degree + 1</code> knots are needed, for <code>"circular"</code> <code>k + 1</code> knots are needed.
-# @param quantile logical, if <code>TRUE</code> use quantile-based knot spacing (instead of equidistant or polynomial)</p></dd>
+<p>For <code>"real"</code> and <code>"positive"</code> <code>k - degree + 1</code> knots are needed, for <code>"circular"</code> <code>k + 1</code> knots are needed.</p></dd>
 
 
 <dt id="arg-diff-order">diff_order<a class="anchor" aria-label="anchor" href="#arg-diff-order"></a></dt>
-<dd><p>order of differencing used for the P-Spline penalty matrix for each data stream. Defaults to second-order differences.</p></dd>
+<dd><p>order of differencing used for the P-Spline penalty matrix. Defaults to second-order differences.</p></dd>
 
 
 <dt id="arg-pow">pow<a class="anchor" aria-label="anchor" href="#arg-pow"></a></dt>
-<dd><p>power for polynomial knot spacing</p></dd>
+<dd><p>power for polynomial knot spacing, only used for <code>type = "positive"</code></p></dd>
 
 
 <dt id="arg-npoints">npoints<a class="anchor" aria-label="anchor" href="#arg-npoints"></a></dt>
-<dd><p>number of points used in the numerical integration for normalizing the B-spline basis functions</p>
-<p>Such non-equidistant knot spacing is only used for <code>type = "positive"</code>.</p></dd>
+<dd><p>number of points used in the numerical integration for normalizing the B-spline basis functions</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>list containing the design matrix <code>Z</code>, the penalty matrix <code>S</code>, the prediction design matrix <code>Z_predict</code>, the prediction grid <code>xseq</code>, and details for the basis expansion.</p>
+<p>The penalty matrix leaves out the last coefficient, which is fixed at zero for identifiability.</p>
     </div>
 
     <div class="section level2">
@@ -116,19 +115,15 @@ If not provided, the knots are placed equidistantly for <code>"real"</code> and 
 <span class="r-in"><span><span class="co"># real-valued</span></span></span>
 <span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">modmat</span> <span class="op">&lt;-</span> <span class="fu">make_matrices_dens</span><span class="op">(</span><span class="va">x</span>, k <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Leaving out last column of the penalty matrix, fix the last spline coefficient at zero for identifiability!</span>
 <span class="r-in"><span><span class="co"># positive-continuouos</span></span></span>
 <span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="gamma2.html">rgamma2</a></span><span class="op">(</span><span class="fl">100</span>, mean <span class="op">=</span> <span class="fl">5</span>, sd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">modmat</span> <span class="op">&lt;-</span> <span class="fu">make_matrices_dens</span><span class="op">(</span><span class="va">x</span>, k <span class="op">=</span> <span class="fl">20</span>, type <span class="op">=</span> <span class="st">"positive"</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Leaving out last column of the penalty matrix, fix the last spline coefficient at zero for identifiability!</span>
 <span class="r-in"><span><span class="co"># circular</span></span></span>
 <span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="vm.html">rvm</a></span><span class="op">(</span><span class="fl">100</span>, mu <span class="op">=</span> <span class="fl">0</span>, kappa <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">modmat</span> <span class="op">&lt;-</span> <span class="fu">make_matrices_dens</span><span class="op">(</span><span class="va">x</span>, k <span class="op">=</span> <span class="fl">20</span>, type <span class="op">=</span> <span class="st">"circular"</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Leaving out last column of the penalty matrix, fix the last spline coefficient at zero for identifiability!</span>
 <span class="r-in"><span><span class="co"># bounded in an interval</span></span></span>
 <span class="r-in"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Beta.html" class="external-link">rbeta</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">modmat</span> <span class="op">&lt;-</span> <span class="fu">make_matrices_dens</span><span class="op">(</span><span class="va">x</span>, k <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Leaving out last column of the penalty matrix, fix the last spline coefficient at zero for identifiability!</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

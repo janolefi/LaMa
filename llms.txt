@@ -314,6 +314,9 @@ legend("topright", col = c("orange", "deepskyblue"), lwd = 2, bty = "n", legend 
   Build the prediction design matrix based on new data and
   model_matrices object created by `make_matrices`
 
+- [`predict(`*`<smoothdens>`*`)`](https://janolefi.github.io/LaMa/reference/predict.smoothdens.md)
+  : Estimated smooth densities
+
 - [`print(`*`<LaMaModel>`*`)`](https://janolefi.github.io/LaMa/reference/print.LaMaModel.md)
   :
 
@@ -363,7 +366,7 @@ legend("topright", col = c("orange", "deepskyblue"), lwd = 2, bty = "n", legend 
   [`rskewnorm()`](https://janolefi.github.io/LaMa/reference/skewnorm.md)
   : Skew normal distribution
 
-- [`smooth_dens_construct()`](https://janolefi.github.io/LaMa/reference/smooth_dens_construct.md)
+- [`smoothdens()`](https://janolefi.github.io/LaMa/reference/smoothdens.md)
   : Build the design and penalty matrices for smooth density estimation
 
 - [`statedens()`](https://janolefi.github.io/LaMa/reference/statedens.md)

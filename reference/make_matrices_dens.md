@@ -49,32 +49,30 @@ make_matrices_dens(
   spacing for `"positive"`.
 
   For `"real"` and `"positive"` `k - degree + 1` knots are needed, for
-  `"circular"` `k + 1` knots are needed. \# @param quantile logical, if
-  `TRUE` use quantile-based knot spacing (instead of equidistant or
-  polynomial)
+  `"circular"` `k + 1` knots are needed.
 
 - diff_order:
 
-  order of differencing used for the P-Spline penalty matrix for each
-  data stream. Defaults to second-order differences.
+  order of differencing used for the P-Spline penalty matrix. Defaults
+  to second-order differences.
 
 - pow:
 
-  power for polynomial knot spacing
+  power for polynomial knot spacing, only used for `type = "positive"`
 
 - npoints:
 
   number of points used in the numerical integration for normalizing the
   B-spline basis functions
 
-  Such non-equidistant knot spacing is only used for
-  `type = "positive"`.
-
 ## Value
 
 list containing the design matrix `Z`, the penalty matrix `S`, the
 prediction design matrix `Z_predict`, the prediction grid `xseq`, and
 details for the basis expansion.
+
+The penalty matrix leaves out the last coefficient, which is fixed at
+zero for identifiability.
 
 ## Examples
 
@@ -83,17 +81,13 @@ set.seed(1)
 # real-valued
 x <- rnorm(100)
 modmat <- make_matrices_dens(x, k = 20)
-#> Leaving out last column of the penalty matrix, fix the last spline coefficient at zero for identifiability!
 # positive-continuouos
 x <- rgamma2(100, mean = 5, sd = 2)
 modmat <- make_matrices_dens(x, k = 20, type = "positive")
-#> Leaving out last column of the penalty matrix, fix the last spline coefficient at zero for identifiability!
 # circular
 x <- rvm(100, mu = 0, kappa = 2)
 modmat <- make_matrices_dens(x, k = 20, type = "circular")
-#> Leaving out last column of the penalty matrix, fix the last spline coefficient at zero for identifiability!
 # bounded in an interval
 x <- rbeta(100, 1, 2)
 modmat <- make_matrices_dens(x, k = 20)
-#> Leaving out last column of the penalty matrix, fix the last spline coefficient at zero for identifiability!
 ```

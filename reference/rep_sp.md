@@ -51,8 +51,8 @@ which computes `sp0`
 modmat = make_matrices(~ s(x) + ti(x, y), data.frame(x = runif(100), y = runif(100)))
 modmat$sp0         # one value per penalty
 #>      s(x) ti(x,y).x ti(x,y).y 
-#>  66.59388 128.54223 156.13904 
+#>  71.94953 141.50099 129.06126 
 rep_sp(modmat, 2)  # ready to use as 'lambda' for two replicates of each smooth
 #>      s(x).1      s(x).2 ti(x,y).x.1 ti(x,y).y.1 ti(x,y).x.2 ti(x,y).y.2 
-#>    66.59388    66.59388   128.54223   156.13904   128.54223   156.13904 
+#>    71.94953    71.94953   141.50099   129.06126   141.50099   129.06126 
 ```

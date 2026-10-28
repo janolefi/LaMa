@@ -97,10 +97,10 @@ This function repeats each smooth's penalty strengths separately, which is alway
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">modmat</span> <span class="op">=</span> <span class="fu"><a href="make_matrices.html">make_matrices</a></span><span class="op">(</span><span class="op">~</span> <span class="fu">s</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">+</span> <span class="fu">ti</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">modmat</span><span class="op">$</span><span class="va">sp0</span>         <span class="co"># one value per penalty</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      s(x) ti(x,y).x ti(x,y).y </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  66.59388 128.54223 156.13904 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  71.94953 141.50099 129.06126 </span>
 <span class="r-in"><span><span class="fu">rep_sp</span><span class="op">(</span><span class="va">modmat</span>, <span class="fl">2</span><span class="op">)</span>  <span class="co"># ready to use as 'lambda' for two replicates of each smooth</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      s(x).1      s(x).2 ti(x,y).x.1 ti(x,y).y.1 ti(x,y).x.2 ti(x,y).y.2 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    66.59388    66.59388   128.54223   156.13904   128.54223   156.13904 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    71.94953    71.94953   141.50099   129.06126   141.50099   129.06126 </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

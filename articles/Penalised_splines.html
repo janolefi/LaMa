@@ -255,7 +255,7 @@ call using the <code>spname</code> argument.</li>
 <span><span class="co">#&gt; outer 9 - lambda: 0.306 0.112 </span></span>
 <span><span class="co">#&gt; outer 10 - lambda: 0.306 0.112</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  14.216   0.062  14.281</span></span></code></pre></div>
+<span><span class="co">#&gt;  13.805   0.119  13.926</span></span></code></pre></div>
 <p>The <code>mod</code> object is now a list that contains everything
 that is reported by the likelihood function, but also the
 <code>RTMB</code> object created in the process. After fitting the
@@ -386,51 +386,39 @@ state-dependent densities. Thus, we now fit a model with state-dependent
 densities based on P-Splines.</p>
 <p>In a first step, this requires us to prepare the
 <strong>design</strong> and <strong>penalty matrices</strong> needed
-using <code><a href="../reference/smooth_dens_construct.html">smooth_dens_construct()</a></code>. This function can take
-multiple data streams and a set of initial parameters (specifying
-initial means and standard deviations) for each data stream. It then
-builds the <strong>P-Spline</strong> design and penalty matrices for
-each data stream as well as a matrix of <strong>initial spline
+using <code><a href="../reference/smoothdens.html">smoothdens()</a></code>. This function takes the data and a set
+of initial parameters (specifying initial means and standard deviations
+for each state). It then builds the <strong>P-Spline</strong> design and
+penalty matrices as well as a matrix of <strong>initial spline
 coefficients</strong> based on the provided parameters. The basis
 functions are standardised such that they integrate to one, which is
-needed for density estimation.</p>
+needed for density estimation. For several data streams,
+<code><a href="../reference/smoothdens.html">smoothdens()</a></code> also takes a named data frame or list and
+returns one such object per data stream.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># providing initial means and sds to initialise spline coefficients</span></span>
-<span><span class="va">par0</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>logODBA <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">4</span>, <span class="op">-</span><span class="fl">3.3</span>, <span class="op">-</span><span class="fl">2.8</span><span class="op">)</span>, sd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.3</span>, <span class="fl">0.2</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">par0</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">4</span>, <span class="op">-</span><span class="fl">3.3</span>, <span class="op">-</span><span class="fl">2.8</span><span class="op">)</span>, sd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.3</span>, <span class="fl">0.2</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># construct the smooth density objects</span></span>
-<span><span class="va">modmat</span> <span class="op">=</span> <span class="fu"><a href="../reference/smooth_dens_construct.html">smooth_dens_construct</a></span><span class="op">(</span><span class="va">nessi</span><span class="op">[</span><span class="st">"logODBA"</span><span class="op">]</span>, <span class="co"># only one data stream here</span></span>
-<span>                               par <span class="op">=</span> <span class="va">par0</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Data stream: logODBA</span></span>
-<span><span class="co">#&gt; Leaving out last column of the penalty matrix, fix the last spline coefficient at zero for identifiability!</span></span>
-<span><span class="co">#&gt; Parameter matrix excludes the last column. Add zero column using 'cbind(coef, 0)' in your loss function!</span></span>
-<span></span>
-<span><span class="co"># par is nested named list: top layer: each data stream</span></span>
-<span><span class="co"># for each data stream: initial means and standard deviations for each state</span></span>
+<span><span class="co"># construct the smooth density object</span></span>
+<span><span class="va">dens</span> <span class="op">=</span> <span class="fu"><a href="../reference/smoothdens.html">smoothdens</a></span><span class="op">(</span><span class="va">nessi</span><span class="op">$</span><span class="va">logODBA</span>, par <span class="op">=</span> <span class="va">par0</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># objects for model fitting</span></span>
-<span><span class="va">Z</span> <span class="op">=</span> <span class="va">modmat</span><span class="op">$</span><span class="va">Z</span><span class="op">$</span><span class="va">logODBA</span> <span class="co"># spline design matrix for logODBA</span></span>
-<span><span class="va">S</span> <span class="op">=</span> <span class="va">modmat</span><span class="op">$</span><span class="va">S</span><span class="op">$</span><span class="va">logODBA</span> <span class="co"># penalty matrix for logODBA</span></span>
-<span><span class="va">beta</span> <span class="op">=</span> <span class="va">modmat</span><span class="op">$</span><span class="va">coef</span><span class="op">$</span><span class="va">logODBA</span> <span class="co"># initial spline coefficients</span></span>
-<span></span>
-<span><span class="co"># objects for prediction</span></span>
-<span><span class="va">Z_p</span> <span class="op">=</span> <span class="va">modmat</span><span class="op">$</span><span class="va">Z_predict</span><span class="op">$</span><span class="va">logODBA</span> <span class="co"># prediction design matrix</span></span>
-<span><span class="va">xseq</span> <span class="op">=</span> <span class="va">modmat</span><span class="op">$</span><span class="va">xseq</span><span class="op">$</span><span class="va">logODBA</span> <span class="co"># prediction sequence of logODBA values</span></span></code></pre></div>
+<span><span class="va">S</span> <span class="op">=</span> <span class="va">dens</span><span class="op">$</span><span class="va">S</span> <span class="co"># penalty matrix for logODBA</span></span>
+<span><span class="va">beta</span> <span class="op">=</span> <span class="va">dens</span><span class="op">$</span><span class="va">coef</span> <span class="co"># initial spline coefficients</span></span></code></pre></div>
 <p>Then, we can specify the penalised negative log-likelihood function.
-The six lines in the middle are needed for P-Spline-based density
-estimation. The coefficient matrix <code>beta</code> provided by
-<code><a href="../reference/smooth_dens_construct.html">smooth_dens_construct()</a></code> has one column less than the number
-of basis functions, which is also printed when calling
-<code>buildSmoothDens()</code>. This is because the last column,
-i.e. the last coefficient for each state, needs to be fixed to zero for
-<strong>identifiability</strong> which we do by using
-<code>cbind(beta, 0)</code>. Then, we transform the unconstrained
+The coefficient matrix <code>beta</code> provided by
+<code><a href="../reference/smoothdens.html">smoothdens()</a></code> has one column less than the number of basis
+functions. This is because the last column, i.e. the last coefficient
+for each state, needs to be fixed to zero for
+<strong>identifiability</strong>. <code>dens$density(beta)</code> takes
+care of this: it adds the zero column and transforms the unconstrained
 parameter matrix to non-negative weights that sum to one (called
 <code>alpha</code>) for each state using the inverse multinomial
 logistic link (softmax). The columns of the <code>allprobs</code> matrix
-are then computed as linear combinations of the columns of
-<code>Z</code> and the weights <code>alpha</code>. Lastly, we penalise
-the unconstrained coefficients <code>beta</code> (not the constrained
+are then computed as linear combinations of the columns of the design
+matrix <code>dens$Z</code> and the weights <code>alpha</code>, with rows
+of missing observations equal to one. Lastly, we penalise the
+unconstrained coefficients <code>beta</code> (not the constrained
 <code>alpha</code>’s) using the <code><a href="../reference/penalty.html">penalty()</a></code> function.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pnll</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">par</span><span class="op">)</span><span class="op">{</span></span>
@@ -439,27 +427,20 @@ the unconstrained coefficients <code>beta</code> (not the constrained
 <span>  <span class="va">Gamma</span> <span class="op">=</span> <span class="fu"><a href="../reference/tpm.html">tpm</a></span><span class="op">(</span><span class="va">eta</span><span class="op">)</span></span>
 <span>  <span class="va">delta</span> <span class="op">=</span> <span class="fu"><a href="../reference/stationary.html">stationary</a></span><span class="op">(</span><span class="va">Gamma</span><span class="op">)</span></span>
 <span>  <span class="co"># smooth state-dependent densities</span></span>
-<span>  <span class="va">alpha</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="va">beta</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="va">alpha</span> <span class="op">=</span> <span class="va">alpha</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">alpha</span><span class="op">)</span> <span class="co"># multinomial logit link</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">REPORT</a></span><span class="op">(</span><span class="va">alpha</span><span class="op">)</span></span>
-<span>  <span class="va">allprobs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">Z</span><span class="op">)</span>, <span class="va">N</span><span class="op">)</span></span>
-<span>  <span class="va">ind</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">Z</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span> <span class="co"># only for non-NA obs.</span></span>
-<span>  <span class="va">allprobs</span><span class="op">[</span><span class="va">ind</span>,<span class="op">]</span> <span class="op">=</span> <span class="va">Z</span><span class="op">[</span><span class="va">ind</span>,<span class="op">]</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="va">alpha</span><span class="op">)</span></span>
+<span>  <span class="va">allprobs</span> <span class="op">=</span> <span class="va">dens</span><span class="op">$</span><span class="fu">density</span><span class="op">(</span><span class="va">beta</span><span class="op">)</span></span>
 <span>  <span class="co"># forward algorithm + penalty</span></span>
 <span>  <span class="op">-</span><span class="fu"><a href="../reference/forward.html">forward</a></span><span class="op">(</span><span class="va">delta</span>, <span class="va">Gamma</span>, <span class="va">allprobs</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>    <span class="fu"><a href="../reference/penalty.html">penalty</a></span><span class="op">(</span><span class="va">beta</span>, <span class="va">S</span>, <span class="va">lambda</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>Now we specify the initial parameter and data list and fit the model.
 In this case, we actually don’t need to add the observations to our
-<code>dat</code> list anymore, as all the information is contained in
-the design matrix <code>Z</code>.</p>
+<code>dat</code> list, as all the information is contained in
+<code>dens</code>.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">par</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>beta <span class="op">=</span> <span class="va">beta</span>, <span class="co"># spline coefficients prepared by smooth_dens_construct()</span></span>
+<code class="sourceCode R"><span><span class="va">par</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>beta <span class="op">=</span> <span class="va">beta</span>, <span class="co"># spline coefficients prepared by smoothdens()</span></span>
 <span>           eta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span>, <span class="fl">6</span><span class="op">)</span><span class="op">)</span> <span class="co"># initial transition matrix on logit scale</span></span>
 <span></span>
-<span><span class="va">dat</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>N <span class="op">=</span> <span class="fl">3</span>, <span class="co"># number of states</span></span>
-<span>           Z <span class="op">=</span> <span class="va">Z</span>, <span class="co"># spline design matrix</span></span>
-<span>           S <span class="op">=</span> <span class="va">S</span>, <span class="co"># spline penalty matrix</span></span>
+<span><span class="va">dat</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>S <span class="op">=</span> <span class="va">S</span>, <span class="co"># spline penalty matrix</span></span>
 <span>           lambda <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span> <span class="co"># initial penalty strength vector</span></span>
 <span></span>
 <span><span class="co"># fitting the model using qREML</span></span>
@@ -478,13 +459,17 @@ the design matrix <code>Z</code>.</p>
 <span><span class="co">#&gt; Converged</span></span>
 <span><span class="co">#&gt; Final model fit with lambda: 0.962 0.996 1.661</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  29.486   9.743  28.022</span></span></code></pre></div>
-<p>After fitting the model, we can easily visualise the smooth densities
-using the prepared prediction objects. We already have access to all
-reported quantities because <code><a href="../reference/qreml.html">qreml()</a></code> automatically runs the
-reporting after model fitting.</p>
+<span><span class="co">#&gt;  29.221   9.909  27.919</span></span></code></pre></div>
+<p>After fitting the model, we can easily visualise the smooth
+densities: <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> evaluates them for the estimated
+coefficients on a grid and returns the grid <code>x</code> together with
+the densities. We already have access to all reported quantities because
+<code><a href="../reference/qreml.html">qreml()</a></code> automatically runs the reporting after model
+fitting.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sDens</span> <span class="op">=</span> <span class="va">Z_p</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="va">mod2</span><span class="op">$</span><span class="va">alpha</span><span class="op">)</span> <span class="co"># all three state-dependent densities on a grid</span></span>
+<code class="sourceCode R"><span><span class="va">pred</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">dens</span>, coef <span class="op">=</span> <span class="va">mod2</span><span class="op">$</span><span class="va">par</span><span class="op">$</span><span class="va">beta</span><span class="op">)</span></span>
+<span><span class="va">sDens</span> <span class="op">=</span> <span class="va">pred</span><span class="op">$</span><span class="va">density</span> <span class="co"># all three state-dependent densities on a grid</span></span>
+<span><span class="va">xseq</span> <span class="op">=</span> <span class="va">pred</span><span class="op">$</span><span class="va">x</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">nessi</span><span class="op">$</span><span class="va">logODBA</span>, prob <span class="op">=</span> <span class="cn">TRUE</span>, breaks <span class="op">=</span> <span class="fl">50</span>, bor <span class="op">=</span> <span class="st">"white"</span>, main <span class="op">=</span> <span class="st">""</span>, xlab <span class="op">=</span> <span class="st">"log(ODBA)"</span><span class="op">)</span></span>
 <span><span class="kw">for</span><span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="va">xseq</span>, <span class="va">mod2</span><span class="op">$</span><span class="va">delta</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">*</span> <span class="va">sDens</span><span class="op">[</span>,<span class="va">j</span><span class="op">]</span>, col <span class="op">=</span> <span class="va">color</span><span class="op">[</span><span class="va">j</span><span class="op">]</span>, lwd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
@@ -604,7 +589,7 @@ intial penalty strength parameter in the <code>dat</code> list.</p>
 <span><span class="co">#&gt; Converged</span></span>
 <span><span class="co">#&gt; Final model fit with lambda: 22.565 7.214 8.262 4.174</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  24.147   0.006  24.156</span></span></code></pre></div>
+<span><span class="co">#&gt;  23.856   0.015  23.872</span></span></code></pre></div>
 <p>Having fitted the model, we can visualise the results. We first
 decode the most probable state sequence and then plot the estimated
 state-dependent densities as a function of the oil price, as well as the

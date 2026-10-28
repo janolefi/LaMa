@@ -205,7 +205,7 @@ system.time(
 #> outer 9 - lambda: 0.306 0.112 
 #> outer 10 - lambda: 0.306 0.112
 #>    user  system elapsed 
-#>  14.216   0.062  14.281
+#>  13.805   0.119  13.926
 ```
 
 The `mod` object is now a list that contains everything that is reported
@@ -357,55 +357,45 @@ densities based on P-Splines.
 
 In a first step, this requires us to prepare the **design** and
 **penalty matrices** needed using
-[`smooth_dens_construct()`](https://janolefi.github.io/LaMa/reference/smooth_dens_construct.md).
-This function can take multiple data streams and a set of initial
-parameters (specifying initial means and standard deviations) for each
-data stream. It then builds the **P-Spline** design and penalty matrices
-for each data stream as well as a matrix of **initial spline
-coefficients** based on the provided parameters. The basis functions are
-standardised such that they integrate to one, which is needed for
-density estimation.
+[`smoothdens()`](https://janolefi.github.io/LaMa/reference/smoothdens.md).
+This function takes the data and a set of initial parameters (specifying
+initial means and standard deviations for each state). It then builds
+the **P-Spline** design and penalty matrices as well as a matrix of
+**initial spline coefficients** based on the provided parameters. The
+basis functions are standardised such that they integrate to one, which
+is needed for density estimation. For several data streams,
+[`smoothdens()`](https://janolefi.github.io/LaMa/reference/smoothdens.md)
+also takes a named data frame or list and returns one such object per
+data stream.
 
 ``` r
 
 # providing initial means and sds to initialise spline coefficients
-par0 = list(logODBA = list(mean = c(-4, -3.3, -2.8), sd = c(0.3, 0.2, 0.5)))
+par0 = list(mean = c(-4, -3.3, -2.8), sd = c(0.3, 0.2, 0.5))
 
-# construct the smooth density objects
-modmat = smooth_dens_construct(nessi["logODBA"], # only one data stream here
-                               par = par0)
-#> Data stream: logODBA
-#> Leaving out last column of the penalty matrix, fix the last spline coefficient at zero for identifiability!
-#> Parameter matrix excludes the last column. Add zero column using 'cbind(coef, 0)' in your loss function!
-
-# par is nested named list: top layer: each data stream
-# for each data stream: initial means and standard deviations for each state
+# construct the smooth density object
+dens = smoothdens(nessi$logODBA, par = par0)
 
 # objects for model fitting
-Z = modmat$Z$logODBA # spline design matrix for logODBA
-S = modmat$S$logODBA # penalty matrix for logODBA
-beta = modmat$coef$logODBA # initial spline coefficients
-
-# objects for prediction
-Z_p = modmat$Z_predict$logODBA # prediction design matrix
-xseq = modmat$xseq$logODBA # prediction sequence of logODBA values
+S = dens$S # penalty matrix for logODBA
+beta = dens$coef # initial spline coefficients
 ```
 
 Then, we can specify the penalised negative log-likelihood function. The
-six lines in the middle are needed for P-Spline-based density
-estimation. The coefficient matrix `beta` provided by
-[`smooth_dens_construct()`](https://janolefi.github.io/LaMa/reference/smooth_dens_construct.md)
-has one column less than the number of basis functions, which is also
-printed when calling `buildSmoothDens()`. This is because the last
-column, i.e. the last coefficient for each state, needs to be fixed to
-zero for **identifiability** which we do by using `cbind(beta, 0)`.
-Then, we transform the unconstrained parameter matrix to non-negative
-weights that sum to one (called `alpha`) for each state using the
-inverse multinomial logistic link (softmax). The columns of the
-`allprobs` matrix are then computed as linear combinations of the
-columns of `Z` and the weights `alpha`. Lastly, we penalise the
-unconstrained coefficients `beta` (not the constrained `alpha`’s) using
-the [`penalty()`](https://janolefi.github.io/LaMa/reference/penalty.md)
+coefficient matrix `beta` provided by
+[`smoothdens()`](https://janolefi.github.io/LaMa/reference/smoothdens.md)
+has one column less than the number of basis functions. This is because
+the last column, i.e. the last coefficient for each state, needs to be
+fixed to zero for **identifiability**. `dens$density(beta)` takes care
+of this: it adds the zero column and transforms the unconstrained
+parameter matrix to non-negative weights that sum to one (called
+`alpha`) for each state using the inverse multinomial logistic link
+(softmax). The columns of the `allprobs` matrix are then computed as
+linear combinations of the columns of the design matrix `dens$Z` and the
+weights `alpha`, with rows of missing observations equal to one. Lastly,
+we penalise the unconstrained coefficients `beta` (not the constrained
+`alpha`’s) using the
+[`penalty()`](https://janolefi.github.io/LaMa/reference/penalty.md)
 function.
 
 ``` r
@@ -416,12 +406,7 @@ pnll = function(par){
   Gamma = tpm(eta)
   delta = stationary(Gamma)
   # smooth state-dependent densities
-  alpha = exp(cbind(beta, 0))
-  alpha = alpha / rowSums(alpha) # multinomial logit link
-  REPORT(alpha)
-  allprobs = matrix(1, nrow(Z), N)
-  ind = which(!is.na(Z[,1])) # only for non-NA obs.
-  allprobs[ind,] = Z[ind,] %*% t(alpha)
+  allprobs = dens$density(beta)
   # forward algorithm + penalty
   -forward(delta, Gamma, allprobs) + 
     penalty(beta, S, lambda)
@@ -430,17 +415,14 @@ pnll = function(par){
 
 Now we specify the initial parameter and data list and fit the model. In
 this case, we actually don’t need to add the observations to our `dat`
-list anymore, as all the information is contained in the design matrix
-`Z`.
+list, as all the information is contained in `dens`.
 
 ``` r
 
-par = list(beta = beta, # spline coefficients prepared by smooth_dens_construct()
+par = list(beta = beta, # spline coefficients prepared by smoothdens()
            eta = rep(-2, 6)) # initial transition matrix on logit scale
 
-dat = list(N = 3, # number of states
-           Z = Z, # spline design matrix
-           S = S, # spline penalty matrix
+dat = list(S = S, # spline penalty matrix
            lambda = rep(10, 3)) # initial penalty strength vector
 
 # fitting the model using qREML
@@ -459,18 +441,21 @@ system.time(
 #> Converged
 #> Final model fit with lambda: 0.962 0.996 1.661
 #>    user  system elapsed 
-#>  29.486   9.743  28.022
+#>  29.221   9.909  27.919
 ```
 
-After fitting the model, we can easily visualise the smooth densities
-using the prepared prediction objects. We already have access to all
-reported quantities because
-[`qreml()`](https://janolefi.github.io/LaMa/reference/qreml.md)
+After fitting the model, we can easily visualise the smooth densities:
+[`predict()`](https://rdrr.io/r/stats/predict.html) evaluates them for
+the estimated coefficients on a grid and returns the grid `x` together
+with the densities. We already have access to all reported quantities
+because [`qreml()`](https://janolefi.github.io/LaMa/reference/qreml.md)
 automatically runs the reporting after model fitting.
 
 ``` r
 
-sDens = Z_p %*% t(mod2$alpha) # all three state-dependent densities on a grid
+pred = predict(dens, coef = mod2$par$beta)
+sDens = pred$density # all three state-dependent densities on a grid
+xseq = pred$x
 
 hist(nessi$logODBA, prob = TRUE, breaks = 50, bor = "white", main = "", xlab = "log(ODBA)")
 for(j in 1:3) lines(xseq, mod2$delta[j] * sDens[,j], col = color[j], lwd = 2)
@@ -607,7 +592,7 @@ system.time(
 #> Converged
 #> Final model fit with lambda: 22.565 7.214 8.262 4.174
 #>    user  system elapsed 
-#>  24.147   0.006  24.156
+#>  23.856   0.015  23.872
 ```
 
 Having fitted the model, we can visualise the results. We first decode

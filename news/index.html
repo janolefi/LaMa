@@ -60,6 +60,7 @@
 <li><p>multistart(obj) optimises an RTMB object from several starting values (obj$par and perturbations of it, or of the first fit scaled by the unit information with scale = “unit_info”), stops by a Bayesian stopping rule or once the best optimum is reached often enough, and returns the best fit with a table of all runs; lama(obj) then builds the model from the best fit</p></li>
 <li><p>make_matrices() returns sp0, initial penalty strengths from mgcv::initial.sp() (times 100, capped at 1e6), one per penalty matrix and named as S; rep_sp() repeats them as lambda for smooths used more than once, e.g. one per state</p></li>
 <li><p>print() for objects from make_matrices() shows the formulas and the initial penalty strengths</p></li>
+<li><p>smoothdens() builds the objects for smooth (P-spline) densities from a data vector, or one object per stream from a data frame or list; density(beta) in the returned object gives the allprobs matrix and predict() the estimated densities, e.g. on the grid xseq</p></li>
 </ul></div>
 <div class="section level3">
 <h3 id="changes-development-version">Changes<a class="anchor" aria-label="anchor" href="#changes-development-version"></a></h3>
@@ -74,6 +75,8 @@
 <li><p>lama() also stores obj (the same object, not a copy), so MCreport() can be called on the model object from lama() or qreml()</p></li>
 <li><p>pred_matrix() is deprecated, use predict() on the object from make_matrices() instead</p></li>
 <li><p>make_matrices_old() is removed</p></li>
+<li><p>smooth_dens_construct() is deprecated, use smoothdens() instead</p></li>
+<li><p>make_matrices_dens() and smooth_dens_construct() no longer print messages; basis$knots includes the boundary knots</p></li>
 </ul></div>
 <div class="section level3">
 <h3 id="bug-fixes-development-version">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-development-version"></a></h3>
@@ -96,6 +99,8 @@
 <li><p>make_matrices(): a nested formula list failed if one data stream had no smooth terms</p></li>
 <li><p>make_matrices(): tensor product margins over several covariates are named e.g. “x,y” (two such margins failed); unpenalised smooths (fx = TRUE) give an informative error</p></li>
 <li><p>predict() on objects from make_matrices() ignored exclude</p></li>
+<li><p>smooth_dens_construct(): coefficients of one state are a matrix (before a vector, so cbind(coef, 0) was wrong); circular data with custom knots failed; angles outside [-pi, pi) are wrapped; par accepts kappa next to concentration</p></li>
+<li><p>make_matrices_dens(): the basis is normalised on a midpoint grid (before a fixed 1e-3 offset, which gave negative weights for data on a small scale), which changes the weights very slightly</p></li>
 </ul></div>
 <div class="section level3">
 <h3 id="minor-changes-development-version">Minor changes<a class="anchor" aria-label="anchor" href="#minor-changes-development-version"></a></h3>

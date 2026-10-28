@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">LaMa</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,9 +44,10 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="development version" id="lama-development-version">LaMa (development version)<a class="anchor" aria-label="anchor" href="#lama-development-version"></a></h2>
+<h2 class="pkg-version" data-toc-text="3.0.0" id="lama-300">LaMa 3.0.0<a class="anchor" aria-label="anchor" href="#lama-300"></a></h2>
+<p>This is a major release: models are now built around statedens() and lama(), which give print(), summary(), plot(), simulate(), pseudo_res() and scores() from the model object alone. Several functions are renamed (old names still work but are deprecated), a few are removed, and some outputs change (e.g. llk instead of ll, sp instead of lambda), so existing code may need small adjustments.</p>
 <div class="section level3">
-<h3 id="new-features-development-version">New features<a class="anchor" aria-label="anchor" href="#new-features-development-version"></a></h3>
+<h3 id="new-features-3-0-0">New features<a class="anchor" aria-label="anchor" href="#new-features-3-0-0"></a></h3>
 <ul><li><p>statedens() builds the matrix of state-dependent densities of one data stream for allprobs, with parameters given per state, for all states or per observation and state; missing observations are handled for each stream separately, and log = TRUE gives log-densities for forward(…, logspace = TRUE); pseudo_res(mod) works with it</p></li>
 <li><p>forward() without AD gives an error for negative allprobs, suggesting logspace = TRUE</p></li>
 <li><p>forward(delta = “stationary”) computes the initial distribution from Gamma: the stationary distribution (per track if track-specific, of the first slice of each track if time-varying) or, with tod, the periodically stationary distribution at the first time point of each track</p></li>
@@ -66,7 +67,7 @@ from dat</span>lambda as before, so lambda is free for other things, e.g. a Poi
 <li><p>smoothdens() builds the objects for smooth (P-spline) densities from a data vector, or one object per stream from a data frame or list; density(beta) in the returned object gives the allprobs matrix and predict() the estimated densities, e.g. on the grid xseq</p></li>
 </ul></div>
 <div class="section level3">
-<h3 id="changes-development-version">Changes<a class="anchor" aria-label="anchor" href="#changes-development-version"></a></h3>
+<h3 id="changes-3-0-0">Changes<a class="anchor" aria-label="anchor" href="#changes-3-0-0"></a></h3>
 <ul><li><p>make_matrices() is renamed to modmat(); make_matrices() still works</p></li>
 <li><p>report() is renamed to lama(), as it does much more than calling obj$report(); report() still works but is deprecated</p></li>
 <li><p>old functions still work but are deprecated, with a message pointing to the new implementation: forward_s() and forward_sp() (use forward_hsmm() and forward_phsmm()), tpm_hsmm2() and tpm_phsmm2() (use tpm_hsmm() and tpm_phsmm()), tpm_g2() (use tpm()), qreml_old() (use qreml()), stationary_cont() and tpm_cont() (use stationary_ct() and tpm_ct())</p></li>
@@ -83,7 +84,7 @@ from dat</span>lambda as before, so lambda is free for other things, e.g. a Poi
 <li><p>make_matrices_dens() and smooth_dens_construct() no longer print messages; basis$knots includes the boundary knots</p></li>
 </ul></div>
 <div class="section level3">
-<h3 id="bug-fixes-development-version">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-development-version"></a></h3>
+<h3 id="bug-fixes-3-0-0">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-3-0-0"></a></h3>
 <ul><li><p>Examples and vignettes: the periodically stationary initial distribution matches forward()’s tod, where Gamma[,,tod[t]] is the transition into t, i.e. stationary_p(Gamma, tod[1] %% L + 1)</p></li>
 <li><p>lama(): the log-likelihood was evaluated at the last parameters the optimiser tried, not the best</p></li>
 <li><p>summary.qremlModel() failed for reported lists or character vectors, and if Gamma was not reported but delta was</p></li>
@@ -107,7 +108,7 @@ from dat</span>lambda as before, so lambda is free for other things, e.g. a Poi
 <li><p>make_matrices_dens(): the basis is normalised on a midpoint grid (before a fixed 1e-3 offset, which gave negative weights for data on a small scale), which changes the weights very slightly</p></li>
 </ul></div>
 <div class="section level3">
-<h3 id="minor-changes-development-version">Minor changes<a class="anchor" aria-label="anchor" href="#minor-changes-development-version"></a></h3>
+<h3 id="minor-changes-3-0-0">Minor changes<a class="anchor" aria-label="anchor" href="#minor-changes-3-0-0"></a></h3>
 <ul><li>forward(), forward_g() and forward_p() share one implementation (one C++ and one R version for AD); forward_p() no longer expands Gamma for the computation</li>
 <li>tracks need to be contiguous, otherwise forward() gives an informative error</li>
 <li>without AD, forward() gives an error for NA in allprobs</li>

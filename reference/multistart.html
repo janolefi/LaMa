@@ -13,7 +13,7 @@ from the best fit, as RTMB keeps the parameters with the lowest negative log-lik
 
     <a class="navbar-brand me-2" href="../index.html">LaMa</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">3.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -178,7 +178,8 @@ optimization methods. <em>Mathematical Programming</em>, 37(1), 59-80.</p>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">getAll</a></span><span class="op">(</span><span class="va">par</span>, <span class="va">dat</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="va">Gamma</span> <span class="op">&lt;-</span> <span class="fu"><a href="tpm.html">tpm</a></span><span class="op">(</span><span class="va">eta</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="va">mu</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">log_mu</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">REPORT</a></span><span class="op">(</span><span class="va">mu</span><span class="op">)</span></span></span>
-<span class="r-in"><span>  <span class="va">allprobs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="gamma2.html">dgamma2</a></span><span class="op">(</span><span class="va">step</span>, <span class="va">mu</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">log_sigma</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="gamma2.html">dgamma2</a></span><span class="op">(</span><span class="va">step</span>, <span class="va">mu</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">log_sigma</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="va">allprobs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="gamma2.html">dgamma2</a></span><span class="op">(</span><span class="va">step</span>, <span class="va">mu</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">log_sigma</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                    <span class="fu"><a href="gamma2.html">dgamma2</a></span><span class="op">(</span><span class="va">step</span>, <span class="va">mu</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">log_sigma</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="op">-</span><span class="fu"><a href="forward.html">forward</a></span><span class="op">(</span><span class="fu"><a href="stationary.html">stationary</a></span><span class="op">(</span><span class="va">Gamma</span><span class="op">)</span>, <span class="va">Gamma</span>, <span class="va">allprobs</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>step <span class="op">=</span> <span class="va">trex</span><span class="op">$</span><span class="va">step</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">500</span><span class="op">]</span><span class="op">)</span></span></span>
@@ -199,15 +200,15 @@ optimization methods. <em>Mathematical Programming</em>, 37(1), 59-80.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 10 starts, 9 converged, 1 distinct optima, best reached 9 times; stopped: Bayesian stopping rule </span>
 <span class="r-in"><span><span class="va">opt</span><span class="op">$</span><span class="va">runs</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         nll convergence          mgc</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1  536.2127           0 1.657454e-04</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2  536.2127           0 9.364389e-05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3  536.2127           0 2.764751e-03</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4  656.5630           0 7.262250e-02</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5  536.2127           0 2.028024e-04</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6  536.2127           0 7.778368e-04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  536.2127           0 1.657455e-04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  536.2127           0 9.364391e-05</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3  536.2127           0 2.764750e-03</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4  656.5630           0 1.919732e-02</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5  536.2127           0 2.028025e-04</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6  536.2127           0 7.778351e-04</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 7  536.2127           0 1.693041e-05</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 8  536.2127           0 6.041584e-04</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9  536.2127           0 2.866950e-03</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9  536.2127           0 2.866955e-03</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 10 536.2127           0 3.189349e-05</span>
 <span class="r-in"><span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="lama.html">lama</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span> <span class="co"># best fit</span></span></span>
 <span class="r-in"><span></span></span>

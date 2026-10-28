@@ -25,8 +25,15 @@ a list of class \code{LaMa_matrices} containing:
 \item{\code{S}}{list of penalty matrices (with names based on the response terms of the formulas as well as the smooth terms and covariates). For tensorproduct smooths, corresponding entries are themselves lists, containing the \eqn{d} marginal penalty matrices if \eqn{d} is the dimension of the tensor product)}
 \item{\code{pardim}}{list of parameter dimensions (fixed and penalised separately) for each formula, for ease of setting up initial parameters}
 \item{\code{coef}}{list of coefficient vectors filled with zeros of the correct length for each formula, for ease of setting up initial parameters}
+\item{\code{sp0}}{named vector of \strong{initial penalty strengths}, with one entry per penalty matrix and names matching \code{S} (a smooth with several penalties, e.g. a tensor product, contributes one entry each, named \code{<smooth>.<margin>}).
+
+These are \code{\link[mgcv]{initial.sp}}'s guesses times 100, capped at \code{1e6}: the inner optimisation is better behaved when it starts constrained, and the outer iteration relaxes the penalty from there.
+
+It can be passed straight to \code{\link{penalty}} or \code{\link{penalty2}} when each smooth appears once. 
+When a smooth is replicated, e.g. one spline per state, use \code{\link{rep_sp}}, as a single \code{rep()} over \code{sp0} is only correct for some models.}
+\item{\code{formula}}{the formula(s) as supplied, in the same nesting as \code{Z}}
 \item{\code{data}}{the data frame used for the model(s)}
-\item{\code{gam}}{unfitted \code{mgcv::gam} object used for construction of \code{Z} and \code{S} (or list of such objects if \code{formula} is a list)}
+\item{\code{gam}}{unfitted \code{mgcv::gam} object used for construction of \code{Z} and \code{S} (or list of such objects if \code{formula} is a list). Its \code{X} element is not kept, as it is returned as \code{Z}}
 \item{\code{gam0}}{fitted \code{mgcv::gam} which is used internally to create prediction design matrices (or list of such objects if \code{formula} is a list)}
 \item{\code{knots}}{knot list used in the basis construction (or named list over such lists if \code{formula} is a list)}
 }

@@ -613,26 +613,25 @@ pred_matrix = function(model_matrices,
 ###### Density estimation setting ----------------------------------------------
 
 #' Build a standardised P-Spline design matrix and the associated P-Spline penalty matrix
-#' 
-#' This function builds the B-spline design matrix for a given data vector. 
+#'
+#' This function builds the B-spline design matrix for a given data vector.
 #' Importantly, the B-spline basis functions are normalised such that the integral of each basis function is 1, hence this basis can be used for spline-based density estimation, when the basis functions are weighted by non-negative weights summing to one.
 #'
 #' @param x data vector
 #' @param k number of basis functions
 #' @param type type of the data, either \code{"real"} for data on the reals, \code{"positive"} for data on the positive reals or \code{"circular"} for circular data like angles.
 #' @param degree degree of the B-spline basis functions, defaults to cubic B-splines
-#' @param knots optional vector of knots (including the boundary knots) to be used for basis construction. 
+#' @param knots optional vector of knots (including the boundary knots) to be used for basis construction.
 #' If not provided, the knots are placed equidistantly for \code{"real"} and \code{"circular"} and using polynomial spacing for \code{"positive"}.
 #'
 #' For \code{"real"} and \code{"positive"} \code{k - degree + 1} knots are needed, for \code{"circular"} \code{k + 1} knots are needed.
-#' # @param quantile logical, if \code{TRUE} use quantile-based knot spacing (instead of equidistant or polynomial)
-#' @param diff_order order of differencing used for the P-Spline penalty matrix for each data stream. Defaults to second-order differences.
-#' @param pow power for polynomial knot spacing
+#' @param diff_order order of differencing used for the P-Spline penalty matrix. Defaults to second-order differences.
+#' @param pow power for polynomial knot spacing, only used for \code{type = "positive"}
 #' @param npoints number of points used in the numerical integration for normalizing the B-spline basis functions
-#' 
-#' Such non-equidistant knot spacing is only used for \code{type = "positive"}.
 #'
 #' @return list containing the design matrix \code{Z}, the penalty matrix \code{S}, the prediction design matrix \code{Z_predict}, the prediction grid \code{xseq}, and details for the basis expansion.
+#'
+#' The penalty matrix leaves out the last coefficient, which is fixed at zero for identifiability.
 #' @export
 #' @importFrom splines2 bSpline
 #' @importFrom mgcv cSplineDes
@@ -656,223 +655,82 @@ make_matrices_dens = function(x, # data vector
                               type = "real", # type of the data
                               degree = 3, # degree of the B-Spline basis
                               knots = NULL, # default to automatic knots spacing, if provided, need to be k - degree + 1
-                              # quantile = FALSE, # if TRUE, use quantile-based knots
                               diff_order = 2, # order of the differences for the penalty matrix
                               pow = 0.5, # power for polynomial knot spacing for positive values
                               npoints = 1e4 # number of points for numerical integration
 ){
   type <- match.arg(type, c("real", "positive", "circular"))
-  nObs <- length(x)
 
-  quantile <- FALSE # no quantile spacing if knots are not custom
-
-  if(type != "circular"){
-    
-    # getting the data range
-    rangex <- range(x, na.rm = TRUE)
-    # slightly inflating the range
-    rangex <- rangex + c(-1, 1) * diff(rangex) / 20
-    # computing the number of knots
-    nrknots <- k - degree + 1 
-    
-    if(type == "real"){ # real data, defaults to equidistant knots
-      # grid for numerical integration (normalisation)
-      # xseq <- seq(rangex[1] + 1e-3, rangex[2] - 1e-3, length = npoints)
-      
-      # if knots not supplied, default to equidistant knots
-      if(is.null(knots)){
-        if(quantile){ # quantile spacing
-          knots <- quantile(x, probs = seq(0, 1, length = nrknots), na.rm = TRUE)
-          knots[1] <- rangex[1]
-          knots[nrknots] <- rangex[2]
-        } else { # equidistant spacing
-          knots <- seq(rangex[1], rangex[2], length = nrknots)
-        }
-      } else{
-        if(length(knots) != nrknots){
-          stop("Number of knots provided is wrong. It should be 'k - degree + 1'.")
-        }
-      }
-      
-      boundary_knots <- knots[c(1, length(knots))] # set boundary knots
-      knots <- knots[2:(length(knots)-1)] # only keep interior knots
-      
-      # midpoint grid for numerical integration
-      h <- diff(boundary_knots) / npoints
-      xseq <- boundary_knots[1] + (seq_len(npoints) - 0.5) * h
-      
-      # numerical integration for normalizing the B-spline basis functions
-      B0 <- bSpline(
-        x = xseq, 
-        knots = knots, 
-        Boundary.knots = boundary_knots,
-        degree = degree, 
-        intercept = TRUE
-        ) # unnormalised spline design matrix
-
-      # numerical integration of each basis function
-      w <- (h * colSums(B0))^-1
-      
-      # normalising
-      B0 <- t(t(B0) * w)
-      
-      # actual data design matrix
-      B <- matrix(NA, nrow = nObs, ncol = k)
-      ind <- which(!is.na(x))
-      B[ind,] <- bSpline(
-        x = x[ind], 
-        knots = knots, 
-        Boundary.knots = boundary_knots,
-        degree = degree, 
-        intercept = TRUE
-      ) # unnormalised spline design matrix
-      
-      # normalising
-      B[ind,] <- t(t(B[ind,]) * w)
- 
-      # basis positions for initial values later (expected value of each basis function)
-      basis_pos = colSums(xseq * t(t(B0) / rowSums(t(B0))))
-      # basis_pos = knots[(degree):(length(knots)-degree+1)]
-      
-      # second-order difference matrix
-      L <- diff(diag(k), differences = diff_order)
-
-    } else if(type == "positive") { # non-equidistant knots, no mass on < 0
-      
-      if(min(x, na.rm = TRUE) <= 0){
-        stop("When type = 'positive', 'x' can only contain positive values")
-      } 
-      
-      # square-root spacing
-      rangex[1] <- 0 # always from 0 to max(x)
-      
-      # grid for numerical integration (normalisation)
-      # xseq <- seq(rangex[1] + 1e-3, rangex[2] - 1e-3, length = npoints)
-      
-      # if knots not supplied, default to square-root-spaced knots
-      if(is.null(knots)){
-        if(quantile){ # quantile spacing
-          knots <- quantile(x, probs = seq(0, 1, length = nrknots), na.rm = TRUE)
-          knots[1] <- rangex[1]
-          knots[nrknots] <- rangex[2]
-        } else { # polynomial spacing
-          knots <- seq(rangex[1]^pow, rangex[2]^pow, length = nrknots)^(1/pow)
-        }
-      } else{
-        if(length(knots) != nrknots){
-          stop("Number of knots provided is wrong. It should be 'k - degree + 1'.")
-        }
-      }
-      
-      boundary_knots <- knots[c(1, length(knots))] # set boundary knots
-      knots <- knots[2:(length(knots)-1)] # only keep interior knots
-      
-      # midpoint grid for numerical integration
-      h <- diff(boundary_knots) / npoints
-      xseq <- boundary_knots[1] + (seq_len(npoints) - 0.5) * h
-      
-      # numerical integration for normalizing the B-spline basis functions
-      B0 <- bSpline(
-        x = xseq, 
-        knots = knots, 
-        Boundary.knots = boundary_knots,
-        degree = degree, 
-        intercept = TRUE
-      ) # unnormalised spline design matrix
-      
-      # numerical integration of each basis function
-      w <- (h * colSums(B0))^-1
-      
-      # normalising
-      B0 <- t(t(B0) * w)
-      
-      # basis positions for initial values later (expected value of each basis function)
-      basis_pos <- colSums(xseq * t(t(B0) / rowSums(t(B0))))
-      
-      B <- matrix(NA, nrow = nObs, ncol = k)
-      ind <- which(!is.na(x))
-      B[ind,] <- bSpline(
-        x = x[ind], 
-        knots = knots, 
-        Boundary.knots = boundary_knots,
-        degree = degree, 
-        intercept = TRUE
-      ) # unnormalised spline design matrix
-      
-      # normalising
-      B[ind,] <- t(t(B[ind,]) * w)
-      
-      # second-order difference matrix
-      L <- diff(diag(k), differences = diff_order) 
-      
-    } else {
-      stop("type must be 'real', 'positive' or 'circular'")
-    }
-    
-  } else if(type == "circular"){
+  if(type == "circular"){
 
     x <- (x + pi) %% (2 * pi) - pi # wrap angles to [-pi, pi)
 
     # if knots not supplied, default to equidistant knots
     if(is.null(knots)){
-      if(quantile){ # quantile spacing
-        knots <- quantile(x, probs = seq(0, 1, length = k+1), na.rm = TRUE)
-        knots[1] <- -pi
-        knots[length(knots)] <- pi
-      } else { # equidistant spacing
-        knots <- seq(-pi, pi, length = k + 1)
-      }
-    } else{
-      if(length(knots) != k + 1){
-        stop("Number of knots provided is wrong. For 'type = circular' it should be 'k + 1' with '-pi' and 'pi' as first and last entries.")
-      }
+      knots <- seq(-pi, pi, length = k + 1)
+    } else if(length(knots) != k + 1){
+      stop("Number of knots provided is wrong. For 'type = circular' it should be 'k + 1' with '-pi' and 'pi' as first and last entries.")
     }
-    
-    # midpoint grid, so -pi and pi are not both counted
-    h <- 2 * pi / npoints
-    xseq <- -pi + (seq_len(npoints) - 0.5) * h
-    B0 <- cSplineDes(
-      xseq, 
-      knots, 
-      ord = degree + 1
-      )
-    
-    # numerical integration of each basis function
-    w <- (h * colSums(B0))^-1
-    
-    # normalising
-    B0 <- t(t(B0) * w)
-    
-    # basis positions for initial values later (expected value of each basis function)
-    basis_pos <- colSums(xseq * t(t(B0) / rowSums(t(B0))))
-    
-    # actual data design matrix
-    B <- matrix(NA, nrow = nObs, ncol = k)
-    ind <- which(!is.na(x))
-    B[ind,] <- cSplineDes(
-      x[ind], 
-      knots, 
-      ord = degree + 1
-    )
-    # normalising
-    B[ind,] <- t(t(B[ind,]) * w)
-    
-    # difference matrix for circular P-Spline penalty
-    L <- diff(rbind(diag(k), diag(k)[1:diff_order,]), differences = diff_order)
+
+  } else {
+
+    if(type == "positive" && min(x, na.rm = TRUE) <= 0){
+      stop("When type = 'positive', 'x' can only contain positive values")
+    }
+
+    # computing the number of knots
+    nrknots <- k - degree + 1
+
+    if(is.null(knots)){
+      # slightly inflated data range
+      rangex <- range(x, na.rm = TRUE)
+      rangex <- rangex + c(-1, 1) * diff(rangex) / 20
+
+      if(type == "real"){ # equidistant knots
+        knots <- seq(rangex[1], rangex[2], length = nrknots)
+      } else { # polynomial spacing, always from 0 to max(x)
+        knots <- seq(0, rangex[2]^pow, length = nrknots)^(1/pow)
+      }
+    } else if(length(knots) != nrknots){
+      stop("Number of knots provided is wrong. It should be 'k - degree + 1'.")
+    }
   }
-  
+
+  # midpoint grid for numerical integration
+  h <- diff(range(knots)) / npoints
+  xseq <- min(knots) + (seq_len(npoints) - 0.5) * h
+
+  # numerical integration for normalizing the B-spline basis functions
+  B0 <- dens_basis(xseq, type, knots, degree) # unnormalised spline design matrix
+  w <- (h * colSums(B0))^-1
+  B0 <- t(t(B0) * w)
+
+  # basis positions for initial values later (expected value of each basis function)
+  basis_pos <- colSums(xseq * t(t(B0) / rowSums(t(B0))))
+
+  # actual data design matrix, NA rows stay NA
+  B <- matrix(NA, nrow = length(x), ncol = k)
+  ind <- which(!is.na(x))
+  B[ind,] <- t(t(dens_basis(x[ind], type, knots, degree)) * w)
+
+  # difference matrix, cyclic for circular
+  if(type == "circular"){
+    L <- diff(rbind(diag(k), diag(k)[1:diff_order,]), differences = diff_order)
+  } else{
+    L <- diff(diag(k), differences = diff_order)
+  }
+
   # constructing penalty matrix
-  S <- crossprod(L[,-k], L[,-k]) # leaving out last column because parameter set to zero
-  message("Leaving out last column of the penalty matrix, fix the last spline coefficient at zero for identifiability!")
-  
+  S <- crossprod(L[,-k]) # leaving out last column because parameter set to zero
+
   basis <- list(
-    type = type, 
-    knots = knots, 
-    w = w, 
-    degree = degree, 
+    type = type,
+    knots = knots,
+    w = w,
+    degree = degree,
     basis_pos = basis_pos
     )
-  
+
   out <- list(
     Z = B,
     S = S,
@@ -880,41 +738,42 @@ make_matrices_dens = function(x, # data vector
     xseq = xseq[(1:500)* (npoints/500) -(npoints/500)/2],
     basis = basis
   )
-  
+
   return(out)
 }
 
 # helper function, not exported
-make_splinecoef = function(model_matrices, 
-                           type = "real", 
+# unnormalised B-spline basis at x, knots including the boundary knots
+dens_basis = function(x, type, knots, degree){
+  if(type == "circular"){
+    cSplineDes(x, knots, ord = degree + 1)
+  } else{
+    nk <- length(knots)
+    bSpline(x, knots = knots[-c(1, nk)], Boundary.knots = knots[c(1, nk)],
+            degree = degree, intercept = TRUE)
+  }
+}
+
+# helper function, not exported
+make_splinecoef = function(model_matrices,
+                           type = "real",
                            par){
   basis_pos = model_matrices$basis$basis_pos
   k = length(basis_pos)
-  
-  # scaling
-  dens1 = rowSums(model_matrices$Z_predict)
-  scaling = sapply(1:k, function(i) dens1[which.min(abs(basis_pos[i] - model_matrices$xseq))])
-  
-  if(type == "real"){ # if density has support on the reals -> use normal distribution to initialize
-    beta = sapply(basis_pos, dnorm, mean = par$mean, sd = par$sd, log = TRUE)
-    if(is.vector(beta)) beta = matrix(beta, nrow = 1)
-    # rescaling to account for non-equidistant knot spacing
-    beta = t(t(beta) - log(apply(model_matrices$Z_predict, 2, max)))
-  } else if(type == "positive") { # if density has support on positive continuous -> use gamma distribution
-    # transformation to scale and shape
-    beta = sapply(basis_pos, dgamma2, mean = par$mean, sd = par$sd, log = TRUE)
-    if(is.vector(beta)) beta = matrix(beta, nrow = 1)
-    # rescaling to account for non-equidistant knot spacing
-    beta = t(t(beta) - log(apply(model_matrices$Z_predict, 2, max)))
-  } else if(type == "circular") {
+
+  if(type == "circular") {
     kappa = if(is.null(par$kappa)) par$concentration else par$kappa # accept both names
-    beta = sapply(basis_pos, LaMa::dvm, mu = par$mean, kappa = kappa, log = TRUE)
-    if(is.vector(beta)) beta = matrix(beta, nrow = 1)
+    beta = sapply(basis_pos, dvm, mu = par$mean, kappa = kappa, log = TRUE)
+  } else { # normal on the reals, gamma on the positive reals
+    ddist = if(type == "real") dnorm else dgamma2
+    beta = sapply(basis_pos, ddist, mean = par$mean, sd = par$sd, log = TRUE)
   }
+  if(is.vector(beta)) beta = matrix(beta, nrow = 1)
+
+  # rescaling to account for non-equidistant knot spacing
+  if(type != "circular") beta = t(t(beta) - log(apply(model_matrices$Z_predict, 2, max)))
 
   beta = beta - beta[,k]
-  # beta = beta - beta[,k-1]
-  message("Parameter matrix excludes the last column. Add zero column using 'cbind(coef, 0)' in your loss function!\n")
   return(beta[,-k, drop = FALSE]) # stays a matrix for one state
 }
 

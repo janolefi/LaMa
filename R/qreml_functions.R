@@ -110,13 +110,19 @@ gen_inverse <- function(S) {
 #'
 #' @param pnll penalised negative log-likelihood function that is structured as dictated by \code{RTMB} and uses the \code{\link{penalty}} or \code{\link{penalty2}} function to compute the penalty
 #' @param par named list of initial parameters
-#' @param dat initial data list that contains the data used in the likelihood function, hyperparameters, and the \strong{initial penalty strength} vector
+#' @param dat initial data list that contains the data used in the likelihood function, hyperparameters, and the \strong{initial penalty strength} vector,
+#' called \code{sp} or \code{lambda} (see \code{spname})
 #' @param random vector of names of the random effects/ penalised parameters in \code{par}
 #'
 #' \strong{Caution:} The ordering of \code{random} needs to match the order of the random effects passed to \code{penalty}.
 #' @param map optional map argument, containing factor vectors to indicate parameter sharing or fixing
 #' @param silent integer silencing level: 0 corresponds to full printing of inner and outer iterations, 1 to printing of outer iterations only, and 2 to no printing
-#' @param spname optional name given to the penalty strength parameter in \code{dat}. Defaults to \code{"lambda"}
+#' @param spname optional name of the penalty strength vector in \code{dat}.
+#'
+#' By default, \code{dat$sp} is used if present, otherwise \code{dat$lambda}.
+#' Hence, if \code{dat} contains \code{sp}, \code{lambda} is free to be used for something else, e.g. the mean of a Poisson distribution.
+#' In the likelihood function, the penalty strengths are accessed by the same name, e.g. \code{penalty(beta, S, sp)}, as \code{qreml()} replaces them with the current values in each iteration.
+#' The returned model object stores them under this name as well, e.g. \code{mod$sp}.
 #' @param tol_edf convergence tolerance on the \strong{effective degrees of freedom}.
 #' 
 #' This is the primary convergence criterion. The iteration stops once no smooth's effective degrees of freedom has changed by more than \code{tol_edf} across the last four outer iterations, provided the step in \code{log(lambda)} is also small.
@@ -160,11 +166,11 @@ gen_inverse <- function(S) {
 #'            beta0 = c(-2,-2), # state process intercept
 #'            beta_spline = matrix(rep(0, 18), nrow = 2)) # state process spline coefs
 #'           
-#' # data object with initial penalty strength lambda
+#' # data object with initial penalty strength sp
 #' dat = list(step = data$step, # step length
 #'            tod = data$tod, # time of day covariate
 #'            N = 2, # number of states
-#'            lambda = rep(20,2)) # initial penalty strength
+#'            sp = rep(20,2)) # initial penalty strength
 #'
 #' # building model matrices
 #' modmat = modmat(~ s(tod, bs = "cp"), 
@@ -185,7 +191,7 @@ gen_inverse <- function(S) {
 #'   ind = which(!is.na(step)) # only for non-NA obs.
 #'   for(j in 1:N) allprobs[ind,j] = dgamma2(step[ind],mu[j],sigma[j])
 #'   -forward(delta, Gamma[,,tod], allprobs) +
-#'       penalty(beta_spline, S, lambda) # this does all the penalization work
+#'       penalty(beta_spline, S, sp) # this does all the penalization work
 #' }
 #'
 #' # model fitting
@@ -196,7 +202,7 @@ qreml <- function(pnll, # penalised negative log-likelihood function
                   random, # names of parameters in par that are random effects/ penalised
                   map = NULL, # map for fixed effects
                   silent = 1, # print level
-                  spname = "lambda", # name given to the smoothing parameter parameter in dat
+                  spname = NULL, # name of the penalty strengths in dat: "sp", else "lambda"
                   tol_edf = 0.01, # convergence tolerance on the effective degrees of freedom
                   maxiter = 100, # maximum number of outer iterations
                   alpha = 0.1, # smallest factor by which lambda may decrease per iteration
@@ -215,8 +221,13 @@ qreml <- function(pnll, # penalised negative log-likelihood function
   if(!is.function(pnll)) stop("'pnll' needs to be a function")
   if(!is.list(par)) stop("'par' needs to be a named list")
   if(!is.list(dat)) stop("'dat' needs to be a named list")
+  spname_given <- spname
+  if(is.null(spname)){
+    spname <- if("sp" %in% names(dat)) "sp" else "lambda" # sp first, so lambda can be data
+  }
   if(!spname %in% names(dat)){
-    stop(paste0("'dat' needs to contain a vector called '", spname, "' with initial penalty strengths"))
+    wanted <- if(is.null(spname_given)) "'sp' (or 'lambda')" else paste0("'", spname, "'")
+    stop(paste0("'dat' needs to contain a vector called ", wanted, " with initial penalty strengths"))
   }
   if(!is.character(random) || length(random) < 1){
     stop("'random' needs to be a character vector of names of random effects in 'par'")

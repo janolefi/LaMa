@@ -275,12 +275,12 @@ make_matrices <- modmat
 #'
 #' @description
 #' Expands the \code{sp0} element of a \code{\link{modmat}} object into a
-#' \code{lambda} vector for \code{\link{penalty}} or \code{\link{penalty2}}, when each smooth is
+#' \code{sp} vector for \code{\link{penalty}} or \code{\link{penalty2}}, when each smooth is
 #' used more than once, for example one spline per state or per off-diagonal element of the
 #' transition probability matrix.
 #'
 #' @details
-#' \code{lambda} runs over replicates \strong{within} each smooth, so for a tensor product the
+#' \code{sp} runs over replicates \strong{within} each smooth, so for a tensor product the
 #' margins vary fastest. A single \code{rep()} over \code{sp0} therefore only gives the right
 #' answer for some models, silently producing the right length but the wrong values for others.
 #' This function repeats each smooth's penalty strengths separately, which is always correct.
@@ -290,7 +290,7 @@ make_matrices <- modmat
 #' smooth, i.e. per element of \code{model_matrices$S}
 #'
 #' @return named numeric vector of initial penalty strengths, of the length and in the order
-#' expected for \code{lambda}
+#' expected for \code{sp}
 #'
 #' @seealso \code{\link{modmat}}, which computes \code{sp0}
 #' @export
@@ -298,7 +298,7 @@ make_matrices <- modmat
 #' @examples
 #' modmat = modmat(~ s(x) + ti(x, y), data.frame(x = runif(100), y = runif(100)))
 #' modmat$sp0         # one value per penalty
-#' rep_sp(modmat, 2)  # ready to use as 'lambda' for two replicates of each smooth
+#' rep_sp(modmat, 2)  # ready to use as 'sp' for two replicates of each smooth
 rep_sp <- function(model_matrices, N) {
   if(!inherits(model_matrices, "LaMa_matrices")){
     stop("'model_matrices' needs to be an object returned by 'modmat()'")

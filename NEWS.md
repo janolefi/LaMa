@@ -38,6 +38,9 @@
 * modmat() returns sp0, initial penalty strengths from mgcv::initial.sp() (times 100, 
   capped at 1e6), one per penalty matrix and named as S; rep_sp() repeats them as lambda for 
   smooths used more than once, e.g. one per state
+* The penalty strengths are now called sp: qreml() takes them from dat$sp if present, otherwise 
+  from dat$lambda as before, so lambda is free for other things, e.g. a Poisson mean; spname 
+  still overrides this. penalty() and penalty2() call their argument sp, lambda still works
 * print() for objects from modmat() shows the formulas and the initial penalty strengths
 * smoothdens() builds the objects for smooth (P-spline) densities from a data vector, or one object per 
   stream from a data frame or list; density(beta) in the returned object gives the allprobs matrix 

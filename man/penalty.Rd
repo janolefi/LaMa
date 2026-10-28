@@ -4,7 +4,7 @@
 \alias{penalty}
 \title{Computes penalty based on quadratic form}
 \usage{
-penalty(re_coef, S, lambda)
+penalty(re_coef, S, sp, lambda)
 }
 \arguments{
 \item{re_coef}{coefficient vector/ matrix or list of coefficient vectors/ matrices
@@ -15,9 +15,11 @@ This way all rows can use the same penalty matrix.}
 
 \item{S}{fixed penalty matrix or list of penalty matrices matching the structure of \code{re_coef} and also the dimension of the individuals smooths/ random effects}
 
-\item{lambda}{penalty strength parameter vector that has a length corresponding to the \strong{total number} of random effects/ spline coefficients in \code{re_coef}
+\item{sp}{penalty strength parameter vector that has a length corresponding to the \strong{total number} of random effects/ spline coefficients in \code{re_coef}
 
-E.g. if \code{re_coef} contains one vector and one matrix with 4 rows, then \code{lambda} needs to be of length 5.}
+E.g. if \code{re_coef} contains one vector and one matrix with 4 rows, then \code{sp} needs to be of length 5.}
+
+\item{lambda}{former name of \code{sp}, still works}
 }
 \value{
 returns the penalty value and reports to \code{\link{qreml}}.
@@ -39,15 +41,15 @@ If these are seperate random effects, each with its own name, they need to be pa
 # Example with a single random effect
 re = rep(0, 5)
 S = diag(5)
-lambda = 1
-penalty(re, S, lambda)
+sp = 1
+penalty(re, S, sp)
 
 # Example with two random effects, 
 # where one element contains two random effects of similar structure
 re = list(matrix(0, 2, 5), rep(0, 4))
 S = list(diag(5), diag(4))
-lambda = c(1,1,2) # length = total number of random effects
-penalty(re, S, lambda)
+sp = c(1,1,2) # length = total number of random effects
+penalty(re, S, sp)
 
 # Full model-fitting example
 \donttest{
@@ -59,11 +61,11 @@ par = list(logmu = log(c(0.3, 2.5)), # step mean
            beta0 = c(-2,-2), # state process intercept
            betaspline = matrix(rep(0, 18), nrow = 2)) # state process spline coefs
           
-# data object with initial penalty strength lambda
+# data object with initial penalty strength sp
 dat = list(step = data$step, # step length
            tod = data$tod, # time of day covariate
            N = 2, # number of states
-           lambda = rep(10,2)) # initial penalty strength
+           sp = rep(10,2)) # initial penalty strength
 
 # building model matrices
 modmat = modmat(~ s(tod, bs = "cp"), 
@@ -84,7 +86,7 @@ pnll = function(par) {
   ind = which(!is.na(step)) # only for non-NA obs.
   for(j in 1:N) allprobs[ind,j] = dgamma2(step[ind],mu[j],sigma[j])
   -forward_g(delta, Gamma[,,tod], allprobs) +
-      penalty(betaspline, S, lambda) # this does all the penalization work
+      penalty(betaspline, S, sp) # this does all the penalization work
 }
 
 # model fitting

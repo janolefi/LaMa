@@ -12,7 +12,7 @@ qreml(
   random,
   map = NULL,
   silent = 1,
-  spname = "lambda",
+  spname = NULL,
   tol_edf = 0.01,
   maxiter = 100,
   alpha = 0.1,
@@ -33,7 +33,8 @@ qreml(
 
 \item{par}{named list of initial parameters}
 
-\item{dat}{initial data list that contains the data used in the likelihood function, hyperparameters, and the \strong{initial penalty strength} vector}
+\item{dat}{initial data list that contains the data used in the likelihood function, hyperparameters, and the \strong{initial penalty strength} vector,
+called \code{sp} or \code{lambda} (see \code{spname})}
 
 \item{random}{vector of names of the random effects/ penalised parameters in \code{par}
 
@@ -43,7 +44,12 @@ qreml(
 
 \item{silent}{integer silencing level: 0 corresponds to full printing of inner and outer iterations, 1 to printing of outer iterations only, and 2 to no printing}
 
-\item{spname}{optional name given to the penalty strength parameter in \code{dat}. Defaults to \code{"lambda"}}
+\item{spname}{optional name of the penalty strength vector in \code{dat}.
+
+By default, \code{dat$sp} is used if present, otherwise \code{dat$lambda}.
+Hence, if \code{dat} contains \code{sp}, \code{lambda} is free to be used for something else, e.g. the mean of a Poisson distribution.
+In the likelihood function, the penalty strengths are accessed by the same name, e.g. \code{penalty(beta, S, sp)}, as \code{qreml()} replaces them with the current values in each iteration.
+The returned model object stores them under this name as well, e.g. \code{mod$sp}.}
 
 \item{tol_edf}{convergence tolerance on the \strong{effective degrees of freedom}.
 
@@ -135,11 +141,11 @@ par = list(logmu = log(c(0.3, 2.5)), # step mean
            beta0 = c(-2,-2), # state process intercept
            beta_spline = matrix(rep(0, 18), nrow = 2)) # state process spline coefs
           
-# data object with initial penalty strength lambda
+# data object with initial penalty strength sp
 dat = list(step = data$step, # step length
            tod = data$tod, # time of day covariate
            N = 2, # number of states
-           lambda = rep(20,2)) # initial penalty strength
+           sp = rep(20,2)) # initial penalty strength
 
 # building model matrices
 modmat = modmat(~ s(tod, bs = "cp"), 
@@ -160,7 +166,7 @@ pnll = function(par) {
   ind = which(!is.na(step)) # only for non-NA obs.
   for(j in 1:N) allprobs[ind,j] = dgamma2(step[ind],mu[j],sigma[j])
   -forward(delta, Gamma[,,tod], allprobs) +
-      penalty(beta_spline, S, lambda) # this does all the penalization work
+      penalty(beta_spline, S, sp) # this does all the penalization work
 }
 
 # model fitting

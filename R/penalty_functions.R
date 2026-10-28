@@ -23,9 +23,10 @@
 #' When several smooths/ random effects of the same kind are present, it is convenient to pass them as a matrix, where each row corresponds to one smooth/ random effect. 
 #' This way all rows can use the same penalty matrix.
 #' @param S fixed penalty matrix or list of penalty matrices matching the structure of \code{re_coef} and also the dimension of the individuals smooths/ random effects
-#' @param lambda penalty strength parameter vector that has a length corresponding to the \strong{total number} of random effects/ spline coefficients in \code{re_coef}
+#' @param sp penalty strength parameter vector that has a length corresponding to the \strong{total number} of random effects/ spline coefficients in \code{re_coef}
 #'
-#' E.g. if \code{re_coef} contains one vector and one matrix with 4 rows, then \code{lambda} needs to be of length 5.
+#' E.g. if \code{re_coef} contains one vector and one matrix with 4 rows, then \code{sp} needs to be of length 5.
+#' @param lambda former name of \code{sp}, still works
 #'
 #' @return returns the penalty value and reports to \code{\link{qreml}}.
 #' @export
@@ -36,15 +37,15 @@
 #' # Example with a single random effect
 #' re = rep(0, 5)
 #' S = diag(5)
-#' lambda = 1
-#' penalty(re, S, lambda)
+#' sp = 1
+#' penalty(re, S, sp)
 #'
 #' # Example with two random effects, 
 #' # where one element contains two random effects of similar structure
 #' re = list(matrix(0, 2, 5), rep(0, 4))
 #' S = list(diag(5), diag(4))
-#' lambda = c(1,1,2) # length = total number of random effects
-#' penalty(re, S, lambda)
+#' sp = c(1,1,2) # length = total number of random effects
+#' penalty(re, S, sp)
 #' 
 #' # Full model-fitting example
 #' \donttest{
@@ -56,11 +57,11 @@
 #'            beta0 = c(-2,-2), # state process intercept
 #'            betaspline = matrix(rep(0, 18), nrow = 2)) # state process spline coefs
 #'           
-#' # data object with initial penalty strength lambda
+#' # data object with initial penalty strength sp
 #' dat = list(step = data$step, # step length
 #'            tod = data$tod, # time of day covariate
 #'            N = 2, # number of states
-#'            lambda = rep(10,2)) # initial penalty strength
+#'            sp = rep(10,2)) # initial penalty strength
 #'
 #' # building model matrices
 #' modmat = modmat(~ s(tod, bs = "cp"), 
@@ -81,13 +82,14 @@
 #'   ind = which(!is.na(step)) # only for non-NA obs.
 #'   for(j in 1:N) allprobs[ind,j] = dgamma2(step[ind],mu[j],sigma[j])
 #'   -forward_g(delta, Gamma[,,tod], allprobs) +
-#'       penalty(betaspline, S, lambda) # this does all the penalization work
+#'       penalty(betaspline, S, sp) # this does all the penalization work
 #' }
 #'
 #' # model fitting
 #' mod = qreml(pnll, par, dat, random = "betaspline")
 #' }
-penalty = function(re_coef, S, lambda) {
+penalty = function(re_coef, S, sp, lambda) {
+  if(missing(sp)) sp <- lambda # former name
   # Convert re_coef to a list of matrices (even if originally a vector)
   if (!is.list(re_coef)) {
     re_coef = list(re_coef)
@@ -126,13 +128,13 @@ penalty = function(re_coef, S, lambda) {
   # Get the number of similar random effects for each distinct random effect
   re_lengths = sapply(re_coef, nrow)  # All elements are matrices now
   
-  # check if lambda has the correct length
+  # check if sp has the correct length
   n_lambdas <- sum(re_lengths)
-  if(length(lambda) != n_lambdas){
-    stop(paste0("The length of lambda (", length(lambda), ") does not match the total number of random effects (", n_lambdas, ")."))
+  if(length(sp) != n_lambdas){
+    stop(paste0("The length of sp (", length(sp), ") does not match the total number of random effects (", n_lambdas, ")."))
   }
   
-  # Precompute start and end indices for lambda
+  # Precompute start and end indices for sp
   end = cumsum(re_lengths)
   start = c(1, end[-length(end)] + 1)
   
@@ -150,8 +152,8 @@ penalty = function(re_coef, S, lambda) {
     quadform = rowSums(current_re %*% S[[i]] * current_re)
     Pen[[i]] = quadform
     
-    # Apply lambda directly using precomputed indices
-    pen = pen + sum(lambda[start[i]:end[i]] * quadform)
+    # Apply sp directly using precomputed indices
+    pen = pen + sum(sp[start[i]:end[i]] * quadform)
   }
   
   RTMB::REPORT(Pen) # Report the penalty list for qreml update
@@ -188,12 +190,13 @@ penalty = function(re_coef, S, lambda) {
 #' @param S list of fixed penalty matrices matching the structure of \code{re_coef}. 
 #' 
 #' This means if \code{re_coef} is of length 3, then \code{S} needs to be a list of length 3. Each entry needs to be either a penalty matrix, matching the dimension of the corresponding entry in \code{re_coef}, or a list with multiple penalty matrices for tensor products.
-#' @param lambda penalty strength parameter vector that has a length corresponding to the provided \code{re_coef} and \code{S}. 
+#' @param sp penalty strength parameter vector that has a length corresponding to the provided \code{re_coef} and \code{S}. 
 #' 
 #' Specifically, for entries with one penalty matrix, \code{nrow(re_coef[[i]])} parameters are needed. For entries with \code{k} penalty matrices, \code{k * nrow(re_coef[[i]])} parameters are needed.
 #'
 #' E.g. if \code{re_coef[[1]]} is a vector and \code{re_coef[[2]]} a matrix with 4 rows, 
-#' \code{S[[1]]} is a list of length 2 and \code{S[[2]]} is a matrix, then \code{lambda} needs to be of length 1 * 2 + 4 = 6.
+#' \code{S[[1]]} is a list of length 2 and \code{S[[2]]} is a matrix, then \code{sp} needs to be of length 1 * 2 + 4 = 6.
+#' @param lambda former name of \code{sp}, still works
 #'
 #' @return returns the penalty value and reports to \code{\link{qreml}}.
 #' @export
@@ -204,15 +207,15 @@ penalty = function(re_coef, S, lambda) {
 #' # Example with a single random effect
 #' re = rep(0, 5)
 #' S = diag(5)
-#' lambda = 1
-#' penalty(re, S, lambda)
+#' sp = 1
+#' penalty(re, S, sp)
 #'
 #' # Example with two random effects, 
 #' # where one element contains two random effects of similar structure
 #' re = list(matrix(0, 2, 5), rep(0, 4))
 #' S = list(diag(5), diag(4))
-#' lambda = c(1,1,2) # length = total number of random effects
-#' penalty(re, S, lambda)
+#' sp = c(1,1,2) # length = total number of random effects
+#' penalty(re, S, sp)
 #' 
 #' # Full model-fitting example
 #' \donttest{
@@ -224,11 +227,11 @@ penalty = function(re_coef, S, lambda) {
 #'            beta0 = c(-2,-2), # state process intercept
 #'            betaspline = matrix(rep(0, 18), nrow = 2)) # state process spline coefs
 #'           
-#' # data object with initial penalty strength lambda
+#' # data object with initial penalty strength sp
 #' dat = list(step = data$step, # step length
 #'            tod = data$tod, # time of day covariate
 #'            N = 2, # number of states
-#'            lambda = rep(10,2)) # initial penalty strength
+#'            sp = rep(10,2)) # initial penalty strength
 #'
 #' # building model matrices
 #' modmat = modmat(~ s(tod, bs = "cp"), 
@@ -249,7 +252,7 @@ penalty = function(re_coef, S, lambda) {
 #'   ind = which(!is.na(step)) # only for non-NA obs.
 #'   for(j in 1:N) allprobs[ind,j] = dgamma2(step[ind],mu[j],sigma[j])
 #'   -forward_g(delta, Gamma[,,tod], allprobs) +
-#'       penalty(betaspline, S, lambda) # this does all the penalisation work
+#'       penalty(betaspline, S, sp) # this does all the penalisation work
 #' }
 #'
 #' # model fitting
@@ -257,8 +260,9 @@ penalty = function(re_coef, S, lambda) {
 #' }
 penalty2 = function(re_coef, # coefficient vector/ matrix or list of coefficient vectors/ matrices
                     S, # always needs to be a list: matrix entries for smooths with one penalty matrix, list (length 2) entries for 2D tensorproducts
-                    lambda)
+                    sp, lambda) # lambda is the former name of sp
 {
+  if(missing(sp)) sp <- lambda
   # RTMB stuff to avoid annyoing problems
   "[<-" <- ADoverload("[<-")
   "c" <- ADoverload("c")
@@ -306,7 +310,7 @@ penalty2 = function(re_coef, # coefficient vector/ matrix or list of coefficient
   RTMB::REPORT(S) # Report penalty matrix list (potentially nested)
   
   ## reshape lambdas to list of vectors
-  Lambda = reshape_lambda(lambda_lengths, lambda)
+  Lambda = reshape_lambda(lambda_lengths, sp)
   
   ## Initialise penalty variables
   Pen = vector("list", length(n_re))
@@ -325,7 +329,7 @@ penalty2 = function(re_coef, # coefficient vector/ matrix or list of coefficient
     quadform = rowSums(current_re %*% S[[i]] * current_re)
     Pen[[i]] = quadform
     
-    # Apply lambda directly using precomputed indices
+    # Apply sp directly using precomputed indices
     pen = pen + sum(thislambda * quadform)
   }
   # then tensorproducts
@@ -352,7 +356,7 @@ penalty2 = function(re_coef, # coefficient vector/ matrix or list of coefficient
         # compute quadratic form b^t S_k b (WITHOUT lambda_k, same as for simple smooths above)
         subthispen[k] = t(this_tp[j,]) %*% thisS[[k]] %*% this_tp[j,]
       }
-      # add to overall penalty (this is where lambda enters)
+      # add to overall penalty (this is where sp enters)
       pen = pen + sum(thislambda * subthispen)
       
       thispen[[j]] <- subthispen # in this case we have multiple penalties we need for the update

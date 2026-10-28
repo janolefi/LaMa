@@ -88,13 +88,13 @@ pnll = function(par) {
     allprobs[ind,j] = dgamma2(step[ind],mu[j],sigma[j]) * dvm(angle[ind],0,kappa[j])
   }
   -forward(Delta[tod[1],], Gamma, allprobs, tod = tod) + # regular forward algorithm
-    penalty(betaSpline, S, lambda) # this does all the penalisation work
+    penalty(betaSpline, S, sp) # this does all the penalisation work
 }
 ```
 
-We also have to append a `lambda` vector to our `dat` list which is the **initial penalty strength** parameter vector. In this case it is of length two because our coefficient matrix has two rows. `modmat()` provides one initial value per penalty in `modmat$sp0`, based on `mgcv`'s initial guess, and `rep_sp()` repeats it for each row of the coefficient matrix.
+We also have to append an `sp` vector to our `dat` list which is the **initial penalty strength** parameter vector. In this case it is of length two because our coefficient matrix has two rows. `modmat()` provides one initial value per penalty in `modmat$sp0`, based on `mgcv`'s initial guess, and `rep_sp()` repeats it for each row of the coefficient matrix.
 
-If you are wondering why `lambda` is not added to the `par` list, this is because for penalised likelihood estimation, it is a **hyperparameter**, hence not a true parameter in the sense of the other parameters in `par`. One could, at his point, just use the above penalised likelihood function to do penalised ML for a **fixed** penalty strength `lambda`.
+If you are wondering why `sp` is not added to the `par` list, this is because for penalised likelihood estimation, it is a **hyperparameter**, hence not a true parameter in the sense of the other parameters in `par`. One could, at his point, just use the above penalised likelihood function to do penalised ML for a **fixed** penalty strength `sp`.
 
 ```{r todpar2}
 par = list(logmu = log(c(0.3, 2.5)), # state-dependent mean step
@@ -109,22 +109,22 @@ dat = list(step = trex$step, # observed steps
            tod = trex$tod, # time of day (used for indexing)
            Z = Z, # spline design matrix
            S = S, # penalty matrix
-           lambda = rep_sp(modmat, 2)) # initial penalty strength, one per row of betaSpline
+           sp = rep_sp(modmat, 2)) # initial penalty strength, one per row of betaSpline
 ```
 
-The model fit with automatic smoothness selection can then be conducted by using the `qreml()` function contained in `LaMa`. The **quasi restricted maximum likelihood** algorithm finds a good penalty strength parameter `lambda` by treating the spline coefficients as random effects. Under the hood, `qreml()` also constructs an AD function with `RTMB` but uses the **qREML** algorithm [@koslik2024efficient] to fit the model. We have to tell the `qreml()` function which parameters are spline coefficients by providing the name of the corresponding list element of `par`.
+The model fit with automatic smoothness selection can then be conducted by using the `qreml()` function contained in `LaMa`. The **quasi restricted maximum likelihood** algorithm finds a good penalty strength parameter `sp` by treating the spline coefficients as random effects. Under the hood, `qreml()` also constructs an AD function with `RTMB` but uses the **qREML** algorithm [@koslik2024efficient] to fit the model. We have to tell the `qreml()` function which parameters are spline coefficients by providing the name of the corresponding list element of `par`.
 
 There are some rules to follow when using `qreml()`:
 
 1. The likelihood function needs to be `RTMB`-compatible, i.e. have the same structure as the likelihood functions in the vignette *LaMa and RTMB*. Most importantly, it should be a function of the parameter list only.
 
-2. The penalty strength vector `lambda` needs its length to correspond to the *total* number of spline coefficient vectors used. In our case, this is the number of rows of `betaSpline`, but if we additionally had a different spline coefficient (with a different name) in our parameter list, possibly with a different length and a different penalty matrix, we would have needed more elements in `lambda`.
+2. The penalty strength vector `sp` needs its length to correspond to the *total* number of spline coefficient vectors used. In our case, this is the number of rows of `betaSpline`, but if we additionally had a different spline coefficient (with a different name) in our parameter list, possibly with a different length and a different penalty matrix, we would have needed more elements in `sp`.
 
 3. The `penalty()` function can only be called *once* in the likelihood. If several spline coefficients are penalised, `penalty()` expects a list of coefficient matrices or vectors and a list of penalty matrices. This is shown in the third example in this vignette.
 
 <!-- 5. When we summarise multiple spline coefficients in a matrix in our parameter list -- which is very useful when these are of same lengths and have the same penalty matrix -- this matrix must be arranged **by row**, i.e. each row is one spline coefficient vector. If it is arranged by column, `qreml()` will fail. -->
 
-4. By default, `qreml()` assumes that the penalisation hyperparameter in the `dat` object is called `lambda`. You can use a different name for `dat` (of course then changing it in your `pnll` as well), but if you want to use a different name for the penalisation hyperparameter, you have to specify it as a character string in the `qreml()` call using the `spname` argument.
+4. `qreml()` looks for the initial penalty strengths in `dat` under the name `sp`, and falls back to `lambda` (the former default, which still works). If `dat` contains `sp`, the name `lambda` is free for other things, e.g. the mean of a Poisson distribution. If you want to use a different name for the penalty strengths, you have to specify it as a character string in the `qreml()` call using the `spname` argument.
 
 ```{r trex_fit, message = FALSE}
 system.time(
@@ -267,7 +267,7 @@ pnll = function(par){
   allprobs = dens$density(beta)
   # forward algorithm + penalty
   -forward(delta, Gamma, allprobs) + 
-    penalty(beta, S, lambda)
+    penalty(beta, S, sp)
 }
 ```
 
@@ -277,7 +277,7 @@ par = list(beta = beta, # spline coefficients prepared by smoothdens()
            eta = rep(-2, 6)) # initial transition matrix on logit scale
 
 dat = list(S = S, # spline penalty matrix
-           lambda = rep(10, 3)) # initial penalty strength vector
+           sp = rep(10, 3)) # initial penalty strength vector
 
 # fitting the model using qREML
 system.time(
@@ -349,7 +349,7 @@ pnll = function(par) {
                    dnorm(price, Mu[,2], Sigma[,2])) # state-dependent densities
   
   - forward(delta, Gamma, allprobs) +
-    penalty(list(betaSpline, alphaSpline), S, lambda)
+    penalty(list(betaSpline, alphaSpline), S, sp)
 }
 ```
 
@@ -367,7 +367,7 @@ par = list(eta = rep(-4, 2), # state process intercepts
 dat = list(price = energy$Price, 
            Z = Z, 
            S = S, 
-           lambda = rep_sp(modmat, 4)) # 2 rows each of betaSpline and alphaSpline
+           sp = rep_sp(modmat, 4)) # 2 rows each of betaSpline and alphaSpline
 
 # model fit
 system.time(

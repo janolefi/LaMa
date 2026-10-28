@@ -364,7 +364,7 @@ print.summary.qremlModel <- function(x, digits = max(3, getOption("digits") - 3)
   
   cat("\nSmooth terms:\n")
   if(identical(names(x$edf), names(x$lambda))){ # one smoothing parameter per edf, i.e. no tensor products
-    print(cbind(edf = x$edf, lambda = x$lambda), digits = digits)
+    print(cbind(edf = x$edf, "smoothing parameters" = x$lambda), digits = digits)
   } else{
     cat("Effective degrees of freedom:\n")
     print(x$edf, digits = digits)

@@ -62,30 +62,38 @@ are random perturbations of it on the working scale. Afterwards, \code{\link{lam
 from the best fit, as \code{RTMB} keeps the parameters with the lowest negative log-likelihood it evaluated.
 }
 \details{
-\strong{Scatter.} With \code{scale = "fixed"}, the starts are \code{obj$par} plus normal noise with
-standard deviation \code{sd}. As most working parameters are on log or logit scale, \code{sd = 1} is a relative
-change, so one value usually fits all parameters. Parameters on identity scale (e.g. means of normal distributions)
-may need their own \code{sd}, given as a named list like \code{list(eta = 1, mu = 5)}.
-
-With \code{scale = "unit_info"}, the first fit is used to scale the others: they are drawn around it
-from a normal distribution with covariance \eqn{n H^{-1}}, where \eqn{H} is the Hessian of the negative log-likelihood
-and \eqn{n} the number of observations. This is the information of a single observation (unit information),
-which does not shrink with \eqn{n} and takes correlations of the parameters into account.
-Standard deviations are capped at \code{sd_max}, for weakly identified parameters.
-If the Hessian is not positive definite (or \code{allprobs} is not reported, so \eqn{n} is unknown), the fixed \code{sd} is used instead.
-
 \strong{Stopping.} Two runs reach the same optimum if their negative log-likelihoods differ by less than
 \code{tol} (relative), so permuted states (label switching) count as the same optimum.
-Only converged runs (convergence code 0 and maximum gradient component below 0.01) count for stopping. With \code{stop = "bayes"}, the Bayesian stopping rule of
-Boender and Rinnooy Kan (1987) is used: after \eqn{k} runs with \eqn{w} distinct optima, the expected number of optima is
-\eqn{w(k-1)/(k-w-2)}, and \code{multistart()} stops when this is below \eqn{w + 0.5}, i.e. probably no optimum is missed.
-The rule assumes that the starts are independent draws from one distribution, in which each optimum has an unknown probability
-of being reached (the probability mass of its basin of attraction), with a uniform prior on these probabilities.
-Hence, only the random starts count, not the first run from \code{obj$par}, and the rule is not used for given \code{starts}.
-It needs at least 8 converged random starts. "No optimum missed" is relative to the distribution of the starts: optima far away
-from it, or with a small basin of attraction, can be missed.
-With \code{stop = "hits"}, it stops once the best optimum was reached \code{hits} times.
+Only converged runs (convergence code 0 and maximum gradient component below 0.01) count for stopping.
 In any case, at most \code{nstarts} starts are run.
+\itemize{
+  \item \code{stop = "bayes"} uses the Bayesian stopping rule of Boender and Rinnooy Kan (1987):
+  after \eqn{k} runs with \eqn{w} distinct optima, the expected number of optima is \eqn{w(k-1)/(k-w-2)},
+  and \code{multistart()} stops when this is below \eqn{w + 0.5}, i.e. probably no optimum is missed.
+  The rule assumes that the starts are independent draws from one distribution, so only the random starts count,
+  not the first run from \code{obj$par}, and it is not used for given \code{starts}.
+  It needs at least 8 converged random starts.
+  \item \code{stop = "hits"} stops once the best optimum was reached \code{hits} times.
+}
+
+\strong{Caution.} Stopping does not mean that the global optimum was found. "No optimum missed" only refers to the
+distribution of the starts: optima far away from it, or with a small basin of attraction, can be missed.
+For example, with a very small \code{sd}, all starts converge to the same optimum and the rule stops quickly,
+although other starts might find a better one. So choose \code{sd} wide enough and still check the fit.
+
+\strong{Scatter.}
+\itemize{
+  \item With \code{scale = "fixed"}, the starts are \code{obj$par} plus normal noise with standard deviation \code{sd}.
+  As most working parameters are on log or logit scale, \code{sd = 1} is a relative change, so one value usually fits all parameters.
+  Parameters on identity scale (e.g. means of normal distributions) may need their own \code{sd},
+  given as a named list like \code{list(eta = 1, mu = 5)}.
+  \item With \code{scale = "unit_info"}, the starts are drawn around the first fit from a normal distribution with
+  covariance \eqn{n H^{-1}}, where \eqn{H} is the Hessian of the negative log-likelihood and \eqn{n} the number of observations.
+  This is the information of a single observation (unit information), which does not shrink with \eqn{n}
+  and takes correlations of the parameters into account. Standard deviations are capped at \code{sd_max},
+  for weakly identified parameters. If the Hessian is not positive definite (or \code{allprobs} is not reported,
+  so \eqn{n} is unknown), the fixed \code{sd} is used instead.
+}
 }
 \examples{
 nll <- function(par) {
@@ -93,7 +101,7 @@ nll <- function(par) {
   Gamma <- tpm(eta)
   mu <- exp(log_mu); REPORT(mu)
   allprobs <- cbind(dgamma2(step, mu[1], exp(log_sigma[1])),
-                    dgamma2(step, mu[2], exp(log_sigma[2])))
+                   dgamma2(step, mu[2], exp(log_sigma[2])))
   -forward(stationary(Gamma), Gamma, allprobs)
 }
 dat <- list(step = trex$step[1:500])

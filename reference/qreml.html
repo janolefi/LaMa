@@ -66,7 +66,7 @@ by combining automatic differentiation via <code>RTMB</code> with a custom imple
 <span>  <span class="va">random</span>,</span>
 <span>  map <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  silent <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  spname <span class="op">=</span> <span class="st">"lambda"</span>,</span>
+<span>  spname <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  tol_edf <span class="op">=</span> <span class="fl">0.01</span>,</span>
 <span>  maxiter <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.1</span>,</span>
@@ -96,7 +96,8 @@ by combining automatic differentiation via <code>RTMB</code> with a custom imple
 
 
 <dt id="arg-dat">dat<a class="anchor" aria-label="anchor" href="#arg-dat"></a></dt>
-<dd><p>initial data list that contains the data used in the likelihood function, hyperparameters, and the <strong>initial penalty strength</strong> vector</p></dd>
+<dd><p>initial data list that contains the data used in the likelihood function, hyperparameters, and the <strong>initial penalty strength</strong> vector,
+called <code>sp</code> or <code>lambda</code> (see <code>spname</code>)</p></dd>
 
 
 <dt id="arg-random">random<a class="anchor" aria-label="anchor" href="#arg-random"></a></dt>
@@ -113,7 +114,11 @@ by combining automatic differentiation via <code>RTMB</code> with a custom imple
 
 
 <dt id="arg-spname">spname<a class="anchor" aria-label="anchor" href="#arg-spname"></a></dt>
-<dd><p>optional name given to the penalty strength parameter in <code>dat</code>. Defaults to <code>"lambda"</code></p></dd>
+<dd><p>optional name of the penalty strength vector in <code>dat</code>.</p>
+<p>By default, <code>dat$sp</code> is used if present, otherwise <code>dat$lambda</code>.
+Hence, if <code>dat</code> contains <code>sp</code>, <code>lambda</code> is free to be used for something else, e.g. the mean of a Poisson distribution.
+In the likelihood function, the penalty strengths are accessed by the same name, e.g. <code>penalty(beta, S, sp)</code>, as <code>qreml()</code> replaces them with the current values in each iteration.
+The returned model object stores them under this name as well, e.g. <code>mod$sp</code>.</p></dd>
 
 
 <dt id="arg-tol-edf">tol_edf<a class="anchor" aria-label="anchor" href="#arg-tol-edf"></a></dt>
@@ -228,11 +233,11 @@ Note that these describe the curvature of \(V\) only, and treat the approximatio
 <span class="r-in"><span>           beta0 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span>,<span class="op">-</span><span class="fl">2</span><span class="op">)</span>, <span class="co"># state process intercept</span></span></span>
 <span class="r-in"><span>           beta_spline <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">18</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span> <span class="co"># state process spline coefs</span></span></span>
 <span class="r-in"><span>          </span></span>
-<span class="r-in"><span><span class="co"># data object with initial penalty strength lambda</span></span></span>
+<span class="r-in"><span><span class="co"># data object with initial penalty strength sp</span></span></span>
 <span class="r-in"><span><span class="va">dat</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>step <span class="op">=</span> <span class="va">data</span><span class="op">$</span><span class="va">step</span>, <span class="co"># step length</span></span></span>
 <span class="r-in"><span>           tod <span class="op">=</span> <span class="va">data</span><span class="op">$</span><span class="va">tod</span>, <span class="co"># time of day covariate</span></span></span>
 <span class="r-in"><span>           N <span class="op">=</span> <span class="fl">2</span>, <span class="co"># number of states</span></span></span>
-<span class="r-in"><span>           lambda <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">20</span>,<span class="fl">2</span><span class="op">)</span><span class="op">)</span> <span class="co"># initial penalty strength</span></span></span>
+<span class="r-in"><span>           sp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">20</span>,<span class="fl">2</span><span class="op">)</span><span class="op">)</span> <span class="co"># initial penalty strength</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># building model matrices</span></span></span>
 <span class="r-in"><span><span class="va">modmat</span> <span class="op">=</span> <span class="fu"><a href="modmat.html">modmat</a></span><span class="op">(</span><span class="op">~</span> <span class="fu">s</span><span class="op">(</span><span class="va">tod</span>, bs <span class="op">=</span> <span class="st">"cp"</span><span class="op">)</span>, </span></span>
@@ -253,7 +258,7 @@ Note that these describe the curvature of \(V\) only, and treat the approximatio
 <span class="r-in"><span>  <span class="va">ind</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">step</span><span class="op">)</span><span class="op">)</span> <span class="co"># only for non-NA obs.</span></span></span>
 <span class="r-in"><span>  <span class="kw">for</span><span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">)</span> <span class="va">allprobs</span><span class="op">[</span><span class="va">ind</span>,<span class="va">j</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="gamma2.html">dgamma2</a></span><span class="op">(</span><span class="va">step</span><span class="op">[</span><span class="va">ind</span><span class="op">]</span>,<span class="va">mu</span><span class="op">[</span><span class="va">j</span><span class="op">]</span>,<span class="va">sigma</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="op">-</span><span class="fu"><a href="forward.html">forward</a></span><span class="op">(</span><span class="va">delta</span>, <span class="va">Gamma</span><span class="op">[</span>,,<span class="va">tod</span><span class="op">]</span>, <span class="va">allprobs</span><span class="op">)</span> <span class="op">+</span></span></span>
-<span class="r-in"><span>      <span class="fu"><a href="penalty.html">penalty</a></span><span class="op">(</span><span class="va">beta_spline</span>, <span class="va">S</span>, <span class="va">lambda</span><span class="op">)</span> <span class="co"># this does all the penalization work</span></span></span>
+<span class="r-in"><span>      <span class="fu"><a href="penalty.html">penalty</a></span><span class="op">(</span><span class="va">beta_spline</span>, <span class="va">S</span>, <span class="va">sp</span><span class="op">)</span> <span class="co"># this does all the penalization work</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># model fitting</span></span></span>

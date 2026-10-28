@@ -62,7 +62,7 @@ For <code><a href="qreml.html">qreml</a></code> to work, the likelihood function
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">penalty</span><span class="op">(</span><span class="va">re_coef</span>, <span class="va">S</span>, <span class="va">lambda</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">penalty</span><span class="op">(</span><span class="va">re_coef</span>, <span class="va">S</span>, <span class="va">sp</span>, <span class="va">lambda</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -80,9 +80,13 @@ This way all rows can use the same penalty matrix.</p></dd>
 <dd><p>fixed penalty matrix or list of penalty matrices matching the structure of <code>re_coef</code> and also the dimension of the individuals smooths/ random effects</p></dd>
 
 
-<dt id="arg-lambda">lambda<a class="anchor" aria-label="anchor" href="#arg-lambda"></a></dt>
+<dt id="arg-sp">sp<a class="anchor" aria-label="anchor" href="#arg-sp"></a></dt>
 <dd><p>penalty strength parameter vector that has a length corresponding to the <strong>total number</strong> of random effects/ spline coefficients in <code>re_coef</code></p>
-<p>E.g. if <code>re_coef</code> contains one vector and one matrix with 4 rows, then <code>lambda</code> needs to be of length 5.</p></dd>
+<p>E.g. if <code>re_coef</code> contains one vector and one matrix with 4 rows, then <code>sp</code> needs to be of length 5.</p></dd>
+
+
+<dt id="arg-lambda">lambda<a class="anchor" aria-label="anchor" href="#arg-lambda"></a></dt>
+<dd><p>former name of <code>sp</code>, still works</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -109,16 +113,16 @@ If these are seperate random effects, each with its own name, they need to be pa
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Example with a single random effect</span></span></span>
 <span class="r-in"><span><span class="va">re</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">5</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">S</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">lambda</span> <span class="op">=</span> <span class="fl">1</span></span></span>
-<span class="r-in"><span><span class="fu">penalty</span><span class="op">(</span><span class="va">re</span>, <span class="va">S</span>, <span class="va">lambda</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">sp</span> <span class="op">=</span> <span class="fl">1</span></span></span>
+<span class="r-in"><span><span class="fu">penalty</span><span class="op">(</span><span class="va">re</span>, <span class="va">S</span>, <span class="va">sp</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Example with two random effects, </span></span></span>
 <span class="r-in"><span><span class="co"># where one element contains two random effects of similar structure</span></span></span>
 <span class="r-in"><span><span class="va">re</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">5</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">S</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">lambda</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span> <span class="co"># length = total number of random effects</span></span></span>
-<span class="r-in"><span><span class="fu">penalty</span><span class="op">(</span><span class="va">re</span>, <span class="va">S</span>, <span class="va">lambda</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">sp</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span> <span class="co"># length = total number of random effects</span></span></span>
+<span class="r-in"><span><span class="fu">penalty</span><span class="op">(</span><span class="va">re</span>, <span class="va">S</span>, <span class="va">sp</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Full model-fitting example</span></span></span>
@@ -131,11 +135,11 @@ If these are seperate random effects, each with its own name, they need to be pa
 <span class="r-in"><span>           beta0 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span>,<span class="op">-</span><span class="fl">2</span><span class="op">)</span>, <span class="co"># state process intercept</span></span></span>
 <span class="r-in"><span>           betaspline <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">18</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span> <span class="co"># state process spline coefs</span></span></span>
 <span class="r-in"><span>          </span></span>
-<span class="r-in"><span><span class="co"># data object with initial penalty strength lambda</span></span></span>
+<span class="r-in"><span><span class="co"># data object with initial penalty strength sp</span></span></span>
 <span class="r-in"><span><span class="va">dat</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>step <span class="op">=</span> <span class="va">data</span><span class="op">$</span><span class="va">step</span>, <span class="co"># step length</span></span></span>
 <span class="r-in"><span>           tod <span class="op">=</span> <span class="va">data</span><span class="op">$</span><span class="va">tod</span>, <span class="co"># time of day covariate</span></span></span>
 <span class="r-in"><span>           N <span class="op">=</span> <span class="fl">2</span>, <span class="co"># number of states</span></span></span>
-<span class="r-in"><span>           lambda <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">10</span>,<span class="fl">2</span><span class="op">)</span><span class="op">)</span> <span class="co"># initial penalty strength</span></span></span>
+<span class="r-in"><span>           sp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">10</span>,<span class="fl">2</span><span class="op">)</span><span class="op">)</span> <span class="co"># initial penalty strength</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># building model matrices</span></span></span>
 <span class="r-in"><span><span class="va">modmat</span> <span class="op">=</span> <span class="fu"><a href="modmat.html">modmat</a></span><span class="op">(</span><span class="op">~</span> <span class="fu">s</span><span class="op">(</span><span class="va">tod</span>, bs <span class="op">=</span> <span class="st">"cp"</span><span class="op">)</span>, </span></span>
@@ -156,26 +160,26 @@ If these are seperate random effects, each with its own name, they need to be pa
 <span class="r-in"><span>  <span class="va">ind</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">step</span><span class="op">)</span><span class="op">)</span> <span class="co"># only for non-NA obs.</span></span></span>
 <span class="r-in"><span>  <span class="kw">for</span><span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">)</span> <span class="va">allprobs</span><span class="op">[</span><span class="va">ind</span>,<span class="va">j</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="gamma2.html">dgamma2</a></span><span class="op">(</span><span class="va">step</span><span class="op">[</span><span class="va">ind</span><span class="op">]</span>,<span class="va">mu</span><span class="op">[</span><span class="va">j</span><span class="op">]</span>,<span class="va">sigma</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="op">-</span><span class="fu"><a href="forward_g.html">forward_g</a></span><span class="op">(</span><span class="va">delta</span>, <span class="va">Gamma</span><span class="op">[</span>,,<span class="va">tod</span><span class="op">]</span>, <span class="va">allprobs</span><span class="op">)</span> <span class="op">+</span></span></span>
-<span class="r-in"><span>      <span class="fu">penalty</span><span class="op">(</span><span class="va">betaspline</span>, <span class="va">S</span>, <span class="va">lambda</span><span class="op">)</span> <span class="co"># this does all the penalization work</span></span></span>
+<span class="r-in"><span>      <span class="fu">penalty</span><span class="op">(</span><span class="va">betaspline</span>, <span class="va">S</span>, <span class="va">sp</span><span class="op">)</span> <span class="co"># this does all the penalization work</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># model fitting</span></span></span>
 <span class="r-in"><span><span class="va">mod</span> <span class="op">=</span> <span class="fu"><a href="qreml.html">qreml</a></span><span class="op">(</span><span class="va">pnll</span>, <span class="va">par</span>, <span class="va">dat</span>, random <span class="op">=</span> <span class="st">"betaspline"</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Creating AD function</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Initialising with lambda: 10 10</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 1 - lambda: 3.588 2.862 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 2 - lambda: 0.759 0.954 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 3 - lambda: 0.261 0.391 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 4 - lambda: 0.521 0.272 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 5 - lambda: 0.465 0.189 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 6 - lambda: 0.489 0.105 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 7 - lambda: 0.481 0.079 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 8 - lambda: 0.482 0.079 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 9 - lambda: 0.482 0.079 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 10 - lambda: 0.483 0.08 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> outer 11 - lambda: 0.483 0.08 </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Initialising with sp: 10 10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer 1 - sp: 3.588 2.862 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer 2 - sp: 0.759 0.954 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer 3 - sp: 0.261 0.391 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer 4 - sp: 0.521 0.272 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer 5 - sp: 0.465 0.189 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer 6 - sp: 0.489 0.105 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer 7 - sp: 0.481 0.079 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer 8 - sp: 0.482 0.079 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer 9 - sp: 0.482 0.079 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer 10 - sp: 0.483 0.08 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> outer 11 - sp: 0.483 0.08 </span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Converged</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Final model fit with lambda: 0.481 0.079</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Final model fit with sp: 0.481 0.079</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

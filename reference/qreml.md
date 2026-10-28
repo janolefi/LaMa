@@ -20,7 +20,7 @@ qreml(
   random,
   map = NULL,
   silent = 1,
-  spname = "lambda",
+  spname = NULL,
   tol_edf = 0.01,
   maxiter = 100,
   alpha = 0.1,
@@ -54,7 +54,8 @@ qreml(
 - dat:
 
   initial data list that contains the data used in the likelihood
-  function, hyperparameters, and the **initial penalty strength** vector
+  function, hyperparameters, and the **initial penalty strength**
+  vector, called `sp` or `lambda` (see `spname`)
 
 - random:
 
@@ -76,8 +77,15 @@ qreml(
 
 - spname:
 
-  optional name given to the penalty strength parameter in `dat`.
-  Defaults to `"lambda"`
+  optional name of the penalty strength vector in `dat`.
+
+  By default, `dat$sp` is used if present, otherwise `dat$lambda`.
+  Hence, if `dat` contains `sp`, `lambda` is free to be used for
+  something else, e.g. the mean of a Poisson distribution. In the
+  likelihood function, the penalty strengths are accessed by the same
+  name, e.g. `penalty(beta, S, sp)`, as `qreml()` replaces them with the
+  current values in each iteration. The returned model object stores
+  them under this name as well, e.g. `mod$sp`.
 
 - tol_edf:
 
@@ -277,11 +285,11 @@ par = list(logmu = log(c(0.3, 2.5)), # step mean
            beta0 = c(-2,-2), # state process intercept
            beta_spline = matrix(rep(0, 18), nrow = 2)) # state process spline coefs
           
-# data object with initial penalty strength lambda
+# data object with initial penalty strength sp
 dat = list(step = data$step, # step length
            tod = data$tod, # time of day covariate
            N = 2, # number of states
-           lambda = rep(20,2)) # initial penalty strength
+           sp = rep(20,2)) # initial penalty strength
 
 # building model matrices
 modmat = modmat(~ s(tod, bs = "cp"), 
@@ -302,7 +310,7 @@ pnll = function(par) {
   ind = which(!is.na(step)) # only for non-NA obs.
   for(j in 1:N) allprobs[ind,j] = dgamma2(step[ind],mu[j],sigma[j])
   -forward(delta, Gamma[,,tod], allprobs) +
-      penalty(beta_spline, S, lambda) # this does all the penalization work
+      penalty(beta_spline, S, sp) # this does all the penalization work
 }
 
 # model fitting

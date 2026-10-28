@@ -120,11 +120,11 @@ pnll = function(par) {
     allprobs[ind,j] = dgamma2(step[ind],mu[j],sigma[j]) * dvm(angle[ind],0,kappa[j])
   }
   -forward(Delta[tod[1],], Gamma, allprobs, tod = tod) + # regular forward algorithm
-    penalty(betaSpline, S, lambda) # this does all the penalisation work
+    penalty(betaSpline, S, sp) # this does all the penalisation work
 }
 ```
 
-We also have to append a `lambda` vector to our `dat` list which is the
+We also have to append an `sp` vector to our `dat` list which is the
 **initial penalty strength** parameter vector. In this case it is of
 length two because our coefficient matrix has two rows.
 [`modmat()`](https://janolefi.github.io/LaMa/reference/modmat.md)
@@ -133,12 +133,11 @@ provides one initial value per penalty in `modmat$sp0`, based on
 [`rep_sp()`](https://janolefi.github.io/LaMa/reference/rep_sp.md)
 repeats it for each row of the coefficient matrix.
 
-If you are wondering why `lambda` is not added to the `par` list, this
-is because for penalised likelihood estimation, it is a
-**hyperparameter**, hence not a true parameter in the sense of the other
-parameters in `par`. One could, at his point, just use the above
-penalised likelihood function to do penalised ML for a **fixed** penalty
-strength `lambda`.
+If you are wondering why `sp` is not added to the `par` list, this is
+because for penalised likelihood estimation, it is a **hyperparameter**,
+hence not a true parameter in the sense of the other parameters in
+`par`. One could, at his point, just use the above penalised likelihood
+function to do penalised ML for a **fixed** penalty strength `sp`.
 
 ``` r
 
@@ -154,15 +153,15 @@ dat = list(step = trex$step, # observed steps
            tod = trex$tod, # time of day (used for indexing)
            Z = Z, # spline design matrix
            S = S, # penalty matrix
-           lambda = rep_sp(modmat, 2)) # initial penalty strength, one per row of betaSpline
+           sp = rep_sp(modmat, 2)) # initial penalty strength, one per row of betaSpline
 ```
 
 The model fit with automatic smoothness selection can then be conducted
 by using the
 [`qreml()`](https://janolefi.github.io/LaMa/reference/qreml.md) function
 contained in `LaMa`. The **quasi restricted maximum likelihood**
-algorithm finds a good penalty strength parameter `lambda` by treating
-the spline coefficients as random effects. Under the hood,
+algorithm finds a good penalty strength parameter `sp` by treating the
+spline coefficients as random effects. Under the hood,
 [`qreml()`](https://janolefi.github.io/LaMa/reference/qreml.md) also
 constructs an AD function with `RTMB` but uses the **qREML** algorithm
 ([Koslik 2024](#ref-koslik2024efficient)) to fit the model. We have to
@@ -178,13 +177,12 @@ There are some rules to follow when using
     RTMB*. Most importantly, it should be a function of the parameter
     list only.
 
-2.  The penalty strength vector `lambda` needs its length to correspond
-    to the *total* number of spline coefficient vectors used. In our
-    case, this is the number of rows of `betaSpline`, but if we
-    additionally had a different spline coefficient (with a different
-    name) in our parameter list, possibly with a different length and a
-    different penalty matrix, we would have needed more elements in
-    `lambda`.
+2.  The penalty strength vector `sp` needs its length to correspond to
+    the *total* number of spline coefficient vectors used. In our case,
+    this is the number of rows of `betaSpline`, but if we additionally
+    had a different spline coefficient (with a different name) in our
+    parameter list, possibly with a different length and a different
+    penalty matrix, we would have needed more elements in `sp`.
 
 3.  The
     [`penalty()`](https://janolefi.github.io/LaMa/reference/penalty.md)
@@ -197,13 +195,13 @@ There are some rules to follow when using
 
 &nbsp;
 
-4.  By default,
-    [`qreml()`](https://janolefi.github.io/LaMa/reference/qreml.md)
-    assumes that the penalisation hyperparameter in the `dat` object is
-    called `lambda`. You can use a different name for `dat` (of course
-    then changing it in your `pnll` as well), but if you want to use a
-    different name for the penalisation hyperparameter, you have to
-    specify it as a character string in the
+4.  [`qreml()`](https://janolefi.github.io/LaMa/reference/qreml.md)
+    looks for the initial penalty strengths in `dat` under the name
+    `sp`, and falls back to `lambda` (the former default, which still
+    works). If `dat` contains `sp`, the name `lambda` is free for other
+    things, e.g. the mean of a Poisson distribution. If you want to use
+    a different name for the penalty strengths, you have to specify it
+    as a character string in the
     [`qreml()`](https://janolefi.github.io/LaMa/reference/qreml.md) call
     using the `spname` argument.
 
@@ -212,17 +210,17 @@ There are some rules to follow when using
 system.time(
   mod1 <- qreml(pnll, par, dat, random = "betaSpline")
 )
-#> outer 1 - lambda: 24.279 24.279 
-#> outer 2 - lambda: 2.428 2.428 
-#> outer 3 - lambda: 0.243 0.243 
-#> outer 4 - lambda: 0.378 0.076 
-#> outer 5 - lambda: 0.312 0.104 
-#> outer 6 - lambda: 0.311 0.106 
-#> outer 7 - lambda: 0.31 0.108 
-#> outer 8 - lambda: 0.309 0.11 
-#> outer 9 - lambda: 0.309 0.11
+#> outer 1 - sp: 24.279 24.279 
+#> outer 2 - sp: 2.428 2.428 
+#> outer 3 - sp: 0.243 0.243 
+#> outer 4 - sp: 0.378 0.076 
+#> outer 5 - sp: 0.312 0.104 
+#> outer 6 - sp: 0.311 0.106 
+#> outer 7 - sp: 0.31 0.108 
+#> outer 8 - sp: 0.309 0.11 
+#> outer 9 - sp: 0.309 0.11
 #>    user  system elapsed 
-#>  12.970   0.104  13.075
+#>  12.238   0.111  12.349
 ```
 
 The `mod` object is now a list that contains everything that is reported
@@ -426,7 +424,7 @@ pnll = function(par){
   allprobs = dens$density(beta)
   # forward algorithm + penalty
   -forward(delta, Gamma, allprobs) + 
-    penalty(beta, S, lambda)
+    penalty(beta, S, sp)
 }
 ```
 
@@ -440,25 +438,25 @@ par = list(beta = beta, # spline coefficients prepared by smoothdens()
            eta = rep(-2, 6)) # initial transition matrix on logit scale
 
 dat = list(S = S, # spline penalty matrix
-           lambda = rep(10, 3)) # initial penalty strength vector
+           sp = rep(10, 3)) # initial penalty strength vector
 
 # fitting the model using qREML
 system.time(
   mod2 <- qreml(pnll, par, dat, random = "beta")
 )
 #> Creating AD function
-#> Initialising with lambda: 10 10 10
-#> outer 1 - lambda: 1.733 1.189 2.623 
-#> outer 2 - lambda: 0.836 0.885 1.46 
-#> outer 3 - lambda: 0.956 0.994 1.653 
-#> outer 4 - lambda: 0.962 0.996 1.661 
-#> outer 5 - lambda: 0.962 0.996 1.661 
-#> outer 6 - lambda: 0.962 0.996 1.661 
-#> outer 7 - lambda: 0.962 0.996 1.661
+#> Initialising with sp: 10 10 10
+#> outer 1 - sp: 1.733 1.189 2.623 
+#> outer 2 - sp: 0.836 0.885 1.46 
+#> outer 3 - sp: 0.956 0.994 1.653 
+#> outer 4 - sp: 0.962 0.996 1.661 
+#> outer 5 - sp: 0.962 0.996 1.661 
+#> outer 6 - sp: 0.962 0.996 1.661 
+#> outer 7 - sp: 0.962 0.996 1.661
 #> Converged
-#> Final model fit with lambda: 0.962 0.996 1.661
+#> Final model fit with sp: 0.962 0.996 1.661
 #>    user  system elapsed 
-#>  31.014   9.776  29.645
+#>  29.157   9.973  27.887
 ```
 
 After fitting the model, we can easily visualise the smooth densities:
@@ -564,7 +562,7 @@ pnll = function(par) {
                    dnorm(price, Mu[,2], Sigma[,2])) # state-dependent densities
   
   - forward(delta, Gamma, allprobs) +
-    penalty(list(betaSpline, alphaSpline), S, lambda)
+    penalty(list(betaSpline, alphaSpline), S, sp)
 }
 ```
 
@@ -585,36 +583,36 @@ par = list(eta = rep(-4, 2), # state process intercepts
 dat = list(price = energy$Price, 
            Z = Z, 
            S = S, 
-           lambda = rep_sp(modmat, 4)) # 2 rows each of betaSpline and alphaSpline
+           sp = rep_sp(modmat, 4)) # 2 rows each of betaSpline and alphaSpline
 
 # model fit
 system.time(
   mod3 <- qreml(pnll, par, dat, random = c("betaSpline", "alphaSpline"))
 )
 #> Creating AD function
-#> Initialising with lambda: 15317.756 15317.756 15317.756 15317.756
-#> outer 1 - lambda: 3024.686 1531.776 2056.01 1531.776 
-#> outer 2 - lambda: 302.469 153.178 205.601 153.178 
-#> outer 3 - lambda: 30.247 15.318 20.56 15.318 
-#> outer 4 - lambda: 21.818 4.441 8.246 2.187 
-#> outer 5 - lambda: 22.318 10.491 8.229 6.273 
-#> outer 6 - lambda: 22.947 5.581 8.315 3.311 
-#> outer 7 - lambda: 22.352 8.746 8.224 4.794 
-#> outer 8 - lambda: 22.747 6.295 8.29 3.844 
-#> outer 9 - lambda: 22.457 7.975 8.244 4.375 
-#> outer 10 - lambda: 22.651 6.711 8.274 4.053 
-#> outer 11 - lambda: 22.512 7.603 8.255 4.239 
-#> outer 12 - lambda: 22.609 6.943 8.267 4.128 
-#> outer 13 - lambda: 22.528 7.415 8.257 4.193 
-#> outer 14 - lambda: 22.596 7.068 8.266 4.154 
-#> outer 15 - lambda: 22.595 7.072 8.266 4.154 
-#> outer 16 - lambda: 22.594 7.08 8.265 4.155 
-#> outer 17 - lambda: 22.591 7.094 8.265 4.156 
-#> outer 18 - lambda: 22.591 7.094 8.265 4.156
+#> Initialising with sp: 15317.756 15317.756 15317.756 15317.756
+#> outer 1 - sp: 3024.686 1531.776 2056.01 1531.776 
+#> outer 2 - sp: 302.469 153.178 205.601 153.178 
+#> outer 3 - sp: 30.247 15.318 20.56 15.318 
+#> outer 4 - sp: 21.818 4.441 8.246 2.187 
+#> outer 5 - sp: 22.318 10.491 8.229 6.273 
+#> outer 6 - sp: 22.947 5.581 8.315 3.311 
+#> outer 7 - sp: 22.352 8.746 8.224 4.794 
+#> outer 8 - sp: 22.747 6.295 8.29 3.844 
+#> outer 9 - sp: 22.457 7.975 8.244 4.375 
+#> outer 10 - sp: 22.651 6.711 8.274 4.053 
+#> outer 11 - sp: 22.512 7.603 8.255 4.239 
+#> outer 12 - sp: 22.609 6.943 8.267 4.128 
+#> outer 13 - sp: 22.528 7.415 8.257 4.193 
+#> outer 14 - sp: 22.596 7.068 8.266 4.154 
+#> outer 15 - sp: 22.595 7.072 8.266 4.154 
+#> outer 16 - sp: 22.594 7.08 8.265 4.155 
+#> outer 17 - sp: 22.591 7.094 8.265 4.156 
+#> outer 18 - sp: 22.591 7.094 8.265 4.156
 #> Converged
-#> Final model fit with lambda: 22.596 7.068 8.266 4.154
+#> Final model fit with sp: 22.596 7.068 8.266 4.154
 #>    user  system elapsed 
-#>  36.245   0.014  36.263
+#>  34.414   0.017  34.433
 ```
 
 Having fitted the model, we can visualise the results. We first decode

@@ -2,7 +2,7 @@
 
 Expands the `sp0` element of a
 [`modmat`](https://janolefi.github.io/LaMa/reference/modmat.md) object
-into a `lambda` vector for
+into a `sp` vector for
 [`penalty`](https://janolefi.github.io/LaMa/reference/penalty.md) or
 [`penalty2`](https://janolefi.github.io/LaMa/reference/penalty2.md),
 when each smooth is used more than once, for example one spline per
@@ -29,11 +29,11 @@ rep_sp(model_matrices, N)
 ## Value
 
 named numeric vector of initial penalty strengths, of the length and in
-the order expected for `lambda`
+the order expected for `sp`
 
 ## Details
 
-`lambda` runs over replicates **within** each smooth, so for a tensor
+`sp` runs over replicates **within** each smooth, so for a tensor
 product the margins vary fastest. A single
 [`rep()`](https://rdrr.io/r/base/rep.html) over `sp0` therefore only
 gives the right answer for some models, silently producing the right
@@ -52,7 +52,7 @@ modmat = modmat(~ s(x) + ti(x, y), data.frame(x = runif(100), y = runif(100)))
 modmat$sp0         # one value per penalty
 #>      s(x) ti(x,y).x ti(x,y).y 
 #>  58.74017 144.93454 161.40577 
-rep_sp(modmat, 2)  # ready to use as 'lambda' for two replicates of each smooth
+rep_sp(modmat, 2)  # ready to use as 'sp' for two replicates of each smooth
 #>      s(x).1      s(x).2 ti(x,y).x.1 ti(x,y).y.1 ti(x,y).x.2 ti(x,y).y.2 
 #>    58.74017    58.74017   144.93454   161.40577   144.93454   161.40577 
 ```

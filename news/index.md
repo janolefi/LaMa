@@ -70,6 +70,11 @@
   and named as S; rep_sp() repeats them as lambda for smooths used more
   than once, e.g. one per state
 
+- The penalty strengths are now called sp: qreml() takes them from datsp
+  if present, otherwise from datlambda as before, so lambda is free for
+  other things, e.g. a Poisson mean; spname still overrides this.
+  penalty() and penalty2() call their argument sp, lambda still works
+
 - print() for objects from modmat() shows the formulas and the initial
   penalty strengths
 

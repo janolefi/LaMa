@@ -21,7 +21,7 @@ package to enable automatic differentiation.
 ## Usage
 
 ``` r
-penalty2(re_coef, S, lambda)
+penalty2(re_coef, S, sp, lambda)
 ```
 
 ## Arguments
@@ -46,7 +46,7 @@ penalty2(re_coef, S, lambda)
   dimension of the corresponding entry in `re_coef`, or a list with
   multiple penalty matrices for tensor products.
 
-- lambda:
+- sp:
 
   penalty strength parameter vector that has a length corresponding to
   the provided `re_coef` and `S`.
@@ -57,7 +57,11 @@ penalty2(re_coef, S, lambda)
 
   E.g. if `re_coef[[1]]` is a vector and `re_coef[[2]]` a matrix with 4
   rows, `S[[1]]` is a list of length 2 and `S[[2]]` is a matrix, then
-  `lambda` needs to be of length 1 \* 2 + 4 = 6.
+  `sp` needs to be of length 1 \* 2 + 4 = 6.
+
+- lambda:
+
+  former name of `sp`, still works
 
 ## Value
 
@@ -87,16 +91,16 @@ to match the character vector `random` specified in
 # Example with a single random effect
 re = rep(0, 5)
 S = diag(5)
-lambda = 1
-penalty(re, S, lambda)
+sp = 1
+penalty(re, S, sp)
 #> [1] 0
 
 # Example with two random effects, 
 # where one element contains two random effects of similar structure
 re = list(matrix(0, 2, 5), rep(0, 4))
 S = list(diag(5), diag(4))
-lambda = c(1,1,2) # length = total number of random effects
-penalty(re, S, lambda)
+sp = c(1,1,2) # length = total number of random effects
+penalty(re, S, sp)
 #> [1] 0
 
 # Full model-fitting example
@@ -109,11 +113,11 @@ par = list(logmu = log(c(0.3, 2.5)), # step mean
            beta0 = c(-2,-2), # state process intercept
            betaspline = matrix(rep(0, 18), nrow = 2)) # state process spline coefs
           
-# data object with initial penalty strength lambda
+# data object with initial penalty strength sp
 dat = list(step = data$step, # step length
            tod = data$tod, # time of day covariate
            N = 2, # number of states
-           lambda = rep(10,2)) # initial penalty strength
+           sp = rep(10,2)) # initial penalty strength
 
 # building model matrices
 modmat = modmat(~ s(tod, bs = "cp"), 
@@ -134,25 +138,25 @@ pnll = function(par) {
   ind = which(!is.na(step)) # only for non-NA obs.
   for(j in 1:N) allprobs[ind,j] = dgamma2(step[ind],mu[j],sigma[j])
   -forward_g(delta, Gamma[,,tod], allprobs) +
-      penalty(betaspline, S, lambda) # this does all the penalisation work
+      penalty(betaspline, S, sp) # this does all the penalisation work
 }
 
 # model fitting
 mod = qreml(pnll, par, dat, random = "betaspline")
 #> Creating AD function
-#> Initialising with lambda: 10 10
-#> outer 1 - lambda: 3.588 2.862 
-#> outer 2 - lambda: 0.759 0.954 
-#> outer 3 - lambda: 0.261 0.391 
-#> outer 4 - lambda: 0.521 0.272 
-#> outer 5 - lambda: 0.465 0.189 
-#> outer 6 - lambda: 0.489 0.105 
-#> outer 7 - lambda: 0.481 0.079 
-#> outer 8 - lambda: 0.482 0.079 
-#> outer 9 - lambda: 0.482 0.079 
-#> outer 10 - lambda: 0.483 0.08 
-#> outer 11 - lambda: 0.483 0.08 
+#> Initialising with sp: 10 10
+#> outer 1 - sp: 3.588 2.862 
+#> outer 2 - sp: 0.759 0.954 
+#> outer 3 - sp: 0.261 0.391 
+#> outer 4 - sp: 0.521 0.272 
+#> outer 5 - sp: 0.465 0.189 
+#> outer 6 - sp: 0.489 0.105 
+#> outer 7 - sp: 0.481 0.079 
+#> outer 8 - sp: 0.482 0.079 
+#> outer 9 - sp: 0.482 0.079 
+#> outer 10 - sp: 0.483 0.08 
+#> outer 11 - sp: 0.483 0.08 
 #> Converged
-#> Final model fit with lambda: 0.481 0.079
+#> Final model fit with sp: 0.481 0.079
 # }
 ```

@@ -697,8 +697,9 @@ make_matrices_dens = function(x, # data vector
       boundary_knots <- knots[c(1, length(knots))] # set boundary knots
       knots <- knots[2:(length(knots)-1)] # only keep interior knots
       
-      xseq <- seq(boundary_knots[1] + 1e-3, boundary_knots[2] - 1e-3, 
-                  length = npoints)
+      # midpoint grid for numerical integration
+      h <- diff(boundary_knots) / npoints
+      xseq <- boundary_knots[1] + (seq_len(npoints) - 0.5) * h
       
       # numerical integration for normalizing the B-spline basis functions
       B0 <- bSpline(
@@ -709,8 +710,6 @@ make_matrices_dens = function(x, # data vector
         intercept = TRUE
         ) # unnormalised spline design matrix
 
-      # interval width for numerical integration
-      h <- xseq[2] - xseq[1]
       # numerical integration of each basis function
       w <- (h * colSums(B0))^-1
       
@@ -768,8 +767,9 @@ make_matrices_dens = function(x, # data vector
       boundary_knots <- knots[c(1, length(knots))] # set boundary knots
       knots <- knots[2:(length(knots)-1)] # only keep interior knots
       
-      xseq <- seq(boundary_knots[1] + 1e-3, boundary_knots[2] - 1e-3, 
-                  length = npoints)
+      # midpoint grid for numerical integration
+      h <- diff(boundary_knots) / npoints
+      xseq <- boundary_knots[1] + (seq_len(npoints) - 0.5) * h
       
       # numerical integration for normalizing the B-spline basis functions
       B0 <- bSpline(
@@ -779,9 +779,6 @@ make_matrices_dens = function(x, # data vector
         degree = degree, 
         intercept = TRUE
       ) # unnormalised spline design matrix
-      
-      # interval width for numerical integration
-      h <- xseq[2] - xseq[1]
       
       # numerical integration of each basis function
       w <- (h * colSums(B0))^-1
@@ -831,15 +828,14 @@ make_matrices_dens = function(x, # data vector
       }
     }
     
-    xseq <- seq(-pi, pi, length = npoints)
+    # midpoint grid, so -pi and pi are not both counted
+    h <- 2 * pi / npoints
+    xseq <- -pi + (seq_len(npoints) - 0.5) * h
     B0 <- cSplineDes(
       xseq, 
       knots, 
       ord = degree + 1
       )
-    
-    # interval width for numerical integration
-    h <- xseq[2] - xseq[1]
     
     # numerical integration of each basis function
     w <- (h * colSums(B0))^-1

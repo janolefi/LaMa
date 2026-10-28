@@ -73,4 +73,6 @@ mllk = function(theta.star, x, sizes){
 ## fitting an HSMM to the data
 theta.star = c(log(5), log(10), 1, 4, log(2), log(2))
 mod = nlm(mllk, theta.star, x = x, sizes = c(20, 30), stepmax = 5)
+#> tpm_hsmm2() is deprecated, please use tpm_hsmm() instead.
+#> forward_s() is deprecated, please use forward_hsmm(dm, omega, allprobs) instead.
 ```

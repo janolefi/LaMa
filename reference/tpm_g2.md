@@ -93,5 +93,4 @@ Other transition probability matrix functions:
 Z = matrix(runif(200), ncol = 2)
 beta = matrix(c(-1, 1, 2, -2, 1, -2), nrow = 2, byrow = TRUE)
 Gamma = tpm_g(Z, beta)
-#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
 ```

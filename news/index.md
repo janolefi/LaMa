@@ -78,6 +78,15 @@
 - report() is renamed to lama(), as it does much more than calling
   obj\$report(); report() still works but is deprecated
 
+- old functions still work but are deprecated, with a message pointing
+  to the new implementation: forward_s() and forward_sp() (use
+  forward_hsmm() and forward_phsmm()), tpm_hsmm2() and tpm_phsmm2() (use
+  tpm_hsmm() and tpm_phsmm()), tpm_g2() (use tpm()), qreml_old() (use
+  qreml()), stationary_cont() and tpm_cont() (use stationary_ct() and
+  tpm_ct())
+
+- deprecation messages are shown once per session, not at every call
+
 - lama(): the log-likelihood is called llk (before ll), as for qreml()
 
 - lama() and qreml(): nobs does not count missing observations (rows of

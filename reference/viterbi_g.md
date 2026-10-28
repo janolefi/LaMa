@@ -74,7 +74,6 @@ Other decoding functions:
 ``` r
 delta = c(0.5, 0.5)
 Gamma = tpm_g(runif(10), matrix(c(-2,-2,1,-1), nrow = 2))
-#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
 allprobs = matrix(runif(20), nrow = 10, ncol = 2)
 states = viterbi_g(delta, Gamma[,,-1], allprobs)
 #> viterbi_g() is deprecated, please use viterbi() for all model types instead.

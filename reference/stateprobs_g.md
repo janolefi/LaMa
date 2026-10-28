@@ -86,7 +86,6 @@ Other decoding functions:
 
 ``` r
 Gamma = tpm_g(runif(10), matrix(c(-1,-1,1,-2), nrow = 2, byrow = TRUE))
-#> tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead.
 delta = c(0.5, 0.5)
 allprobs = matrix(runif(20), nrow = 10, ncol = 2)
 

@@ -74,4 +74,5 @@ timediff = rexp(100, 10)
 
 # compute all transition matrices
 Gamma = tpm_cont(Q, timediff)
+#> tpm_cont() is deprecated, please use tpm_ct() instead.
 ```

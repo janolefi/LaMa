@@ -64,6 +64,8 @@
 <div class="section level3">
 <h3 id="changes-development-version">Changes<a class="anchor" aria-label="anchor" href="#changes-development-version"></a></h3>
 <ul><li><p>report() is renamed to lama(), as it does much more than calling obj$report(); report() still works but is deprecated</p></li>
+<li><p>old functions still work but are deprecated, with a message pointing to the new implementation: forward_s() and forward_sp() (use forward_hsmm() and forward_phsmm()), tpm_hsmm2() and tpm_phsmm2() (use tpm_hsmm() and tpm_phsmm()), tpm_g2() (use tpm()), qreml_old() (use qreml()), stationary_cont() and tpm_cont() (use stationary_ct() and tpm_ct())</p></li>
+<li><p>deprecation messages are shown once per session, not at every call</p></li>
 <li><p>lama(): the log-likelihood is called llk (before ll), as for qreml()</p></li>
 <li><p>lama() and qreml(): nobs does not count missing observations (rows of allprobs that are all 1), which changes BIC for data with missing observations</p></li>
 <li><p>lama() stores the maximum gradient component mgc to check convergence</p></li>

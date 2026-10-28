@@ -77,6 +77,19 @@ head(trex)
 modmat = modmat(~ s(tod, bs = "cp"), # formula
                        data = data.frame(tod = 1:24), # data
                        knots = list(tod = c(0, 24))) # where to wrap the cyclic basis
+modmat # formula and initial penalty strength
+#> Model matrices for
+#> 
+#>   ~ s(tod, bs = "cp")
+#> 
+#> ---
+#> 
+#> Initial penalty strengths:
+#> 
+#> s(tod) 
+#>  242.8 
+#> 
+#> Use 'rep_sp()' if a smooth is used more than once.
 Z = modmat$Z # spline design matrix
 S = modmat$S # penalty matrix
 ```
@@ -114,6 +127,11 @@ pnll = function(par) {
 We also have to append a `lambda` vector to our `dat` list which is the
 **initial penalty strength** parameter vector. In this case it is of
 length two because our coefficient matrix has two rows.
+[`modmat()`](https://janolefi.github.io/LaMa/reference/modmat.md)
+provides one initial value per penalty in `modmat$sp0`, based on
+`mgcv`’s initial guess, and
+[`rep_sp()`](https://janolefi.github.io/LaMa/reference/rep_sp.md)
+repeats it for each row of the coefficient matrix.
 
 If you are wondering why `lambda` is not added to the `par` list, this
 is because for penalised likelihood estimation, it is a
@@ -128,7 +146,7 @@ par = list(logmu = log(c(0.3, 2.5)), # state-dependent mean step
            logsigma = log(c(0.3, 2)), # state-dependent sd step
            logkappa = log(c(0.1, 2)), # state-dependent concentration angle
            beta0 = c(-2, -2), # state process intercepts
-           betaSpline = matrix(rep(0, 2*(ncol(Z)-1)), nrow = 2)) # spline coefs
+           betaSpline = matrix(0, nrow = 2, ncol = ncol(Z)-1)) # spline coefs
 
 dat = list(step = trex$step, # observed steps
            angle = trex$angle, # observed angle
@@ -136,7 +154,7 @@ dat = list(step = trex$step, # observed steps
            tod = trex$tod, # time of day (used for indexing)
            Z = Z, # spline design matrix
            S = S, # penalty matrix
-           lambda = rep(100, 2)) # initial penalty strength
+           lambda = rep_sp(modmat, 2)) # initial penalty strength, one per row of betaSpline
 ```
 
 The model fit with automatic smoothness selection can then be conducted
@@ -194,18 +212,17 @@ There are some rules to follow when using
 system.time(
   mod1 <- qreml(pnll, par, dat, random = "betaSpline")
 )
-#> outer 1 - lambda: 10 10 
-#> outer 2 - lambda: 1 1 
-#> outer 3 - lambda: 0.113 0.1 
-#> outer 4 - lambda: 0.289 0.11 
-#> outer 5 - lambda: 0.298 0.111 
-#> outer 6 - lambda: 0.307 0.112 
-#> outer 7 - lambda: 0.306 0.112 
-#> outer 8 - lambda: 0.306 0.112 
-#> outer 9 - lambda: 0.306 0.112 
-#> outer 10 - lambda: 0.306 0.112
+#> outer 1 - lambda: 24.279 24.279 
+#> outer 2 - lambda: 2.428 2.428 
+#> outer 3 - lambda: 0.243 0.243 
+#> outer 4 - lambda: 0.378 0.076 
+#> outer 5 - lambda: 0.312 0.104 
+#> outer 6 - lambda: 0.311 0.106 
+#> outer 7 - lambda: 0.31 0.108 
+#> outer 8 - lambda: 0.309 0.11 
+#> outer 9 - lambda: 0.309 0.11
 #>    user  system elapsed 
-#>  13.885   0.062  13.948
+#>  12.970   0.104  13.075
 ```
 
 The `mod` object is now a list that contains everything that is reported
@@ -441,7 +458,7 @@ system.time(
 #> Converged
 #> Final model fit with lambda: 0.962 0.996 1.661
 #>    user  system elapsed 
-#>  29.166   9.816  27.726
+#>  31.014   9.776  29.645
 ```
 
 After fitting the model, we can easily visualise the smooth densities:
@@ -560,39 +577,44 @@ intial penalty strength parameter in the `dat` list.
 # initial parameter list
 par = list(eta = rep(-4, 2), # state process intercepts
            beta0 = c(2, 5), # state-dependent mean intercepts
-           betaSpline = matrix(0, nrow = 2, ncol = 11), # mean spline coef
+           betaSpline = matrix(0, nrow = 2, ncol = ncol(Z)-1), # mean spline coef
            alpha0 = c(0, 0), # state-dependent sd intercepts
-           alphaSpline = matrix(0, nrow = 2, ncol = 11)) # sd spline coef
+           alphaSpline = matrix(0, nrow = 2, ncol = ncol(Z)-1)) # sd spline coef
 
 # data, model matrices and initial penalty strength
 dat = list(price = energy$Price, 
            Z = Z, 
            S = S, 
-           lambda = rep(1e3, 4))
+           lambda = rep_sp(modmat, 4)) # 2 rows each of betaSpline and alphaSpline
 
 # model fit
 system.time(
   mod3 <- qreml(pnll, par, dat, random = c("betaSpline", "alphaSpline"))
 )
 #> Creating AD function
-#> Initialising with lambda: 1000 1000 1000 1000
-#> outer 1 - lambda: 238.423 106.067 189.083 100 
-#> outer 2 - lambda: 23.842 10.607 18.908 10 
-#> outer 3 - lambda: 22.048 5.526 8.122 2.636 
-#> outer 4 - lambda: 22.421 8.804 8.276 5.546 
-#> outer 5 - lambda: 22.769 6.269 8.289 3.539 
-#> outer 6 - lambda: 22.44 8.001 8.239 4.601 
-#> outer 7 - lambda: 22.666 6.697 8.279 3.935 
-#> outer 8 - lambda: 22.504 7.615 8.252 4.315 
-#> outer 9 - lambda: 22.56 7.267 8.261 4.198 
-#> outer 10 - lambda: 22.563 7.243 8.261 4.187 
-#> outer 11 - lambda: 22.565 7.23 8.262 4.181 
-#> outer 12 - lambda: 22.565 7.214 8.262 4.174 
-#> outer 13 - lambda: 22.565 7.214 8.262 4.174
+#> Initialising with lambda: 15317.756 15317.756 15317.756 15317.756
+#> outer 1 - lambda: 3024.686 1531.776 2056.01 1531.776 
+#> outer 2 - lambda: 302.469 153.178 205.601 153.178 
+#> outer 3 - lambda: 30.247 15.318 20.56 15.318 
+#> outer 4 - lambda: 21.818 4.441 8.246 2.187 
+#> outer 5 - lambda: 22.318 10.491 8.229 6.273 
+#> outer 6 - lambda: 22.947 5.581 8.315 3.311 
+#> outer 7 - lambda: 22.352 8.746 8.224 4.794 
+#> outer 8 - lambda: 22.747 6.295 8.29 3.844 
+#> outer 9 - lambda: 22.457 7.975 8.244 4.375 
+#> outer 10 - lambda: 22.651 6.711 8.274 4.053 
+#> outer 11 - lambda: 22.512 7.603 8.255 4.239 
+#> outer 12 - lambda: 22.609 6.943 8.267 4.128 
+#> outer 13 - lambda: 22.528 7.415 8.257 4.193 
+#> outer 14 - lambda: 22.596 7.068 8.266 4.154 
+#> outer 15 - lambda: 22.595 7.072 8.266 4.154 
+#> outer 16 - lambda: 22.594 7.08 8.265 4.155 
+#> outer 17 - lambda: 22.591 7.094 8.265 4.156 
+#> outer 18 - lambda: 22.591 7.094 8.265 4.156
 #> Converged
-#> Final model fit with lambda: 22.565 7.214 8.262 4.174
+#> Final model fit with lambda: 22.596 7.068 8.266 4.154
 #>    user  system elapsed 
-#>  24.000   0.006  24.008
+#>  36.245   0.014  36.263
 ```
 
 Having fitted the model, we can visualise the results. We first decode

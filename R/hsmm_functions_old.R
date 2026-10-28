@@ -23,6 +23,7 @@
 #' # calculating extended-state-space t.p.m.
 #' Gamma = tpm_hsmm(omega, dm)
 tpm_hsmm2 = function(omega,dm,eps=1e-10){
+  deprecated("tpm_hsmm2() is deprecated, please use tpm_hsmm() instead.")
   mv = vapply(dm, length, integer(1))
   m = length(mv)
   G = matrix(0,0,sum(mv))
@@ -97,6 +98,7 @@ tpm_hsmm2 = function(omega,dm,eps=1e-10){
 #' # calculating extended-state-space t.p.m.s
 #' Gamma = tpm_phsmm(omega, dm)
 tpm_phsmm2 = function(omega, dm, eps = 1e-10){
+  deprecated("tpm_phsmm2() is deprecated, please use tpm_phsmm() instead.")
   # dm list over states: entries matrices of dim c(L, N_i)
   L = nrow(dm[[1]]) # length of one cycle
   N = length(dm) # number of states
@@ -192,6 +194,7 @@ tpm_phsmm2 = function(omega, dm, eps = 1e-10){
 #' theta.star = c(log(5), log(10), 1, 4, log(2), log(2))
 #' mod = nlm(mllk, theta.star, x = x, sizes = c(20, 30), stepmax = 5)
 forward_s = function(delta, Gamma, allprobs, sizes){
+  deprecated("forward_s() is deprecated, please use forward_hsmm(dm, omega, allprobs) instead.")
   forward_cpp_s(allprobs, delta, Gamma, sizes)
 }
 
@@ -262,6 +265,7 @@ forward_s = function(delta, Gamma, allprobs, sizes){
 #'                  log(4), log(6), rep(0,4)) # state process parameters dm
 #' # mod = nlm(mllk, theta.star, x = x, sizes = c(10, 15), tod = tod, stepmax = 5)
 forward_sp = function(delta, Gamma, allprobs, sizes, tod){
+  deprecated("forward_sp() is deprecated, please use forward_phsmm(dm, omega, allprobs, tod) instead.")
   if(min(tod)==1){
     tod = tod-1
   } 

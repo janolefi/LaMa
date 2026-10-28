@@ -298,3 +298,10 @@ LaMaColors <- function(ncolors) {
     "#0072B2", "#D55E00", "#6B4A9B", "#E8614A", "#008B99"
   )[seq_len(ncolors)]
 }
+
+# message that a function is deprecated, once per session (they are often called in likelihood functions)
+deprecated <- function(msg) {
+  if(msg %in% .lama_env$deprecated) return(invisible(NULL))
+  .lama_env$deprecated <- c(.lama_env$deprecated, msg)
+  message(msg)
+}

@@ -132,7 +132,7 @@ viterbi = function(delta, Gamma, allprobs, trackID = NULL,
 viterbi_g = function(delta, Gamma, allprobs, trackID = NULL,
                      mod = NULL){
   
-  message(
+  deprecated(
     "viterbi_g() is deprecated, please use viterbi() for all model types instead."
   )
   
@@ -179,7 +179,7 @@ viterbi_g = function(delta, Gamma, allprobs, trackID = NULL,
 viterbi_p = function(delta, Gamma, allprobs, tod, trackID = NULL,
                      mod = NULL){
   
-  message(
+  deprecated(
     "viterbi_p() is deprecated, please use viterbi(..., tod = tod) for periodic models instead."
   )
   
@@ -299,7 +299,7 @@ stateprobs = function(delta, Gamma, allprobs, trackID = NULL,
 stateprobs_g = function(delta, Gamma, allprobs, trackID = NULL,
                         mod = NULL, forecast = FALSE) {
   
-  message(
+  deprecated(
     "stateprobs_g() is deprecated, please use stateprobs() for all model types instead."
   )
   
@@ -347,7 +347,7 @@ stateprobs_g = function(delta, Gamma, allprobs, trackID = NULL,
 stateprobs_p = function(delta, Gamma, allprobs, tod, trackID = NULL,
                         mod = NULL, forecast = FALSE) {
   
-  message(
+  deprecated(
     "stateprobs_p() is deprecated, please use stateprobs(..., tod = tod) for periodic models instead."
   )
   

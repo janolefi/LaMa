@@ -570,7 +570,7 @@ forward_g <- function(delta,
                       ad = NULL
                       ){
   
-  message(
+  deprecated(
     "forward_g() is deprecated, please use forward() for all model types instead."
   )
   
@@ -648,7 +648,7 @@ forward_p <- function(delta,
                       report = TRUE,
                       logspace = FALSE){
   
-  message(
+  deprecated(
     "forward_p() is deprecated, please use forward(..., tod = tod) for periodic models instead."
   )
   

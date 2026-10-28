@@ -85,7 +85,7 @@ sdreportMC = function(obj,
                       probs = c(0.025, 0.975)){
   
   # tell user to use MCreport()
-  message("This function in deprecated. Please use MCreport().")
+  deprecated("sdreportMC() is deprecated, please use MCreport() instead.")
   
   n <- nSamples
   

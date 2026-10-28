@@ -19,3 +19,8 @@ test_that("tpm_g() and generator_g() are deprecated and give the same results", 
   # a single covariate as a vector
   expect_equal(tpm(beta[, 1:2], z, report = FALSE), tpm(beta[, 1:2], cbind(1, z), report = FALSE))
 })
+
+test_that("deprecated(): message once per session", {
+  expect_message(deprecated("old() is deprecated, test."), "old")
+  expect_silent(deprecated("old() is deprecated, test."))
+})

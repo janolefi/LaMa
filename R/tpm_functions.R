@@ -208,7 +208,7 @@ tpm_g = function(Z, beta,
                  ad = NULL, 
                  report = TRUE){
   
-  message(
+  deprecated(
     "tpm_g() is deprecated, please use tpm(beta, Z) for all model types instead."
   )
   
@@ -934,7 +934,7 @@ generator_g <- function(
     report = TRUE
 ){
   
-  message(
+  deprecated(
     "generator_g() is deprecated, please use generator(beta, Z) for all model types instead."
   )
   

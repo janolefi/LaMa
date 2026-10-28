@@ -63,6 +63,7 @@ head(trex)
 modmat = modmat(~ s(tod, bs = "cp"), # formula
                        data = data.frame(tod = 1:24), # data
                        knots = list(tod = c(0, 24))) # where to wrap the cyclic basis
+modmat # formula and initial penalty strength
 Z = modmat$Z # spline design matrix
 S = modmat$S # penalty matrix
 ```
@@ -91,7 +92,7 @@ pnll = function(par) {
 }
 ```
 
-We also have to append a `lambda` vector to our `dat` list which is the **initial penalty strength** parameter vector. In this case it is of length two because our coefficient matrix has two rows. 
+We also have to append a `lambda` vector to our `dat` list which is the **initial penalty strength** parameter vector. In this case it is of length two because our coefficient matrix has two rows. `modmat()` provides one initial value per penalty in `modmat$sp0`, based on `mgcv`'s initial guess, and `rep_sp()` repeats it for each row of the coefficient matrix.
 
 If you are wondering why `lambda` is not added to the `par` list, this is because for penalised likelihood estimation, it is a **hyperparameter**, hence not a true parameter in the sense of the other parameters in `par`. One could, at his point, just use the above penalised likelihood function to do penalised ML for a **fixed** penalty strength `lambda`.
 
@@ -100,7 +101,7 @@ par = list(logmu = log(c(0.3, 2.5)), # state-dependent mean step
            logsigma = log(c(0.3, 2)), # state-dependent sd step
            logkappa = log(c(0.1, 2)), # state-dependent concentration angle
            beta0 = c(-2, -2), # state process intercepts
-           betaSpline = matrix(rep(0, 2*(ncol(Z)-1)), nrow = 2)) # spline coefs
+           betaSpline = matrix(0, nrow = 2, ncol = ncol(Z)-1)) # spline coefs
 
 dat = list(step = trex$step, # observed steps
            angle = trex$angle, # observed angle
@@ -108,7 +109,7 @@ dat = list(step = trex$step, # observed steps
            tod = trex$tod, # time of day (used for indexing)
            Z = Z, # spline design matrix
            S = S, # penalty matrix
-           lambda = rep(100, 2)) # initial penalty strength
+           lambda = rep_sp(modmat, 2)) # initial penalty strength, one per row of betaSpline
 ```
 
 The model fit with automatic smoothness selection can then be conducted by using the `qreml()` function contained in `LaMa`. The **quasi restricted maximum likelihood** algorithm finds a good penalty strength parameter `lambda` by treating the spline coefficients as random effects. Under the hood, `qreml()` also constructs an AD function with `RTMB` but uses the **qREML** algorithm [@koslik2024efficient] to fit the model. We have to tell the `qreml()` function which parameters are spline coefficients by providing the name of the corresponding list element of `par`.
@@ -358,15 +359,15 @@ From this point on, the model fit is now basically identical to the previous two
 # initial parameter list
 par = list(eta = rep(-4, 2), # state process intercepts
            beta0 = c(2, 5), # state-dependent mean intercepts
-           betaSpline = matrix(0, nrow = 2, ncol = 11), # mean spline coef
+           betaSpline = matrix(0, nrow = 2, ncol = ncol(Z)-1), # mean spline coef
            alpha0 = c(0, 0), # state-dependent sd intercepts
-           alphaSpline = matrix(0, nrow = 2, ncol = 11)) # sd spline coef
+           alphaSpline = matrix(0, nrow = 2, ncol = ncol(Z)-1)) # sd spline coef
 
 # data, model matrices and initial penalty strength
 dat = list(price = energy$Price, 
            Z = Z, 
            S = S, 
-           lambda = rep(1e3, 4))
+           lambda = rep_sp(modmat, 4)) # 2 rows each of betaSpline and alphaSpline
 
 # model fit
 system.time(

@@ -35,13 +35,18 @@
   Bayesian stopping rule or once the best optimum is reached often enough, and returns the best fit 
   with a table of all runs; lama(obj) then builds the model from the best fit
 
+* make_matrices() returns sp0, initial penalty strengths from mgcv::initial.sp() (times 100, 
+  capped at 1e6), one per penalty matrix and named as S; rep_sp() repeats them as lambda for 
+  smooths used more than once, e.g. one per state
+* print() for objects from make_matrices() shows the formulas and the initial penalty strengths
+
 ## Changes
 
 * report() is renamed to lama(), as it does much more than calling obj$report(); report() still works but is deprecated
 * old functions still work but are deprecated, with a message pointing to the new implementation: 
   forward_s() and forward_sp() (use forward_hsmm() and forward_phsmm()), tpm_hsmm2() and tpm_phsmm2() 
   (use tpm_hsmm() and tpm_phsmm()), tpm_g2() (use tpm()), qreml_old() (use qreml()), 
-  make_matrices_old() (use make_matrices()), stationary_cont() and tpm_cont() (use stationary_ct() and tpm_ct())
+  stationary_cont() and tpm_cont() (use stationary_ct() and tpm_ct())
 * deprecation messages are shown once per session, not at every call
 * lama(): the log-likelihood is called llk (before ll), as for qreml()
 * lama() and qreml(): nobs does not count missing observations (rows of allprobs that are all 1), 
@@ -58,6 +63,9 @@
   object, respects map, and the likelihood function does not need to change
 * lama() also stores obj (the same object, not a copy), so MCreport() can be called on 
   the model object from lama() or qreml()
+
+* pred_matrix() is deprecated, use predict() on the object from make_matrices() instead
+* make_matrices_old() is removed
 
 ## Bug fixes
 
@@ -86,6 +94,13 @@
 * stateprobs(forecast = TRUE): the first row of each track is delta, not the filtered 
   probabilities given x_1, so pseudo_res() is correct for the first observation
 
+* make_matrices(): smooths with several penalties but not one per margin (e.g. bs = "fs", "ad" 
+  or t2(full = TRUE)) kept only the first, so later smooths got the wrong penalty matrices
+* make_matrices(): a nested formula list failed if one data stream had no smooth terms
+* make_matrices(): tensor product margins over several covariates are named e.g. "x,y" (two 
+  such margins failed); unpenalised smooths (fx = TRUE) give an informative error
+* predict() on objects from make_matrices() ignored exclude
+
 ## Minor changes
 
 * forward(), forward_g() and forward_p() share one implementation (one C++ and one 
@@ -104,6 +119,8 @@
   e.g. viterbi(mod) instead of viterbi(mod = mod)
 * tpm_g() and generator_g() are deprecated in favour of tpm(beta, Z) and generator(beta, Z), 
   which also accept a single covariate vector Z; the sparse argument of tpm_g() is gone
+* make_matrices() sets up each basis once and no longer keeps gam$X (returned as Z), 
+  so it is faster and needs less memory
 
 # LaMa 2.1.1 (2026-05-13)
 

@@ -26,6 +26,5 @@ test_that("other old functions are deprecated and give the same results", {
   expect_message(G <- tpm_cont(Q, c(1, 2), report = FALSE), "deprecated")
   expect_equal(G, tpm_ct(Q, c(1, 2), report = FALSE))
 
-  expect_message(m <- make_matrices_old(~ x, data.frame(x = 1:10)), "deprecated")
   expect_message(expect_error(qreml_old("not a function", list(), list(), "b")), "deprecated")
 })

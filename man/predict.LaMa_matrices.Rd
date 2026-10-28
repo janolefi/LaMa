@@ -4,7 +4,7 @@
 \alias{predict.LaMa_matrices}
 \title{Build the prediction design matrix based on new data and model_matrices object created by \code{\link{make_matrices}}}
 \usage{
-\method{predict}{LaMa_matrices}(object, newdata, what = NULL, ...)
+\method{predict}{LaMa_matrices}(object, newdata, what = NULL, exclude = NULL, ...)
 }
 \arguments{
 \item{object}{model matrices object as returned from \code{\link{make_matrices}}}
@@ -13,10 +13,12 @@
 
 \item{what}{optional character string specifying which formula to use for prediction if \code{object} contains multiple formulas.}
 
+\item{exclude}{optional vector of terms to set to zero in the predicted design matrix. Useful for predicting main effects only when e.g. \code{s(..., bs = "re")} terms are present. See \code{mgcv::predict.gam} for more details.}
+
 \item{...}{for method consistency only}
 }
 \value{
-prediction design matrix for \code{newdata} with the same basis as used for \code{model_matrices}
+prediction design matrix for \code{newdata} with the same basis as used for \code{object}
 }
 \description{
 Build the prediction design matrix based on new data and model_matrices object created by \code{\link{make_matrices}}

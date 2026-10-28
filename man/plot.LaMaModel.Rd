@@ -62,5 +62,6 @@ mod <- lama(obj)
 
 plot(mod) # pseudo-residuals
 plot(mod, type = "statedens") # state-dependent densities of both streams
-plot(mod, type = "statedens", stream = "step", weights = "viterbi", breaks = 40, xlab = "step length")
+plot(mod, type = "statedens", stream = "step", weights = "viterbi", 
+     breaks = 40, xlab = "step length")
 }

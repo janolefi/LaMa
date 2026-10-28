@@ -918,7 +918,7 @@ dens_fun = function(Z){
 #' Evaluates the smooth densities built with \code{\link{smoothdens}} for given spline coefficients, e.g. to plot the estimated state-dependent densities.
 #'
 #' @param object object of class \code{"smoothdens"} for one data stream
-#' @param beta coefficient matrix, one row per state, without the last column fixed at zero
+#' @param coef coefficient matrix, one row per state, without the last column fixed at zero
 #' @param x optional points to evaluate the densities at, defaults to the prediction grid \code{object$xseq}
 #' @param ... unused
 #'
@@ -929,9 +929,9 @@ dens_fun = function(Z){
 #' x = c(rnorm(100, 0, 1), rnorm(100, 5, 1))
 #' dens = smoothdens(x, par = list(mean = c(0, 5), sd = c(1, 1)))
 #' # densities at the initial coefficients
-#' D = predict(dens, beta = dens$coef)
+#' D = predict(dens, coef = dens$coef)
 #' matplot(dens$xseq, D, type = "l", lty = 1)
-predict.smoothdens = function(object, beta, x = NULL, ...){
+predict.smoothdens = function(object, coef, x = NULL, ...){
   if(is.null(x)){
     Z <- object$Z_predict
   } else{
@@ -939,7 +939,7 @@ predict.smoothdens = function(object, beta, x = NULL, ...){
     if(b$type == "circular") x <- (x + pi) %% (2 * pi) - pi # wrap angles to [-pi, pi)
     Z <- t(t(dens_basis(x, b$type, b$knots, b$degree)) * b$w)
   }
-  Z %*% t(dens_weights(beta))
+  Z %*% t(dens_weights(coef))
 }
 
 #' Build the design and penalty matrices for smooth density estimation

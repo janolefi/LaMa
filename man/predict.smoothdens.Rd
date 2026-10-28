@@ -4,12 +4,12 @@
 \alias{predict.smoothdens}
 \title{Estimated smooth densities}
 \usage{
-\method{predict}{smoothdens}(object, beta, x = NULL, ...)
+\method{predict}{smoothdens}(object, coef, x = NULL, ...)
 }
 \arguments{
 \item{object}{object of class \code{"smoothdens"} for one data stream}
 
-\item{beta}{coefficient matrix, one row per state, without the last column fixed at zero}
+\item{coef}{coefficient matrix, one row per state, without the last column fixed at zero}
 
 \item{x}{optional points to evaluate the densities at, defaults to the prediction grid \code{object$xseq}}
 
@@ -25,6 +25,6 @@ Evaluates the smooth densities built with \code{\link{smoothdens}} for given spl
 x = c(rnorm(100, 0, 1), rnorm(100, 5, 1))
 dens = smoothdens(x, par = list(mean = c(0, 5), sd = c(1, 1)))
 # densities at the initial coefficients
-D = predict(dens, beta = dens$coef)
+D = predict(dens, coef = dens$coef)
 matplot(dens$xseq, D, type = "l", lty = 1)
 }

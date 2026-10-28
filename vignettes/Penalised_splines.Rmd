@@ -284,11 +284,12 @@ system.time(
 )
 ```
 
-After fitting the model, we can easily visualise the smooth densities: `predict()` evaluates them for the estimated coefficients on the grid `dens$xseq`. We already have access to all reported quantities because `qreml()` automatically runs the reporting after model fitting.
+After fitting the model, we can easily visualise the smooth densities: `predict()` evaluates them for the estimated coefficients on a grid and returns the grid `x` together with the densities. We already have access to all reported quantities because `qreml()` automatically runs the reporting after model fitting.
 
 ```{r shark_smooth_results, fig.width = 9, fig.height = 5}
-sDens = predict(dens, coef = mod2$par$beta) # all three state-dependent densities on a grid
-xseq = dens$xseq
+pred = predict(dens, coef = mod2$par$beta)
+sDens = pred$density # all three state-dependent densities on a grid
+xseq = pred$x
 
 hist(nessi$logODBA, prob = TRUE, breaks = 50, bor = "white", main = "", xlab = "log(ODBA)")
 for(j in 1:3) lines(xseq, mod2$delta[j] * sDens[,j], col = color[j], lwd = 2)

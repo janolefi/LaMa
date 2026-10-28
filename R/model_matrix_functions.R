@@ -922,24 +922,25 @@ dens_fun = function(Z){
 #' @param x optional points to evaluate the densities at, defaults to the prediction grid \code{object$xseq}
 #' @param ... unused
 #'
-#' @return matrix of densities, one row per point and one column per state
+#' @return list with the points \code{x} and the matrix \code{density} of densities, one row per point and one column per state
 #' @export
 #'
 #' @examples
 #' x = c(rnorm(100, 0, 1), rnorm(100, 5, 1))
 #' dens = smoothdens(x, par = list(mean = c(0, 5), sd = c(1, 1)))
 #' # densities at the initial coefficients
-#' D = predict(dens, coef = dens$coef)
-#' matplot(dens$xseq, D, type = "l", lty = 1)
+#' pred = predict(dens, coef = dens$coef)
+#' matplot(pred$x, pred$density, type = "l", lty = 1)
 predict.smoothdens = function(object, coef, x = NULL, ...){
   if(is.null(x)){
+    x <- object$xseq
     Z <- object$Z_predict
   } else{
     b <- object$basis
-    if(b$type == "circular") x <- (x + pi) %% (2 * pi) - pi # wrap angles to [-pi, pi)
-    Z <- t(t(dens_basis(x, b$type, b$knots, b$degree)) * b$w)
+    xw <- if(b$type == "circular") (x + pi) %% (2 * pi) - pi else x # wrap angles to [-pi, pi)
+    Z <- t(t(dens_basis(xw, b$type, b$knots, b$degree)) * b$w)
   }
-  Z %*% t(dens_weights(coef))
+  list(x = x, density = Z %*% t(dens_weights(coef)))
 }
 
 #' Build the design and penalty matrices for smooth density estimation

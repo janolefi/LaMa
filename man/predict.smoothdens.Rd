@@ -16,7 +16,7 @@
 \item{...}{unused}
 }
 \value{
-matrix of densities, one row per point and one column per state
+list with the points \code{x} and the matrix \code{density} of densities, one row per point and one column per state
 }
 \description{
 Evaluates the smooth densities built with \code{\link{smoothdens}} for given spline coefficients, e.g. to plot the estimated state-dependent densities.
@@ -25,6 +25,6 @@ Evaluates the smooth densities built with \code{\link{smoothdens}} for given spl
 x = c(rnorm(100, 0, 1), rnorm(100, 5, 1))
 dens = smoothdens(x, par = list(mean = c(0, 5), sd = c(1, 1)))
 # densities at the initial coefficients
-D = predict(dens, coef = dens$coef)
-matplot(dens$xseq, D, type = "l", lty = 1)
+pred = predict(dens, coef = dens$coef)
+matplot(pred$x, pred$density, type = "l", lty = 1)
 }

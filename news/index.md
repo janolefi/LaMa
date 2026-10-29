@@ -2,6 +2,8 @@
 
 ## LaMa 3.0.0
 
+CRAN release: 2026-10-28
+
 This is a major release: models are now built around statedens() and
 lama(), which give print(), summary(), plot(), simulate(), pseudo_res()
 and scores() from the model object alone. Several functions are renamed

@@ -19,6 +19,7 @@
 <url><loc>https://janolefi.github.io/LaMa/reference/LaMaColors.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/MCreport.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/calc_trackInd.html</loc></url>
+<url><loc>https://janolefi.github.io/LaMa/reference/coef.LaMaModel.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/cosinor.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/ddwell.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/dgmrf2.html</loc></url>
@@ -93,6 +94,7 @@
 <url><loc>https://janolefi.github.io/LaMa/reference/tpm_thinned.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/trex.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/trigBasisExp.html</loc></url>
+<url><loc>https://janolefi.github.io/LaMa/reference/vcov.LaMaModel.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/viterbi.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/viterbi_g.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/viterbi_p.html</loc></url>

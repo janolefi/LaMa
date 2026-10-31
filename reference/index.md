@@ -12,6 +12,11 @@
   : Calculate the index of the first observation of each track based on
   an ID variable
 
+- [`coef(`*`<LaMaModel>`*`)`](https://janolefi.github.io/LaMa/reference/coef.LaMaModel.md)
+  :
+
+  Estimated parameters of a `LaMaModel` object
+
 - [`cosinor()`](https://janolefi.github.io/LaMa/reference/cosinor.md) :
   Trigonometric basis expansion
 
@@ -316,6 +321,11 @@
 
 - [`trigBasisExp()`](https://janolefi.github.io/LaMa/reference/trigBasisExp.md)
   : Compute the design matrix for a trigonometric basis expansion
+
+- [`vcov(`*`<LaMaModel>`*`)`](https://janolefi.github.io/LaMa/reference/vcov.LaMaModel.md)
+  :
+
+  Variance-covariance matrix of a `LaMaModel` object
 
 - [`viterbi()`](https://janolefi.github.io/LaMa/reference/viterbi.md) :
   Viterbi algorithm for state decoding in HMMs

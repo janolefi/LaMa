@@ -77,6 +77,7 @@ from dat</span>lambda as before, so lambda is free for other things, e.g. a Poi
 <li><p>lama() stores the maximum gradient component mgc to check convergence</p></li>
 <li><p>pseudo_res(mod) computes pseudo-residuals from the model object alone: the likelihood function is evaluated again with its densities replaced by their CDFs, after checking that this is valid; several data streams give one set of residuals each; also for qreml() models and densities in helper functions</p></li>
 <li><p>residuals(mod) gives the same, calling pseudo_res(mod = mod)</p></li>
+<li><p>coef(mod) and vcov(mod) give the estimated fixed parameters and their covariance from the inverse Hessian (of the marginal likelihood with random effects, conditional on the smoothing parameters for qreml() models), so confint(mod) works too</p></li>
 <li><p>scores(mod) computes the score contribution of each observation for models using forward(), e.g. for robust (sandwich) standard errors; it takes the model from lama() or the RTMB object, respects map, and the likelihood function does not need to change</p></li>
 <li><p>lama() also stores obj (the same object, not a copy), so MCreport() can be called on the model object from lama() or qreml()</p></li>
 <li><p>pred_matrix() is deprecated, use predict() on the object from modmat() instead</p></li>

@@ -30,6 +30,44 @@ test_that("lama: log-likelihood, missing observations not counted, gradient", {
   expect_lt(mod$mgc, 1e-3)
 })
 
+test_that("coef, vcov: estimates and inverse Hessian as from sdreport()", {
+  mod <- lama(obj_rep)
+  expect_equal(coef(mod), opt_rep$par, ignore_attr = TRUE)
+  expect_named(coef(mod), c("log_mu.1", "log_mu.2", "log_sigma.1", "log_sigma.2", "eta.1", "eta.2"))
+  V <- vcov(mod)
+  expect_equal(V, RTMB::sdreport(obj_rep)$cov.fixed, ignore_attr = TRUE, tolerance = 1e-6)
+  expect_equal(rownames(V), names(coef(mod)))
+  ci <- confint(mod)
+  expect_equal(unname(rowMeans(ci)), unname(coef(mod))) # each row its own parameter
+})
+
+test_that("coef, vcov: random effects excluded, marginal Hessian", {
+  nll <- function(par) {
+    getAll(par, dat_rep)
+    Gamma <- tpm(eta)
+    mu <- exp(log_mu + u); sigma <- exp(log_sigma)
+    allprobs <- matrix(1, length(step), 2)
+    ind <- which(!is.na(step))
+    for(j in 1:2) allprobs[ind, j] <- dgamma2(step[ind], mu[j], sigma[j])
+    -forward(stationary(Gamma), Gamma, allprobs) - sum(dnorm(u, 0, exp(log_tau), log = TRUE))
+  }
+  obj <- RTMB::MakeADFun(nll, c(par_rep, list(u = c(0, 0), log_tau = log(0.1))), random = "u", silent = TRUE)
+  opt <- nlminb(obj$par, obj$fn, obj$gr)
+  mod <- lama(obj)
+  expect_equal(coef(mod), opt$par, tolerance = 1e-6, ignore_attr = TRUE)
+  expect_true("log_tau" %in% names(coef(mod))) # single entries keep their name
+  expect_equal(vcov(mod), RTMB::sdreport(obj)$cov.fixed, ignore_attr = TRUE, tolerance = 1e-4)
+})
+
+test_that("vcov: qreml models use the conditional Hessian, warning if not positive definite", {
+  H <- obj_rep$he(opt_rep$par)
+  mod <- structure(list(obj = obj_rep, parname = "par", par_vec = opt_rep$par, Hessian_conditional = H, mgc = 0),
+                   class = c("qremlModel", "LaMaModel"))
+  expect_equal(vcov(mod), solve(H), ignore_attr = TRUE)
+  mod$Hessian_conditional <- -H
+  expect_warning(vcov(mod), "not positive definite")
+})
+
 test_that("print: state process, missing observations and reported quantities", {
   mod <- lama(obj_rep)
   expect_output(print(mod), "2 states \\(discrete time, homogeneous\\)")

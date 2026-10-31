@@ -72,6 +72,9 @@ need small adjustments.
   several data streams give one set of residuals each; also for qreml() models and densities in 
   helper functions
 * residuals(mod) gives the same, calling pseudo_res(mod = mod)
+* coef(mod) and vcov(mod) give the estimated fixed parameters and their covariance from the inverse 
+  Hessian (of the marginal likelihood with random effects, conditional on the smoothing parameters 
+  for qreml() models), so confint(mod) works too
 
 * scores(mod) computes the score contribution of each observation for models using forward(), 
   e.g. for robust (sandwich) standard errors; it takes the model from lama() or the RTMB 

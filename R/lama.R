@@ -153,3 +153,72 @@ logLik.LaMaModel <- function(object, ...) {
   class(val) <- "logLik"
   val
 }
+
+#' Estimated parameters of a \code{LaMaModel} object
+#'
+#' Returns the estimated fixed parameters of a model from \code{\link{lama}} or \code{\link{qreml}},
+#' on the working scale and in the order of \code{obj$par}, i.e. without parameters fixed via \code{map}
+#' and without random effects.
+#' Parameters with several entries are named by their position among the estimated entries,
+#' e.g. \code{logmu.1} and \code{logmu.2}, matrices in column-major order as in \code{obj$par}.
+#'
+#' @param object model object of class \code{"LaMaModel"}
+#' @param ... additional arguments (not used)
+#'
+#' @returns named numeric vector of the estimated parameters
+#' @seealso \code{\link{vcov.LaMaModel}}
+#' @importFrom stats coef
+#' @export
+coef.LaMaModel <- function(object, ...) {
+  p <- est_par(object)
+  random <- get_obj(object)$env$random
+  if(length(random)) p <- p[-random]
+  # unique names, e.g. logmu.1, logmu.2, so confint() and indexing by name work
+  nm <- names(p)
+  rep <- nm %in% nm[duplicated(nm)]
+  nm[rep] <- paste0(nm[rep], ".", stats::ave(seq_along(nm), nm, FUN = seq_along)[rep])
+  names(p) <- nm
+  p
+}
+
+#' Variance-covariance matrix of a \code{LaMaModel} object
+#'
+#' Computes the approximate covariance matrix of the estimated parameters \code{coef(object)},
+#' as the inverse Hessian of the negative log-likelihood at the estimate.
+#'
+#' @details
+#' The Hessian is
+#' \itemize{
+#'   \item the exact Hessian \code{obj$he()} for models without random effects,
+#'   \item for models with random effects, the Hessian of the Laplace-approximated marginal likelihood
+#'   w.r.t. the fixed parameters, by finite differences of \code{obj$gr()} (as in \code{\link[RTMB]{sdreport}}),
+#'   \item for models from \code{\link{qreml}}, the Hessian of the penalised negative log-likelihood,
+#'   including the penalised coefficients. The covariance is then conditional on the estimated smoothing parameters.
+#' }
+#' If the Hessian is not positive definite, which indicates that the model has not converged,
+#' a warning is issued.
+#'
+#' @param object model object of class \code{"LaMaModel"}
+#' @param ... additional arguments (not used)
+#'
+#' @returns covariance matrix with rows and columns named like \code{coef(object)}
+#' @seealso \code{\link{coef.LaMaModel}}
+#' @importFrom stats vcov optimHess
+#' @export
+vcov.LaMaModel <- function(object, ...) {
+  obj <- get_obj(object)
+  p <- coef(object)
+  H <- if(inherits(object, "qremlModel")) object$Hessian_conditional
+       else if(length(obj$env$random)) optimHess(p, obj$fn, obj$gr)
+       else obj$he(p)
+  H <- (H + t(H)) / 2
+
+  V <- tryCatch(chol2inv(chol(H)), error = function(e) NULL)
+  if(is.null(V)) {
+    warning("Hessian is not positive definite, the model may not have converged ",
+            "(maximum gradient component ", signif(object$mgc, 3), ").", call. = FALSE)
+    V <- tryCatch(solve(H), error = function(e) matrix(NA_real_, nrow(H), ncol(H)))
+  }
+  dimnames(V) <- list(names(p), names(p))
+  V
+}

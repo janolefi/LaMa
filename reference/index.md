@@ -186,6 +186,11 @@
 - [`rep_sp()`](https://janolefi.github.io/LaMa/reference/rep_sp.md) :
   Repeat initial penalty strengths for replicated smooths
 
+- [`residuals(`*`<LaMaModel>`*`)`](https://janolefi.github.io/LaMa/reference/residuals.LaMaModel.md)
+  :
+
+  Pseudo-residuals of a `LaMaModel` object
+
 - [`scores()`](https://janolefi.github.io/LaMa/reference/scores.md) :
   Per-observation score contributions
 

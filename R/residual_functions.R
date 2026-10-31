@@ -255,6 +255,22 @@ pseudo_res <- function(obs,
   }
 }
 
+#' Pseudo-residuals of a \code{LaMaModel} object
+#'
+#' Computes the pseudo-residuals of a model from \code{\link{lama}} or \code{\link{qreml}}
+#' from the model object alone, by calling \code{pseudo_res(mod = object)}.
+#'
+#' @param object model object of class \code{"LaMaModel"}
+#' @param ... additional arguments (not used)
+#'
+#' @returns pseudo-residuals of class \code{LaMaResiduals}, see \code{\link{pseudo_res}}
+#' @seealso \code{\link{pseudo_res}}, \code{\link{plot.LaMaResiduals}}
+#' @importFrom stats residuals
+#' @export
+residuals.LaMaModel <- function(object, ...) {
+  pseudo_res(mod = object)
+}
+
 
 #' Plot pseudo-residuals
 #' 

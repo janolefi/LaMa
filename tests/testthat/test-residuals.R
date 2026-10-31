@@ -151,6 +151,7 @@ test_that("pseudo_res(mod): same as with family and parameters given", {
   ref <- pseudo_res(dat_res$step, "gamma2", list(mean = mu, sd = exp(p$log_sigma)), mod = mod)
   expect_equal(pseudo_res(mod), ref)
   expect_equal(pseudo_res(mod = mod), ref)
+  expect_equal(residuals(mod), ref)
   expect_equal(pseudo_res(mod$obj), ref) # RTMB object
   expect_true(all(is.na(pseudo_res(mod)[c(10, 50)])))
 })

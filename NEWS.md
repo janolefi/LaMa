@@ -71,6 +71,7 @@ need small adjustments.
   is evaluated again with its densities replaced by their CDFs, after checking that this is valid; 
   several data streams give one set of residuals each; also for qreml() models and densities in 
   helper functions
+* residuals(mod) gives the same, calling pseudo_res(mod = mod)
 
 * scores(mod) computes the score contribution of each observation for models using forward(), 
   e.g. for robust (sandwich) standard errors; it takes the model from lama() or the RTMB 

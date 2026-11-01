@@ -263,17 +263,16 @@ the <code>spname</code> argument.</li>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; outer 1 - sp: 24.279 24.279 </span></span>
 <span><span class="co">#&gt; outer 2 - sp: 2.428 2.428 </span></span>
-<span><span class="co">#&gt; outer 3 - sp: 0.243 0.243 </span></span>
-<span><span class="co">#&gt; outer 4 - sp: 0.378 0.076 </span></span>
-<span><span class="co">#&gt; outer 5 - sp: 0.312 0.104 </span></span>
-<span><span class="co">#&gt; outer 6 - sp: 0.311 0.107 </span></span>
-<span><span class="co">#&gt; outer 7 - sp: 0.309 0.11 </span></span>
-<span><span class="co">#&gt; outer 8 - sp: 0.309 0.11 </span></span>
-<span><span class="co">#&gt; outer 9 - sp: 0.309 0.11 </span></span>
-<span><span class="co">#&gt; outer 10 - sp: 0.309 0.11 </span></span>
-<span><span class="co">#&gt; outer 11 - sp: 0.309 0.11</span></span>
+<span><span class="co">#&gt; outer 3 - sp: 0.397 0.404 </span></span>
+<span><span class="co">#&gt; outer 4 - sp: 0.311 0.16 </span></span>
+<span><span class="co">#&gt; outer 5 - sp: 0.308 0.121 </span></span>
+<span><span class="co">#&gt; outer 6 - sp: 0.308 0.114 </span></span>
+<span><span class="co">#&gt; outer 7 - sp: 0.309 0.112 </span></span>
+<span><span class="co">#&gt; outer 8 - sp: 0.309 0.113 </span></span>
+<span><span class="co">#&gt; outer 9 - sp: 0.309 0.113 </span></span>
+<span><span class="co">#&gt; outer 10 - sp: 0.309 0.113</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  14.719   0.115  14.836</span></span></code></pre></div>
+<span><span class="co">#&gt;   5.936   0.082   6.019</span></span></code></pre></div>
 <p>The <code>mod</code> object is now a list that contains everything
 that is reported by the likelihood function, but also the
 <code>RTMB</code> object created in the process. After fitting the
@@ -468,16 +467,18 @@ In this case, we actually don’t need to add the observations to our
 <span><span class="co">#&gt; Creating AD function</span></span>
 <span><span class="co">#&gt; Initialising with sp: 10 10 10</span></span>
 <span><span class="co">#&gt; outer 1 - sp: 1.733 1.189 2.623 </span></span>
-<span><span class="co">#&gt; outer 2 - sp: 0.836 0.885 1.46 </span></span>
-<span><span class="co">#&gt; outer 3 - sp: 0.956 0.994 1.653 </span></span>
-<span><span class="co">#&gt; outer 4 - sp: 0.962 0.996 1.661 </span></span>
-<span><span class="co">#&gt; outer 5 - sp: 0.962 0.996 1.661 </span></span>
-<span><span class="co">#&gt; outer 6 - sp: 0.962 0.996 1.661 </span></span>
-<span><span class="co">#&gt; outer 7 - sp: 0.962 0.996 1.661</span></span>
+<span><span class="co">#&gt; outer 2 - sp: 1.204 1.026 1.957 </span></span>
+<span><span class="co">#&gt; outer 3 - sp: 1.078 1.011 1.802 </span></span>
+<span><span class="co">#&gt; outer 4 - sp: 1.043 1.01 1.76 </span></span>
+<span><span class="co">#&gt; outer 5 - sp: 1.033 1.009 1.748 </span></span>
+<span><span class="co">#&gt; outer 6 - sp: 1.03 1.01 1.746 </span></span>
+<span><span class="co">#&gt; outer 7 - sp: 1.03 1.01 1.746 </span></span>
+<span><span class="co">#&gt; outer 8 - sp: 1.03 1.009 1.745 </span></span>
+<span><span class="co">#&gt; outer 9 - sp: 1.03 1.01 1.745</span></span>
 <span><span class="co">#&gt; Converged</span></span>
-<span><span class="co">#&gt; Final model fit with sp: 0.962 0.996 1.661</span></span>
+<span><span class="co">#&gt; Final model fit with sp: 1.03 1.01 1.745</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  24.237   2.251  24.006</span></span></code></pre></div>
+<span><span class="co">#&gt;   7.277   2.839   6.604</span></span></code></pre></div>
 <p>After fitting the model, we can easily visualise the smooth
 densities: <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> evaluates them for the estimated
 coefficients on a grid and returns the grid <code>x</code> together with
@@ -592,27 +593,25 @@ intial penalty strength parameter in the <code>dat</code> list.</p>
 <span><span class="co">#&gt; Creating AD function</span></span>
 <span><span class="co">#&gt; Initialising with sp: 15317.756 15317.756 15317.756 15317.756</span></span>
 <span><span class="co">#&gt; outer 1 - sp: 3024.686 1531.776 2056.01 1531.776 </span></span>
-<span><span class="co">#&gt; outer 2 - sp: 302.469 153.178 205.601 153.178 </span></span>
-<span><span class="co">#&gt; outer 3 - sp: 30.247 15.318 20.56 15.318 </span></span>
-<span><span class="co">#&gt; outer 4 - sp: 21.818 4.441 8.246 2.187 </span></span>
-<span><span class="co">#&gt; outer 5 - sp: 22.318 10.491 8.229 6.273 </span></span>
-<span><span class="co">#&gt; outer 6 - sp: 22.947 5.581 8.315 3.311 </span></span>
-<span><span class="co">#&gt; outer 7 - sp: 22.352 8.746 8.224 4.794 </span></span>
-<span><span class="co">#&gt; outer 8 - sp: 22.747 6.295 8.29 3.844 </span></span>
-<span><span class="co">#&gt; outer 9 - sp: 22.457 7.975 8.244 4.375 </span></span>
-<span><span class="co">#&gt; outer 10 - sp: 22.651 6.711 8.274 4.053 </span></span>
-<span><span class="co">#&gt; outer 11 - sp: 22.512 7.603 8.255 4.239 </span></span>
-<span><span class="co">#&gt; outer 12 - sp: 22.609 6.943 8.267 4.128 </span></span>
-<span><span class="co">#&gt; outer 13 - sp: 22.528 7.415 8.257 4.193 </span></span>
-<span><span class="co">#&gt; outer 14 - sp: 22.596 7.068 8.266 4.154 </span></span>
-<span><span class="co">#&gt; outer 15 - sp: 22.595 7.072 8.266 4.154 </span></span>
-<span><span class="co">#&gt; outer 16 - sp: 22.594 7.08 8.265 4.155 </span></span>
-<span><span class="co">#&gt; outer 17 - sp: 22.591 7.094 8.265 4.156 </span></span>
-<span><span class="co">#&gt; outer 18 - sp: 22.591 7.094 8.265 4.156</span></span>
+<span><span class="co">#&gt; outer 2 - sp: 482.234 153.178 356.087 153.178 </span></span>
+<span><span class="co">#&gt; outer 3 - sp: 102.999 20.82 76.182 15.318 </span></span>
+<span><span class="co">#&gt; outer 4 - sp: 43.513 8.886 33.627 5.835 </span></span>
+<span><span class="co">#&gt; outer 5 - sp: 29.268 7.471 18.228 4.519 </span></span>
+<span><span class="co">#&gt; outer 6 - sp: 24.934 7.267 12.024 4.255 </span></span>
+<span><span class="co">#&gt; outer 7 - sp: 23.444 7.227 9.636 4.192 </span></span>
+<span><span class="co">#&gt; outer 8 - sp: 22.901 7.218 8.756 4.176 </span></span>
+<span><span class="co">#&gt; outer 9 - sp: 22.85 7.217 8.676 4.175 </span></span>
+<span><span class="co">#&gt; outer 10 - sp: 22.808 7.217 8.609 4.174 </span></span>
+<span><span class="co">#&gt; outer 11 - sp: 22.734 7.215 8.497 4.172 </span></span>
+<span><span class="co">#&gt; outer 12 - sp: 22.625 7.213 8.35 4.17 </span></span>
+<span><span class="co">#&gt; outer 13 - sp: 22.589 7.212 8.294 4.169 </span></span>
+<span><span class="co">#&gt; outer 14 - sp: 22.582 7.212 8.281 4.169 </span></span>
+<span><span class="co">#&gt; outer 15 - sp: 22.583 7.212 8.283 4.169 </span></span>
+<span><span class="co">#&gt; outer 16 - sp: 22.583 7.212 8.282 4.169</span></span>
 <span><span class="co">#&gt; Converged</span></span>
-<span><span class="co">#&gt; Final model fit with sp: 22.596 7.068 8.266 4.154</span></span>
+<span><span class="co">#&gt; Final model fit with sp: 22.901 7.218 8.756 4.176</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;  30.681   0.018  30.702</span></span></code></pre></div>
+<span><span class="co">#&gt;   8.572   0.012   8.584</span></span></code></pre></div>
 <p>Having fitted the model, we can visualise the results. We first
 decode the most probable state sequence and then plot the estimated
 state-dependent densities as a function of the oil price, as well as the

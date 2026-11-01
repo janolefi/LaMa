@@ -28,6 +28,7 @@ qreml(
   smoothing = 1,
   method = "BFGS",
   lsp_max = 15,
+  lsp_min = -15,
   step_small = 0.05,
   max_halve = 6,
   control = list(),
@@ -118,7 +119,7 @@ qreml(
   optimum or a numerically awkward region, which matters more here than
   in a GAM because the likelihood is user-written. Set to zero to remove
   the floor entirely. Step length is handled separately, by `max_halve`
-  and the adaptive multiplier.
+  and the step multiplier.
 
 - tol:
 
@@ -148,10 +149,20 @@ qreml(
   largest value allowed for `log(lambda)`. Defaults to 15, as in `mgcv`,
   i.e. penalty strengths saturate at roughly 3.3e6
 
+- lsp_min:
+
+  smallest value allowed for `log(lambda)`. Defaults to -15, i.e.
+  penalty strengths stop at roughly 3e-7. A penalty strength on a smooth
+  the data cannot inform otherwise keeps falling towards zero along a
+  flat restricted likelihood, and its step never becomes small enough
+  for convergence. A penalty strength ending at this bound gives a
+  warning, as the penalty is then effectively switched off, which
+  usually means the basis dimension of that smooth is too small.
+
 - step_small:
 
-  size of a step in `log(lambda)` below which the step multiplier is
-  allowed to double. Defaults to 0.05, as in `mgcv`
+  size of a step in `log(lambda)` below which convergence may be
+  declared. Defaults to 0.05, as in `mgcv`
 
 - max_halve:
 
@@ -223,13 +234,19 @@ blocks of \\J^{-1}\\ enter, and these come from the Cholesky factor by
 triangular solves rather than from a full inverse.
 
 **Step control.** The step is taken in \\\log \lambda\\ and scaled by a
-multiplier that persists across iterations: it doubles while the
-criterion keeps improving and is halved, up to `max_halve` times, while
-it does not. A step that still worsens the criterion after that many
-halvings is accepted, which is the only way the iteration can move
-downhill. In addition no penalty strength may fall by more than a factor
-`alpha` in one iteration, and \\\log \lambda\\ is capped at `lsp_max`.
-The fit returned is the best iterate seen, not necessarily the last one.
+multiplier that persists across iterations: it is halved, up to
+`max_halve` times, while the criterion does not improve, and doubles
+back towards one after each improving step. Unlike `mgcv`, there is no
+acceleration beyond the full step: each trial at a larger step costs a
+complete inner fit, which for a user-written likelihood is expensive,
+and rarely pays off. A step that still worsens the criterion after that
+many halvings is accepted, which is the only way the iteration can move
+downhill. Changes in the criterion smaller than \\10^{-6} (1 + \|V\|)\\
+count as noise here, so that a step of essentially zero at the optimum
+does not set off halvings. In addition no penalty strength may fall by
+more than a factor `alpha` in one iteration, and \\\log \lambda\\ is
+kept within `[lsp_min, lsp_max]`. The fit returned is the best iterate
+seen, not necessarily the last one.
 
 **Convergence.** The iteration stops once no smooth's effective degrees
 of freedom \$\$\mathrm{edf}\_i = K_i - \mathrm{tr}(J^{-1} \lambda_i

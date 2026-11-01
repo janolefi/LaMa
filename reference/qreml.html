@@ -74,6 +74,7 @@ by combining automatic differentiation via <code>RTMB</code> with a custom imple
 <span>  smoothing <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  method <span class="op">=</span> <span class="st">"BFGS"</span>,</span>
 <span>  lsp_max <span class="op">=</span> <span class="fl">15</span>,</span>
+<span>  lsp_min <span class="op">=</span> <span class="op">-</span><span class="fl">15</span>,</span>
 <span>  step_small <span class="op">=</span> <span class="fl">0.05</span>,</span>
 <span>  max_halve <span class="op">=</span> <span class="fl">6</span>,</span>
 <span>  control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
@@ -136,7 +137,7 @@ The penalty strengths themselves are a poor proxy: <code>lambda</code> can slide
 <dd><p>smallest factor by which a penalty strength may <strong>decrease</strong> in one outer iteration, a number in [0, 1). Defaults to 0.1.</p>
 <p>Penalty strengths are free to increase as fast as the update proposes, but cannot collapse faster than this per iteration.
 Reducing a penalty strength too quickly can push the inner optimisation into a local optimum or a numerically awkward region, which matters more here than in a GAM because the likelihood is user-written.
-Set to zero to remove the floor entirely. Step length is handled separately, by <code>max_halve</code> and the adaptive multiplier.</p></dd>
+Set to zero to remove the floor entirely. Step length is handled separately, by <code>max_halve</code> and the step multiplier.</p></dd>
 
 
 <dt id="arg-tol">tol<a class="anchor" aria-label="anchor" href="#arg-tol"></a></dt>
@@ -158,8 +159,14 @@ A tolerance in nats is not comparable across models, which is why it is the fall
 <dd><p>largest value allowed for <code>log(lambda)</code>. Defaults to 15, as in <code>mgcv</code>, i.e. penalty strengths saturate at roughly 3.3e6</p></dd>
 
 
+<dt id="arg-lsp-min">lsp_min<a class="anchor" aria-label="anchor" href="#arg-lsp-min"></a></dt>
+<dd><p>smallest value allowed for <code>log(lambda)</code>. Defaults to -15, i.e. penalty strengths stop at roughly 3e-7.
+A penalty strength on a smooth the data cannot inform otherwise keeps falling towards zero along a flat restricted likelihood, and its step never becomes small enough for convergence.
+A penalty strength ending at this bound gives a warning, as the penalty is then effectively switched off, which usually means the basis dimension of that smooth is too small.</p></dd>
+
+
 <dt id="arg-step-small">step_small<a class="anchor" aria-label="anchor" href="#arg-step-small"></a></dt>
-<dd><p>size of a step in <code>log(lambda)</code> below which the step multiplier is allowed to double. Defaults to 0.05, as in <code>mgcv</code></p></dd>
+<dd><p>size of a step in <code>log(lambda)</code> below which convergence may be declared. Defaults to 0.05, as in <code>mgcv</code></p></dd>
 
 
 <dt id="arg-max-halve">max_halve<a class="anchor" aria-label="anchor" href="#arg-max-halve"></a></dt>
@@ -199,9 +206,11 @@ $$r_i = \frac{\mathrm{tr}(S_\lambda^- S_i) - \mathrm{tr}(J^{-1} S_i)}{\hat{b}^T 
 which equals one exactly where \(\partial V / \partial \lambda_i = 0\) and otherwise moves \(\lambda_i\) in the direction of the gradient, without ever making it negative.
 For a smooth carrying a single penalty the first trace is \(\mathrm{rank}(S_i) / \lambda_i\), obtained once from an eigendecomposition instead of at every iteration.
 Only the diagonal blocks of \(J^{-1}\) enter, and these come from the Cholesky factor by triangular solves rather than from a full inverse.</p>
-<p><strong>Step control.</strong> The step is taken in \(\log \lambda\) and scaled by a multiplier that persists across iterations: it doubles while the criterion keeps improving and is halved, up to <code>max_halve</code> times, while it does not.
+<p><strong>Step control.</strong> The step is taken in \(\log \lambda\) and scaled by a multiplier that persists across iterations: it is halved, up to <code>max_halve</code> times, while the criterion does not improve, and doubles back towards one after each improving step.
+Unlike <code>mgcv</code>, there is no acceleration beyond the full step: each trial at a larger step costs a complete inner fit, which for a user-written likelihood is expensive, and rarely pays off.
 A step that still worsens the criterion after that many halvings is accepted, which is the only way the iteration can move downhill.
-In addition no penalty strength may fall by more than a factor <code>alpha</code> in one iteration, and \(\log \lambda\) is capped at <code>lsp_max</code>.
+Changes in the criterion smaller than \(10^{-6} (1 + |V|)\) count as noise here, so that a step of essentially zero at the optimum does not set off halvings.
+In addition no penalty strength may fall by more than a factor <code>alpha</code> in one iteration, and \(\log \lambda\) is kept within <code>[lsp_min, lsp_max]</code>.
 The fit returned is the best iterate seen, not necessarily the last one.</p>
 <p><strong>Convergence.</strong> The iteration stops once no smooth's effective degrees of freedom
 $$\mathrm{edf}_i = K_i - \mathrm{tr}(J^{-1} \lambda_i S_i)$$

@@ -212,17 +212,16 @@ system.time(
 )
 #> outer 1 - sp: 24.279 24.279 
 #> outer 2 - sp: 2.428 2.428 
-#> outer 3 - sp: 0.243 0.243 
-#> outer 4 - sp: 0.378 0.076 
-#> outer 5 - sp: 0.312 0.104 
-#> outer 6 - sp: 0.311 0.107 
-#> outer 7 - sp: 0.309 0.11 
-#> outer 8 - sp: 0.309 0.11 
-#> outer 9 - sp: 0.309 0.11 
-#> outer 10 - sp: 0.309 0.11 
-#> outer 11 - sp: 0.309 0.11
+#> outer 3 - sp: 0.397 0.404 
+#> outer 4 - sp: 0.311 0.16 
+#> outer 5 - sp: 0.308 0.121 
+#> outer 6 - sp: 0.308 0.114 
+#> outer 7 - sp: 0.309 0.112 
+#> outer 8 - sp: 0.309 0.113 
+#> outer 9 - sp: 0.309 0.113 
+#> outer 10 - sp: 0.309 0.113
 #>    user  system elapsed 
-#>  14.719   0.115  14.836
+#>   5.936   0.082   6.019
 ```
 
 The `mod` object is now a list that contains everything that is reported
@@ -449,16 +448,18 @@ system.time(
 #> Creating AD function
 #> Initialising with sp: 10 10 10
 #> outer 1 - sp: 1.733 1.189 2.623 
-#> outer 2 - sp: 0.836 0.885 1.46 
-#> outer 3 - sp: 0.956 0.994 1.653 
-#> outer 4 - sp: 0.962 0.996 1.661 
-#> outer 5 - sp: 0.962 0.996 1.661 
-#> outer 6 - sp: 0.962 0.996 1.661 
-#> outer 7 - sp: 0.962 0.996 1.661
+#> outer 2 - sp: 1.204 1.026 1.957 
+#> outer 3 - sp: 1.078 1.011 1.802 
+#> outer 4 - sp: 1.043 1.01 1.76 
+#> outer 5 - sp: 1.033 1.009 1.748 
+#> outer 6 - sp: 1.03 1.01 1.746 
+#> outer 7 - sp: 1.03 1.01 1.746 
+#> outer 8 - sp: 1.03 1.009 1.745 
+#> outer 9 - sp: 1.03 1.01 1.745
 #> Converged
-#> Final model fit with sp: 0.962 0.996 1.661
+#> Final model fit with sp: 1.03 1.01 1.745
 #>    user  system elapsed 
-#>  24.237   2.251  24.006
+#>   7.277   2.839   6.604
 ```
 
 After fitting the model, we can easily visualise the smooth densities:
@@ -594,27 +595,25 @@ system.time(
 #> Creating AD function
 #> Initialising with sp: 15317.756 15317.756 15317.756 15317.756
 #> outer 1 - sp: 3024.686 1531.776 2056.01 1531.776 
-#> outer 2 - sp: 302.469 153.178 205.601 153.178 
-#> outer 3 - sp: 30.247 15.318 20.56 15.318 
-#> outer 4 - sp: 21.818 4.441 8.246 2.187 
-#> outer 5 - sp: 22.318 10.491 8.229 6.273 
-#> outer 6 - sp: 22.947 5.581 8.315 3.311 
-#> outer 7 - sp: 22.352 8.746 8.224 4.794 
-#> outer 8 - sp: 22.747 6.295 8.29 3.844 
-#> outer 9 - sp: 22.457 7.975 8.244 4.375 
-#> outer 10 - sp: 22.651 6.711 8.274 4.053 
-#> outer 11 - sp: 22.512 7.603 8.255 4.239 
-#> outer 12 - sp: 22.609 6.943 8.267 4.128 
-#> outer 13 - sp: 22.528 7.415 8.257 4.193 
-#> outer 14 - sp: 22.596 7.068 8.266 4.154 
-#> outer 15 - sp: 22.595 7.072 8.266 4.154 
-#> outer 16 - sp: 22.594 7.08 8.265 4.155 
-#> outer 17 - sp: 22.591 7.094 8.265 4.156 
-#> outer 18 - sp: 22.591 7.094 8.265 4.156
+#> outer 2 - sp: 482.234 153.178 356.087 153.178 
+#> outer 3 - sp: 102.999 20.82 76.182 15.318 
+#> outer 4 - sp: 43.513 8.886 33.627 5.835 
+#> outer 5 - sp: 29.268 7.471 18.228 4.519 
+#> outer 6 - sp: 24.934 7.267 12.024 4.255 
+#> outer 7 - sp: 23.444 7.227 9.636 4.192 
+#> outer 8 - sp: 22.901 7.218 8.756 4.176 
+#> outer 9 - sp: 22.85 7.217 8.676 4.175 
+#> outer 10 - sp: 22.808 7.217 8.609 4.174 
+#> outer 11 - sp: 22.734 7.215 8.497 4.172 
+#> outer 12 - sp: 22.625 7.213 8.35 4.17 
+#> outer 13 - sp: 22.589 7.212 8.294 4.169 
+#> outer 14 - sp: 22.582 7.212 8.281 4.169 
+#> outer 15 - sp: 22.583 7.212 8.283 4.169 
+#> outer 16 - sp: 22.583 7.212 8.282 4.169
 #> Converged
-#> Final model fit with sp: 22.596 7.068 8.266 4.154
+#> Final model fit with sp: 22.901 7.218 8.756 4.176
 #>    user  system elapsed 
-#>  30.681   0.018  30.702
+#>   8.572   0.012   8.584
 ```
 
 Having fitted the model, we can visualise the results. We first decode

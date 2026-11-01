@@ -138,17 +138,32 @@ mod = qreml(pnll, par, dat, random = "betaspline")
 #> Creating AD function
 #> Initialising with sp: 10 10
 #> outer 1 - sp: 3.588 2.862 
-#> outer 2 - sp: 0.759 0.954 
-#> outer 3 - sp: 0.261 0.391 
-#> outer 4 - sp: 0.521 0.272 
-#> outer 5 - sp: 0.465 0.189 
-#> outer 6 - sp: 0.489 0.105 
-#> outer 7 - sp: 0.481 0.079 
-#> outer 8 - sp: 0.482 0.079 
-#> outer 9 - sp: 0.482 0.079 
-#> outer 10 - sp: 0.483 0.08 
-#> outer 11 - sp: 0.483 0.08 
+#> outer 2 - sp: 1.651 1.653 
+#> outer 3 - sp: 0.941 1.186 
+#> outer 4 - sp: 0.656 0.921 
+#> outer 5 - sp: 0.537 0.742 
+#> outer 6 - sp: 0.488 0.606 
+#> outer 7 - sp: 0.468 0.499 
+#> outer 8 - sp: 0.461 0.411 
+#> outer 9 - sp: 0.46 0.339 
+#> outer 10 - sp: 0.462 0.28 
+#> outer 11 - sp: 0.465 0.234 
+#> outer 12 - sp: 0.469 0.197 
+#> outer 13 - sp: 0.472 0.169 
+#> outer 14 - sp: 0.476 0.148 
+#> outer 15 - sp: 0.478 0.133 
+#> outer 16 - sp: 0.481 0.121 
+#> outer 17 - sp: 0.483 0.113 
+#> outer 18 - sp: 0.485 0.107 
+#> outer 19 - sp: 0.486 0.103 
+#> outer 20 - sp: 0.487 0.1 
+#> outer 21 - sp: 0.488 0.097 
+#> outer 22 - sp: 0.488 0.096 
+#> outer 23 - sp: 0.488 0.095 
+#> outer 24 - sp: 0.489 0.094 
+#> outer 25 - sp: 0.489 0.093 
+#> outer 26 - sp: 0.489 0.093 
 #> Converged
-#> Final model fit with sp: 0.481 0.079
+#> Final model fit with sp: 0.489 0.093
 # }
 ```

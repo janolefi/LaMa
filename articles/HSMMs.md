@@ -157,7 +157,7 @@ system.time(
 )
 #> forward_s() is deprecated, please use forward_hsmm(dm, omega, allprobs) instead.
 #>    user  system elapsed 
-#>   0.717   0.057   0.774
+#>   0.480   0.048   0.528
 ```
 
 Fitting HSMMs is rather slow (even using C++) as we translate the
@@ -257,7 +257,7 @@ system.time(
                     agsizes = agsizes, iterlim = 500)
 )
 #>    user  system elapsed 
-#>   3.206   0.004   3.210
+#>   2.208   0.000   2.208
 ```
 
 ### Results

@@ -256,13 +256,18 @@ seen, not necessarily the last one.
 **Convergence.** The iteration stops once no smooth's effective degrees
 of freedom \$\$\mathrm{edf}\_i = K_i - \mathrm{tr}(J^{-1} \lambda_i
 S_i)\$\$ has moved by more than `tol_edf` over the last four iterations,
-provided the step in \\\log \lambda\\ is also small; see `tol_edf`.
-Being eigenvalue sums, the effective degrees of freedom must lie in
-\\\[0, K_i\]\\, and they leave that range only if the data Hessian is
-indefinite, in which case the traces driving the update are not the
-quantities the method assumes. That is reported rather than repaired,
-through the returned `edf_valid` and a warning, and the criterion then
-falls back to `tol` on the restricted log-likelihood.
+provided the step in \\\log \lambda\\ is also small; see `tol_edf`. It
+also stops once the inner optimiser no longer moves from its warm start
+(after the first three iterations and at a full step), as the change in
+the penalty strengths then no longer affects the fit; this ends a
+penalty strength creeping towards zero along a flat restricted
+likelihood, whose step never becomes small. Being eigenvalue sums, the
+effective degrees of freedom must lie in \\\[0, K_i\]\\, and they leave
+that range only if the data Hessian is indefinite, in which case the
+traces driving the update are not the quantities the method assumes.
+That is reported rather than repaired, through the returned `edf_valid`
+and a warning, and the criterion then falls back to `tol` on the
+restricted log-likelihood.
 
 **Numerics.** \\J\\ is the exact automatic differentiation Hessian,
 which matters because the finite differencing error of

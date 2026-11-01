@@ -108,6 +108,10 @@ existing code may need small adjustments.
   off up to max_halve refits at essentially the same penalty strengths
   at the optimum
 
+- qreml() also converges once the inner optimiser no longer moves from
+  its warm start, so a penalty strength creeping towards zero along a
+  flat restricted likelihood no longer runs on until lsp_min or maxiter
+
 - qreml() returns n_fits, the number of inner fits including rejected
   steps, shown by summary() next to the number of outer iterations
 

@@ -78,8 +78,8 @@ AIC(mod)
 BIC(mod)
 
 # state decoding
-states <- viterbi(mod = mod)   # global decoding
-probs <- stateprobs(mod = mod) # local decoding
+states <- viterbi(mod)   # global decoding
+probs <- stateprobs(mod) # local decoding
 
 # residual calculation
 pres <- pseudo_res(data$step, # observation sequence

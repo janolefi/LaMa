@@ -24,7 +24,7 @@ knitr::opts_chunk$set(
 options(rmarkdown.html_vignette.check_title = FALSE)
 ```
 
-> Before diving into this vignette, we recommend reading the vignettes [**Introduction to LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html) and [**Automatic differentiation via RTMB**](https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html)
+> Before diving into this vignette, we recommend reading the vignettes [**Introduction to LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html) and [**Finer control**](https://janolefi.github.io/LaMa/articles/Finer_control.html)
 
 In this vignette, we discuss several extensions of the basic model structure, assuming you know how to fit basic models using automatic differentiation.
 
@@ -281,7 +281,7 @@ mod_cov <- lama(obj_cov) # reporting from fitted model
 Let's plot the fitted model, starting with the estimated state-dependent densities. We can obtain approximate global state probabilities from decoded states.
 
 ```{r mod_cov_densities}
-mod_cov$states = viterbi(mod = mod_cov)
+mod_cov$states = viterbi(mod_cov)
 delta = prop.table(table(mod_cov$states))
 
 # get state-dependent parameters
@@ -436,7 +436,7 @@ delta_hat_reg = mod_msr$delta
 sigma_hat_reg = mod_msr$sigma
 beta_hat_reg = mod_msr$beta
 
-states = viterbi(mod = mod_msr)
+states = viterbi(mod_msr)
 
 # we have some label switching
 plot(z, x, pch = 16, bty = "n", xlab = "z", ylab = "x", col = color[states])

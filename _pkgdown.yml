@@ -9,16 +9,21 @@ navbar:
     articles:
       text: Articles
       menu:
+      - text: Getting started
       - text: 1 Introduction to LaMa
         href: articles/Intro_to_LaMa.html
-      - text: 2 Automatic differentiation
-        href: articles/LaMa_and_RTMB.html
+      - text: 2 Finer control
+        href: articles/Finer_control.html
+      - text: -------
+      - text: HMMs from simple to complex
       - text: 3 Model extensions
         href: articles/Extensions.html
       - text: 4 Longitudinal data
         href: articles/Longitudinal_data.html
       - text: 5 Penalised splines
         href: articles/Penalised_splines.html
+      - text: -------
+      - text: Other latent Markov models
       - text: 6 Continuous-time HMMs
         href: articles/Continuous_time_HMMs.html
       - text: 7 Markov modulated Poisson processes
@@ -28,3 +33,6 @@ navbar:
       - text: 9 Hidden semi-Markov models
         href: articles/HSMMs.html
         
+
+redirects:
+  - ["articles/LaMa_and_RTMB.html", "articles/Finer_control.html"]

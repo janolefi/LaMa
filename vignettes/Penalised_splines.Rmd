@@ -35,7 +35,7 @@ if(!require("scales")){
 
 <!-- *Before reading this vignette, it is advised that you read the vignettes "Introduction to LaMa", "Inhomogeneous HMMs", "periodic HMMs" and "LaMa and RTMB".* -->
 
-> Before diving into this vignette, we recommend reading the vignettes [**Introduction to LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html), [**Automatic differentiation via RTMB**](https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html) and [**Extensions**](https://janolefi.github.io/LaMa/articles/Extensions.html).
+> Before diving into this vignette, we recommend reading the vignettes [**Introduction to LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html), [**Finer control**](https://janolefi.github.io/LaMa/articles/Finer_control.html) and [**Extensions**](https://janolefi.github.io/LaMa/articles/Extensions.html).
 
 This vignette explores how `LaMa` can be used to fit models involving nonparametric components, represented by **penalised splines**. The main idea here is that it may be useful to represent some relationships in our model by smooth functions for which the functional form is not pre-specified, but flexibly estimated from the data. For HMM-like models, this is particularly valuable, as the latent nature of the state process makes modelling choices more difficult. For example, choosing an appropriate parametric family for the state-dependent distributions may be difficult as we cannot do state-specific EDA before fitting the model. Also very difficult is the dependence of transition probabilities on covariates as the transitions are not directly observed. Hence, the obvious alternative is to model these kind of relationships flexibly using splines but imposing a penalty on the smoothness of the estimated functions. This leads us to **penalised splines**.
 
@@ -112,7 +112,7 @@ dat = list(step = trex$step, # observed steps
            sp = rep_sp(modmat, 2)) # initial penalty strength, one per row of betaSpline
 ```
 
-The model fit with automatic smoothness selection can then be conducted by using the `qreml()` function contained in `LaMa`. The **quasi restricted maximum likelihood** algorithm finds a good penalty strength parameter `sp` by treating the spline coefficients as random effects. Under the hood, `qreml()` also constructs an AD function with `RTMB` but uses the **qREML** algorithm [@koslik2024efficient] to fit the model. We have to tell the `qreml()` function which parameters are spline coefficients by providing the name of the corresponding list element of `par`.
+The model fit with automatic smoothness selection can then be conducted by using the `qreml()` function contained in `LaMa`. The **quasi restricted maximum likelihood** algorithm finds a good penalty strength parameter `sp` by treating the spline coefficients as random effects. Finer control, `qreml()` also constructs an AD function with `RTMB` but uses the **qREML** algorithm [@koslik2024efficient] to fit the model. We have to tell the `qreml()` function which parameters are spline coefficients by providing the name of the corresponding list element of `par`.
 
 There are some rules to follow when using `qreml()`:
 
@@ -382,7 +382,7 @@ For the former, we again create a fine grid of oil price values and use `predict
 xseq = seq(min(energy$Oil), max(energy$Oil), length = 200) # sequence for prediction
 Z_p = predict(modmat, newdata = data.frame(Oil = xseq)) # prediction design matrix
 
-energy$states = viterbi(mod = mod3) # decoding most probable state sequence
+energy$states = viterbi(mod3) # decoding most probable state sequence
 
 Mu_plot = Z_p %*% t(mod3$beta)
 Sigma_plot = exp(Z_p %*% t(mod3$alpha))

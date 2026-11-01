@@ -24,7 +24,7 @@ knitr::opts_chunk$set(
 options(rmarkdown.html_vignette.check_title = FALSE)
 ```
 
-> Before diving into this vignette, we recommend reading the vignettes [**Introduction to LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html) and [**Automatic differentiation via RTMB**](https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html).
+> Before diving into this vignette, we recommend reading the vignettes [**Introduction to LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html) and [**Finer control**](https://janolefi.github.io/LaMa/articles/Finer_control.html).
 
 ```{r setup}
 library(LaMa)
@@ -215,7 +215,7 @@ legend("right", lwd = 2, col = color, bty = "n",
 We can also decode the most probable hidden state sequence using `viterbi()`. Because `forward()` automatically stores `delta`, `Qube`, and `allprobs` in the model report, we can pass the report object directly.
 
 ```{r state_decoding}
-states = viterbi(mod = mod)
+states = viterbi(mod)
 
 plot(obs_times[1:50], x[1:50], pch = 16, bty = "n",
      col = color[states[1:50]],
@@ -316,7 +316,7 @@ round(1 / diag(-mod2$Q), 2) # estimated mean dwell times; true: 2, 0.5, 1
 
 ```{r state_decoding2}
 color3 = LaMaColors(3)
-states2 = viterbi(mod = mod2)
+states2 = viterbi(mod2)
 
 plot(obs_times[1:50], x[1:50], pch = 16, bty = "n",
      col = color3[states2[1:50]],

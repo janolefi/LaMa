@@ -97,7 +97,11 @@ existing code may need small adjustments.
 - qreml(lsp_min = -15) bounds log(lambda) from below, so a penalty
   strength on a smooth the data cannot inform stops falling and the
   iteration can converge; a penalty strength ending there gives a
-  warning suggesting a larger basis dimension, and summary() notes it
+  warning, and summary() notes it: a larger basis dimension is suggested
+  if no other penalty acts on the same coefficients, otherwise the
+  penalty is reported as redundant (e.g. the wiggliness penalty of a
+  tensor product with a random effect margin), which a larger basis does
+  not help
 
 - qreml(): a step that changes the restricted likelihood by less than
   1e-6 \* (1 + \|criterion\|) counts as unchanged, instead of setting

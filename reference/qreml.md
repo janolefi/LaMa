@@ -156,8 +156,13 @@ qreml(
   the data cannot inform otherwise keeps falling towards zero along a
   flat restricted likelihood, and its step never becomes small enough
   for convergence. A penalty strength ending at this bound gives a
-  warning, as the penalty is then effectively switched off, which
-  usually means the basis dimension of that smooth is too small.
+  warning, as the penalty is then effectively switched off. If no other
+  penalty acts on the same coefficients, the smooth is effectively
+  unpenalised, which usually means its basis dimension is too small. If
+  another penalty still does, e.g. the ridge of the random effect margin
+  of a tensor product with `bs = "re"`, the penalty at the bound is
+  merely redundant: this is usually harmless, and a larger basis
+  dimension does not help.
 
 - step_small:
 

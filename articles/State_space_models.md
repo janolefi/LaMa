@@ -141,7 +141,7 @@ system.time(
   opt <- nlminb(obj$par, obj$fn, obj$gr)
 )
 #>    user  system elapsed 
-#>    0.67    0.00    0.67
+#>   0.657   0.000   0.657
 mod = lama(obj)
 ```
 
@@ -248,7 +248,7 @@ system.time(
   opt_lap <- nlminb(obj_lap$par, obj_lap$fn, obj_lap$gr)
 )
 #>    user  system elapsed 
-#>   0.233   0.283   0.178
+#>   0.229   0.344   0.198
 mod_lap = lama(obj_lap)
 ```
 

@@ -97,7 +97,7 @@ dat = list(
   )
 ```
 
-Because `par` is a named list, we can access parameters by name -- annoying and error-prone indexing of parameter vectors is gone!
+Because `par` is a named list, we can access parameters by name.
 The likelihood consists of three building blocks: `tpm()` computes the transition probability matrix from unconstrained parameters, `statedens()` computes the density of each observation in each state (the `allprobs` matrix, with missing observations handled automatically), and `forward()` computes the log-likelihood from these two, here with the stationary distribution of `Gamma` as initial distribution.
 
 ```{r mllk}

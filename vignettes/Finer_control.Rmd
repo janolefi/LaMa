@@ -43,8 +43,7 @@ $$
 L(\theta) = \delta^{(1)} P(x_1) \Gamma P(x_2) \Gamma \dots \Gamma P(x_T) 1^t,
 $$
 where $\delta^{(1)}$ and $\Gamma$ are the initial distribution and the transition probability matrix, $P(x_t)$ is a diagonal matrix with the state-dependent densities (or probability mass functions) $f_j(x_t) = f(x_t \mid S_t = j)$ on its diagonal, $1$ is a row vector of ones and $\theta$ contains all model parameters.
-
-For moderately large $T$, this product underflows and is rounded to zero. `forward()` therefore uses a scaling strategy [@zucchini] to compute the log-likelihood, written in `C++` for speed.
+In practice, `forward()` does not compute this likelihood directly, but its logarithm via a scaling strategy [@zucchini].
 
 Many parameters are constrained, e.g. standard deviations are positive and the rows of the transition probability matrix sum to one. Instead of constrained optimisation, we maximise the likelihood w.r.t. unconstrained parameters (`par` in the code), which are transformed by link functions: e.g. the log link for positive parameters and the multinomial logistic link (softmax) for the transition probability matrix, implemented in `tpm()`.
 
@@ -230,7 +229,7 @@ Writing the likelihood explicitly gives full control over each part. Throughout 
 
 ### Downstream functions
 
-`forward()` always reports `delta`, `Gamma` and `allprobs`, no matter how they were computed. The `viterbi()` and `stateprobs()` functions either take these as arguments or, more conveniently, the whole reported `mod` object as an input:
+With automatic differentiation, `forward()` always reports `delta`, `Gamma` and `allprobs`, no matter how they were computed. The `viterbi()` and `stateprobs()` functions either take these as arguments or, more conveniently, the whole reported `mod` object as an input:
 
 ```{r decoding}
 states = viterbi(mod2$delta, mod2$Gamma, mod2$allprobs)

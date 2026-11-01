@@ -49,6 +49,16 @@ need small adjustments.
   from dat$lambda as before, so lambda is free for other things, e.g. a Poisson mean; spname 
   still overrides this. penalty() and penalty2() call their argument sp, lambda still works
 * print() for objects from modmat() shows the formulas and the initial penalty strengths
+* qreml() no longer tries doubled steps after improving ones: each trial costs a full inner fit, 
+  and across the case studies tried it almost never reduced the number of inner fits
+* qreml(lsp_min = -15) bounds log(lambda) from below, so a penalty strength on a smooth the data 
+  cannot inform stops falling and the iteration can converge; a penalty strength ending there gives 
+  a warning suggesting a larger basis dimension, and summary() notes it
+* qreml(): a step that changes the restricted likelihood by less than 1e-6 * (1 + |criterion|) 
+  counts as unchanged, instead of setting off up to max_halve refits at essentially the same 
+  penalty strengths at the optimum
+* qreml() returns n_fits, the number of inner fits including rejected steps, shown by summary() 
+  next to the number of outer iterations
 * smoothdens() builds the objects for smooth (P-spline) densities from a data vector, or one object per 
   stream from a data frame or list; density(beta) in the returned object gives the allprobs matrix 
   and predict() the estimated densities, e.g. on the grid xseq

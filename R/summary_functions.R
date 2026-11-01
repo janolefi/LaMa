@@ -6,8 +6,8 @@ model_fields <- function(x){
     p <- x$parname
     fields <- c(fields, sp, paste0(c("all_", "map_"), sp), p, paste0("relist_", p), paste0(p, "_vec"),
                 "spname", "parname", "n_fixpar", "edf", "edf_valid", "Hessian_conditional",
-                "obj_joint", "llk_restricted", "allmods", "converged", "iter", "best_iter",
-                "outer_grad", "outer_hessian", "tol", "hessian_repaired", "lambda_at_bound", "max_drop")
+                "obj_joint", "llk_restricted", "allmods", "converged", "iter", "n_fits", "best_iter",
+                "outer_grad", "outer_hessian", "tol", "hessian_repaired", "lambda_at_bound", "lambda_at_lower", "max_drop")
   }
   fields
 }
@@ -322,7 +322,8 @@ summary.qremlModel <- function(object, ...) {
   
   ### diagnostics of the smoothness selection, if the fit reports them
   if(!is.null(object$converged)){
-    sel <- paste0("Converged: ", object$converged, " (", object$iter, " outer iterations)")
+    sel <- paste0("Converged: ", object$converged, " (", object$iter, " outer iterations",
+                  if(!is.null(object$n_fits)) paste0(", ", object$n_fits, " inner fits"), ")")
     if(!is.null(object$outer_grad)){
       sel <- c(sel, paste("Maximum absolute outer gradient:", signif(max(abs(object$outer_grad)), 3)))
     }
@@ -336,6 +337,10 @@ summary.qremlModel <- function(object, ...) {
     if(length(object$lambda_at_bound) > 0){
       sel <- c(sel, paste("!", length(object$lambda_at_bound), "of", length(s$lambda),
                           "smoothing parameters ended at the upper bound"))
+    }
+    if(length(object$lambda_at_lower) > 0){
+      sel <- c(sel, paste("!", length(object$lambda_at_lower), "of", length(s$lambda),
+                          "smoothing parameters ended at the lower bound; consider a larger basis dimension"))
     }
     # both of the following are judged against the fit's own 'tol', below which a
     # change in the criterion counts as negligible: after convergence it wobbles,

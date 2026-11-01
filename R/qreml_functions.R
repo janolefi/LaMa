@@ -100,9 +100,11 @@ bind_dat <- function(pnll, dat, argname_dat) {
 #' For a smooth carrying a single penalty the first trace is \eqn{\mathrm{rank}(S_i) / \lambda_i}{rank(S_i) / lambda_i}, obtained once from an eigendecomposition instead of at every iteration.
 #' Only the diagonal blocks of \eqn{J^{-1}}{J^-1} enter, and these come from the Cholesky factor by triangular solves rather than from a full inverse.
 #'
-#' \strong{Step control.} The step is taken in \eqn{\log \lambda}{log(lambda)} and scaled by a multiplier that persists across iterations: it doubles while the criterion keeps improving and is halved, up to \code{max_halve} times, while it does not.
+#' \strong{Step control.} The step is taken in \eqn{\log \lambda}{log(lambda)} and scaled by a multiplier that persists across iterations: it is halved, up to \code{max_halve} times, while the criterion does not improve, and doubles back towards one after each improving step.
+#' Unlike \code{mgcv}, there is no acceleration beyond the full step: each trial at a larger step costs a complete inner fit, which for a user-written likelihood is expensive, and rarely pays off.
 #' A step that still worsens the criterion after that many halvings is accepted, which is the only way the iteration can move downhill.
-#' In addition no penalty strength may fall by more than a factor \code{alpha} in one iteration, and \eqn{\log \lambda}{log(lambda)} is capped at \code{lsp_max}.
+#' Changes in the criterion smaller than \eqn{10^{-6} (1 + |V|)}{1e-6 * (1 + |V|)} count as noise here, so that a step of essentially zero at the optimum does not set off halvings.
+#' In addition no penalty strength may fall by more than a factor \code{alpha} in one iteration, and \eqn{\log \lambda}{log(lambda)} is kept within \code{[lsp_min, lsp_max]}.
 #' The fit returned is the best iterate seen, not necessarily the last one.
 #'
 #' \strong{Convergence.} The iteration stops once no smooth's effective degrees of freedom
@@ -147,7 +149,7 @@ bind_dat <- function(pnll, dat, argname_dat) {
 #'
 #' Penalty strengths are free to increase as fast as the update proposes, but cannot collapse faster than this per iteration.
 #' Reducing a penalty strength too quickly can push the inner optimisation into a local optimum or a numerically awkward region, which matters more here than in a GAM because the likelihood is user-written.
-#' Set to zero to remove the floor entirely. Step length is handled separately, by \code{max_halve} and the adaptive multiplier.
+#' Set to zero to remove the floor entirely. Step length is handled separately, by \code{max_halve} and the step multiplier.
 #' @param tol \strong{fallback} convergence tolerance, on the restricted log-likelihood. Defaults to 0.01.
 #'
 #' Used only when the effective degrees of freedom are not trustworthy, i.e.\ when they fall outside \eqn{[0, K_i]}, which happens when the data Hessian is indefinite (see \code{tol_edf} and the returned \code{edf_valid}).
@@ -156,7 +158,10 @@ bind_dat <- function(pnll, dat, argname_dat) {
 #' @param smoothing optional scaling factor for the final penalty strength parameters. Increasing this beyond one leads to a smoother final model
 #' @param method inner optimisation method to be used by \code{\link[stats:optim]{optim}}. Defaults to \code{"BFGS"}
 #' @param lsp_max largest value allowed for \code{log(lambda)}. Defaults to 15, as in \code{mgcv}, i.e. penalty strengths saturate at roughly 3.3e6
-#' @param step_small size of a step in \code{log(lambda)} below which the step multiplier is allowed to double. Defaults to 0.05, as in \code{mgcv}
+#' @param lsp_min smallest value allowed for \code{log(lambda)}. Defaults to -15, i.e. penalty strengths stop at roughly 3e-7.
+#' A penalty strength on a smooth the data cannot inform otherwise keeps falling towards zero along a flat restricted likelihood, and its step never becomes small enough for convergence.
+#' A penalty strength ending at this bound gives a warning, as the penalty is then effectively switched off, which usually means the basis dimension of that smooth is too small.
+#' @param step_small size of a step in \code{log(lambda)} below which convergence may be declared. Defaults to 0.05, as in \code{mgcv}
 #' @param max_halve maximum number of times a step that decreases the restricted likelihood is halved before it is accepted anyway. Defaults to 6.
 #'
 #' \code{mgcv} never shortens below the full Fellner-Schall step and accepts a worse one instead, which for a user-written likelihood can drift downhill for tens of iterations.
@@ -224,7 +229,8 @@ qreml <- function(pnll, # penalised negative log-likelihood function
                   smoothing = 1,
                   method = "BFGS", # optimisation method used by optim
                   lsp_max = 15, # largest allowed log(lambda)
-                  step_small = 0.05, # step size below which the multiplier may double
+                  lsp_min = -15, # smallest allowed log(lambda)
+                  step_small = 0.05, # step size below which convergence may be declared
                   max_halve = 6, # how often a worsening step may be halved
                   control = list(), # control list for inner optimisation
                   spHess = FALSE, # evaluate the Hessian sparsely
@@ -254,6 +260,9 @@ qreml <- function(pnll, # penalised negative log-likelihood function
   }
   if(!is.numeric(max_halve) || length(max_halve) != 1 || max_halve < 0){
     stop("'max_halve' needs to be a single non-negative number")
+  }
+  if(!is.numeric(lsp_min) || length(lsp_min) != 1 || lsp_min >= lsp_max){
+    stop("'lsp_min' needs to be a single number smaller than 'lsp_max'")
   }
   if(!is.numeric(tol_edf) || length(tol_edf) != 1 || tol_edf < 0){
     stop("'tol_edf' needs to be a single non-negative number")
@@ -452,7 +461,9 @@ qreml <- function(pnll, # penalised negative log-likelihood function
 
   ## one complete evaluation at a given log penalty strength:
   ## inner fit, Hessian, factorisation and criterion
+  n_fits <- 0 # number of inner fits, including trials that were not accepted
   fit_at <- function(lsp_try, start) {
+    n_fits <<- n_fits + 1
     lambda <<- unmap_lambda(exp(lsp_try))
     Lambda <- reshape_lambda(lambda)
 
@@ -474,8 +485,8 @@ qreml <- function(pnll, # penalised negative log-likelihood function
     fac <- pd_chol((J + t(J)) / 2, silent) # force symmetric
     llk_r <- -opt$value + logdet_Slambda(Lambda) / 2 - fac$logdet / 2 # criterion is -llk_r
 
-    # J is not kept: everything downstream works from the factor, and cur, trial
-    # and trial2 can be alive at once
+    # J is not kept: everything downstream works from the factor, and cur and trial
+    # can be alive at once
     list(opt = opt, mod = mod, fac = fac, Lambda = Lambda,
          lsp = lsp_try, llk_r = llk_r, crit = -llk_r, mgc = max(abs(gr)))
   }
@@ -523,7 +534,6 @@ qreml <- function(pnll, # penalised negative log-likelihood function
   ### updating algorithm
   lsp <- log(lambda_mapped)
   mult <- 1 # step multiplier, persistent across iterations, as in mgcv
-  n_success <- 0 # consecutive improving steps
   crit_hist <- rep(NA_real_, maxiter)
 
   if(silent < 2) message("Initialising with ", spname, ": ", paste(round(lambda, 3), collapse = " "))
@@ -554,7 +564,7 @@ qreml <- function(pnll, # penalised negative log-likelihood function
     # the floor applies to the step actually taken, mult * step: applied to the raw
     # step it would become alpha^mult, i.e. no guarantee when moving fastest
     lo <- if(alpha > 0) log(alpha) else -Inf # lambda may not fall faster than alpha
-    take <- function(m) pmin(lsp + pmax(m * step, lo), lsp_max)
+    take <- function(m) pmax(pmin(lsp + pmax(m * step, lo), lsp_max), lsp_min)
 
     lsp1 <- take(mult) # updated smoothing parameters
     max_step <- max(abs(lsp1 - lsp))
@@ -563,27 +573,20 @@ qreml <- function(pnll, # penalised negative log-likelihood function
 
     trial <- fit_at(lsp1, cur$opt$par) # trial fit at new smoothing parameters
 
-    if(trial$crit <= cur$crit){ ## improved
-      n_success <- n_success + 1
-      accelerated <- FALSE
-      # mgcv gates acceleration on the largest step across ALL lambda, so one busy
-      # parameter throttles the rest; two improving steps in a row opens it too
-      if(max_step < step_small || n_success >= 2){
-        lsp2 <- take(2 * mult)
-        trial2 <- fit_at(lsp2, cur$opt$par)
-        if(trial2$crit < trial$crit){
-          trial <- trial2; lsp1 <- lsp2; mult <- 2 * mult; accelerated <- TRUE
-          if(silent == 0) cat("accelerating: step multiplier now", mult, "\n")
-        }
-      }
-      # must sit outside the branch above: once mult is small the steps are too, so
-      # a rejected doubling would leave it collapsed for the rest of the run
-      if(!accelerated && mult < 1) mult <- min(2 * mult, 1)
+    # close to the optimum the criterion is flat and its last digits are noise from
+    # the inner optimisation; without this, a step of essentially zero can 'worsen'
+    # it and set off max_halve refits at the same lambda
+    noise <- 1e-6 * (1 + abs(cur$crit))
+
+    if(trial$crit <= cur$crit + noise){ ## improved (or unchanged up to noise)
+      # no acceleration beyond the full step (mgcv tries a doubled one in the tail):
+      # each trial is a complete inner fit and it rarely paid off. A halved
+      # multiplier recovers, otherwise it would stay collapsed for the rest of the run
+      if(mult < 1) mult <- min(2 * mult, 1)
     } else { ## worsened
-      n_success <- 0
       # mgcv accepts a worse step at mult = 1; here that can drift downhill for
       # tens of iterations, so it is genuinely backtracked
-      while(trial$crit > cur$crit && n_halve < max_halve){
+      while(trial$crit > cur$crit + noise && n_halve < max_halve){
         mult <- mult / 2
         n_halve <- n_halve + 1
         if(silent == 0) cat("criterion increased; step multiplier now", signif(mult, 4), "\n")
@@ -746,6 +749,18 @@ qreml <- function(pnll, # penalised negative log-likelihood function
             " ended at the upper bound exp(lsp_max) = ", signif(exp(lsp_max), 4),
             "; those smooths are penalised to their null space")
   }
+
+  ## lambda pinned at the lower bound: that penalty no longer restricts the smooth,
+  ## typically because the basis is too small for the wiggliness the data ask for
+  at_lower <- which(log(lambda) <= lsp_min + 1e-8)
+  mod$lambda_at_lower <- at_lower
+  if(length(at_lower) > 0){
+    warning(length(at_lower), " of ", length(lambda), " ", spname,
+            " ended at the lower bound exp(lsp_min) = ", signif(exp(lsp_min), 4), ": ",
+            paste(names(lambda)[at_lower], collapse = ", "),
+            ". These penalties are effectively switched off; consider increasing the ",
+            "basis dimension k of the corresponding smooths.", call. = FALSE)
+  }
   if(!edf_ok){
     lam_span <- range(lambda[lambda > 0])
     warning("Effective degrees of freedom outside [0, block dimension]: the inverse ",
@@ -770,6 +785,7 @@ qreml <- function(pnll, # penalised negative log-likelihood function
   mod$tol <- tol # the scale on which a change in the criterion is negligible
   mod$converged <- converged
   mod$iter <- iter
+  mod$n_fits <- n_fits
   mod$best_iter <- best_iter
   mod$hessian_repaired <- final$fac$repaired
 

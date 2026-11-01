@@ -20,6 +20,7 @@ qreml(
   smoothing = 1,
   method = "BFGS",
   lsp_max = 15,
+  lsp_min = -15,
   step_small = 0.05,
   max_halve = 6,
   control = list(),
@@ -63,7 +64,7 @@ The penalty strengths themselves are a poor proxy: \code{lambda} can slide along
 
 Penalty strengths are free to increase as fast as the update proposes, but cannot collapse faster than this per iteration.
 Reducing a penalty strength too quickly can push the inner optimisation into a local optimum or a numerically awkward region, which matters more here than in a GAM because the likelihood is user-written.
-Set to zero to remove the floor entirely. Step length is handled separately, by \code{max_halve} and the adaptive multiplier.}
+Set to zero to remove the floor entirely. Step length is handled separately, by \code{max_halve} and the step multiplier.}
 
 \item{tol}{\strong{fallback} convergence tolerance, on the restricted log-likelihood. Defaults to 0.01.
 
@@ -77,7 +78,11 @@ A tolerance in nats is not comparable across models, which is why it is the fall
 
 \item{lsp_max}{largest value allowed for \code{log(lambda)}. Defaults to 15, as in \code{mgcv}, i.e. penalty strengths saturate at roughly 3.3e6}
 
-\item{step_small}{size of a step in \code{log(lambda)} below which the step multiplier is allowed to double. Defaults to 0.05, as in \code{mgcv}}
+\item{lsp_min}{smallest value allowed for \code{log(lambda)}. Defaults to -15, i.e. penalty strengths stop at roughly 3e-7.
+A penalty strength on a smooth the data cannot inform otherwise keeps falling towards zero along a flat restricted likelihood, and its step never becomes small enough for convergence.
+A penalty strength ending at this bound gives a warning, as the penalty is then effectively switched off, which usually means the basis dimension of that smooth is too small.}
+
+\item{step_small}{size of a step in \code{log(lambda)} below which convergence may be declared. Defaults to 0.05, as in \code{mgcv}}
 
 \item{max_halve}{maximum number of times a step that decreases the restricted likelihood is halved before it is accepted anyway. Defaults to 6.
 
@@ -115,9 +120,11 @@ which equals one exactly where \eqn{\partial V / \partial \lambda_i = 0}{dV/dlam
 For a smooth carrying a single penalty the first trace is \eqn{\mathrm{rank}(S_i) / \lambda_i}{rank(S_i) / lambda_i}, obtained once from an eigendecomposition instead of at every iteration.
 Only the diagonal blocks of \eqn{J^{-1}}{J^-1} enter, and these come from the Cholesky factor by triangular solves rather than from a full inverse.
 
-\strong{Step control.} The step is taken in \eqn{\log \lambda}{log(lambda)} and scaled by a multiplier that persists across iterations: it doubles while the criterion keeps improving and is halved, up to \code{max_halve} times, while it does not.
+\strong{Step control.} The step is taken in \eqn{\log \lambda}{log(lambda)} and scaled by a multiplier that persists across iterations: it is halved, up to \code{max_halve} times, while the criterion does not improve, and doubles back towards one after each improving step.
+Unlike \code{mgcv}, there is no acceleration beyond the full step: each trial at a larger step costs a complete inner fit, which for a user-written likelihood is expensive, and rarely pays off.
 A step that still worsens the criterion after that many halvings is accepted, which is the only way the iteration can move downhill.
-In addition no penalty strength may fall by more than a factor \code{alpha} in one iteration, and \eqn{\log \lambda}{log(lambda)} is capped at \code{lsp_max}.
+Changes in the criterion smaller than \eqn{10^{-6} (1 + |V|)}{1e-6 * (1 + |V|)} count as noise here, so that a step of essentially zero at the optimum does not set off halvings.
+In addition no penalty strength may fall by more than a factor \code{alpha} in one iteration, and \eqn{\log \lambda}{log(lambda)} is kept within \code{[lsp_min, lsp_max]}.
 The fit returned is the best iterate seen, not necessarily the last one.
 
 \strong{Convergence.} The iteration stops once no smooth's effective degrees of freedom

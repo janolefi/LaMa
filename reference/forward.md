@@ -97,6 +97,16 @@ HMM log-likelihood for given data and parameters
 
 ## Details
 
+The likelihood of observations \\x_1, \dots, x_T\\ is
+\$\$\mathcal{L}(\boldsymbol{\theta}) = \boldsymbol{\delta}^{(1)}
+\mathbf{P}(x_1) \boldsymbol{\Gamma}^{(2)} \mathbf{P}(x_2)
+\boldsymbol{\Gamma}^{(3)} \cdots \boldsymbol{\Gamma}^{(T)}
+\mathbf{P}(x_T) \mathbf{1}^\top,\$\$ where \\\mathbf{P}(x_t)\\ is a
+diagonal matrix with the \\t\\-th row of `allprobs` on its diagonal,
+\\\boldsymbol{\Gamma}^{(t)}\\ is the transition probability matrix into
+time \\t\\, and \\\mathbf{1}\\ is a row vector of ones. The forward
+algorithm evaluates this product recursively and on the log-scale.
+
 If `trackID` is provided, the total log-likelihood is the sum of each
 track's likelihood contribution. In this case, `Gamma` can be
 

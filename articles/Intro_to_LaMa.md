@@ -243,7 +243,7 @@ system.time(
   opt <- nlm(nll, par, x = x)
 )
 #>    user  system elapsed 
-#>   0.130   0.023   0.152
+#>   0.090   0.018   0.109
 ```
 
 We see that implementation of the forward algorithm in C++ leads to
@@ -329,7 +329,7 @@ is correctly specified.
 
 Mews, Sina, Jan-Ole Koslik, and Roland Langrock. 2025. “How to Build
 Your Latent Markov Model: The Role of Time and Space.” *Statistical
-Modelling* 0 (0). <https://doi.org/10.1177/1471082X251355681>.
+Modelling* 25 (6). <https://doi.org/10.1177/1471082X251355681>.
 
 Zucchini, Walter, Iain L. MacDonald, and Roland Langrock. 2016. *Hidden
 Markov Models for Time Series: An Introduction Using R*. Boca Raton:

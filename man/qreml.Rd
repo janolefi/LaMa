@@ -80,7 +80,9 @@ A tolerance in nats is not comparable across models, which is why it is the fall
 
 \item{lsp_min}{smallest value allowed for \code{log(lambda)}. Defaults to -15, i.e. penalty strengths stop at roughly 3e-7.
 A penalty strength on a smooth the data cannot inform otherwise keeps falling towards zero along a flat restricted likelihood, and its step never becomes small enough for convergence.
-A penalty strength ending at this bound gives a warning, as the penalty is then effectively switched off, which usually means the basis dimension of that smooth is too small.}
+A penalty strength ending at this bound gives a warning, as the penalty is then effectively switched off.
+If no other penalty acts on the same coefficients, the smooth is effectively unpenalised, which usually means its basis dimension is too small.
+If another penalty still does, e.g. the ridge of the random effect margin of a tensor product with \code{bs = "re"}, the penalty at the bound is merely redundant: this is usually harmless, and a larger basis dimension does not help.}
 
 \item{step_small}{size of a step in \code{log(lambda)} below which convergence may be declared. Defaults to 0.05, as in \code{mgcv}}
 

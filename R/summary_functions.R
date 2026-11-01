@@ -7,7 +7,7 @@ model_fields <- function(x){
     fields <- c(fields, sp, paste0(c("all_", "map_"), sp), p, paste0("relist_", p), paste0(p, "_vec"),
                 "spname", "parname", "n_fixpar", "edf", "edf_valid", "Hessian_conditional",
                 "obj_joint", "llk_restricted", "allmods", "converged", "iter", "n_fits", "best_iter",
-                "outer_grad", "outer_hessian", "tol", "hessian_repaired", "lambda_at_bound", "lambda_at_lower", "max_drop")
+                "outer_grad", "outer_hessian", "tol", "hessian_repaired", "lambda_at_bound", "lambda_at_lower", "lambda_redundant", "max_drop")
   }
   fields
 }
@@ -339,8 +339,12 @@ summary.qremlModel <- function(object, ...) {
                           "smoothing parameters ended at the upper bound"))
     }
     if(length(object$lambda_at_lower) > 0){
-      sel <- c(sel, paste("!", length(object$lambda_at_lower), "of", length(s$lambda),
-                          "smoothing parameters ended at the lower bound; consider a larger basis dimension"))
+      n_red <- length(object$lambda_redundant)
+      n_lone <- length(object$lambda_at_lower) - n_red
+      if(n_lone > 0) sel <- c(sel, paste("!", n_lone, "of", length(s$lambda),
+                                         "smoothing parameters ended at the lower bound; consider a larger basis dimension"))
+      if(n_red > 0) sel <- c(sel, paste("!", n_red, "of", length(s$lambda),
+                                        "smoothing parameters ended at the lower bound but are redundant given other penalties"))
     }
     # both of the following are judged against the fit's own 'tol', below which a
     # change in the criterion counts as negligible: after convergence it wobbles,

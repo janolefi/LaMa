@@ -160,7 +160,9 @@ bind_dat <- function(pnll, dat, argname_dat) {
 #' @param lsp_max largest value allowed for \code{log(lambda)}. Defaults to 15, as in \code{mgcv}, i.e. penalty strengths saturate at roughly 3.3e6
 #' @param lsp_min smallest value allowed for \code{log(lambda)}. Defaults to -15, i.e. penalty strengths stop at roughly 3e-7.
 #' A penalty strength on a smooth the data cannot inform otherwise keeps falling towards zero along a flat restricted likelihood, and its step never becomes small enough for convergence.
-#' A penalty strength ending at this bound gives a warning, as the penalty is then effectively switched off, which usually means the basis dimension of that smooth is too small.
+#' A penalty strength ending at this bound gives a warning, as the penalty is then effectively switched off.
+#' If no other penalty acts on the same coefficients, the smooth is effectively unpenalised, which usually means its basis dimension is too small.
+#' If another penalty still does, e.g. the ridge of the random effect margin of a tensor product with \code{bs = "re"}, the penalty at the bound is merely redundant: this is usually harmless, and a larger basis dimension does not help.
 #' @param step_small size of a step in \code{log(lambda)} below which convergence may be declared. Defaults to 0.05, as in \code{mgcv}
 #' @param max_halve maximum number of times a step that decreases the restricted likelihood is halved before it is accepted anyway. Defaults to 6.
 #'
@@ -750,16 +752,36 @@ qreml <- function(pnll, # penalised negative log-likelihood function
             "; those smooths are penalised to their null space")
   }
 
-  ## lambda pinned at the lower bound: that penalty no longer restricts the smooth,
-  ## typically because the basis is too small for the wiggliness the data ask for
+  ## lambda pinned at the lower bound: that penalty no longer restricts the smooth.
+  ## If another penalty on the same coefficients is still active (e.g. the random
+  ## effect margin of a tensor product with bs = "re", a full-rank ridge), it is
+  ## merely redundant: the restricted likelihood is flat in it, and a larger basis
+  ## does not help. Otherwise the smooth is effectively unpenalised, which usually
+  ## means its basis is too small for the wiggliness the data ask for.
   at_lower <- which(log(lambda) <= lsp_min + 1e-8)
   mod$lambda_at_lower <- at_lower
-  if(length(at_lower) > 0){
-    warning(length(at_lower), " of ", length(lambda), " ", spname,
+  # penalty block (smooth and row) of each penalty strength
+  block_id <- unlist(lapply(seq_len(n_re), function(i)
+    paste(i, rep(seq_len(re_lengths[i]), each = n_penalties[i]))))
+  redundant <- at_lower[vapply(at_lower, function(k)
+    any(block_id == block_id[k] & !(seq_along(lambda) %in% at_lower)), logical(1))]
+  mod$lambda_redundant <- redundant
+  lone <- setdiff(at_lower, redundant)
+  if(length(redundant) > 0){
+    warning(length(redundant), " of ", length(lambda), " ", spname,
             " ended at the lower bound exp(lsp_min) = ", signif(exp(lsp_min), 4), ": ",
-            paste(names(lambda)[at_lower], collapse = ", "),
-            ". These penalties are effectively switched off; consider increasing the ",
-            "basis dimension k of the corresponding smooths.", call. = FALSE)
+            paste(names(lambda)[redundant], collapse = ", "),
+            ". Other penalties on the same coefficients still regularise these smooths, ",
+            "so these penalties are redundant (e.g. the wiggliness penalty of a tensor product ",
+            "with a random effect margin); this is usually harmless, and a larger basis ",
+            "dimension does not help.", call. = FALSE)
+  }
+  if(length(lone) > 0){
+    warning(length(lone), " of ", length(lambda), " ", spname,
+            " ended at the lower bound exp(lsp_min) = ", signif(exp(lsp_min), 4), ": ",
+            paste(names(lambda)[lone], collapse = ", "),
+            ". These smooths are effectively unpenalised; consider increasing their ",
+            "basis dimension k.", call. = FALSE)
   }
   if(!edf_ok){
     lam_span <- range(lambda[lambda > 0])

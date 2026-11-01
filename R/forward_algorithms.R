@@ -60,6 +60,13 @@
 #' \code{Gamma[,,tod[t]]} is the transition into time t, hence the periodically stationary initial distribution is \code{stationary_p(Gamma, tod[1] \%\% L + 1)}.
 #'
 #' @details
+#' The likelihood of observations \eqn{x_1, \dots, x_T} is
+#' \deqn{\mathcal{L}(\boldsymbol{\theta}) = \boldsymbol{\delta}^{(1)} \mathbf{P}(x_1) \boldsymbol{\Gamma}^{(2)} \mathbf{P}(x_2) \boldsymbol{\Gamma}^{(3)} \cdots \boldsymbol{\Gamma}^{(T)} \mathbf{P}(x_T) \mathbf{1}^\top,}{L(theta) = delta^(1) P(x_1) Gamma^(2) P(x_2) Gamma^(3) ... Gamma^(T) P(x_T) 1',}
+#' where \eqn{\mathbf{P}(x_t)}{P(x_t)} is a diagonal matrix with the \eqn{t}-th row of \code{allprobs} on its diagonal,
+#' \eqn{\boldsymbol{\Gamma}^{(t)}}{Gamma^(t)} is the transition probability matrix into time \eqn{t},
+#' and \eqn{\mathbf{1}}{1} is a row vector of ones.
+#' The forward algorithm evaluates this product recursively and on the log-scale.
+#'
 #' If \code{trackID} is provided, the total log-likelihood is the sum of each track's likelihood
 #' contribution. In this case, \code{Gamma} can be
 #'   \itemize{

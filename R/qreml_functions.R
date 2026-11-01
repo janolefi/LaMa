@@ -110,6 +110,8 @@ bind_dat <- function(pnll, dat, argname_dat) {
 #' \strong{Convergence.} The iteration stops once no smooth's effective degrees of freedom
 #' \deqn{\mathrm{edf}_i = K_i - \mathrm{tr}(J^{-1} \lambda_i S_i)}{edf_i = K_i - tr(J^-1 lambda_i S_i)}
 #' has moved by more than \code{tol_edf} over the last four iterations, provided the step in \eqn{\log \lambda}{log(lambda)} is also small; see \code{tol_edf}.
+#' It also stops once the inner optimiser no longer moves from its warm start (after the first three iterations and at a full step), as the change in the penalty strengths then no longer affects the fit;
+#' this ends a penalty strength creeping towards zero along a flat restricted likelihood, whose step never becomes small.
 #' Being eigenvalue sums, the effective degrees of freedom must lie in \eqn{[0, K_i]}, and they leave that range only if the data Hessian is indefinite, in which case the traces driving the update are not the quantities the method assumes.
 #' That is reported rather than repaired, through the returned \code{edf_valid} and a warning, and the criterion then falls back to \code{tol} on the restricted log-likelihood.
 #'
@@ -489,8 +491,13 @@ qreml <- function(pnll, # penalised negative log-likelihood function
 
     # J is not kept: everything downstream works from the factor, and cur and trial
     # can be alive at once
+    # gradient evaluations of the inner optimiser (function evaluations for
+    # gradient-free methods); one means it stopped at its warm start
+    n_inner <- if(is.na(opt$counts[2])) opt$counts[1] else opt$counts[2]
+
     list(opt = opt, mod = mod, fac = fac, Lambda = Lambda,
-         lsp = lsp_try, llk_r = llk_r, crit = -llk_r, mgc = max(abs(gr)))
+         lsp = lsp_try, llk_r = llk_r, crit = -llk_r, mgc = max(abs(gr)),
+         n_inner = unname(n_inner))
   }
 
   ## Fellner-Schall ratio on the mapped scale: lambda_new = lambda * r, so the step
@@ -654,6 +661,15 @@ qreml <- function(pnll, # penalised negative log-likelihood function
         converged <- TRUE # fallback: edf unreliable, so use the restricted likelihood
         if(silent == 0) cat("restricted likelihood settled (edf unreliable)\n")
       }
+    }
+    # Stop when the inner fit no longer moves: the optimiser stopped at its warm
+    # start, so the change in lambda no longer affects the fitted coefficients. This
+    # catches a penalty strength creeping towards zero along a flat restricted
+    # likelihood, whose step never becomes small. Not after a halving (mult < 1),
+    # where the step may just have been too small to matter.
+    if(!converged && iter > 3 && mult == 1 && cur$n_inner <= 1){
+      converged <- TRUE
+      if(silent == 0) cat("inner fit no longer changes\n")
     }
     if(converged){
       if(silent < 2) message("Converged")

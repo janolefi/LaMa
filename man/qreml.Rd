@@ -132,6 +132,8 @@ The fit returned is the best iterate seen, not necessarily the last one.
 \strong{Convergence.} The iteration stops once no smooth's effective degrees of freedom
 \deqn{\mathrm{edf}_i = K_i - \mathrm{tr}(J^{-1} \lambda_i S_i)}{edf_i = K_i - tr(J^-1 lambda_i S_i)}
 has moved by more than \code{tol_edf} over the last four iterations, provided the step in \eqn{\log \lambda}{log(lambda)} is also small; see \code{tol_edf}.
+It also stops once the inner optimiser no longer moves from its warm start (after the first three iterations and at a full step), as the change in the penalty strengths then no longer affects the fit;
+this ends a penalty strength creeping towards zero along a flat restricted likelihood, whose step never becomes small.
 Being eigenvalue sums, the effective degrees of freedom must lie in \eqn{[0, K_i]}, and they leave that range only if the data Hessian is indefinite, in which case the traces driving the update are not the quantities the method assumes.
 That is reported rather than repaired, through the returned \code{edf_valid} and a warning, and the criterion then falls back to \code{tol} on the restricted log-likelihood.
 

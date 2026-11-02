@@ -1,3 +1,7 @@
+# LaMa 3.0.1
+
+* qreml() returns edf_hist, the effective degrees of freedom of each smooth at the start of each outer iteration (column 1 is the initial fit)
+
 # LaMa 3.0.0
 
 This is a major release: models are now built around statedens() and lama(), which give 

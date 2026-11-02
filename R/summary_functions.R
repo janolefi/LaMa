@@ -6,7 +6,7 @@ model_fields <- function(x){
     p <- x$parname
     fields <- c(fields, sp, paste0(c("all_", "map_"), sp), p, paste0("relist_", p), paste0(p, "_vec"),
                 "spname", "parname", "n_fixpar", "edf", "edf_valid", "Hessian_conditional",
-                "obj_joint", "llk_restricted", "allmods", "converged", "iter", "n_fits", "best_iter",
+                "obj_joint", "llk_restricted", "edf_hist", "allmods", "converged", "iter", "n_fits", "best_iter",
                 "outer_grad", "outer_hessian", "tol", "hessian_repaired", "lambda_at_bound", "lambda_at_lower", "lambda_redundant", "max_drop")
   }
   fields

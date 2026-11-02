@@ -812,6 +812,9 @@ qreml <- function(pnll, # penalised negative log-likelihood function
 
   mod$Hessian_conditional <- hessian_at(final$opt$par)
   mod$llk_restricted <- -crit_hist[seq_len(iter)]
+  # edf of the fit each outer iteration started from, so column 1 is the initial fit
+  mod$edf_hist <- edf_hist[, seq_len(iter), drop = FALSE]
+  if(length(unlist(mod$edf)) == nrow(mod$edf_hist)) rownames(mod$edf_hist) <- names(unlist(mod$edf))
 
   ## the iteration is meant to be monotone -- only an exhausted backtrack is
   ## accepted -- and this is the number that says whether that held

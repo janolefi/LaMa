@@ -1,5 +1,11 @@
 # Changelog
 
+## LaMa 3.0.1
+
+- qreml() returns edf_hist, the effective degrees of freedom of each
+  smooth at the start of each outer iteration (column 1 is the initial
+  fit)
+
 ## LaMa 3.0.0
 
 CRAN release: 2026-10-28

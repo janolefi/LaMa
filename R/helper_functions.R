@@ -289,6 +289,7 @@ ad_context <- get("ad_context", envir = asNamespace("RTMB"), inherits = FALSE)
 check_matmul_tape <- function(Z, beta, max_ops = 1e8) {
   if(isTRUE(.lama_env$matmul_msg_shown) || !ad_context()) return(invisible())
   if(RTMB::TapeConfig()$matmul != "plain") return(invisible())
+  if(inherits(Z, "advector")) return(invisible()) # Z != 0 is forbidden for AD types
   n_ops <- sum(Z != 0) * nrow(beta)
   if(n_ops > max_ops) {
     message("The linear predictor Z %*% t(beta) needs ", signif(n_ops, 2),

@@ -307,6 +307,7 @@ tpm_inhom <- function(Z, beta,
     # }
     
     if(is.null(Eta)) {
+      check_matmul_tape(Z, beta)
       Eta <- Z %*% t(beta)
     }
     
@@ -991,6 +992,7 @@ generator_inhom <- function(
       REPORT(beta)
     }
     
+    check_matmul_tape(Z, beta)
     Eta <- Z %*% t(beta)
   }
     

@@ -150,6 +150,10 @@ need small adjustments.
 * tracks need to be contiguous, otherwise forward() gives an informative error
 * without AD, forward() gives an error for NA in allprobs
 * the TapeConfig performance tip is shown only once per session
+* tpm() and generator() with a design matrix give a one-time message while taping if 
+  TapeConfig(matmul = 'plain') would record more than 1e8 multiply-adds for the linear 
+  predictor (counting only nonzero entries of Z, which RTMB skips otherwise), suggesting 
+  TapeConfig(matmul = 'atomic') as the tape may not fit into memory
 * viterbi(), stateprobs() and their _g and _p versions use the inputs of forward() and one 
   C++ implementation each, so Gamma is no longer expanded; as in forward(), tracks need 
   to be contiguous

@@ -120,6 +120,7 @@ from dat</span>lambda as before, so lambda is free for other things, e.g. a Poi
 <li>tracks need to be contiguous, otherwise forward() gives an informative error</li>
 <li>without AD, forward() gives an error for NA in allprobs</li>
 <li>the TapeConfig performance tip is shown only once per session</li>
+<li>tpm() and generator() with a design matrix give a one-time message while taping if TapeConfig(matmul = ‘plain’) would record more than 1e8 multiply-adds for the linear predictor (counting only nonzero entries of Z, which RTMB skips otherwise), suggesting TapeConfig(matmul = ‘atomic’) as the tape may not fit into memory</li>
 <li>viterbi(), stateprobs() and their _g and _p versions use the inputs of forward() and one C++ implementation each, so Gamma is no longer expanded; as in forward(), tracks need to be contiguous</li>
 <li>forward_p() reports Gamma with its L slices and type “periodic”</li>
 <li>forward(), viterbi() and stateprobs() have an argument tod for periodic models, so they handle all model types; forward_g(), forward_p(), viterbi_g(), viterbi_p(), stateprobs_g() and stateprobs_p() are deprecated and give a message</li>

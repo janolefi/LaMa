@@ -10,6 +10,7 @@ MCreport(
   include_random_pars = TRUE,
   report = FALSE,
   Q = NULL,
+  joint = FALSE,
   ...
 )
 }
@@ -23,8 +24,14 @@ MCreport(
 \item{report}{Logical; Should \code{REPORT}ed quantities be sampled as well? 
 Defaults to \code{FALSE} because this may be slow depending on your model.}
 
-\item{Q}{Optional precalculated sparse precision matrix returned by \code{sdreport(..., getJointPrecision = TRUE)$jointPrecision}.
-If not provided, computed internally using \code{sdreport}. Only used for models with random effects.}
+\item{Q}{Optional precalculated precision matrix, e.g. returned by \code{sdreport(..., getJointPrecision = TRUE)$jointPrecision} for models with random effects,
+or by \code{joint_uncertainty()} of a model fitted by \code{\link{qreml}}.
+If not provided, computed internally using \code{sdreport} for models with random effects and the Hessian otherwise.}
+
+\item{joint}{Logical; only for models fitted by \code{\link{qreml}}. If \code{TRUE}, the samples account for the uncertainty in the estimated penalty strengths,
+by sampling from the joint precision of the parameters and the log penalty strengths returned by \code{joint_uncertainty()} of the model, 
+and dropping the latter. This requires \code{2L} additional model fits for \code{L} penalty strengths, see \code{\link{qreml}}.
+If the joint precision has already been computed, it can instead be passed as \code{Q}.}
 
 \item{...}{For internal use only}
 }
@@ -43,6 +50,10 @@ This is a common approach to get an approximate idea of parameter uncertainty ar
 
 Sampling random effects from their posterior as compared to calculating marginal standard devitions like \code{\link[TMB]{sdreport}} is particularly useful for multidimensional random effects (e.g. for locations \eqn{x} and \eqn{y})
 where pointwise confidence intervals (e.g. along a path) based on standard deviations are not possible.
+
+For models fitted by \code{\link{qreml}}, the samples are centred at the final estimate. 
+By default, they are conditional on the estimated penalty strengths. 
+With \code{joint = TRUE}, or a \code{Q} from \code{joint_uncertainty()}, they also account for their uncertainty.
 }
 \examples{
 step <- trex$step[1:2000] # subsetting trex data

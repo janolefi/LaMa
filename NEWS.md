@@ -1,6 +1,30 @@
 # LaMa 3.0.1
 
-* qreml() returns edf_hist, the effective degrees of freedom of each smooth at the start of each outer iteration (column 1 is the initial fit)
+* residuals(mod) gives the pseudo-residuals, calling pseudo_res(mod = mod)
+* coef(mod) and vcov(mod) give the estimated fixed parameters and their covariance from the inverse 
+  Hessian (of the marginal likelihood with random effects, conditional on the smoothing parameters 
+  for qreml() models), so confint(mod) works too
+* qreml() no longer tries doubled steps after improving ones: each trial costs a full inner fit, 
+  and across the case studies tried it almost never reduced the number of inner fits
+* qreml(lsp_min = -15) bounds log(lambda) from below, so a penalty strength on a smooth the data 
+  cannot inform stops falling and the iteration can converge; a penalty strength ending there gives 
+  a warning, and summary() notes it: a larger basis dimension is suggested if no other penalty acts 
+  on the same coefficients, otherwise the penalty is reported as redundant (e.g. the wiggliness 
+  penalty of a tensor product with a random effect margin), which a larger basis does not help
+* qreml(): a step that changes the restricted likelihood by less than 1e-6 * (1 + |criterion|) 
+  counts as unchanged, instead of setting off up to max_halve refits at essentially the same 
+  penalty strengths at the optimum
+* qreml() also converges once the inner optimiser no longer moves from its warm start, so a 
+  penalty strength creeping towards zero along a flat restricted likelihood no longer runs on 
+  until lsp_min or maxiter
+* qreml() returns n_fits, the number of inner fits including rejected steps, shown by summary() 
+  next to the number of outer iterations
+* tpm() and generator() with a design matrix give a one-time message while taping if 
+  TapeConfig(matmul = 'plain') would record more than 1e8 multiply-adds for the linear 
+  predictor (counting only nonzero entries of Z, which RTMB skips otherwise), suggesting 
+  TapeConfig(matmul = 'atomic') as the tape may not fit into memory
+* qreml() returns edf_hist, the effective degrees of freedom of each smooth at the start of each 
+  outer iteration (column 1 is the initial fit)
 
 # LaMa 3.0.0
 
@@ -53,21 +77,6 @@ need small adjustments.
   from dat$lambda as before, so lambda is free for other things, e.g. a Poisson mean; spname 
   still overrides this. penalty() and penalty2() call their argument sp, lambda still works
 * print() for objects from modmat() shows the formulas and the initial penalty strengths
-* qreml() no longer tries doubled steps after improving ones: each trial costs a full inner fit, 
-  and across the case studies tried it almost never reduced the number of inner fits
-* qreml(lsp_min = -15) bounds log(lambda) from below, so a penalty strength on a smooth the data 
-  cannot inform stops falling and the iteration can converge; a penalty strength ending there gives 
-  a warning, and summary() notes it: a larger basis dimension is suggested if no other penalty acts 
-  on the same coefficients, otherwise the penalty is reported as redundant (e.g. the wiggliness 
-  penalty of a tensor product with a random effect margin), which a larger basis does not help
-* qreml(): a step that changes the restricted likelihood by less than 1e-6 * (1 + |criterion|) 
-  counts as unchanged, instead of setting off up to max_halve refits at essentially the same 
-  penalty strengths at the optimum
-* qreml() also converges once the inner optimiser no longer moves from its warm start, so a 
-  penalty strength creeping towards zero along a flat restricted likelihood no longer runs on 
-  until lsp_min or maxiter
-* qreml() returns n_fits, the number of inner fits including rejected steps, shown by summary() 
-  next to the number of outer iterations
 * smoothdens() builds the objects for smooth (P-spline) densities from a data vector, or one object per 
   stream from a data frame or list; density(beta) in the returned object gives the allprobs matrix 
   and predict() the estimated densities, e.g. on the grid xseq
@@ -90,10 +99,6 @@ need small adjustments.
   is evaluated again with its densities replaced by their CDFs, after checking that this is valid; 
   several data streams give one set of residuals each; also for qreml() models and densities in 
   helper functions
-* residuals(mod) gives the same, calling pseudo_res(mod = mod)
-* coef(mod) and vcov(mod) give the estimated fixed parameters and their covariance from the inverse 
-  Hessian (of the marginal likelihood with random effects, conditional on the smoothing parameters 
-  for qreml() models), so confint(mod) works too
 
 * scores(mod) computes the score contribution of each observation for models using forward(), 
   e.g. for robust (sandwich) standard errors; it takes the model from lama() or the RTMB 
@@ -154,10 +159,6 @@ need small adjustments.
 * tracks need to be contiguous, otherwise forward() gives an informative error
 * without AD, forward() gives an error for NA in allprobs
 * the TapeConfig performance tip is shown only once per session
-* tpm() and generator() with a design matrix give a one-time message while taping if 
-  TapeConfig(matmul = 'plain') would record more than 1e8 multiply-adds for the linear 
-  predictor (counting only nonzero entries of Z, which RTMB skips otherwise), suggesting 
-  TapeConfig(matmul = 'atomic') as the tape may not fit into memory
 * viterbi(), stateprobs() and their _g and _p versions use the inputs of forward() and one 
   C++ implementation each, so Gamma is no longer expanded; as in forward(), tracks need 
   to be contiguous

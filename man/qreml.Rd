@@ -140,7 +140,7 @@ That is reported rather than repaired, through the returned \code{edf_valid} and
 \strong{Numerics.} \eqn{J} is the exact automatic differentiation Hessian, which matters because the finite differencing error of \code{\link[stats:optimHess]{optimHess}} is of the same order as the criterion differences the convergence test has to resolve.
 It is factorised by a pivoted Cholesky decomposition after scaling to a unit diagonal; should it not be positive definite, a ridge is added and reported through the returned \code{hessian_repaired}.
 
-\strong{Uncertainty.} The returned \code{outer_hessian()} gives the Hessian of the negative restricted log-likelihood in the penalty strengths, which \code{\link{sdreport_outer}} turns into standard errors.
+\strong{Uncertainty.} The returned \code{outer_hessian()} gives the Hessian of the negative restricted log-likelihood in the log penalty strengths, by central differences of its approximate gradient, which \code{\link{sdreport_outer}} turns into standard errors.
 Note that these describe the curvature of \eqn{V} only, and treat the approximation to it as exact.
 }
 \examples{

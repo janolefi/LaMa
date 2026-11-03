@@ -25,6 +25,13 @@
   TapeConfig(matmul = 'atomic') as the tape may not fit into memory
 * qreml() returns edf_hist, the effective degrees of freedom of each smooth at the start of each 
   outer iteration (column 1 is the initial fit)
+* qreml(): outer_hessian() now differentiates the approximate gradient of the restricted 
+  log-likelihood w.r.t. log(lambda) by central differences (2 inner fits per free penalty 
+  strength, step h = 0.1), instead of one-sided differences with an absolute step of 1e-4 in 
+  lambda, which was inaccurate and could give an indefinite Hessian. The fits are warm started at 
+  the final estimate with a tighter inner tolerance. The result is now on the log scale
+* qreml(): outer_hessian() no longer leaves the objective at the last perturbed penalty strength, 
+  so samples or Hessians computed from mod$obj afterwards use the fitted penalty strengths again
 
 # LaMa 3.0.0
 

@@ -118,7 +118,7 @@ bind_dat <- function(pnll, dat, argname_dat) {
 #' \strong{Numerics.} \eqn{J} is the exact automatic differentiation Hessian, which matters because the finite differencing error of \code{\link[stats:optimHess]{optimHess}} is of the same order as the criterion differences the convergence test has to resolve.
 #' It is factorised by a pivoted Cholesky decomposition after scaling to a unit diagonal; should it not be positive definite, a ridge is added and reported through the returned \code{hessian_repaired}.
 #'
-#' \strong{Uncertainty.} The returned \code{outer_hessian()} gives the Hessian of the negative restricted log-likelihood in the penalty strengths, which \code{\link{sdreport_outer}} turns into standard errors.
+#' \strong{Uncertainty.} The returned \code{outer_hessian()} gives the Hessian of the negative restricted log-likelihood in the log penalty strengths, by central differences of its approximate gradient, which \code{\link{sdreport_outer}} turns into standard errors.
 #' Note that these describe the curvature of \eqn{V} only, and treat the approximation to it as exact.
 #'
 #' @seealso \code{\link{penalty}} and \code{\link{penalty2}} to compute the penalty inside the likelihood function, and \code{\link{qreml_old}} for the original algorithm
@@ -283,10 +283,16 @@ qreml <- function(pnll, # penalised negative log-likelihood function
   lambda <- dat[[spname]]
   lambda0 <- lambda # so that fixed parts can be refilled when 'lambda' is changed
 
-  # creating the objective function as wrapper around pnll to pull lambda from local
+  # the penalty strengths the objective currently sees, and the number of inner fits.
+  # Only fit_at() and the final fit write here, and outer_hessian() restores it
+  fit_state <- new.env(parent = emptyenv())
+  fit_state$lambda <- lambda
+  fit_state$n_fits <- 0
+
+  # creating the objective function as wrapper around pnll to pull lambda from fit_state
   f <- function(par){
     # defining function that grabs lambda
-    getLambda <- function(x) lambda
+    getLambda <- function(x) fit_state$lambda
     dat[[spname]] <- DataEval(getLambda, rep(advector(1), 0))
 
     # dat under whatever it is called in pnll()
@@ -465,11 +471,10 @@ qreml <- function(pnll, # penalised negative log-likelihood function
 
   ## one complete evaluation at a given log penalty strength:
   ## inner fit, Hessian, factorisation and criterion
-  n_fits <- 0 # number of inner fits, including trials that were not accepted
-  fit_at <- function(lsp_try, start) {
-    n_fits <<- n_fits + 1
-    lambda <<- unmap_lambda(exp(lsp_try))
-    Lambda <- reshape_lambda(lambda)
+  fit_at <- function(lsp_try, start, control = ctl) {
+    fit_state$n_fits <- fit_state$n_fits + 1 # including trials that were not accepted
+    fit_state$lambda <- unmap_lambda(exp(lsp_try))
+    Lambda <- reshape_lambda(fit_state$lambda)
 
     if(silent == 0) cat("\nInner optimisation at", spname, "=", round(exp(lsp_try), 3), "\n")
     counter_env$count <- 0
@@ -479,7 +484,7 @@ qreml <- function(pnll, # penalised negative log-likelihood function
     # belonging to the PREVIOUS lambda and it stops there.
     invisible(try(obj$fn(start + 1e-8 * (1 + abs(start))), silent = TRUE))
 
-    opt <- stats::optim(start, obj$fn, newgrad, method = method, control = ctl)
+    opt <- stats::optim(start, obj$fn, newgrad, method = method, control = control)
     gr <- obj$gr(opt$par) # forces evaluation at opt$par so that obj$report() matches
     if(silent == 0) cat("iter", counter_env$count, "- inner mgc:", round(max(abs(gr)), 5), "\n")
 
@@ -703,7 +708,10 @@ qreml <- function(pnll, # penalised negative log-likelihood function
 
   final_lsp <- log(map_lambda(lambda))
   # cur is already the fit at this lambda unless smoothing was applied or the last
-  # iterate was not the best one, so refitting would repeat a fit for nothing
+  # iterate was not the best one, so refitting would repeat a fit for nothing.
+  # The objective must see this lambda also when cur is reused, as rejected trials
+  # may have been fitted after it
+  fit_state$lambda <- lambda
   final <- if(isTRUE(all.equal(final_lsp, cur$lsp))) cur else fit_at(final_lsp, cur$opt$par)
   mod <- final$mod
   opt <- final$opt
@@ -826,7 +834,7 @@ qreml <- function(pnll, # penalised negative log-likelihood function
   mod$tol <- tol # the scale on which a change in the criterion is negligible
   mod$converged <- converged
   mod$iter <- iter
-  mod$n_fits <- n_fits
+  mod$n_fits <- fit_state$n_fits
   mod$best_iter <- best_iter
   mod$hessian_repaired <- final$fac$repaired
 
@@ -836,24 +844,41 @@ qreml <- function(pnll, # penalised negative log-likelihood function
   mod$outer_grad <- 0.5 * map_lambda(lambda) * (fr$a - fr$bSb)
   names(mod$outer_grad) <- levels(lambda_map)
 
-  # the same gradient, w.r.t. lambda itself and as a function of it. Kept local:
-  # only the Hessian below is reported. Every call refits the inner problem, since
-  # a and b'Sb are only defined at the conditional mode.
-  outer_gr <- function(x){
-    # started cold, not at opt$par: from the fitted mode optim's relative tolerance
-    # fires before the mode has moved, and the differences taken below are far too
-    # small to survive that, which inflates the outer Hessian
-    fr <- efs_ratio(fit_at(log(x), newpar))
-    0.5 * (fr$a - fr$bSb)
-  }
+  # Hessian of the negative restricted log-likelihood w.r.t. log(lambda), as
+  # Hessian_conditional is for the inner problem, by central differences of the
+  # gradient above (2 penalised fits per free lambda). Each fit is at a perturbed
+  # lambda, so the state the objective reads is restored afterwards.
+  rho_hat <- log(map_lambda(lambda))
+  mod$outer_hessian <- function(h = 0.1){
+    old <- as.list(fit_state)
+    on.exit({
+      list2env(old, envir = fit_state)
+      obj$fn(final$opt$par) # leave the objective at the final estimate
+    })
 
-  # Hessian of the negative restricted log-likelihood, as Hessian_conditional is
-  # for the inner problem. lambda_hat is captured here because fit_at() overwrites
-  # 'lambda' as it differences.
-  lambda_hat <- map_lambda(lambda)
-  mod$outer_hessian <- function(x = lambda_hat){
-    H <- -numDeriv::jacobian(outer_gr, x, method = "simple")
-    (H + t(H)) / 2 # one-sided differences leave it slightly asymmetric
+    # the gradient as a function of log(lambda); every call refits the inner problem,
+    # since a and b'Sb are only defined at the conditional mode. The fits are warm
+    # started at the final estimate, which needs a tighter inner tolerance: with the
+    # default one, optim stops before the mode has moved to the perturbed lambda, which
+    # inflates the Hessian (by up to a factor 2 for the elephant te() model)
+    ctl_tight <- ctl
+    ctl_tight$reltol <- 1e-12 # BFGS and other methods with a relative tolerance
+    ctl_tight$factr <- 1e3    # L-BFGS-B
+    gr <- function(rho){
+      fr <- efs_ratio(fit_at(rho, final$opt$par, control = ctl_tight))
+      0.5 * exp(rho) * (fr$a - fr$bSb)
+    }
+
+    L <- length(rho_hat)
+    J <- vapply(seq_len(L), function(j){
+      e <- replace(numeric(L), j, h)
+      (gr(rho_hat + e) - gr(rho_hat - e)) / (2 * h)
+    }, numeric(L))
+
+    # J is not symmetric, as the gradient is approximate and not that of a function
+    H <- -(J + t(J)) / 2
+    dimnames(H) <- list(levels(lambda_map), levels(lambda_map))
+    H
   }
 
   # removing elements only reported for the update

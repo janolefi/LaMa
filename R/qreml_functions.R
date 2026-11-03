@@ -120,6 +120,9 @@ bind_dat <- function(pnll, dat, argname_dat) {
 #'
 #' \strong{Uncertainty.} The returned \code{outer_hessian()} gives the Hessian of the negative restricted log-likelihood in the log penalty strengths, by central differences of its approximate gradient, which \code{\link{sdreport_outer}} turns into standard errors.
 #' Note that these describe the curvature of \eqn{V} only, and treat the approximation to it as exact.
+#' The returned \code{joint_uncertainty()} propagates this uncertainty to the parameters by the first-order correction of Wood, Pya and Saefken (2016):
+#' it gives the joint precision matrix of the parameters and the log penalty strengths, as \code{sdreport(getJointPrecision = TRUE)} does in \code{TMB}, which stays sparse if the Hessian is (\code{spHess = TRUE}),
+#' or, with \code{precision = FALSE}, the corrected covariance matrix of the parameters alone. Both take the outer Hessian as argument \code{H_rho}, by default computed by \code{outer_hessian()}.
 #'
 #' @seealso \code{\link{penalty}} and \code{\link{penalty2}} to compute the penalty inside the likelihood function, and \code{\link{qreml_old}} for the original algorithm
 #'
@@ -174,7 +177,7 @@ bind_dat <- function(pnll, dat, argname_dat) {
 #' @param joint_unc logical, if \code{TRUE}, joint \code{RTMB} object is returned allowing for joint uncertainty quantification
 #' @param saveall logical, if \code{TRUE}, then all model objects from each iteration are saved in the final model object
 #'
-#' @return model object of class \code{"qremlModel"}, inheriting from \code{"LaMaModel"} (see \code{\link{lama}}), carrying the fitted quantities, the smoothness selection diagnostics shown by \code{\link{summary.qremlModel}}, and \code{outer_hessian()}, the outer Hessian that \code{\link{sdreport_outer}} turns into standard errors
+#' @return model object of class \code{"qremlModel"}, inheriting from \code{"LaMaModel"} (see \code{\link{lama}}), carrying the fitted quantities, the smoothness selection diagnostics shown by \code{\link{summary.qremlModel}}, \code{outer_hessian()}, the outer Hessian that \code{\link{sdreport_outer}} turns into standard errors, and \code{joint_uncertainty()}, the joint precision (or corrected covariance) accounting for the uncertainty in the penalty strengths
 #'
 #' @export
 #'
@@ -879,6 +882,72 @@ qreml <- function(pnll, # penalised negative log-likelihood function
     H <- -(J + t(J)) / 2
     dimnames(H) <- list(levels(lambda_map), levels(lambda_map))
     H
+  }
+
+  ## joint uncertainty of the parameters and log(lambda): the first-order correction of
+  ## Wood, Pya & Saefken (2016, Section 4), in the form of TMB's sdreport(getJointPrecision = TRUE).
+  # theta_hat depends on rho = log(lambda) through d theta_hat / d rho = -J^{-1} B, where
+  # B[, l] = lambda_l S_l theta_hat is the exact cross derivative of the penalised negative
+  # log-likelihood (S_l embedded at the coefficients it penalises). With H_rho the outer
+  # Hessian, the joint precision of (theta, rho) is
+  #   P = [ J  B ; B'  H_rho + B' J^{-1} B ],
+  # whose inverse has H_rho^{-1} as the covariance of rho, and
+  #   V* = J^{-1} + J^{-1} B H_rho^{-1} B' J^{-1}
+  # as that of theta. P keeps the sparsity of J and only adds one dense row and column
+  # per free lambda, so for large sparse models it is P, not V*, that should be factorised.
+  cross_deriv <- function(){
+    theta_hat <- final$opt$par
+    B <- matrix(0, length(theta_hat), length(lambda))
+    l <- 1
+    for(i in seq_len(n_re)) for(j in seq_len(nrow(re_inds[[i]]))){
+      idx <- re_inds[[i]][j, ]
+      S_ij <- if(i %in% simple_ind) list(S[[i]]) else S[[i]] # one or one per margin
+      for(k in seq_along(S_ij)){
+        B[idx, l] <- lambda[l] * as.vector(S_ij[[k]] %*% theta_hat[idx])
+        l <- l + 1
+      }
+    }
+    # tied lambdas share one log(lambda), so their columns add up; fixed ones drop out
+    B <- vapply(levels(lambda_map), function(lev)
+      rowSums(B[, which(lambda_map == lev), drop = FALSE]), numeric(nrow(B)))
+    dimnames(B) <- list(names(theta_hat), levels(lambda_map))
+    B
+  }
+
+  mod$joint_uncertainty <- function(H_rho = mod$outer_hessian(), precision = TRUE){
+    B <- cross_deriv()
+    dn <- c(names(final$opt$par), paste0("log_", spname, ".", levels(lambda_map)))
+
+    if(spHess){
+      # as in TMB's sdreport(): J stays sparse and is only used through its sparse
+      # Cholesky factor, B is dense in its few columns
+      J <- spH(final$opt$par)
+      J <- Matrix::forceSymmetric((J + Matrix::t(J)) / 2)
+      fac_J <- Matrix::Cholesky(J, LDL = FALSE, perm = TRUE)
+      JiB <- as.matrix(Matrix::solve(fac_J, B, system = "A"))
+    } else{
+      J <- mod$Hessian_conditional
+      J <- (J + t(J)) / 2 # the AD Hessian is symmetric only up to rounding
+      JiB <- solve(J, B)
+    }
+
+    if(precision){
+      C <- H_rho + crossprod(B, JiB)
+      if(spHess){
+        P <- methods::rbind2(methods::cbind2(J, B), methods::cbind2(t(B), C))
+        P <- Matrix::forceSymmetric(P, uplo = "L")
+      } else{
+        P <- rbind(cbind(J, B), cbind(t(B), C))
+      }
+      dimnames(P) <- list(dn, dn)
+      P
+    } else{
+      # V*, the covariance of the parameters alone, which is dense either way
+      Jinv <- if(spHess) as.matrix(Matrix::solve(fac_J, Matrix::Diagonal(nrow(J)), system = "A")) else solve(J)
+      V <- Jinv + JiB %*% solve(H_rho, t(JiB))
+      dimnames(V) <- list(dn[seq_len(nrow(V))], dn[seq_len(nrow(V))])
+      V
+    }
   }
 
   # removing elements only reported for the update

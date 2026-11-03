@@ -99,7 +99,7 @@ If another penalty still does, e.g. the ridge of the random effect margin of a t
 \item{saveall}{logical, if \code{TRUE}, then all model objects from each iteration are saved in the final model object}
 }
 \value{
-model object of class \code{"qremlModel"}, inheriting from \code{"LaMaModel"} (see \code{\link{lama}}), carrying the fitted quantities, the smoothness selection diagnostics shown by \code{\link{summary.qremlModel}}, and \code{outer_hessian()}, the outer Hessian that \code{\link{sdreport_outer}} turns into standard errors
+model object of class \code{"qremlModel"}, inheriting from \code{"LaMaModel"} (see \code{\link{lama}}), carrying the fitted quantities, the smoothness selection diagnostics shown by \code{\link{summary.qremlModel}}, \code{outer_hessian()}, the outer Hessian that \code{\link{sdreport_outer}} turns into standard errors, and \code{joint_uncertainty()}, the joint precision (or corrected covariance) accounting for the uncertainty in the penalty strengths
 }
 \description{
 Efficiently fits models involving quadratic penalties of the form
@@ -142,6 +142,9 @@ It is factorised by a pivoted Cholesky decomposition after scaling to a unit dia
 
 \strong{Uncertainty.} The returned \code{outer_hessian()} gives the Hessian of the negative restricted log-likelihood in the log penalty strengths, by central differences of its approximate gradient, which \code{\link{sdreport_outer}} turns into standard errors.
 Note that these describe the curvature of \eqn{V} only, and treat the approximation to it as exact.
+The returned \code{joint_uncertainty()} propagates this uncertainty to the parameters by the first-order correction of Wood, Pya and Saefken (2016):
+it gives the joint precision matrix of the parameters and the log penalty strengths, as \code{sdreport(getJointPrecision = TRUE)} does in \code{TMB}, which stays sparse if the Hessian is (\code{spHess = TRUE}),
+or, with \code{precision = FALSE}, the corrected covariance matrix of the parameters alone. Both take the outer Hessian as argument \code{H_rho}, by default computed by \code{outer_hessian()}.
 }
 \examples{
 data = trex[1:2000,] # subset of the data

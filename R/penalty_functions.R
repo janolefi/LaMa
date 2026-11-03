@@ -377,7 +377,7 @@ penalty2 = function(re_coef, # coefficient vector/ matrix or list of coefficient
 #' Computes standard deviations for the smoothing parameters of a model object returned by \code{qreml} using the delta method.
 #' 
 #' @details
-#' The computations are based on the approximate gradient of the restricted log likelihood. The outer Hessian is computed by finite differencing of this gradient. If the inverse smoothing parameters are requested, the standard deviations are transformed to the variances using the delta method.
+#' The computations are based on the approximate gradient of the restricted log likelihood. The outer Hessian w.r.t. the log smoothing parameters is computed by central differencing of this gradient, and the standard deviations of the smoothing parameters, or of their inverses (variances), are obtained from it using the delta method.
 #' 
 #'
 #' @param mod model objects as returned by \code{\link{qreml}}
@@ -409,24 +409,24 @@ sdreport_outer <- function(mod, invert = FALSE){
 
   # qreml() reports the outer Hessian itself; qreml_old() only the gradient.
   # Indexed with [[ ]], since $ would partially match 'outer_grad'
+  # outer Hessian w.r.t. log(lambda). qreml_old() only reports the gradient w.r.t.
+  # lambda, whose Jacobian is transformed to the log scale (the gradient is zero at
+  # the optimum, so only the scaling remains)
   H <- if(!is.null(mod[["outer_hessian"]])){
     mod[["outer_hessian"]]()
   } else if(!is.null(mod[["outer_gr"]])){
-    -jacobian(mod[["outer_gr"]], lambda_mapped, method = "simple")
+    -jacobian(mod[["outer_gr"]], lambda_mapped, method = "simple") * outer(lambda_mapped, lambda_mapped)
   } else stop("Model object carries neither 'outer_hessian' nor 'outer_gr'")
 
-  I <- ginv(H)
-  vars <- diag(I)
-  
+  sd_log <- sqrt(diag(ginv(H))) # standard deviations of log(lambda)
+
   self <- list()
-  
+
+  # delta method: sd(lambda) = lambda * sd(log lambda), sd(1/lambda) = sd(log lambda) / lambda
   if(invert){
-    vars <- vars * lambda_mapped^(-4)
-    sds <- sqrt(vars)
-    self$report <- rbind(par = 1/lambda_mapped, sd = sds)
+    self$report <- rbind(par = 1/lambda_mapped, sd = sd_log / lambda_mapped)
   } else{
-    sds <- sqrt(vars)
-    self$report <- rbind(par = lambda_mapped, sd = sds)
+    self$report <- rbind(par = lambda_mapped, sd = sd_log * lambda_mapped)
   }
   colnames(self$report) <- mapped_names
   

@@ -2,6 +2,9 @@
 
 ## LaMa 3.0.1
 
+- MCreport() for qreml() models samples around the final estimate, and
+  with joint = TRUE (or Q from joint_uncertainty()) accounts for the
+  uncertainty in the penalty strengths; needs RTMBdist \> 1.2.0
 - residuals(mod) gives the pseudo-residuals, calling pseudo_res(mod =
   mod)
 - coef(mod) and vcov(mod) give the estimated fixed parameters and their

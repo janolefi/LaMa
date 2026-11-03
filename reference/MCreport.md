@@ -14,6 +14,7 @@ MCreport(
   include_random_pars = TRUE,
   report = FALSE,
   Q = NULL,
+  joint = FALSE,
   ...
 )
 ```
@@ -41,10 +42,25 @@ MCreport(
 
 - Q:
 
-  Optional precalculated sparse precision matrix returned by
-  `sdreport(..., getJointPrecision = TRUE)$jointPrecision`. If not
-  provided, computed internally using `sdreport`. Only used for models
-  with random effects.
+  Optional precalculated precision matrix, e.g. returned by
+  `sdreport(..., getJointPrecision = TRUE)$jointPrecision` for models
+  with random effects, or by `joint_uncertainty()` of a model fitted by
+  [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md). If not
+  provided, computed internally using `sdreport` for models with random
+  effects and the Hessian otherwise.
+
+- joint:
+
+  Logical; only for models fitted by
+  [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md). If
+  `TRUE`, the samples account for the uncertainty in the estimated
+  penalty strengths, by sampling from the joint precision of the
+  parameters and the log penalty strengths returned by
+  `joint_uncertainty()` of the model, and dropping the latter. This
+  requires `2L` additional model fits for `L` penalty strengths, see
+  [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md). If the
+  joint precision has already been computed, it can instead be passed as
+  `Q`.
 
 - ...:
 
@@ -72,6 +88,13 @@ marginal standard devitions like
 useful for multidimensional random effects (e.g. for locations \\x\\ and
 \\y\\) where pointwise confidence intervals (e.g. along a path) based on
 standard deviations are not possible.
+
+For models fitted by
+[`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md), the
+samples are centred at the final estimate. By default, they are
+conditional on the estimated penalty strengths. With `joint = TRUE`, or
+a `Q` from `joint_uncertainty()`, they also account for their
+uncertainty.
 
 ## Examples
 

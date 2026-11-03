@@ -45,7 +45,8 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="3.0.1" id="lama-301">LaMa 3.0.1<a class="anchor" aria-label="anchor" href="#lama-301"></a></h2>
-<ul><li>residuals(mod) gives the pseudo-residuals, calling pseudo_res(mod = mod)</li>
+<ul><li>MCreport() for qreml() models samples around the final estimate, and with joint = TRUE (or Q from joint_uncertainty()) accounts for the uncertainty in the penalty strengths; needs RTMBdist &gt; 1.2.0</li>
+<li>residuals(mod) gives the pseudo-residuals, calling pseudo_res(mod = mod)</li>
 <li>coef(mod) and vcov(mod) give the estimated fixed parameters and their covariance from the inverse Hessian (of the marginal likelihood with random effects, conditional on the smoothing parameters for qreml() models), so confint(mod) works too</li>
 <li>qreml() no longer tries doubled steps after improving ones: each trial costs a full inner fit, and across the case studies tried it almost never reduced the number of inner fits</li>
 <li>qreml(lsp_min = -15) bounds log(lambda) from below, so a penalty strength on a smooth the data cannot inform stops falling and the iteration can converge; a penalty strength ending there gives a warning, and summary() notes it: a larger basis dimension is suggested if no other penalty acts on the same coefficients, otherwise the penalty is reported as redundant (e.g. the wiggliness penalty of a tensor product with a random effect margin), which a larger basis does not help</li>

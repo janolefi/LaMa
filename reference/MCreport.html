@@ -59,6 +59,7 @@ See <code><a href="https://rdrr.io/pkg/TMB/man/sdreport.html" class="external-li
 <span>  include_random_pars <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  report <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  Q <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  joint <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -85,8 +86,16 @@ Defaults to <code>FALSE</code> because this may be slow depending on your model.
 
 
 <dt id="arg-q">Q<a class="anchor" aria-label="anchor" href="#arg-q"></a></dt>
-<dd><p>Optional precalculated sparse precision matrix returned by <code>sdreport(..., getJointPrecision = TRUE)$jointPrecision</code>.
-If not provided, computed internally using <code>sdreport</code>. Only used for models with random effects.</p></dd>
+<dd><p>Optional precalculated precision matrix, e.g. returned by <code>sdreport(..., getJointPrecision = TRUE)$jointPrecision</code> for models with random effects,
+or by <code>joint_uncertainty()</code> of a model fitted by <code><a href="qreml.html">qreml</a></code>.
+If not provided, computed internally using <code>sdreport</code> for models with random effects and the Hessian otherwise.</p></dd>
+
+
+<dt id="arg-joint">joint<a class="anchor" aria-label="anchor" href="#arg-joint"></a></dt>
+<dd><p>Logical; only for models fitted by <code><a href="qreml.html">qreml</a></code>. If <code>TRUE</code>, the samples account for the uncertainty in the estimated penalty strengths,
+by sampling from the joint precision of the parameters and the log penalty strengths returned by <code>joint_uncertainty()</code> of the model,
+and dropping the latter. This requires <code>2L</code> additional model fits for <code>L</code> penalty strengths, see <code><a href="qreml.html">qreml</a></code>.
+If the joint precision has already been computed, it can instead be passed as <code>Q</code>.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -105,6 +114,9 @@ It is simple Monte Carlo sampling from a Gaussian distribution with mean at the 
 This is a common approach to get an approximate idea of parameter uncertainty around the MLE, but it relies on large-sample asymptotics.</p>
 <p>Sampling random effects from their posterior as compared to calculating marginal standard devitions like <code><a href="https://rdrr.io/pkg/TMB/man/sdreport.html" class="external-link">sdreport</a></code> is particularly useful for multidimensional random effects (e.g. for locations \(x\) and \(y\))
 where pointwise confidence intervals (e.g. along a path) based on standard deviations are not possible.</p>
+<p>For models fitted by <code><a href="qreml.html">qreml</a></code>, the samples are centred at the final estimate.
+By default, they are conditional on the estimated penalty strengths.
+With <code>joint = TRUE</code>, or a <code>Q</code> from <code>joint_uncertainty()</code>, they also account for their uncertainty.</p>
     </div>
 
     <div class="section level2">

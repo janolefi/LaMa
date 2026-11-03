@@ -71,7 +71,7 @@
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The computations are based on the approximate gradient of the restricted log likelihood. The outer Hessian is computed by finite differencing of this gradient. If the inverse smoothing parameters are requested, the standard deviations are transformed to the variances using the delta method.</p>
+    <p>The computations are based on the approximate gradient of the restricted log likelihood. The outer Hessian w.r.t. the log smoothing parameters is computed by central differencing of this gradient, and the standard deviations of the smoothing parameters, or of their inverses (variances), are obtained from it using the delta method.</p>
     </div>
 
     <div class="section level2">

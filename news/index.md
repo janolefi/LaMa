@@ -36,6 +36,25 @@
 - qreml() returns edf_hist, the effective degrees of freedom of each
   smooth at the start of each outer iteration (column 1 is the initial
   fit)
+- qreml(): outer_hessian() now differentiates the approximate gradient
+  of the restricted log-likelihood w.r.t. log(lambda) by central
+  differences (2 inner fits per free penalty strength, step h = 0.1),
+  instead of one-sided differences with an absolute step of 1e-4 in
+  lambda, which was inaccurate and could give an indefinite Hessian. The
+  fits are warm started at the final estimate with a tighter inner
+  tolerance. The result is now on the log scale
+- qreml(): outer_hessian() no longer leaves the objective at the last
+  perturbed penalty strength, so samples or Hessians computed from
+  mod\$obj afterwards use the fitted penalty strengths again
+- qreml() returns joint_uncertainty(), the joint precision matrix of the
+  parameters and the log penalty strengths (the first-order correction
+  of Wood, Pya and Saefken, 2016, for the uncertainty in the penalty
+  strengths, in the form of TMB’s sdreport(getJointPrecision = TRUE)),
+  which stays sparse with spHess = TRUE; with precision = FALSE the
+  corrected covariance of the parameters
+- sdreport_outer() works with the outer Hessian w.r.t. log(lambda) and
+  obtains the standard deviations of lambda and 1/lambda from it by the
+  delta method
 
 ## LaMa 3.0.0
 

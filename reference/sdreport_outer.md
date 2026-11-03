@@ -30,10 +30,10 @@ deviations as well as the outer `Hessian` matrix.
 ## Details
 
 The computations are based on the approximate gradient of the restricted
-log likelihood. The outer Hessian is computed by finite differencing of
-this gradient. If the inverse smoothing parameters are requested, the
-standard deviations are transformed to the variances using the delta
-method.
+log likelihood. The outer Hessian w.r.t. the log smoothing parameters is
+computed by central differencing of this gradient, and the standard
+deviations of the smoothing parameters, or of their inverses
+(variances), are obtained from it using the delta method.
 
 ## Examples
 

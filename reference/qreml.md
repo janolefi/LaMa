@@ -205,9 +205,11 @@ model object of class `"qremlModel"`, inheriting from `"LaMaModel"` (see
 [`lama`](https://janolefi.github.io/LaMa/reference/lama.md)), carrying
 the fitted quantities, the smoothness selection diagnostics shown by
 [`summary.qremlModel`](https://janolefi.github.io/LaMa/reference/summary.qremlModel.md),
-and `outer_hessian()`, the outer Hessian that
+`outer_hessian()`, the outer Hessian that
 [`sdreport_outer`](https://janolefi.github.io/LaMa/reference/sdreport_outer.md)
-turns into standard errors
+turns into standard errors, and `joint_uncertainty()`, the joint
+precision (or corrected covariance) accounting for the uncertainty in
+the penalty strengths
 
 ## Details
 
@@ -278,10 +280,19 @@ diagonal; should it not be positive definite, a ridge is added and
 reported through the returned `hessian_repaired`.
 
 **Uncertainty.** The returned `outer_hessian()` gives the Hessian of the
-negative restricted log-likelihood in the penalty strengths, which
+negative restricted log-likelihood in the log penalty strengths, by
+central differences of its approximate gradient, which
 [`sdreport_outer`](https://janolefi.github.io/LaMa/reference/sdreport_outer.md)
 turns into standard errors. Note that these describe the curvature of
-\\V\\ only, and treat the approximation to it as exact.
+\\V\\ only, and treat the approximation to it as exact. The returned
+`joint_uncertainty()` propagates this uncertainty to the parameters by
+the first-order correction of Wood, Pya and Saefken (2016): it gives the
+joint precision matrix of the parameters and the log penalty strengths,
+as `sdreport(getJointPrecision = TRUE)` does in `TMB`, which stays
+sparse if the Hessian is (`spHess = TRUE`), or, with
+`precision = FALSE`, the corrected covariance matrix of the parameters
+alone. Both take the outer Hessian as argument `H_rho`, by default
+computed by `outer_hessian()`.
 
 ## References
 

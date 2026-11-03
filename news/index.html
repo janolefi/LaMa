@@ -54,6 +54,10 @@
 <li>qreml() returns n_fits, the number of inner fits including rejected steps, shown by summary() next to the number of outer iterations</li>
 <li>tpm() and generator() with a design matrix give a one-time message while taping if TapeConfig(matmul = ‘plain’) would record more than 1e8 multiply-adds for the linear predictor (counting only nonzero entries of Z, which RTMB skips otherwise), suggesting TapeConfig(matmul = ‘atomic’) as the tape may not fit into memory</li>
 <li>qreml() returns edf_hist, the effective degrees of freedom of each smooth at the start of each outer iteration (column 1 is the initial fit)</li>
+<li>qreml(): outer_hessian() now differentiates the approximate gradient of the restricted log-likelihood w.r.t. log(lambda) by central differences (2 inner fits per free penalty strength, step h = 0.1), instead of one-sided differences with an absolute step of 1e-4 in lambda, which was inaccurate and could give an indefinite Hessian. The fits are warm started at the final estimate with a tighter inner tolerance. The result is now on the log scale</li>
+<li>qreml(): outer_hessian() no longer leaves the objective at the last perturbed penalty strength, so samples or Hessians computed from mod$obj afterwards use the fitted penalty strengths again</li>
+<li>qreml() returns joint_uncertainty(), the joint precision matrix of the parameters and the log penalty strengths (the first-order correction of Wood, Pya and Saefken, 2016, for the uncertainty in the penalty strengths, in the form of TMB’s sdreport(getJointPrecision = TRUE)), which stays sparse with spHess = TRUE; with precision = FALSE the corrected covariance of the parameters</li>
+<li>sdreport_outer() works with the outer Hessian w.r.t. log(lambda) and obtains the standard deviations of lambda and 1/lambda from it by the delta method</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="3.0.0" id="lama-300">LaMa 3.0.0<a class="anchor" aria-label="anchor" href="#lama-300"></a></h2><p class="text-muted">CRAN release: 2026-10-28</p>

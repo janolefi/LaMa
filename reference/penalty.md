@@ -164,6 +164,6 @@ mod = qreml(pnll, par, dat, random = "betaspline")
 #> outer 25 - sp: 0.489 0.093 
 #> outer 26 - sp: 0.489 0.093 
 #> Converged
-#> Final model fit with sp: 0.489 0.093
+#> Final sp: 0.489 0.093
 # }
 ```

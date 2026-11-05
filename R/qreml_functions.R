@@ -494,11 +494,12 @@ qreml <- function(pnll, # penalised negative log-likelihood function
     mod <- obj$report()
     if(silent == 0) cat("evaluating Hessian...\n")
     J <- hessian_at(opt$par)
+    fit_state$J <- J # the last fit is always the final one, whose Hessian is returned
     fac <- pd_chol((J + t(J)) / 2, silent) # force symmetric
     llk_r <- -opt$value + logdet_Slambda(Lambda) / 2 - fac$logdet / 2 # criterion is -llk_r
 
-    # J is not kept: everything downstream works from the factor, and cur and trial
-    # can be alive at once
+    # J is not kept in the fit: everything downstream works from the factor, and cur
+    # and trial can be alive at once
     # gradient evaluations of the inner optimiser (function evaluations for
     # gradient-free methods); one means it stopped at its warm start
     n_inner <- if(is.na(opt$counts[2])) opt$counts[1] else opt$counts[2]
@@ -706,7 +707,7 @@ qreml <- function(pnll, # penalised negative log-likelihood function
   lambda <- unmap_lambda(exp(lsp)) * smoothing
   if(silent < 2){
     if(any(smoothing != 1)) message("Smoothing factor: ", paste(smoothing, collapse = " "))
-    message("Final model fit with ", spname, ": ", paste(round(lambda, 3), collapse = " "))
+    message("Final ", spname, ": ", paste(round(lambda, 3), collapse = " "))
   }
 
   final_lsp <- log(map_lambda(lambda))
@@ -821,7 +822,8 @@ qreml <- function(pnll, # penalised negative log-likelihood function
   mod$nobs <- count_nobs(mod$allprobs)
   mod$mgc <- final$mgc # maximum gradient component of the inner problem
 
-  mod$Hessian_conditional <- hessian_at(final$opt$par)
+  mod$Hessian_conditional <- fit_state$J # already evaluated by the final fit
+  fit_state$J <- NULL # outer_hessian() restores this, so its fits leave no stale copy
   mod$llk_restricted <- -crit_hist[seq_len(iter)]
   # edf of the fit each outer iteration started from, so column 1 is the initial fit
   mod$edf_hist <- edf_hist[, seq_len(iter), drop = FALSE]

@@ -171,5 +171,9 @@ test_that("MCreport: qreml() models, conditional and joint", {
   expect_equal(unname(apply(sj[, spl], 2, var)), unname(diag(V)[spl]), tolerance = 0.15)
   expect_true(all(diag(V)[spl] >= diag(solve(mod$Hessian_conditional))[spl] - 1e-10))
 
+  # the Hessian returned is that of the final fit, and outer_hessian() leaves no copy behind
+  expect_equal(mod$Hessian_conditional, mod$obj$he(mod$par_vec), ignore_attr = TRUE)
+  expect_null(environment(mod$outer_hessian)$fit_state$J)
+
   expect_error(MCreport(obj_rep, joint = TRUE), "qreml")
 })

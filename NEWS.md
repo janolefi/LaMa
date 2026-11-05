@@ -1,5 +1,8 @@
 # LaMa 3.0.1
 
+* qreml() no longer evaluates the Hessian a second time for the returned model, which saves about 
+  length(par) gradient evaluations per fit, and the final message now reads "Final sp: ..." as no 
+  fit follows it unless the last iterate was not the best one
 * MCreport() for qreml() models samples around the final estimate, and with joint = TRUE (or Q from 
   joint_uncertainty()) accounts for the uncertainty in the penalty strengths; needs RTMBdist > 1.2.0
 * residuals(mod) gives the pseudo-residuals, calling pseudo_res(mod = mod)

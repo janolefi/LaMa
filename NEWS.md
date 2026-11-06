@@ -1,4 +1,4 @@
-# LaMa 3.0.1
+# LaMa 3.1.0
 
 * qreml() no longer evaluates the Hessian a second time for the returned model, which saves about 
   length(par) gradient evaluations per fit, and the final message now reads "Final sp: ..." as no 

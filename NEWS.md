@@ -4,7 +4,7 @@
   `length(par)` gradient evaluations per fit, and the final message now reads `"Final sp: ..."` as no 
   fit follows it unless the last iterate was not the best one
 * `MCreport()` for `qreml()` models samples around the final estimate, and with `joint = TRUE` (or `Q` from 
-  `joint_uncertainty()`) accounts for the uncertainty in the penalty strengths; needs RTMBdist > 1.2.0
+  `joint_uncertainty()`) accounts for the uncertainty in the penalty strengths; needs RTMBdist > 1.2.1
 * `residuals(mod)` gives the pseudo-residuals, calling `pseudo_res(mod = mod)`
 * `coef(mod)` and `vcov(mod)` give the estimated fixed parameters and their covariance from the inverse 
   Hessian (of the marginal likelihood with random effects, conditional on the smoothing parameters 

@@ -8,13 +8,13 @@
 ## Citation
 
 Fischer J (2026). *LaMa: Fast Numerical Maximum Likelihood Estimation
-for Latent Markov Models*. R package version 3.0.1,
+for Latent Markov Models*. R package version 3.1.0,
 <https://janolefi.github.io/LaMa/>.
 
     @Manual{,
       title = {LaMa: Fast Numerical Maximum Likelihood Estimation for Latent Markov Models},
       author = {Jan-Ole Fischer},
       year = {2026},
-      note = {R package version 3.0.1},
+      note = {R package version 3.1.0},
       url = {https://janolefi.github.io/LaMa/},
     }

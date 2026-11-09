@@ -38,7 +38,7 @@ Defaults to \code{FALSE}, but should be set to \code{TRUE} if one wants to work 
 
 \item{report}{logical; if \code{TRUE} (default), \code{delta}, \code{Gamma}, \code{allprobs}, and \code{trackID} are reported from the fitted model. Requires \code{ad = TRUE}.}
 
-\item{param}{depricated, please use argument \code{beta} instead.}
+\item{param}{deprecated, please use argument \code{beta} instead.}
 }
 \value{
 Transition probability matrix of dimension \code{c(nStates, nStates)} or array of such matrices of dimension \code{c(nStates, nStates, nObs)} if \code{Z} or \code{Eta} is provided.

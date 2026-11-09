@@ -9,7 +9,7 @@
 #' 
 #' @family stationary distribution functions
 #' 
-#' @seealso \code{\link{tpm}} to create a transition probabilty matrix using the multinomial logistic link (softmax)
+#' @seealso \code{\link{tpm}} to create a transition probability matrix using the multinomial logistic link (softmax)
 #
 #' @param Gamma transition probability matrix of dimension \code{c(N,N)} or array of such matrices of dimension \code{c(N,N,nTracks)} if the stationary distribution should be computed for several matrices at once
 #'
@@ -248,7 +248,7 @@ stationary_cont <- function(Q){
 #' Sparse version of \code{\link{stationary}}
 #'
 #' @description
-#' This is function computes the stationary distribution of a Markov chain with a given \strong{sparse} transition probability matrix.
+#' This function computes the stationary distribution of a Markov chain with a given \strong{sparse} transition probability matrix.
 #' Compatible with automatic differentiation by \code{RTMB}
 #
 #' @param Gamma sparse transition probability matrix of dimension c(N,N)
@@ -287,10 +287,10 @@ stationary_sparse = function(Gamma)
 #' Sparse version of \code{\link{stationary_p}}
 #'
 #' @description
-#' This is function computes the periodically stationary distribution of a Markov chain given a list of L \strong{sparse} transition probability matrices.
+#' This function computes the periodically stationary distribution of a Markov chain given a list of L \strong{sparse} transition probability matrices.
 #' Compatible with automatic differentiation by \code{RTMB}
 #' 
-#' @param Gamma sist of length L containing sparse transition probability matrices for one cycle.
+#' @param Gamma list of length L containing sparse transition probability matrices for one cycle.
 #' @param t integer index of the time point in the cycle, for which to calculate the stationary distribution
 #' If t is not provided, the function calculates all stationary distributions for each time point in the cycle.
 #'

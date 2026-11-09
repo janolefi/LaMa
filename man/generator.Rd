@@ -30,7 +30,7 @@ If provided, \code{Z} and \code{beta} will be ignored.}
 
 \item{report}{logical, indicating whether the generator matrix \code{Q} should be reported from the fitted model. Defaults to \code{TRUE}, but only works if when automatic differentiation with \code{RTMB} is used.}
 
-\item{param}{depricated, please use argument \code{beta} instead.}
+\item{param}{deprecated, please use argument \code{beta} instead.}
 }
 \value{
 infinitesimal generator matrix of dimension \code{c(nStates, nStates)} or array of such matrices of dimension \code{c(nStates, nStates, nObs)} if \code{Z} or \code{Eta} is provided.

@@ -293,7 +293,7 @@ zero_inflate <- function(dist, discrete = NULL) {
 #' @param lambda precision scaling parameter
 #' 
 #' Can be a vector if \code{x} is a matrix. Then each row of \code{x} is evaluated with the corresponding \code{lambda}.
-#' This is benefitial from an efficiency perspective because the determinant of \code{S} is only computed once.
+#' This is beneficial from an efficiency perspective because the determinant of \code{S} is only computed once.
 #' @param logdetS Optional precomputed log determinant of the precision matrix \code{S}. If the precision matrix does not depend on parameters, it can be precomputed and passed to the function.
 #' @param log logical; if \code{TRUE}, densities are returned on the log scale.
 #'

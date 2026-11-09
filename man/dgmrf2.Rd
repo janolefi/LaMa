@@ -16,7 +16,7 @@ dgmrf2(x, mu = 0, S, lambda, logdetS = NULL, log = FALSE)
 \item{lambda}{precision scaling parameter
 
 Can be a vector if \code{x} is a matrix. Then each row of \code{x} is evaluated with the corresponding \code{lambda}.
-This is benefitial from an efficiency perspective because the determinant of \code{S} is only computed once.}
+This is beneficial from an efficiency perspective because the determinant of \code{S} is only computed once.}
 
 \item{logdetS}{Optional precomputed log determinant of the precision matrix \code{S}. If the precision matrix does not depend on parameters, it can be precomputed and passed to the function.}
 

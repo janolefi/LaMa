@@ -40,7 +40,7 @@
 #' logical; if \code{TRUE} (default), \code{delta}, \code{Gamma}, \code{allprobs}, and \code{trackID} are reported from the fitted model. Requires \code{ad = TRUE}. 
 #' 
 #' @param param 
-#' depricated, please use argument \code{beta} instead.
+#' deprecated, please use argument \code{beta} instead.
 #' 
 #' @return Transition probability matrix of dimension \code{c(nStates, nStates)} or array of such matrices of dimension \code{c(nStates, nStates, nObs)} if \code{Z} or \code{Eta} is provided.
 #' @export
@@ -151,11 +151,11 @@ tpm <- function(
 
 #' Build all transition probability matrices of an inhomogeneous HMM
 #' 
-#' In an HMM, we often model the influence of covariates on the state process by linking them to the transition probabiltiy matrix. 
+#' In an HMM, we often model the influence of covariates on the state process by linking them to the transition probability matrix. 
 #' Most commonly, this is done by specifying a linear predictor
 #' \deqn{ \eta_{ij}^{(t)} = \beta^{(ij)}_0 + \beta^{(ij)}_1 z_{t1} + \dots + \beta^{(ij)}_p z_{tp} }
 #' for each off-diagonal element (\eqn{i \neq j}) of the transition probability matrix and then applying the inverse multinomial logistic link (also known as softmax) to each row.
-#' This function efficiently calculates all transition probabilty matrices for a given design matrix \code{Z} and parameter matrix \code{beta}.
+#' This function efficiently calculates all transition probability matrices for a given design matrix \code{Z} and parameter matrix \code{beta}.
 #' 
 #' \strong{Deprecated:} please use \code{\link{tpm}(beta, Z)} for all model types instead.
 #' 
@@ -167,7 +167,7 @@ tpm <- function(
 #'
 #' @param beta 
 #' Matrix of coefficients for the off-diagonal elements of the transition probability matrix 
-#' of dimension \code{c(nStates * (nStates-1), p+1)}. First columns contains the intercepts.
+#' of dimension \code{c(nStates * (nStates-1), p+1)}. The first column contains the intercepts.
 #' 
 #' @param Eta 
 #' optional pre-calculated matrix of linear predictors of dimension \code{c(nObs, nStates * (nStates-1))}.
@@ -350,11 +350,11 @@ tpm_inhom <- function(Z, beta,
 
 #' Build all transition probability matrices of an inhomogeneous HMM
 #' 
-#' In an HMM, we often model the influence of covariates on the state process by linking them to the transition probabiltiy matrix. 
+#' In an HMM, we often model the influence of covariates on the state process by linking them to the transition probability matrix. 
 #' Most commonly, this is done by specifying linear predictors
 #' \deqn{ \eta_{ij}^{(t)} = \beta^{(ij)}_0 + \beta^{(ij)}_1 z_{t1} + \dots + \beta^{(ij)}_p z_{tp} }
 #' for each off-diagonal element (\eqn{i \neq j}) of the transition probability matrix and then applying the inverse multinomial logistic link (also known as softmax) to each row.
-#' This function efficiently calculates all transition probabilty matrices for a given design matrix \code{Z} and parameter matrix \code{beta}.
+#' This function efficiently calculates all transition probability matrices for a given design matrix \code{Z} and parameter matrix \code{beta}.
 #' 
 #' @family transition probability matrix functions
 #'
@@ -533,17 +533,17 @@ tpm_g2 <- function(Z,
 }
 
 
-#' Compute the transition probability matrix of a thinned periodically inhomogeneous Markov chain.
+#' Compute the transition probability matrix of a thinned periodically inhomogeneous Markov chain
 #'
 #' If the transition probability matrix of an inhomogeneous Markov chain varies only periodically (with period length \eqn{L}), it converges to a so-called periodically stationary distribution. 
 #' This happens, because the thinned Markov chain, which has a full cycle as each time step, has homogeneous transition probability matrix
 #' \deqn{\Gamma_t = \Gamma^{(t)} \Gamma^{(t+1)} \dots \Gamma^{(t+L-1)}} for all \eqn{t = 1, \dots, L.}
-#' This function calculates the matrix above efficiently as a preliminery step to calculating the periodically stationary distribution.
+#' This function calculates the matrix above efficiently as a preliminary step to calculating the periodically stationary distribution.
 #' 
 #' @param Gamma array of transition probability matrices of dimension \code{c(nStates, nStates, L)}.
-#' @param t integer index of the time point in the cycle, for which to calculate the thinned transition probility matrix
+#' @param t integer index of the time point in the cycle, for which to calculate the thinned transition probability matrix
 #'
-#' @return thinned transition probabilty matrix of dimension \code{c(nStates, nStates)}
+#' @return thinned transition probability matrix of dimension \code{c(nStates, nStates)}
 #' @export
 #'
 #' @examples
@@ -649,7 +649,7 @@ tpm_p = function(tod = 1:24, L=24, beta, degree = 1, Z = NULL, byrow = FALSE, ad
 #' Calculate continuous time transition probabilities
 #'
 #' A continuous-time Markov chain is described by an infinitesimal generator matrix \eqn{Q}. 
-#' When observing data at time points \eqn{t_1, \dots, t_n} the transition probabilites between \eqn{t_i} and \eqn{t_{i+1}} are caluclated as
+#' When observing data at time points \eqn{t_1, \dots, t_n} the transition probabilities between \eqn{t_i} and \eqn{t_{i+1}} are calculated as
 #' \deqn{\Gamma(\Delta t_i) = \exp(Q \Delta t_i),}
 #' where \eqn{\exp()} is the matrix exponential. The mapping \eqn{\Gamma(\Delta t)} is also called the \strong{Markov semigroup}.
 #' This function calculates all transition matrices based on a given generator and time differences.
@@ -875,7 +875,7 @@ tpm_cont <- function(
 #' logical, indicating whether the generator matrix \code{Q} should be reported from the fitted model. Defaults to \code{TRUE}, but only works if when automatic differentiation with \code{RTMB} is used.
 #'
 #' @param param 
-#' depricated, please use argument \code{beta} instead.
+#' deprecated, please use argument \code{beta} instead.
 #' 
 #' @return infinitesimal generator matrix of dimension \code{c(nStates, nStates)} or array of such matrices of dimension \code{c(nStates, nStates, nObs)} if \code{Z} or \code{Eta} is provided.
 #' @export
@@ -975,7 +975,7 @@ generator <- function(
 #'
 #' @param beta 
 #' Matrix of coefficients for the off-diagonal elements of the generator matrix 
-#' of dimension \code{c(nStates * (nStates-1), p+1)}. First columns contains the intercepts.
+#' of dimension \code{c(nStates * (nStates-1), p+1)}. The first column contains the intercepts.
 #' 
 #' @param Eta 
 #' optional pre-calculated matrix of linear predictors of dimension \code{c(nObs, nStates * (nStates-1))}.
@@ -1251,7 +1251,7 @@ tpm_emb_g = function(Z, beta, report = TRUE){
 #'
 #' @description
 #' Hidden semi-Markov models (HSMMs) are a flexible extension of HMMs, where the state duration distribution is explicitly modelled.
-#' For direct numerical maximum likelhood estimation, HSMMs can be represented as HMMs on an enlarged state space (of size \eqn{M}) and with structured transition probabilities.
+#' For direct numerical maximum likelihood estimation, HSMMs can be represented as HMMs on an enlarged state space (of size \eqn{M}) and with structured transition probabilities.
 #' 
 #' This function computes the transition matrix to approximate a given HSMM by an HMM with a larger state space.
 #'
@@ -1259,7 +1259,7 @@ tpm_emb_g = function(Z, beta, report = TRUE){
 #' @param dm state dwell-time distributions arranged in a list of length \code{nStates}. Each list element needs to be a vector of length N_i, where N_i is the state aggregate size.
 #' @param Fm optional list of length \code{nStates} containing the cumulative distribution functions of the dwell-time distributions.
 #' @param sparse logical, indicating whether the output should be a \strong{sparse} matrix. Defaults to \code{TRUE}.
-#' @param eps rounding value: If an entry of the transition probabily matrix is smaller, than it is rounded to zero. Usually, this should not be changed.
+#' @param eps rounding value: If an entry of the transition probability matrix is smaller, it is rounded to zero. Usually, this should not be changed.
 #'
 #' @return extended-state-space transition probability matrix of the approximating HMM
 #' @export
@@ -1334,7 +1334,7 @@ tpm_hsmm <- function(omega, dm,
 #' Builds all transition probability matrices of an inhomogeneous-HSMM-approximating HMM
 #'
 #' @description
-#' Hidden semi-Markov models (HSMMs) are a flexible extension of HMMs. For direct numerical maximum likelhood estimation, HSMMs can be represented as HMMs on an enlarged state space (of size \eqn{M}) and with structured transition probabilities.
+#' Hidden semi-Markov models (HSMMs) are a flexible extension of HMMs. For direct numerical maximum likelihood estimation, HSMMs can be represented as HMMs on an enlarged state space (of size \eqn{M}) and with structured transition probabilities.
 #' 
 #' This function computes the transition matrices of a periodically inhomogeneos HSMMs.
 #'
@@ -1344,7 +1344,7 @@ tpm_hsmm <- function(omega, dm,
 #' @param dm state dwell-time distributions arranged in a list of length \code{nStates}
 #'
 #' Each list element needs to be a matrix of dimension c(n, N_i), where each row t is the (approximate) probability mass function of state i at time t.
-#' @param eps rounding value: If an entry of the transition probabily matrix is smaller, than it is rounded to zero. Usually, this should not be changed.
+#' @param eps rounding value: If an entry of the transition probability matrix is smaller, it is rounded to zero. Usually, this should not be changed.
 #'
 #' @return list of dimension length \code{n - max(sapply(dm, ncol))}, containing sparse extended-state-space transition probability matrices for each time point (except the first \code{max(sapply(dm, ncol)) - 1}).
 #' @export
@@ -1360,14 +1360,14 @@ tpm_hsmm <- function(omega, dm,
 #' # state dwell-time distributions
 #' dm = lapply(1:N, function(i) sapply(1:sizes[i]-1, dpois, lambda = Lambda[,i]))
 #' 
-#' ## homogeneous conditional transition probabilites
+#' ## homogeneous conditional transition probabilities
 #' # diagonal elements are zero, rowsums are one
 #' omega = matrix(c(0,1,1,0), nrow = N, byrow = TRUE)
 #' 
 #' # calculating extended-state-space t.p.m.s
 #' Gamma = tpm_ihsmm(omega, dm)
 #' 
-#' ## inhomogeneous conditional transition probabilites
+#' ## inhomogeneous conditional transition probabilities
 #' # omega can be an array
 #' omega = array(omega, dim = c(N,N,n))
 #' 
@@ -1407,12 +1407,12 @@ tpm_ihsmm = function(omega, dm,
   Gamma
 }
 
-#' Builds all transition probability matrices of an periodic-HSMM-approximating HMM
+#' Builds all transition probability matrices of a periodic-HSMM-approximating HMM
 #'
 #' @description
-#' Hidden semi-Markov models (HSMMs) are a flexible extension of HMMs. For direct numerical maximum likelhood estimation, HSMMs can be represented as HMMs on an enlarged state space (of size \eqn{M}) and with structured transition probabilities.
+#' Hidden semi-Markov models (HSMMs) are a flexible extension of HMMs. For direct numerical maximum likelihood estimation, HSMMs can be represented as HMMs on an enlarged state space (of size \eqn{M}) and with structured transition probabilities.
 #' 
-#' This function computes the transition matrices of a periodically inhomogeneos HSMMs.
+#' This function computes the transition matrices of a periodically inhomogeneous HSMM.
 #'
 #' @param omega embedded transition probability matrix
 #'
@@ -1420,9 +1420,9 @@ tpm_ihsmm = function(omega, dm,
 #' @param dm state dwell-time distributions arranged in a list of length \code{nStates}
 #'
 #' Each list element needs to be a matrix of dimension c(L, N_i), where each row t is the (approximate) probability mass function of state i at time t.
-#' @param eps rounding value: If an entry of the transition probabily matrix is smaller, than it is rounded to zero. Usually, this should not be changed.
+#' @param eps rounding value: If an entry of the transition probability matrix is smaller, it is rounded to zero. Usually, this should not be changed.
 #'
-#' @return list of dimension length L, containing sparse extended-state-space transition probability matrices of the approximating HMM for each time point of the cycle.
+#' @return list of length L, containing sparse extended-state-space transition probability matrices of the approximating HMM for each time point of the cycle.
 #' @export
 #'
 #' @examples
@@ -1436,14 +1436,14 @@ tpm_ihsmm = function(omega, dm,
 #' # state dwell-time distributions
 #' dm = lapply(1:N, function(i) sapply(1:sizes[i]-1, dpois, lambda = Lambda[,i]))
 #' 
-#' ## homogeneous conditional transition probabilites
+#' ## homogeneous conditional transition probabilities
 #' # diagonal elements are zero, rowsums are one
 #' omega = matrix(c(0,1,1,0), nrow = N, byrow = TRUE)
 #' 
 #' # calculating extended-state-space t.p.m.s
 #' Gamma = tpm_phsmm(omega, dm)
 #' 
-#' ## inhomogeneous conditional transition probabilites
+#' ## inhomogeneous conditional transition probabilities
 #' # omega can be an array
 #' omega = array(omega, dim = c(N,N,L))
 #' 

@@ -20,7 +20,7 @@ pseudo_res(
 (or the \code{RTMB} object), in which case nothing else is needed (see \sQuote{Details})}
 
 \item{dist}{character string specifying which parametric CDF to use (e.g., \code{"norm"} for normal or \code{"pois"} for Poisson) or CDF function to evaluate directly.
-If a discrete CDF function is passed, the \code{discrete} argument needs to be set to \code{TRUE} because this cannot determined automatically.}
+If a discrete CDF function is passed, the \code{discrete} argument needs to be set to \code{TRUE} because this cannot be determined automatically.}
 
 \item{par}{named parameter list for the parametric CDF
 
@@ -32,7 +32,7 @@ This argument is as flexible as the parametric distribution allows. For example 
 \item{mod}{optional model object containing required quantities
 
 When using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
-Hence, you can pass the model object obtained from \code{obj$report()}, \code{\link{lama}} or \code{\link{qreml}} directly to this function and avoid calculating local state proabilities manually.
+Hence, you can pass the model object obtained from \code{obj$report()}, \code{\link{lama}} or \code{\link{qreml}} directly to this function and avoid calculating local state probabilities manually.
 In this case, a call should look like \code{pseudo_res(obs, "norm", par, mod = mod)}.}
 
 \item{normal}{logical, if \code{TRUE}, returns Gaussian pseudo residuals

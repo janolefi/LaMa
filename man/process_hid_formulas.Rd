@@ -13,7 +13,7 @@ process_hid_formulas(formulas, nStates, ref = NULL)
 
 \item{ref}{optional vector of reference categories for each state, defaults to \code{1:nStates}. 
 If provided, must be of length \code{nStates} and contain valid state indices. 
-If a formula matrix is provided, this cannot be specified because reference categries are specified by one \code{"."} entry in each row.}
+If a formula matrix is provided, this cannot be specified because reference categories are specified by one \code{"."} entry in each row.}
 }
 \value{
 named list of formulas of length \code{nStates * (nStates - 1)}, where each formula corresponds to a transition from state \eqn{i} to state \eqn{j}, excluding transitions from \code{i} to \code{ref[i]}.

@@ -7,7 +7,7 @@
 stationary_p_sparse(Gamma, t = NULL)
 }
 \arguments{
-\item{Gamma}{sist of length L containing sparse transition probability matrices for one cycle.}
+\item{Gamma}{list of length L containing sparse transition probability matrices for one cycle.}
 
 \item{t}{integer index of the time point in the cycle, for which to calculate the stationary distribution
 If t is not provided, the function calculates all stationary distributions for each time point in the cycle.}
@@ -16,7 +16,7 @@ If t is not provided, the function calculates all stationary distributions for e
 either the periodically stationary distribution at time t or all periodically stationary distributions.
 }
 \description{
-This is function computes the periodically stationary distribution of a Markov chain given a list of L \strong{sparse} transition probability matrices.
+This function computes the periodically stationary distribution of a Markov chain given a list of L \strong{sparse} transition probability matrices.
 Compatible with automatic differentiation by \code{RTMB}
 }
 \examples{

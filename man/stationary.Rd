@@ -28,7 +28,7 @@ Gamma = array(Gamma, dim = c(3,3,10))
 Delta = stationary(Gamma)
 }
 \seealso{
-\code{\link{tpm}} to create a transition probabilty matrix using the multinomial logistic link (softmax)
+\code{\link{tpm}} to create a transition probability matrix using the multinomial logistic link (softmax)
 
 Other stationary distribution functions: 
 \code{\link{stationary_ct}()},

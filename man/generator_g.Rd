@@ -10,7 +10,7 @@ generator_g(Z, beta, Eta = NULL, byrow = FALSE, report = TRUE)
 \item{Z}{Covariate design matrix with or without intercept column, i.e. of dimension \code{c(nObs, p)} or \code{c(nObs, p+1)}. If not provided, intercept column is added automatically.}
 
 \item{beta}{Matrix of coefficients for the off-diagonal elements of the generator matrix 
-of dimension \code{c(nStates * (nStates-1), p+1)}. First columns contains the intercepts.}
+of dimension \code{c(nStates * (nStates-1), p+1)}. The first column contains the intercepts.}
 
 \item{Eta}{optional pre-calculated matrix of linear predictors of dimension \code{c(nObs, nStates * (nStates-1))}.
 If provided, no \code{Z} and \code{beta} are necessary and will be ignored.}

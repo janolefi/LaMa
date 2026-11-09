@@ -33,11 +33,11 @@ Defaults to \code{FALSE}, but should be set to \code{TRUE} if one wants to work 
 array of transition probability matrices of dimension c(N,N,n)
 }
 \description{
-In an HMM, we often model the influence of covariates on the state process by linking them to the transition probabiltiy matrix. 
+In an HMM, we often model the influence of covariates on the state process by linking them to the transition probability matrix. 
 Most commonly, this is done by specifying linear predictors
 \deqn{ \eta_{ij}^{(t)} = \beta^{(ij)}_0 + \beta^{(ij)}_1 z_{t1} + \dots + \beta^{(ij)}_p z_{tp} }
 for each off-diagonal element (\eqn{i \neq j}) of the transition probability matrix and then applying the inverse multinomial logistic link (also known as softmax) to each row.
-This function efficiently calculates all transition probabilty matrices for a given design matrix \code{Z} and parameter matrix \code{beta}.
+This function efficiently calculates all transition probability matrices for a given design matrix \code{Z} and parameter matrix \code{beta}.
 }
 \examples{
 Z = matrix(runif(200), ncol = 2)

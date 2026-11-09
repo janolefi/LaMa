@@ -11,7 +11,7 @@ tpm_g(Z, beta, Eta = NULL, byrow = FALSE, ref = NULL, ad = NULL, report = TRUE)
 If not provided, intercept column is added automatically.}
 
 \item{beta}{Matrix of coefficients for the off-diagonal elements of the transition probability matrix 
-of dimension \code{c(nStates * (nStates-1), p+1)}. First columns contains the intercepts.}
+of dimension \code{c(nStates * (nStates-1), p+1)}. The first column contains the intercepts.}
 
 \item{Eta}{optional pre-calculated matrix of linear predictors of dimension \code{c(nObs, nStates * (nStates-1))}.
 If provided, no \code{Z} and \code{beta} are necessary and will be ignored.}
@@ -30,11 +30,11 @@ Defaults to \code{FALSE}, but should be set to \code{TRUE} if one wants to work 
 array of transition probability matrices of dimension \code{c(nStates, nStates, nObs)}
 }
 \description{
-In an HMM, we often model the influence of covariates on the state process by linking them to the transition probabiltiy matrix. 
+In an HMM, we often model the influence of covariates on the state process by linking them to the transition probability matrix. 
 Most commonly, this is done by specifying a linear predictor
 \deqn{ \eta_{ij}^{(t)} = \beta^{(ij)}_0 + \beta^{(ij)}_1 z_{t1} + \dots + \beta^{(ij)}_p z_{tp} }
 for each off-diagonal element (\eqn{i \neq j}) of the transition probability matrix and then applying the inverse multinomial logistic link (also known as softmax) to each row.
-This function efficiently calculates all transition probabilty matrices for a given design matrix \code{Z} and parameter matrix \code{beta}.
+This function efficiently calculates all transition probability matrices for a given design matrix \code{Z} and parameter matrix \code{beta}.
 }
 \details{
 \strong{Deprecated:} please use \code{\link{tpm}(beta, Z)} for all model types instead.

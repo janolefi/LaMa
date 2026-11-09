@@ -9,7 +9,7 @@
 #' It is simple Monte Carlo sampling from a Gaussian distribution with mean at the MLE and covariance given by the inverse of the Hessian (for fixed effects models) or the joint precision matrix (for random effects models). 
 #' This is a common approach to get an approximate idea of parameter uncertainty around the MLE, but it relies on large-sample asymptotics.
 #' 
-#' Sampling random effects from their posterior as compared to calculating marginal standard devitions like \code{\link[TMB]{sdreport}} is particularly useful for multidimensional random effects (e.g. for locations \eqn{x} and \eqn{y})
+#' Sampling random effects from their posterior as compared to calculating marginal standard deviations like \code{\link[TMB]{sdreport}} is particularly useful for multidimensional random effects (e.g. for locations \eqn{x} and \eqn{y})
 #' where pointwise confidence intervals (e.g. along a path) based on standard deviations are not possible.
 #'
 #' For models fitted by \code{\link{qreml}}, the samples are centred at the final estimate. 

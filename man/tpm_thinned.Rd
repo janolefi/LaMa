@@ -2,23 +2,23 @@
 % Please edit documentation in R/tpm_functions.R
 \name{tpm_thinned}
 \alias{tpm_thinned}
-\title{Compute the transition probability matrix of a thinned periodically inhomogeneous Markov chain.}
+\title{Compute the transition probability matrix of a thinned periodically inhomogeneous Markov chain}
 \usage{
 tpm_thinned(Gamma, t)
 }
 \arguments{
 \item{Gamma}{array of transition probability matrices of dimension \code{c(nStates, nStates, L)}.}
 
-\item{t}{integer index of the time point in the cycle, for which to calculate the thinned transition probility matrix}
+\item{t}{integer index of the time point in the cycle, for which to calculate the thinned transition probability matrix}
 }
 \value{
-thinned transition probabilty matrix of dimension \code{c(nStates, nStates)}
+thinned transition probability matrix of dimension \code{c(nStates, nStates)}
 }
 \description{
 If the transition probability matrix of an inhomogeneous Markov chain varies only periodically (with period length \eqn{L}), it converges to a so-called periodically stationary distribution. 
 This happens, because the thinned Markov chain, which has a full cycle as each time step, has homogeneous transition probability matrix
 \deqn{\Gamma_t = \Gamma^{(t)} \Gamma^{(t+1)} \dots \Gamma^{(t+L-1)}} for all \eqn{t = 1, \dots, L.}
-This function calculates the matrix above efficiently as a preliminery step to calculating the periodically stationary distribution.
+This function calculates the matrix above efficiently as a preliminary step to calculating the periodically stationary distribution.
 }
 \examples{
 # setting parameters for trigonometric link

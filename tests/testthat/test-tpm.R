@@ -24,3 +24,49 @@ test_that("deprecated(): message once per session", {
   expect_message(deprecated("old() is deprecated, test."), "old")
   expect_silent(deprecated("old() is deprecated, test."))
 })
+
+test_that("tpm_ct(): 2-state closed form (AD) agrees with Matrix::expm", {
+  set.seed(1)
+  n <- 30; dt <- rexp(n, 0.5); z <- rnorm(n)
+  beta <- c(-1, -2, 0.5, -0.3)
+  # old AD path: Matrix::expm per interval
+  expm_loop <- function(Q, rates) {
+    "[<-" <- RTMB::ADoverload("[<-")
+    G <- array(0, c(2, 2, n))
+    for(t in 1:n) G[, , t] <- as.matrix(Matrix::expm((Q[, , t] - diag(rates)) * dt[t]))
+    G
+  }
+  for(rates in list(NULL, c(0.5, 3))) {
+    r <- if(is.null(rates)) c(0, 0) else rates
+    # constant Q (matrix) and time-varying Q (array)
+    fQ <- function(b) generator(b[1:2], report = FALSE)
+    gQ <- function(b) generator(matrix(b, 2), Z = z, report = FALSE)
+    for(Qfun in list(fQ, gQ)) {
+      f_new <- function(b) c(tpm_ct(Qfun(b), dt, rates, report = FALSE))
+      f_old <- function(b) {
+        Q <- Qfun(b)
+        if(is.matrix(Q)) Q <- array(Q, c(2, 2, n))
+        c(expm_loop(Q, r))
+      }
+      F_new <- RTMB::MakeTape(f_new, beta)
+      F_old <- RTMB::MakeTape(f_old, beta)
+      expect_equal(F_new(beta), c(expm_loop(array(Qfun(beta), c(2, 2, n)), r)), tolerance = 1e-12)
+      expect_equal(F_new(beta), f_new(beta), tolerance = 1e-12) # AD vs C++
+      expect_equal(F_new$jacobian(beta), F_old$jacobian(beta), tolerance = 1e-10)
+    }
+  }
+})
+
+test_that("tpm_ct(): 2-state closed form handles extreme rates and zero Q", {
+  dt <- c(1e-8, 1, 1e3)
+  F <- RTMB::MakeTape(function(b) c(tpm_ct(generator(b, report = FALSE), dt, ad = TRUE, report = FALSE)), c(0, 0))
+  # exact: Gamma_12 = q12 (1 - exp(-s dt)) / s (expm loses accuracy for huge s dt)
+  for(b in list(c(-15, -10), c(8, 9), c(-10, 8))) {
+    q21 <- exp(b[1]); q12 <- exp(b[2]); s <- q12 + q21
+    p12 <- -q12 * expm1(-s * dt) / s; p21 <- -q21 * expm1(-s * dt) / s
+    expect_equal(F(b), c(rbind(1 - p12, p21, p12, 1 - p21)), tolerance = 1e-14)
+  }
+  # no switching at all: identity
+  G <- RTMB::MakeTape(function(x) c(tpm_ct(x * matrix(0, 2, 2), dt, ad = TRUE, report = FALSE)), 1)
+  expect_equal(G(1), rep(c(1, 0, 0, 1), 3))
+})

@@ -10,7 +10,8 @@ tpm_ct(Q, timediff, rates = NULL, ad = NULL, report = TRUE)
 tpm_cont(Q, timediff, rates = NULL, ad = NULL, report = TRUE)
 }
 \arguments{
-\item{Q}{infinitesimal generator matrix of the continuous-time Markov chain of dimension \code{c(nStates, nStates)}}
+\item{Q}{infinitesimal generator matrix of the continuous-time Markov chain of dimension \code{c(nStates, nStates)},
+or array of generator matrices of dimension \code{c(nStates, nStates, nObs-1)} (or larger) for time-varying generators, e.g. from \code{\link{generator}(beta, Z)}.}
 
 \item{timediff}{time differences between observations of length \code{nObs}-1 when based on \code{nObs} observations}
 
@@ -30,6 +31,28 @@ When observing data at time points \eqn{t_1, \dots, t_n} the transition probabil
 \deqn{\Gamma(\Delta t_i) = \exp(Q \Delta t_i),}
 where \eqn{\exp()} is the matrix exponential. The mapping \eqn{\Gamma(\Delta t)} is also called the \strong{Markov semigroup}.
 This function calculates all transition matrices based on a given generator and time differences.
+}
+\details{
+\strong{Transition probabilities.} The entry \eqn{(i,j)} of \eqn{\Gamma(\Delta t) = \exp(Q \Delta t)} is the probability that the chain is in state \eqn{j} at time \eqn{t + \Delta t}, given that it is in state \eqn{i} at time \eqn{t}.
+Its rows sum to one. For short intervals, \eqn{\Gamma(\Delta t)} is close to the identity matrix. For long intervals, each row is close to the stationary distribution (see \code{\link{stationary_ct}}).
+This is what makes continuous-time models suitable for irregularly sampled data: each interval gets its own transition matrix.
+
+\strong{Time-varying generators.} If \code{Q} is an array of generator matrices, e.g. from \code{\link{generator}(beta, Z)}, the generator is assumed constant within each interval, and \code{Q[, , t]} is used for \code{timediff[t]}.
+Hence, row \eqn{t} of \code{Z} should contain the covariates at the start of interval \eqn{t}, i.e. at observation \eqn{t}. Only the first \code{length(timediff)} slices of \code{Q} are used.
+
+\strong{MM(M)PPs.} If \code{rates} are provided, the function returns \eqn{\exp((Q - \Lambda) \Delta t)} with \eqn{\Lambda = \mathrm{diag}(\lambda_1, \dots, \lambda_N)}.
+Its entry \eqn{(i,j)} is the probability of moving from state \eqn{i} to state \eqn{j} over the interval without any arrival in between, so its rows sum to less than one.
+Multiplied with the state-dependent rates at the arrival times (in \code{allprobs}), these matrices give the MM(M)PP likelihood in the forward algorithm.
+
+\strong{Computation.} Without automatic differentiation, the matrix exponential is calculated in C++ with Armadillo, separately for each interval.
+With automatic differentiation (\code{ad = TRUE}), \code{Matrix::expm} is called for each interval, i.e. a Padé approximation with scaling and squaring, all of which is recorded on the \code{RTMB} tape.
+
+For \strong{two states}, a closed form is used in the AD case instead. Let \eqn{A = Q - \Lambda} (or \eqn{A = Q} without rates) with real eigenvalues \eqn{\nu_1 > \nu_2}. Then
+\deqn{\exp(A \Delta t) = e^{\nu_1 \Delta t} I + \frac{e^{\nu_1 \Delta t} - e^{\nu_2 \Delta t}}{\nu_1 - \nu_2} (A - \nu_1 I).}
+Without rates, \eqn{\nu_1 = 0} and \eqn{\nu_2 = -(q_{12} + q_{21})}, so that, e.g., \eqn{\Gamma_{12}(\Delta t) = q_{12} (1 - e^{-(q_{12} + q_{21}) \Delta t}) / (q_{12} + q_{21})}.
+This is exact, not an approximation. For two states, models are therefore expected to be much faster to fit (often by more than an order of magnitude for the gradient):
+the closed form needs only a few elementwise operations on vectors of length \code{length(timediff)},
+whereas \code{Matrix::expm} records a full Padé approximation (matrix products, a linear solve and repeated squaring) on the tape separately for each interval, all of which needs to be evaluated and differentiated in every optimisation step.
 }
 \examples{
 # building a Q matrix for a 3-state cont.-time Markov chain

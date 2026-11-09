@@ -46,6 +46,8 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="3.1.0" id="lama-310">LaMa 3.1.0<a class="anchor" aria-label="anchor" href="#lama-310"></a></h2>
 <ul><li>
+<code><a href="../reference/tpm_ct.html">tpm_ct()</a></code> is much faster: with AD and 2 states it uses an exact closed form instead of <code><a href="https://rdrr.io/pkg/Matrix/man/expm-methods.html" class="external-link">Matrix::expm()</a></code> for each interval (about 100x faster gradients), and for a constant <code>Q</code> it computes the matrix exponential only once per unique time difference</li>
+<li>
 <code><a href="../reference/qreml.html">qreml()</a></code> no longer evaluates the Hessian a second time for the returned model, which saves about <code>length(par)</code> gradient evaluations per fit, and the final message now reads <code>"Final sp: ..."</code> as no fit follows it unless the last iterate was not the best one</li>
 <li>
 <code><a href="../reference/MCreport.html">MCreport()</a></code> for <code><a href="../reference/qreml.html">qreml()</a></code> models samples around the final estimate, and with <code>joint = TRUE</code> (or <code>Q</code> from <code>joint_uncertainty()</code>) accounts for the uncertainty in the penalty strengths; needs RTMBdist &gt;= 1.2.1</li>

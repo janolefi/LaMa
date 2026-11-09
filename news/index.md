@@ -2,6 +2,13 @@
 
 ## LaMa 3.1.0
 
+- [`tpm_ct()`](https://janolefi.github.io/LaMa/reference/tpm_ct.md) is
+  much faster: with AD and 2 states it uses an exact closed form instead
+  of
+  [`Matrix::expm()`](https://rdrr.io/pkg/Matrix/man/expm-methods.html)
+  for each interval (about 100x faster gradients), and for a constant
+  `Q` it computes the matrix exponential only once per unique time
+  difference
 - [`qreml()`](https://janolefi.github.io/LaMa/reference/qreml.md) no
   longer evaluates the Hessian a second time for the returned model,
   which saves about `length(par)` gradient evaluations per fit, and the

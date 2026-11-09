@@ -219,7 +219,7 @@ distributions is covered.</p>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; forward_s() is deprecated, please use forward_hsmm(dm, omega, allprobs) instead.</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.482   0.040   0.521</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.945   0.059   1.005</span></span></code></pre></div>
 <p>Fitting HSMMs is rather slow (even using C++) as we translate the
 additional model complexity into a higher computational overhead (31
 states here).</p>
@@ -238,7 +238,7 @@ states here).</p>
 <span><span class="op">(</span><span class="va">omega</span> <span class="op">=</span> <span class="fu"><a href="../reference/tpm_emb.html">tpm_emb</a></span><span class="op">(</span><span class="va">mod</span><span class="op">$</span><span class="va">estimate</span><span class="op">[</span><span class="fl">3</span><span class="op">*</span><span class="va">N</span><span class="op">+</span><span class="fl">1</span><span class="op">:</span><span class="op">(</span><span class="va">N</span><span class="op">*</span><span class="op">(</span><span class="va">N</span><span class="op">-</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;           S1        S2        S3</span></span>
 <span><span class="co">#&gt; S1 0.0000000 0.5541031 0.4458969</span></span>
-<span><span class="co">#&gt; S2 0.5040939 0.0000000 0.4959061</span></span>
+<span><span class="co">#&gt; S2 0.5040938 0.0000000 0.4959062</span></span>
 <span><span class="co">#&gt; S3 0.6654703 0.3345297 0.0000000</span></span></code></pre></div>
 </div>
 </div>
@@ -308,7 +308,7 @@ interpretability using <code><a href="../reference/gamma2.html">dgamma2()</a></c
 <span>                    agsizes <span class="op">=</span> <span class="va">agsizes</span>, iterlim <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   2.069   0.003   2.072</span></span></code></pre></div>
+<span><span class="co">#&gt;   4.015   0.003   4.019</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="results-1">Results<a class="anchor" aria-label="anchor" href="#results-1"></a>
@@ -317,18 +317,18 @@ interpretability using <code><a href="../reference/gamma2.html">dgamma2()</a></c
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">par</span> <span class="op">=</span> <span class="va">mod_muskox</span><span class="op">$</span><span class="va">estimate</span>; <span class="va">N</span> <span class="op">=</span> <span class="fl">3</span></span>
 <span><span class="op">(</span><span class="va">mu</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">par</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">]</span><span class="op">)</span><span class="op">)</span> <span class="co"># step mean</span></span>
-<span><span class="co">#&gt; [1]   4.408162  55.517717 306.514567</span></span>
+<span><span class="co">#&gt; [1]   4.408183  55.518269 306.519309</span></span>
 <span><span class="op">(</span><span class="va">sigma</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">par</span><span class="op">[</span><span class="va">N</span><span class="op">+</span><span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">]</span><span class="op">)</span><span class="op">)</span> <span class="co"># step standard deviation</span></span>
-<span><span class="co">#&gt; [1]   3.148184  50.339179 331.548177</span></span>
+<span><span class="co">#&gt; [1]   3.148214  50.338427 331.552682</span></span>
 <span><span class="op">(</span><span class="va">mu_dwell</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">par</span><span class="op">[</span><span class="fl">2</span><span class="op">*</span><span class="va">N</span><span class="op">+</span><span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">]</span><span class="op">)</span><span class="op">)</span> <span class="co"># dwell time mean</span></span>
-<span><span class="co">#&gt; [1] 2.545003 2.660352 5.541728</span></span>
+<span><span class="co">#&gt; [1] 2.545047 2.660233 5.541572</span></span>
 <span><span class="op">(</span><span class="va">phi</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">par</span><span class="op">[</span><span class="fl">3</span><span class="op">*</span><span class="va">N</span><span class="op">+</span><span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">]</span><span class="op">)</span><span class="op">)</span> <span class="co"># dwell time dispersion</span></span>
-<span><span class="co">#&gt; [1] 5.521832e-05 3.750521e-02 5.323967e-09</span></span>
+<span><span class="co">#&gt; [1] 1.284639e-05 3.753894e-02 1.271990e-10</span></span>
 <span><span class="op">(</span><span class="va">omega</span> <span class="op">=</span> <span class="fu"><a href="../reference/tpm_emb.html">tpm_emb</a></span><span class="op">(</span><span class="va">par</span><span class="op">[</span><span class="fl">4</span><span class="op">*</span><span class="va">N</span><span class="op">+</span><span class="fl">1</span><span class="op">:</span><span class="op">(</span><span class="va">N</span><span class="op">*</span><span class="op">(</span><span class="va">N</span><span class="op">-</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">]</span><span class="op">)</span><span class="op">)</span> <span class="co"># embedded t.p.m.</span></span>
 <span><span class="co">#&gt;           S1        S2           S3</span></span>
-<span><span class="co">#&gt; S1 0.0000000 0.6865985 3.134015e-01</span></span>
-<span><span class="co">#&gt; S2 0.9999999 0.0000000 5.792850e-08</span></span>
-<span><span class="co">#&gt; S3 0.8210746 0.1789254 0.000000e+00</span></span></code></pre></div>
+<span><span class="co">#&gt; S1 0.0000000 0.6865950 3.134050e-01</span></span>
+<span><span class="co">#&gt; S2 1.0000000 0.0000000 5.505861e-09</span></span>
+<span><span class="co">#&gt; S3 0.8209621 0.1790379 0.000000e+00</span></span></code></pre></div>
 <p>In this case the Poisson distribution would have been sufficiently
 flexible as all dispersion parameters were estimated very close to zero.
 We can easily visualise the estimated state-specific dwell-time

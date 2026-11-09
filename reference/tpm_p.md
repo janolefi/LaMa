@@ -95,7 +95,7 @@ Note that using this function inside the negative log-likelihood
 function is convenient, but it performs the basis expansion into sine
 and cosine terms each time it is called. As these do not change during
 the optimisation, using
-[`tpm_g`](https://janolefi.github.io/LaMa/reference/tpm_g.md) with a
+[`tpm`](https://janolefi.github.io/LaMa/reference/tpm.md) with a
 pre-calculated (by
 [`trigBasisExp`](https://janolefi.github.io/LaMa/reference/trigBasisExp.md))
 design matrix would be more efficient.

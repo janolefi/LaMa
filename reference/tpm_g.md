@@ -1,14 +1,14 @@
 # Build all transition probability matrices of an inhomogeneous HMM
 
 In an HMM, we often model the influence of covariates on the state
-process by linking them to the transition probabiltiy matrix. Most
+process by linking them to the transition probability matrix. Most
 commonly, this is done by specifying a linear predictor \$\$
 \eta\_{ij}^{(t)} = \beta^{(ij)}\_0 + \beta^{(ij)}\_1 z\_{t1} + \dots +
 \beta^{(ij)}\_p z\_{tp} \$\$ for each off-diagonal element (\\i \neq
 j\\) of the transition probability matrix and then applying the inverse
 multinomial logistic link (also known as softmax) to each row. This
-function efficiently calculates all transition probabilty matrices for a
-given design matrix `Z` and parameter matrix `beta`.
+function efficiently calculates all transition probability matrices for
+a given design matrix `Z` and parameter matrix `beta`.
 
 ## Usage
 
@@ -21,14 +21,14 @@ tpm_g(Z, beta, Eta = NULL, byrow = FALSE, ref = NULL, ad = NULL, report = TRUE)
 - Z:
 
   Covariate design matrix with or without intercept column, i.e. of
-  dimension `c(nObs, p)` or `c(nObs, p+1)`. If not provided, intercept
-  column is added automatically.
+  dimension `c(nObs, p)` or `c(nObs, p+1)`. If `Z` has only `p` columns,
+  an intercept column is added automatically.
 
 - beta:
 
   Matrix of coefficients for the off-diagonal elements of the transition
-  probability matrix of dimension `c(nStates * (nStates-1), p+1)`. First
-  columns contains the intercepts.
+  probability matrix of dimension `c(nStates * (nStates-1), p+1)`. The
+  first column contains the intercepts.
 
 - Eta:
 
@@ -56,8 +56,9 @@ tpm_g(Z, beta, Eta = NULL, byrow = FALSE, ref = NULL, ad = NULL, report = TRUE)
 
 - report:
 
-  logical; if `TRUE` (default), `delta`, `Gamma`, `allprobs`, and
-  `trackID` are reported from the fitted model. Requires `ad = TRUE`.
+  logical; if `TRUE` (default), the coefficient matrix `beta` is
+  reported from the fitted model, if `Z` is provided. Requires
+  `ad = TRUE`.
 
 ## Value
 

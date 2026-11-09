@@ -34,7 +34,7 @@ pred_matrix(model_matrices, newdata, what = NULL, exclude = NULL)
 
   optional vector of terms to set to zero in the predicted design
   matrix. Useful for predicting main effects only when e.g.
-  `sd(..., bs = "re")` terms are present. See
+  `s(..., bs = "re")` terms are present. See
   [`mgcv::predict.gam`](https://rdrr.io/pkg/mgcv/man/predict.gam.html)
   for more details.
 

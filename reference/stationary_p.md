@@ -13,7 +13,8 @@ stationary_p(Gamma, t = NULL, ad = NULL)
 
 - Gamma:
 
-  array of transition probability matrices of dimension c(N,N,L)
+  array of transition probability matrices of dimension
+  `c(nStates, nStates, L)`
 
 - t:
 
@@ -65,7 +66,7 @@ Statistics, 19(4), 2724–2737.
 ## See also
 
 [`tpm_p`](https://janolefi.github.io/LaMa/reference/tpm_p.md) and
-[`tpm_g`](https://janolefi.github.io/LaMa/reference/tpm_g.md) to create
+[`tpm`](https://janolefi.github.io/LaMa/reference/tpm.md) to create
 multiple transition matrices based on a cyclic variable or design matrix
 
 Other stationary distribution functions:

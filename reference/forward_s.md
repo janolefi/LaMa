@@ -14,18 +14,18 @@ forward_s(delta, Gamma, allprobs, sizes)
 
 - delta:
 
-  initial or stationary distribution of length N, or matrix of dimension
-  c(k,N) for k independent tracks, if `trackID` is provided
+  initial or stationary distribution of length `M` on the enlarged state
+  space
 
 - Gamma:
 
-  transition probability matrix of dimension c(M,M)
+  transition probability matrix of dimension `c(M, M)`
 
 - allprobs:
 
   matrix of state-dependent probabilities/ density values of dimension
-  c(n, N) which will automatically be converted to the appropriate
-  dimension.
+  `c(nObs, nStates)` which will automatically be converted to the
+  appropriate dimension.
 
 - sizes:
 

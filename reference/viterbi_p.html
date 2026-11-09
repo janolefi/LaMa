@@ -58,25 +58,25 @@
 
 
 <dl><dt id="arg-delta">delta<a class="anchor" aria-label="anchor" href="#arg-delta"></a></dt>
-<dd><p>initial distribution of length N, or matrix of dimension c(k,N) for k independent tracks, if <code>trackID</code> is provided</p>
+<dd><p>initial distribution of length <code>nStates</code>, or matrix of dimension <code>c(nTracks, nStates)</code> for <code>nTracks</code> independent tracks, if <code>trackID</code> is provided</p>
 <p>This could e.g. be the periodically stationary distribution (for each track).</p></dd>
 
 
 <dt id="arg-gamma">Gamma<a class="anchor" aria-label="anchor" href="#arg-gamma"></a></dt>
-<dd><p>array of transition probability matrices for each time point in the cycle of dimension c(N,N,L), where L is the length of the cycle</p></dd>
+<dd><p>array of transition probability matrices for each time point in the cycle of dimension <code>c(nStates, nStates, L)</code>, where L is the length of the cycle</p></dd>
 
 
 <dt id="arg-allprobs">allprobs<a class="anchor" aria-label="anchor" href="#arg-allprobs"></a></dt>
-<dd><p>matrix of state-dependent probabilities/ density values of dimension c(n, N)</p></dd>
+<dd><p>matrix of state-dependent probabilities/ density values of dimension <code>c(nObs, nStates)</code></p></dd>
 
 
 <dt id="arg-tod">tod<a class="anchor" aria-label="anchor" href="#arg-tod"></a></dt>
-<dd><p>(Integer valued) variable for cycle indexing in 1, ..., L, mapping the data index to a generalised time of day (length n)</p>
+<dd><p>(Integer valued) variable for cycle indexing in 1, ..., L, mapping the data index to a generalised time of day (length <code>nObs</code>)</p>
 <p>For half-hourly data L = 48. It could, however, also be day of year for daily data and L = 365.</p></dd>
 
 
 <dt id="arg-trackid">trackID<a class="anchor" aria-label="anchor" href="#arg-trackid"></a></dt>
-<dd><p>optional vector of k track IDs, if multiple tracks need to be decoded separately. The observations of each track need to be consecutive.</p></dd>
+<dd><p>optional vector of length <code>nObs</code> containing <code>nTracks</code> unique IDs that separate tracks. The observations of each track need to be consecutive.</p></dd>
 
 
 <dt id="arg-mod">mod<a class="anchor" aria-label="anchor" href="#arg-mod"></a></dt>
@@ -87,7 +87,7 @@ Hence, you can pass the model object obtained from <code>obj$report()</code>, <c
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>vector of decoded states of length n</p>
+    <p>vector of decoded states of length <code>nObs</code></p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

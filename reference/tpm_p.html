@@ -126,7 +126,7 @@ From an efficiency perspective, <code>Z</code> should be pre-calculated within t
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Note that using this function inside the negative log-likelihood function is convenient, but it performs the basis expansion into sine and cosine terms each time it is called.
-As these do not change during the optimisation, using <code><a href="tpm_g.html">tpm_g</a></code> with a pre-calculated (by <code><a href="trigBasisExp.html">trigBasisExp</a></code>) design matrix would be more efficient.</p>
+As these do not change during the optimisation, using <code><a href="tpm.html">tpm</a></code> with a pre-calculated (by <code><a href="trigBasisExp.html">trigBasisExp</a></code>) design matrix would be more efficient.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

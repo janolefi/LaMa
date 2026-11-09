@@ -58,12 +58,12 @@
 
 
 <dl><dt id="arg-z">Z<a class="anchor" aria-label="anchor" href="#arg-z"></a></dt>
-<dd><p>Covariate design matrix with or without intercept column, i.e. of dimension <code>c(nObs, p)</code> or <code>c(nObs, p+1)</code>. If not provided, intercept column is added automatically.</p></dd>
+<dd><p>Covariate design matrix with or without intercept column, i.e. of dimension <code>c(nObs, p)</code> or <code>c(nObs, p+1)</code>. If <code>Z</code> has only <code>p</code> columns, an intercept column is added automatically.</p></dd>
 
 
 <dt id="arg-beta">beta<a class="anchor" aria-label="anchor" href="#arg-beta"></a></dt>
 <dd><p>Matrix of coefficients for the off-diagonal elements of the generator matrix
-of dimension <code>c(nStates * (nStates-1), p+1)</code>. First columns contains the intercepts.</p></dd>
+of dimension <code>c(nStates * (nStates-1), p+1)</code>. The first column contains the intercepts.</p></dd>
 
 
 <dt id="arg-eta">Eta<a class="anchor" aria-label="anchor" href="#arg-eta"></a></dt>
@@ -76,7 +76,7 @@ If provided, no <code>Z</code> and <code>beta</code> are necessary and will be i
 
 
 <dt id="arg-report">report<a class="anchor" aria-label="anchor" href="#arg-report"></a></dt>
-<dd><p>logical, indicating whether the generator matrices <code>Q</code> should be reported from the fitted model. Defaults to <code>TRUE</code>, but only works if when automatic differentiation with <code>RTMB</code> is used.</p></dd>
+<dd><p>logical; if <code>TRUE</code> (default), the coefficient matrix <code>beta</code> is reported from the fitted model. Requires automatic differentiation with <code>RTMB</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">

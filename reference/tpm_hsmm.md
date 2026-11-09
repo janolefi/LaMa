@@ -2,8 +2,8 @@
 
 Hidden semi-Markov models (HSMMs) are a flexible extension of HMMs,
 where the state duration distribution is explicitly modelled. For direct
-numerical maximum likelhood estimation, HSMMs can be represented as HMMs
-on an enlarged state space (of size \\M\\) and with structured
+numerical maximum likelihood estimation, HSMMs can be represented as
+HMMs on an enlarged state space (of size \\M\\) and with structured
 transition probabilities.
 
 This function computes the transition matrix to approximate a given HSMM
@@ -41,9 +41,8 @@ tpm_hsmm(omega, dm, Fm = NULL, sparse = TRUE, eps = 1e-10)
 
 - eps:
 
-  rounding value: If an entry of the transition probabily matrix is
-  smaller, than it is rounded to zero. Usually, this should not be
-  changed.
+  rounding value: If an entry of the transition probability matrix is
+  smaller, it is rounded to zero. Usually, this should not be changed.
 
 ## Value
 

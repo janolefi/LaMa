@@ -85,7 +85,7 @@ and can be used to quantify whether an observation is extreme relative to its mo
 
 <dt id="arg-dist">dist<a class="anchor" aria-label="anchor" href="#arg-dist"></a></dt>
 <dd><p>character string specifying which parametric CDF to use (e.g., <code>"norm"</code> for normal or <code>"pois"</code> for Poisson) or CDF function to evaluate directly.
-If a discrete CDF function is passed, the <code>discrete</code> argument needs to be set to <code>TRUE</code> because this cannot determined automatically.</p></dd>
+If a discrete CDF function is passed, the <code>discrete</code> argument needs to be set to <code>TRUE</code> because this cannot be determined automatically.</p></dd>
 
 
 <dt id="arg-par">par<a class="anchor" aria-label="anchor" href="#arg-par"></a></dt>
@@ -95,13 +95,13 @@ This argument is as flexible as the parametric distribution allows. For example 
 
 
 <dt id="arg-stateprobs">stateprobs<a class="anchor" aria-label="anchor" href="#arg-stateprobs"></a></dt>
-<dd><p>matrix of local state probabilities for each observation (of dimension c(nObs, nStates)) as computed by <code><a href="stateprobs.html">stateprobs</a></code></p></dd>
+<dd><p>matrix of local state probabilities for each observation (of dimension <code>c(nObs, nStates)</code>) as computed by <code><a href="stateprobs.html">stateprobs</a></code></p></dd>
 
 
 <dt id="arg-mod">mod<a class="anchor" aria-label="anchor" href="#arg-mod"></a></dt>
 <dd><p>optional model object containing required quantities</p>
 <p>When using automatic differentiation either with <code>RTMB::MakeADFun</code> or <code><a href="qreml.html">qreml</a></code> and include <code><a href="forward.html">forward</a></code> in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.
-Hence, you can pass the model object obtained from <code>obj$report()</code>, <code><a href="lama.html">lama</a></code> or <code><a href="qreml.html">qreml</a></code> directly to this function and avoid calculating local state proabilities manually.
+Hence, you can pass the model object obtained from <code>obj$report()</code>, <code><a href="lama.html">lama</a></code> or <code><a href="qreml.html">qreml</a></code> directly to this function and avoid calculating local state probabilities manually.
 In this case, a call should look like <code>pseudo_res(obs, "norm", par, mod = mod)</code>.</p></dd>
 
 

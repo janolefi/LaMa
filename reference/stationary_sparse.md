@@ -1,6 +1,6 @@
 # Sparse version of [`stationary`](https://janolefi.github.io/LaMa/reference/stationary.md)
 
-This is function computes the stationary distribution of a Markov chain
+This function computes the stationary distribution of a Markov chain
 with a given **sparse** transition probability matrix. Compatible with
 automatic differentiation by `RTMB`
 
@@ -14,7 +14,8 @@ stationary_sparse(Gamma)
 
 - Gamma:
 
-  sparse transition probability matrix of dimension c(N,N)
+  sparse transition probability matrix of dimension
+  `c(nStates, nStates)`
 
 ## Value
 

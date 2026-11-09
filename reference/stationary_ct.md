@@ -19,16 +19,17 @@ stationary_cont(Q)
 
 - Q:
 
-  infinitesimal generator matrix of dimension `c(N,N)` (dense or sparse,
-  e.g. from `Matrix`) or array of such matrices of dimension
-  `c(N,N,nTracks)` if the stationary distribution should be computed for
-  several matrices at once
+  infinitesimal generator matrix of dimension `c(nStates, nStates)`
+  (dense or sparse, e.g. from `Matrix`) or array of such matrices of
+  dimension `c(nStates, nStates, nTracks)` if the stationary
+  distribution should be computed for several matrices at once
 
 ## Value
 
 either a single stationary distribution of the continuous-time Markov
-chain (vector of length `N`) or a matrix of stationary distributions of
-dimension `c(nTracks,N)` with one stationary distribution in each row
+chain (vector of length `nStates`) or a matrix of stationary
+distributions of dimension `c(nTracks, nStates)` with one stationary
+distribution in each row
 
 ## See also
 

@@ -29,11 +29,11 @@ forward_ihsmm(
   If the dwell-time PMFs are constant, the vectors are the PMF of the
   dwell-time distribution fixed in time. The vector lengths correspond
   to the approximating state aggregate sizes, hence there should be
-  little probablity mass not covered by these.
+  little probability mass not covered by these.
 
-  If the dwell-time PMFs are inhomogeneous, the matrices need to have n
-  rows, where n is the number of observations. The number of columns
-  again correponds to the size of the approximating state aggregates.
+  If the dwell-time PMFs are inhomogeneous, the matrices need to have
+  `nObs` rows. The number of columns again corresponds to the size of
+  the approximating state aggregates.
 
   In the latter case, the first `max(sapply(dm, ncol)) - 1` observations
   will not be used because the first approximating transition
@@ -43,7 +43,7 @@ forward_ihsmm(
 - omega:
 
   matrix of dimension `c(nStates, nStates)` or array of dimension
-  `c(nStates, nStates, nObs)` of conditional transition probabilites,
+  `c(nStates, nStates, nObs)` of conditional transition probabilities,
   also called embedded transition probability matrix.
 
   It contains the transition probabilities given the current state is
@@ -60,22 +60,22 @@ forward_ihsmm(
 
 - trackID:
 
-  trackID optional vector of length `nObs` containing IDs
+  optional vector of length `nObs` containing IDs
 
   If provided, the total log-likelihood will be the sum of each track's
   likelihood contribution. Instead of a single vector `delta`
   corresponding to the initial distribution, a `delta` matrix of initial
   distributions, of dimension `c(nTracks, nStates)`, can be provided,
-  such that each track starts with it's own initial distribution.
+  such that each track starts with its own initial distribution.
 
 - delta:
 
-  optional vector of initial state probabilities of length N
+  optional vector of initial state probabilities of length `nStates`
 
-  By default, instead of this, the stationary distribution is computed
-  corresponding to the first approximating transition probability matrix
-  of each track is computed. Contrary to the homogeneous case, this is
-  not theoretically motivated but just for convenience.
+  By default, instead of this, the stationary distribution corresponding
+  to the first approximating transition probability matrix of each track
+  is computed. Contrary to the homogeneous case, this is not
+  theoretically motivated but just for convenience.
 
 - startInd:
 
@@ -113,7 +113,7 @@ where the state duration distribution is explicitly modelled by a
 distribution on the positive integers. This function can be used to fit
 HSMMs where the state-duration distribution and/ or the conditional
 transition probabilities vary with covariates. For direct numerical
-maximum likelhood estimation, HSMMs can be represented as HMMs on an
+maximum likelihood estimation, HSMMs can be represented as HMMs on an
 enlarged state space (of size \\M\\) and with structured transition
 probabilities.
 

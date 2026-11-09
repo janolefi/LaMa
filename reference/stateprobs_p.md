@@ -21,8 +21,9 @@ stateprobs_p(
 
 - delta:
 
-  initial or stationary distribution of length N, or matrix of dimension
-  c(k,N) for k independent tracks, if `trackID` is provided
+  initial or stationary distribution of length `nStates`, or matrix of
+  dimension `c(nTracks, nStates)` for `nTracks` independent tracks, if
+  `trackID` is provided
 
   This could e.g. be the periodically stationary distribution (for each
   track) as computed by
@@ -31,24 +32,26 @@ stateprobs_p(
 - Gamma:
 
   array of transition probability matrices for each time point in the
-  cycle of dimension c(N,N,L), where L is the length of the cycle.
+  cycle of dimension `c(nStates, nStates, L)`, where L is the length of
+  the cycle.
 
 - allprobs:
 
   matrix of state-dependent probabilities/ density values of dimension
-  c(n, N)
+  `c(nObs, nStates)`
 
 - tod:
 
   (Integer valued) variable for cycle indexing in 1, ..., L, mapping the
-  data index to a generalised time of day (length n). For half-hourly
-  data L = 48. It could, however, also be day of year for daily data and
-  L = 365.
+  data index to a generalised time of day (length `nObs`). For
+  half-hourly data L = 48. It could, however, also be day of year for
+  daily data and L = 365.
 
 - trackID:
 
-  optional vector of k track IDs, if multiple tracks need to be decoded
-  separately. The observations of each track need to be consecutive.
+  optional vector of length `nObs` containing `nTracks` unique IDs that
+  separate tracks. The observations of each track need to be
+  consecutive.
 
 - mod:
 
@@ -75,7 +78,8 @@ stateprobs_p(
 
 ## Value
 
-matrix of conditional state probabilities of dimension c(n,N)
+matrix of conditional state probabilities of dimension
+`c(nObs, nStates)`
 
 ## Details
 

@@ -25,8 +25,8 @@ process_hid_formulas(formulas, nStates, ref = NULL)
   optional vector of reference categories for each state, defaults to
   `1:nStates`. If provided, must be of length `nStates` and contain
   valid state indices. If a formula matrix is provided, this cannot be
-  specified because reference categries are specified by one `"."` entry
-  in each row.
+  specified because reference categories are specified by one `"."`
+  entry in each row.
 
 ## Value
 

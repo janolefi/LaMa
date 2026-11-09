@@ -36,7 +36,7 @@ dgmrf2(x, mu = 0, S, lambda, logdetS = NULL, log = FALSE)
   precision scaling parameter
 
   Can be a vector if `x` is a matrix. Then each row of `x` is evaluated
-  with the corresponding `lambda`. This is benefitial from an efficiency
+  with the corresponding `lambda`. This is beneficial from an efficiency
   perspective because the determinant of `S` is only computed once.
 
 - logdetS:

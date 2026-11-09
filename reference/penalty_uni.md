@@ -1,6 +1,6 @@
-# Penalty approximation of unimodality constraints for univariates smooths
+# Penalty approximation of unimodality constraints for univariate smooths
 
-Penalty approximation of unimodality constraints for univariates smooths
+Penalty approximation of unimodality constraints for univariate smooths
 
 ## Usage
 
@@ -12,7 +12,7 @@ penalty_uni(coef, m, kappa = 1000, concave = TRUE, rho = 20)
 
 - coef:
 
-  coefficient vector of matrix on which to apply the unimodality penalty
+  coefficient vector or matrix on which to apply the unimodality penalty
 
 - m:
 

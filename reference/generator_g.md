@@ -15,13 +15,13 @@ generator_g(Z, beta, Eta = NULL, byrow = FALSE, report = TRUE)
 - Z:
 
   Covariate design matrix with or without intercept column, i.e. of
-  dimension `c(nObs, p)` or `c(nObs, p+1)`. If not provided, intercept
-  column is added automatically.
+  dimension `c(nObs, p)` or `c(nObs, p+1)`. If `Z` has only `p` columns,
+  an intercept column is added automatically.
 
 - beta:
 
   Matrix of coefficients for the off-diagonal elements of the generator
-  matrix of dimension `c(nStates * (nStates-1), p+1)`. First columns
+  matrix of dimension `c(nStates * (nStates-1), p+1)`. The first column
   contains the intercepts.
 
 - Eta:
@@ -36,9 +36,9 @@ generator_g(Z, beta, Eta = NULL, byrow = FALSE, report = TRUE)
 
 - report:
 
-  logical, indicating whether the generator matrices `Q` should be
-  reported from the fitted model. Defaults to `TRUE`, but only works if
-  when automatic differentiation with `RTMB` is used.
+  logical; if `TRUE` (default), the coefficient matrix `beta` is
+  reported from the fitted model. Requires automatic differentiation
+  with `RTMB`.
 
 ## Value
 

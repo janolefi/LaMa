@@ -39,7 +39,7 @@ pseudo_res(
   character string specifying which parametric CDF to use (e.g.,
   `"norm"` for normal or `"pois"` for Poisson) or CDF function to
   evaluate directly. If a discrete CDF function is passed, the
-  `discrete` argument needs to be set to `TRUE` because this cannot
+  `discrete` argument needs to be set to `TRUE` because this cannot be
   determined automatically.
 
 - par:
@@ -56,7 +56,7 @@ pseudo_res(
 - stateprobs:
 
   matrix of local state probabilities for each observation (of dimension
-  c(nObs, nStates)) as computed by
+  `c(nObs, nStates)`) as computed by
   [`stateprobs`](https://janolefi.github.io/LaMa/reference/stateprobs.md)
 
 - mod:
@@ -72,7 +72,7 @@ pseudo_res(
   model object obtained from `obj$report()`,
   [`lama`](https://janolefi.github.io/LaMa/reference/lama.md) or
   [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md) directly
-  to this function and avoid calculating local state proabilities
+  to this function and avoid calculating local state probabilities
   manually. In this case, a call should look like
   `pseudo_res(obs, "norm", par, mod = mod)`.
 

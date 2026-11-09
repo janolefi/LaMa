@@ -21,12 +21,12 @@ forward_sp(delta, Gamma, allprobs, sizes, tod)
 
 - delta:
 
-  initial or stationary distribution of length N, or matrix of dimension
-  c(k,N) for k independent tracks, if `trackID` is provided
+  initial or stationary distribution of length `M` on the enlarged state
+  space
 
 - Gamma:
 
-  array of transition probability matrices of dimension c(M,M,L).
+  array of transition probability matrices of dimension `c(M, M, L)`.
 
   Here we use the definition \\\Pr(S_t=j \mid S\_{t-1}=i) =
   \gamma\_{ij}^{(t)}\\ such that the transition probabilities between
@@ -35,8 +35,8 @@ forward_sp(delta, Gamma, allprobs, sizes, tod)
 - allprobs:
 
   matrix of state-dependent probabilities/ density values of dimension
-  c(n, N) which will automatically be converted to the appropriate
-  dimension.
+  `c(nObs, nStates)` which will automatically be converted to the
+  appropriate dimension.
 
 - sizes:
 
@@ -46,9 +46,9 @@ forward_sp(delta, Gamma, allprobs, sizes, tod)
 - tod:
 
   (Integer valued) variable for cycle indexing in 1, ..., L, mapping the
-  data index to a generalised time of day (length n). For half-hourly
-  data L = 48. It could, however, also be day of year for daily data and
-  L = 365.
+  data index to a generalised time of day (length `nObs`). For
+  half-hourly data L = 48. It could, however, also be day of year for
+  daily data and L = 365.
 
 ## Value
 

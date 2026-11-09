@@ -25,12 +25,12 @@ forward_hsmm(
   list of length `nStates` containing vectors of dwell-time probability
   mass functions (PMFs) for each state. The vector lengths correspond to
   the approximating state aggregate sizes, hence there should be little
-  probablity mass not covered by these.
+  probability mass not covered by these.
 
 - omega:
 
   matrix of dimension `c(nStates, nStates)` of conditional transition
-  probabilites, also called embedded transition probability matrix.
+  probabilities, also called embedded transition probability matrix.
 
   Contains the transition probabilities given that the current state is
   left. Hence, the diagonal elements need to be zero and the rows need
@@ -49,13 +49,14 @@ forward_hsmm(
 
   If provided, the total log-likelihood will be the sum of each track's
   likelihood contribution. In this case, `dm` can be a nested list,
-  where the top layer contains k `dm` lists as described above. `omega`
-  can then also be an array of dimension `c(nStates, nStates, nTracks)`
-  with one conditional transition probability matrix for each track.
-  Furthermore, instead of a single vector `delta` corresponding to the
-  initial distribution, a `delta` matrix of initial distributions, of
-  dimension `c(nTracks, nStates)`, can be provided, such that each track
-  starts with it's own initial distribution.
+  where the top layer contains `nTracks` `dm` lists as described above.
+  `omega` can then also be an array of dimension
+  `c(nStates, nStates, nTracks)` with one conditional transition
+  probability matrix for each track. Furthermore, instead of a single
+  vector `delta` corresponding to the initial distribution, a `delta`
+  matrix of initial distributions, of dimension `c(nTracks, nStates)`,
+  can be provided, such that each track starts with its own initial
+  distribution.
 
 - delta:
 
@@ -84,7 +85,7 @@ HSMM log-likelihood for given data and parameters
 Hidden semi-Markov models (HSMMs) are a flexible extension of HMMs,
 where the state duration distribution is explicitly modelled by a
 distribution on the positive integers. For direct numerical maximum
-likelhood estimation, HSMMs can be represented as HMMs on an enlarged
+likelihood estimation, HSMMs can be represented as HMMs on an enlarged
 state space (of size \\M\\) and with structured transition
 probabilities.
 

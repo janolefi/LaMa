@@ -70,16 +70,16 @@ This function solves the linear system of equations above.</p>
 
 
 <dl><dt id="arg-gamma">Gamma<a class="anchor" aria-label="anchor" href="#arg-gamma"></a></dt>
-<dd><p>transition probability matrix of dimension <code>c(N,N)</code> or array of such matrices of dimension <code>c(N,N,nTracks)</code> if the stationary distribution should be computed for several matrices at once</p></dd>
+<dd><p>transition probability matrix of dimension <code>c(nStates, nStates)</code> or array of such matrices of dimension <code>c(nStates, nStates, nTracks)</code> if the stationary distribution should be computed for several matrices at once</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>either a single stationary distribution of the Markov chain (vector of length <code>N</code>) or a matrix of stationary distributions of dimension <code>c(nTracks,N)</code> with one stationary distribution in each row</p>
+    <p>either a single stationary distribution of the Markov chain (vector of length <code>nStates</code>) or a matrix of stationary distributions of dimension <code>c(nTracks, nStates)</code> with one stationary distribution in each row</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="tpm.html">tpm</a></code> to create a transition probabilty matrix using the multinomial logistic link (softmax)</p>
+    <div class="dont-index"><p><code><a href="tpm.html">tpm</a></code> to create a transition probability matrix using the multinomial logistic link (softmax)</p>
 <p>Other stationary distribution functions:
 <code><a href="stationary_ct.html">stationary_ct()</a></code>,
 <code><a href="stationary_p.html">stationary_p()</a></code></p></div>

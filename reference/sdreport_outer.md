@@ -13,12 +13,12 @@ sdreport_outer(mod, invert = FALSE)
 
 - mod:
 
-  model objects as returned by
+  model object as returned by
   [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md)
 
 - invert:
 
-  optional logical; if `TRUE`, the inverse smoothing paramaters
+  optional logical; if `TRUE`, the inverse smoothing parameters
   (variances) are returned along with the transformed standard
   deviations obtained via the delta method.
 

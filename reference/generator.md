@@ -45,13 +45,13 @@ generator(
 
 - report:
 
-  logical, indicating whether the generator matrix `Q` should be
-  reported from the fitted model. Defaults to `TRUE`, but only works if
-  when automatic differentiation with `RTMB` is used.
+  logical; if `TRUE` (default), the coefficient matrix `beta` is
+  reported from the fitted model, if `Z` is provided. Requires automatic
+  differentiation with `RTMB`.
 
 - param:
 
-  depricated, please use argument `beta` instead.
+  deprecated, please use argument `beta` instead.
 
 ## Value
 

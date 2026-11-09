@@ -68,12 +68,13 @@ tpm(
 
 - report:
 
-  logical; if `TRUE` (default), `delta`, `Gamma`, `allprobs`, and
-  `trackID` are reported from the fitted model. Requires `ad = TRUE`.
+  logical; if `TRUE` (default), the coefficient matrix `beta` is
+  reported from the fitted model, if `Z` is provided. Requires
+  `ad = TRUE`.
 
 - param:
 
-  depricated, please use argument `beta` instead.
+  deprecated, please use argument `beta` instead.
 
 ## Value
 

@@ -137,7 +137,7 @@
   : Computes generalised quadratic-form penalties
 
 - [`penalty_uni()`](https://janolefi.github.io/LaMa/reference/penalty_uni.md)
-  : Penalty approximation of unimodality constraints for univariates
+  : Penalty approximation of unimodality constraints for univariate
   smooths
 
 - [`plot(`*`<LaMaModel>`*`)`](https://janolefi.github.io/LaMa/reference/plot.LaMaModel.md)
@@ -305,7 +305,7 @@
   inhomogeneous HMM
 
 - [`tpm_phsmm()`](https://janolefi.github.io/LaMa/reference/tpm_phsmm.md)
-  : Builds all transition probability matrices of an
+  : Builds all transition probability matrices of a
   periodic-HSMM-approximating HMM
 
 - [`tpm_phsmm2()`](https://janolefi.github.io/LaMa/reference/tpm_phsmm2.md)
@@ -314,7 +314,7 @@
 
 - [`tpm_thinned()`](https://janolefi.github.io/LaMa/reference/tpm_thinned.md)
   : Compute the transition probability matrix of a thinned periodically
-  inhomogeneous Markov chain.
+  inhomogeneous Markov chain
 
 - [`trex`](https://janolefi.github.io/LaMa/reference/trex.md) : T-Rex
   Movement Data

@@ -2,8 +2,8 @@
 
 A continuous-time Markov chain is described by an infinitesimal
 generator matrix \\Q\\. When observing data at time points \\t_1, \dots,
-t_n\\ the transition probabilites between \\t_i\\ and \\t\_{i+1}\\ are
-caluclated as \$\$\Gamma(\Delta t_i) = \exp(Q \Delta t_i),\$\$ where
+t_n\\ the transition probabilities between \\t_i\\ and \\t\_{i+1}\\ are
+calculated as \$\$\Gamma(\Delta t_i) = \exp(Q \Delta t_i),\$\$ where
 \\\exp()\\ is the matrix exponential. The mapping \\\Gamma(\Delta t)\\
 is also called the **Markov semigroup**. This function calculates all
 transition matrices based on a given generator and time differences.

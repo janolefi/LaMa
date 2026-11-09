@@ -1,7 +1,7 @@
 # Build the transition probability matrix of an HSMM-approximating HMM
 
 Hidden semi-Markov models (HSMMs) are a flexible extension of HMMs. For
-direct numerical maximum likelhood estimation, HSMMs can be represented
+direct numerical maximum likelihood estimation, HSMMs can be represented
 as HMMs on an enlarged state space (of size \\M\\) and with structured
 transition probabilities. This function computes the transition matrix
 of an HSMM.
@@ -16,18 +16,19 @@ tpm_hsmm2(omega, dm, eps = 1e-10)
 
 - omega:
 
-  embedded transition probability matrix of dimension c(N,N)
+  embedded transition probability matrix of dimension
+  `c(nStates, nStates)`
 
 - dm:
 
-  state dwell-time distributions arranged in a list of length(N). Each
-  list element needs to be a vector of length N_i, where N_i is the
+  state dwell-time distributions arranged in a list of length `nStates`.
+  Each list element needs to be a vector of length N_i, where N_i is the
   state aggregate size.
 
 - eps:
 
-  rounding value: If an entry of the transition probabily matrix is
-  smaller, than it is rounded to zero.
+  rounding value: If an entry of the transition probability matrix is
+  smaller, it is rounded to zero.
 
 ## Value
 

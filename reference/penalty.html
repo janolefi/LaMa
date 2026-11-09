@@ -97,7 +97,7 @@ This way all rows can use the same penalty matrix.</p></dd>
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p><strong>Caution:</strong> The formatting of <code>re_coef</code> needs to match the structure of the parameter list in your penalised negative log-likelihood function,
 i.e. you cannot have two random effect vectors of different names (different list elements in the parameter list), combine them into a matrix inside your likelihood and pass the matrix to <code>penalty</code>.
-If these are seperate random effects, each with its own name, they need to be passed as a list to <code>penalty</code>. Moreover, the ordering of <code>re_coef</code> needs to match the character vector <code>random</code> specified in <code><a href="qreml.html">qreml</a></code>.</p>
+If these are separate random effects, each with its own name, they need to be passed as a list to <code>penalty</code>. Moreover, the ordering of <code>re_coef</code> needs to match the character vector <code>random</code> specified in <code><a href="qreml.html">qreml</a></code>.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>

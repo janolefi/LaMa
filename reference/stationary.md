@@ -17,20 +17,21 @@ stationary(Gamma)
 
 - Gamma:
 
-  transition probability matrix of dimension `c(N,N)` or array of such
-  matrices of dimension `c(N,N,nTracks)` if the stationary distribution
-  should be computed for several matrices at once
+  transition probability matrix of dimension `c(nStates, nStates)` or
+  array of such matrices of dimension `c(nStates, nStates, nTracks)` if
+  the stationary distribution should be computed for several matrices at
+  once
 
 ## Value
 
 either a single stationary distribution of the Markov chain (vector of
-length `N`) or a matrix of stationary distributions of dimension
-`c(nTracks,N)` with one stationary distribution in each row
+length `nStates`) or a matrix of stationary distributions of dimension
+`c(nTracks, nStates)` with one stationary distribution in each row
 
 ## See also
 
 [`tpm`](https://janolefi.github.io/LaMa/reference/tpm.md) to create a
-transition probabilty matrix using the multinomial logistic link
+transition probability matrix using the multinomial logistic link
 (softmax)
 
 Other stationary distribution functions:

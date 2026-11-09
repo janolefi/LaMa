@@ -1,6 +1,6 @@
 # Sparse version of [`stationary_p`](https://janolefi.github.io/LaMa/reference/stationary_p.md)
 
-This is function computes the periodically stationary distribution of a
+This function computes the periodically stationary distribution of a
 Markov chain given a list of L **sparse** transition probability
 matrices. Compatible with automatic differentiation by `RTMB`
 
@@ -14,7 +14,7 @@ stationary_p_sparse(Gamma, t = NULL)
 
 - Gamma:
 
-  sist of length L containing sparse transition probability matrices for
+  list of length L containing sparse transition probability matrices for
   one cycle.
 
 - t:

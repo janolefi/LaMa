@@ -17,15 +17,15 @@ A %sp% B
 
 - A:
 
-  matrix of dimension n x p
+  matrix of dimension `c(n, p)`
 
 - B:
 
-  matrix of dimension p x m
+  matrix of dimension `c(p, m)`
 
 ## Value
 
-the matrix product of A and B, which is of dimension n x m
+the matrix product of A and B, which is of dimension `c(n, m)`
 
 ## Examples
 

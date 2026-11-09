@@ -56,8 +56,8 @@ forward_p(
   If provided, the total log-likelihood will be the sum of each track's
   likelihood contribution. Instead of a single vector `delta`
   corresponding to the initial distribution, a `delta` matrix of initial
-  distributions of dimension `c(nTracks, nObs)`, can be provided, such
-  that each track starts with it's own initial distribution.
+  distributions of dimension `c(nTracks, nStates)`, can be provided,
+  such that each track starts with its own initial distribution.
 
 - ad:
 

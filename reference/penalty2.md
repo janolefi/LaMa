@@ -3,7 +3,7 @@
 This function computes a quadratic penalty of the form \$\$0.5 \sum\_{i}
 \lambda_i b^T S_i b,\$\$ with smoothing parameters \\\lambda_i\\,
 coefficient vector \\b\\, and fixed penalty matrices \\S_i\\. This
-generalises the
+generalises
 [`penalty`](https://janolefi.github.io/LaMa/reference/penalty.md) by
 allowing subsets of the coefficient vector \\b\\ to be penalised
 multiple times with different smoothing parameters, which is necessary
@@ -75,7 +75,7 @@ the parameter list in your penalised negative log-likelihood function,
 i.e. you cannot have two random effect vectors of different names
 (different list elements in the parameter list), combine them into a
 matrix inside your likelihood and pass the matrix to `penalty`. If these
-are seperate random effects, each with its own name, they need to be
+are separate random effects, each with its own name, they need to be
 passed as a list to `penalty`. Moreover, the ordering of `re_coef` needs
 to match the character vector `random` specified in
 [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md).

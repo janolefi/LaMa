@@ -1,14 +1,14 @@
 # Build all transition probability matrices of an inhomogeneous HMM
 
 In an HMM, we often model the influence of covariates on the state
-process by linking them to the transition probabiltiy matrix. Most
+process by linking them to the transition probability matrix. Most
 commonly, this is done by specifying linear predictors \$\$
 \eta\_{ij}^{(t)} = \beta^{(ij)}\_0 + \beta^{(ij)}\_1 z\_{t1} + \dots +
 \beta^{(ij)}\_p z\_{tp} \$\$ for each off-diagonal element (\\i \neq
 j\\) of the transition probability matrix and then applying the inverse
 multinomial logistic link (also known as softmax) to each row. This
-function efficiently calculates all transition probabilty matrices for a
-given design matrix `Z` and parameter matrix `beta`.
+function efficiently calculates all transition probability matrices for
+a given design matrix `Z` and parameter matrix `beta`.
 
 ## Usage
 
@@ -21,26 +21,27 @@ tpm_g2(Z, beta, byrow = FALSE, ad = NULL, report = TRUE, ref = NULL)
 - Z:
 
   covariate design matrix with or without intercept column, i.e. of
-  dimension c(n, p) or c(n, p+1)
+  dimension `c(nObs, p)` or `c(nObs, p+1)`
 
   If `Z` has only p columns, an intercept column of ones will be added
   automatically.
 
-  Can also be a list of N\*(N-1) design matrices with different number
-  of columns but the same number of rows. In that case, no intercept
-  column will be added.
+  Can also be a list of `nStates * (nStates-1)` design matrices with
+  different number of columns but the same number of rows. In that case,
+  no intercept column will be added.
 
 - beta:
 
   matrix of coefficients for the off-diagonal elements of the transition
   probability matrix
 
-  Needs to be of dimension c(N\*(N-1), p+1), where the first column
-  contains the intercepts.
+  Needs to be of dimension `c(nStates * (nStates-1), p+1)`, where the
+  first column contains the intercepts.
 
-  If `Z` is a list, `beta` can also be a list of length N\*(N-1) with
-  each entry being a vector or a (long) matrix of coefficients, each
-  matching the dimension of the corresponding entry in `Z`.
+  If `Z` is a list, `beta` can also be a list of length
+  `nStates * (nStates-1)` with each entry being a vector or a (long)
+  matrix of coefficients, each matching the dimension of the
+  corresponding entry in `Z`.
 
 - byrow:
 
@@ -65,15 +66,16 @@ tpm_g2(Z, beta, byrow = FALSE, ad = NULL, report = TRUE, ref = NULL)
 
 - ref:
 
-  optional vector of length N with the reference state indices for each
-  column of the transition probability matrix. Each row in the
+  optional vector of length `nStates` with the reference state indices
+  for each column of the transition probability matrix. Each row in the
   transition matrix corresponds to a multinomial regression, hence one
   state needs to be the reference category. Defaults to off-diagonal
-  elements (`ref = 1:N`).
+  elements (`ref = 1:nStates`).
 
 ## Value
 
-array of transition probability matrices of dimension c(N,N,n)
+array of transition probability matrices of dimension
+`c(nStates, nStates, nObs)`
 
 ## See also
 

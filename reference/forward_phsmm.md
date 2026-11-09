@@ -5,7 +5,7 @@ where the state duration distribution is explicitly modelled by a
 distribution on the positive integers. This function can be used to fit
 HSMMs where the state-duration distribution and/ or the conditional
 transition probabilities vary with covariates. For direct numerical
-maximum likelhood estimation, HSMMs can be represented as HMMs on an
+maximum likelihood estimation, HSMMs can be represented as HMMs on an
 enlarged state space (of size \\M\\) and with structured transition
 probabilities.
 
@@ -45,16 +45,16 @@ forward_phsmm(
   If the dwell-time PMFs are constant, the vectors are the PMF of the
   dwell-time distribution fixed in time. The vector lengths correspond
   to the approximating state aggregate sizes, hence there should be
-  little probablity mass not covered by these.
+  little probability mass not covered by these.
 
   If the dwell-time PMFs are inhomogeneous, the matrices need to have L
   rows, where L is the cycle length. The number of columns again
-  correpond to the size of the approximating state aggregates.
+  correspond to the size of the approximating state aggregates.
 
 - omega:
 
   matrix of dimension `c(nStates, nStates)` or array of dimension
-  `c(nStates, nStates, L)` of conditional transition probabilites, also
+  `c(nStates, nStates, L)` of conditional transition probabilities, also
   called embedded transition probability matrix
 
   It contains the transition probabilities given the current state is
@@ -84,15 +84,13 @@ forward_phsmm(
   likelihood contribution. Instead of a single vector `delta`
   corresponding to the initial distribution, a `delta` matrix of initial
   distributions, of dimension `c(nTracks, nStates)`, can be provided,
-  such that each track starts with it's own initial distribution.
+  such that each track starts with its own initial distribution.
 
 - delta:
 
-  Optional vector of initial state probabilities of length `nStates`. By
-  default, instead of this, the stationary distribution is computed
-  corresponding to the first approximating t.p.m. of each track is
-  computed. Contrary to the homogeneous case, this is not theoretically
-  motivated but just for convenience.
+  optional vector of initial state probabilities of length `nStates`. By
+  default, the periodically stationary distribution at the first time
+  point is computed.
 
 - eps:
 

@@ -16,7 +16,7 @@ A data frame with 5.000 rows and 3 variables:
 
 - ODBA:
 
-  overall dynamci body acceleration
+  overall dynamic body acceleration
 
 - logODBA:
 

@@ -72,12 +72,12 @@ This function solves the linear system of equations above for a given generator 
 
 
 <dl><dt id="arg-q">Q<a class="anchor" aria-label="anchor" href="#arg-q"></a></dt>
-<dd><p>infinitesimal generator matrix of dimension <code>c(N,N)</code> (dense or sparse, e.g. from <code>Matrix</code>) or array of such matrices of dimension <code>c(N,N,nTracks)</code> if the stationary distribution should be computed for several matrices at once</p></dd>
+<dd><p>infinitesimal generator matrix of dimension <code>c(nStates, nStates)</code> (dense or sparse, e.g. from <code>Matrix</code>) or array of such matrices of dimension <code>c(nStates, nStates, nTracks)</code> if the stationary distribution should be computed for several matrices at once</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>either a single stationary distribution of the continuous-time Markov chain (vector of length <code>N</code>) or a matrix of stationary distributions of dimension <code>c(nTracks,N)</code> with one stationary distribution in each row</p>
+    <p>either a single stationary distribution of the continuous-time Markov chain (vector of length <code>nStates</code>) or a matrix of stationary distributions of dimension <code>c(nTracks, nStates)</code> with one stationary distribution in each row</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

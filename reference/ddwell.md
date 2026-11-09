@@ -19,8 +19,8 @@ ddwell(x, Gamma, time = NULL, state = NULL)
 - Gamma:
 
   array of `L` unique transition probability matrices of a periodically
-  inhomogeneous Markov chain, with dimensions `c(N,N,L)`, where `N` is
-  the number of states and `L` is the cycle length
+  inhomogeneous Markov chain, of dimension `c(nStates, nStates, L)`,
+  where `L` is the cycle length
 
 - time:
 

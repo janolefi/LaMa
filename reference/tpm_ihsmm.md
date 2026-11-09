@@ -1,12 +1,11 @@
 # Builds all transition probability matrices of an inhomogeneous-HSMM-approximating HMM
 
 Hidden semi-Markov models (HSMMs) are a flexible extension of HMMs. For
-direct numerical maximum likelhood estimation, HSMMs can be represented
+direct numerical maximum likelihood estimation, HSMMs can be represented
 as HMMs on an enlarged state space (of size \\M\\) and with structured
 transition probabilities.
 
-This function computes the transition matrices of a periodically
-inhomogeneos HSMMs.
+This function computes the transition matrices of an inhomogeneous HSMM.
 
 ## Usage
 
@@ -31,19 +30,18 @@ tpm_ihsmm(omega, dm, eps = 1e-10)
 
   state dwell-time distributions arranged in a list of length `nStates`
 
-  Each list element needs to be a matrix of dimension c(n, N_i), where
-  each row t is the (approximate) probability mass function of state i
-  at time t.
+  Each list element needs to be a matrix of dimension `c(nObs, N_i)`,
+  where each row t is the (approximate) probability mass function of
+  state i at time t.
 
 - eps:
 
-  rounding value: If an entry of the transition probabily matrix is
-  smaller, than it is rounded to zero. Usually, this should not be
-  changed.
+  rounding value: If an entry of the transition probability matrix is
+  smaller, it is rounded to zero. Usually, this should not be changed.
 
 ## Value
 
-list of dimension length `n - max(sapply(dm, ncol))`, containing sparse
+list of length `nObs - max(sapply(dm, ncol)) + 1`, containing sparse
 extended-state-space transition probability matrices for each time point
 (except the first `max(sapply(dm, ncol)) - 1`).
 
@@ -60,14 +58,14 @@ sizes = c(15, 15) # approximating chain with 30 states
 # state dwell-time distributions
 dm = lapply(1:N, function(i) sapply(1:sizes[i]-1, dpois, lambda = Lambda[,i]))
 
-## homogeneous conditional transition probabilites
+## homogeneous conditional transition probabilities
 # diagonal elements are zero, rowsums are one
 omega = matrix(c(0,1,1,0), nrow = N, byrow = TRUE)
 
 # calculating extended-state-space t.p.m.s
 Gamma = tpm_ihsmm(omega, dm)
 
-## inhomogeneous conditional transition probabilites
+## inhomogeneous conditional transition probabilities
 # omega can be an array
 omega = array(omega, dim = c(N,N,n))
 

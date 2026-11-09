@@ -18,12 +18,12 @@ Each list element needs to be a matrix of dimension \code{c(nObs, N_i)}, where e
 \item{eps}{rounding value: If an entry of the transition probability matrix is smaller, it is rounded to zero. Usually, this should not be changed.}
 }
 \value{
-list of dimension length \code{n - max(sapply(dm, ncol))}, containing sparse extended-state-space transition probability matrices for each time point (except the first \code{max(sapply(dm, ncol)) - 1}).
+list of length \code{nObs - max(sapply(dm, ncol)) + 1}, containing sparse extended-state-space transition probability matrices for each time point (except the first \code{max(sapply(dm, ncol)) - 1}).
 }
 \description{
 Hidden semi-Markov models (HSMMs) are a flexible extension of HMMs. For direct numerical maximum likelihood estimation, HSMMs can be represented as HMMs on an enlarged state space (of size \eqn{M}) and with structured transition probabilities.
 
-This function computes the transition matrices of a periodically inhomogeneos HSMMs.
+This function computes the transition matrices of an inhomogeneous HSMM.
 }
 \examples{
 N = 2

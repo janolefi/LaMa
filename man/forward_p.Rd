@@ -31,7 +31,7 @@ For half-hourly data L = 48. It could, however, also be day of year for daily da
 \item{trackID}{optional vector of length \code{nObs} containing IDs
 
 If provided, the total log-likelihood will be the sum of each track's likelihood contribution.
-Instead of a single vector \code{delta} corresponding to the initial distribution, a \code{delta} matrix of initial distributions of dimension \code{c(nTracks, nObs)}, can be provided, such that each track starts with it's own initial distribution.}
+Instead of a single vector \code{delta} corresponding to the initial distribution, a \code{delta} matrix of initial distributions of dimension \code{c(nTracks, nStates)}, can be provided, such that each track starts with its own initial distribution.}
 
 \item{ad}{optional logical, indicating whether automatic differentiation with \code{RTMB} should be used. By default, the function determines this itself.}
 

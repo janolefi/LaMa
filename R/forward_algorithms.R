@@ -610,7 +610,7 @@ forward_g <- function(delta,
 #' @param trackID optional vector of length \code{nObs} containing IDs
 #' 
 #' If provided, the total log-likelihood will be the sum of each track's likelihood contribution.
-#' Instead of a single vector \code{delta} corresponding to the initial distribution, a \code{delta} matrix of initial distributions of dimension \code{c(nTracks, nObs)}, can be provided, such that each track starts with it's own initial distribution.
+#' Instead of a single vector \code{delta} corresponding to the initial distribution, a \code{delta} matrix of initial distributions of dimension \code{c(nTracks, nStates)}, can be provided, such that each track starts with its own initial distribution.
 #' @param ad optional logical, indicating whether automatic differentiation with \code{RTMB} should be used. By default, the function determines this itself.
 #' @param report logical, indicating whether \code{delta}, \code{Gamma}, \code{allprobs}, and potentially \code{trackID} should be reported from the fitted model. 
 #' Defaults to \code{TRUE}, but only works if \code{ad = TRUE}, as it uses the \code{RTMB} package. 
@@ -1308,7 +1308,7 @@ forward_ihsmm <- function(dm, omega, allprobs,
 #' 
 #' If provided, the total log-likelihood will be the sum of each track's likelihood contribution.
 #' Instead of a single vector \code{delta} corresponding to the initial distribution, a \code{delta} matrix of initial distributions, of dimension \code{c(nTracks, nStates)}, can be provided, such that each track starts with its own initial distribution.
-#' @param delta Optional vector of initial state probabilities of length \code{nStates}. By default, instead of this, the stationary distribution is computed corresponding to the first approximating t.p.m. of each track is computed. Contrary to the homogeneous case, this is not theoretically motivated but just for convenience.
+#' @param delta optional vector of initial state probabilities of length \code{nStates}. By default, the periodically stationary distribution at the first time point is computed.
 #' @param eps small value to avoid numerical issues in the approximating transition matrix construction. Usually, this should not be changed.
 #' @param report logical, indicating whether initial distribution, approximating transition probability matrix and \code{allprobs} matrix should be reported from the fitted model. Defaults to \code{TRUE}.
 #'

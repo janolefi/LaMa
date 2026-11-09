@@ -36,7 +36,7 @@ For half-hourly data L = 48. It could, however, also be day of year for daily da
 If provided, the total log-likelihood will be the sum of each track's likelihood contribution.
 Instead of a single vector \code{delta} corresponding to the initial distribution, a \code{delta} matrix of initial distributions, of dimension \code{c(nTracks, nStates)}, can be provided, such that each track starts with its own initial distribution.}
 
-\item{delta}{Optional vector of initial state probabilities of length \code{nStates}. By default, instead of this, the stationary distribution is computed corresponding to the first approximating t.p.m. of each track is computed. Contrary to the homogeneous case, this is not theoretically motivated but just for convenience.}
+\item{delta}{optional vector of initial state probabilities of length \code{nStates}. By default, the periodically stationary distribution at the first time point is computed.}
 
 \item{eps}{small value to avoid numerical issues in the approximating transition matrix construction. Usually, this should not be changed.}
 

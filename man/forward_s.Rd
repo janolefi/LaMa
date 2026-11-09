@@ -7,7 +7,7 @@
 forward_s(delta, Gamma, allprobs, sizes)
 }
 \arguments{
-\item{delta}{initial or stationary distribution of length N, or matrix of dimension c(k,N) for k independent tracks, if \code{trackID} is provided}
+\item{delta}{initial or stationary distribution of length \code{M} on the enlarged state space}
 
 \item{Gamma}{transition probability matrix of dimension \code{c(M, M)}}
 

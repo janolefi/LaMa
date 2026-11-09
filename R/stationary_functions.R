@@ -82,7 +82,7 @@ stationary = function(Gamma){
 #'
 #' @family stationary distribution functions
 #' 
-#' @seealso \code{\link{tpm_p}} and \code{\link{tpm_g}} to create multiple transition matrices based on a cyclic variable or design matrix
+#' @seealso \code{\link{tpm_p}} and \code{\link{tpm}} to create multiple transition matrices based on a cyclic variable or design matrix
 #' 
 #' @param Gamma array of transition probability matrices of dimension \code{c(nStates, nStates, L)}
 #' @param t integer index of the time point in the cycle, for which to calculate the stationary distribution

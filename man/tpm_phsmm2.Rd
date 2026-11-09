@@ -18,7 +18,7 @@ Each list element needs to be a matrix of dimension \code{c(L, N_i)}, where each
 \item{eps}{rounding value: If an entry of the transition probability matrix is smaller, it is rounded to zero.}
 }
 \value{
-array of dimension c(N,N,L), containing the extended-state-space transition probability matrices of the approximating HMM for each time point of the cycle.
+array of dimension \code{c(M, M, L)}, containing the extended-state-space transition probability matrices of the approximating HMM for each time point of the cycle.
 }
 \description{
 Hidden semi-Markov models (HSMMs) are a flexible extension of HMMs. For direct numerical maximum likelihood estimation, HSMMs can be represented as HMMs on an enlarged state space (of size \eqn{M}) and with structured transition probabilities.

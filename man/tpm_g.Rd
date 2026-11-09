@@ -8,7 +8,7 @@ tpm_g(Z, beta, Eta = NULL, byrow = FALSE, ref = NULL, ad = NULL, report = TRUE)
 }
 \arguments{
 \item{Z}{Covariate design matrix with or without intercept column, i.e. of dimension \code{c(nObs, p)} or \code{c(nObs, p+1)}.
-If not provided, intercept column is added automatically.}
+If \code{Z} has only \code{p} columns, an intercept column is added automatically.}
 
 \item{beta}{Matrix of coefficients for the off-diagonal elements of the transition probability matrix 
 of dimension \code{c(nStates * (nStates-1), p+1)}. The first column contains the intercepts.}
@@ -24,7 +24,7 @@ Defaults to \code{FALSE}, but should be set to \code{TRUE} if one wants to work 
 
 \item{ad}{logical; whether to use automatic differentiation. Determined automatically — for debugging only.}
 
-\item{report}{logical; if \code{TRUE} (default), \code{delta}, \code{Gamma}, \code{allprobs}, and \code{trackID} are reported from the fitted model. Requires \code{ad = TRUE}.}
+\item{report}{logical; if \code{TRUE} (default), the coefficient matrix \code{beta} is reported from the fitted model, if \code{Z} is provided. Requires \code{ad = TRUE}.}
 }
 \value{
 array of transition probability matrices of dimension \code{c(nStates, nStates, nObs)}

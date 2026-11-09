@@ -37,7 +37,7 @@
 #' logical; whether to use automatic differentiation. Determined automatically — for debugging only.
 #' 
 #' @param report 
-#' logical; if \code{TRUE} (default), \code{delta}, \code{Gamma}, \code{allprobs}, and \code{trackID} are reported from the fitted model. Requires \code{ad = TRUE}. 
+#' logical; if \code{TRUE} (default), the coefficient matrix \code{beta} is reported from the fitted model, if \code{Z} is provided. Requires \code{ad = TRUE}.
 #' 
 #' @param param 
 #' deprecated, please use argument \code{beta} instead.
@@ -163,7 +163,7 @@ tpm <- function(
 #'
 #' @param Z 
 #' Covariate design matrix with or without intercept column, i.e. of dimension \code{c(nObs, p)} or \code{c(nObs, p+1)}.
-#' If not provided, intercept column is added automatically.
+#' If \code{Z} has only \code{p} columns, an intercept column is added automatically.
 #'
 #' @param beta 
 #' Matrix of coefficients for the off-diagonal elements of the transition probability matrix 
@@ -185,7 +185,7 @@ tpm <- function(
 #' logical; whether to use automatic differentiation. Determined automatically — for debugging only.
 #' 
 #' @param report 
-#' logical; if \code{TRUE} (default), \code{delta}, \code{Gamma}, \code{allprobs}, and \code{trackID} are reported from the fitted model. Requires \code{ad = TRUE}. 
+#' logical; if \code{TRUE} (default), the coefficient matrix \code{beta} is reported from the fitted model, if \code{Z} is provided. Requires \code{ad = TRUE}.
 #' 
 #'
 #' @return array of transition probability matrices of dimension \code{c(nStates, nStates, nObs)}
@@ -570,7 +570,7 @@ tpm_thinned = function(Gamma, t){
 #' 
 #' @details
 #' Note that using this function inside the negative log-likelihood function is convenient, but it performs the basis expansion into sine and cosine terms each time it is called. 
-#' As these do not change during the optimisation, using \code{\link{tpm_g}} with a pre-calculated (by \code{\link{trigBasisExp}}) design matrix would be more efficient.
+#' As these do not change during the optimisation, using \code{\link{tpm}} with a pre-calculated (by \code{\link{trigBasisExp}}) design matrix would be more efficient.
 #'
 #' @family transition probability matrix functions
 #'
@@ -872,7 +872,7 @@ tpm_cont <- function(
 #' logical indicating if the generator matrix should be filled by row
 #'
 #' @param report 
-#' logical, indicating whether the generator matrix \code{Q} should be reported from the fitted model. Defaults to \code{TRUE}, but only works if when automatic differentiation with \code{RTMB} is used.
+#' logical; if \code{TRUE} (default), the coefficient matrix \code{beta} is reported from the fitted model, if \code{Z} is provided. Requires automatic differentiation with \code{RTMB}.
 #'
 #' @param param 
 #' deprecated, please use argument \code{beta} instead.
@@ -971,7 +971,7 @@ generator <- function(
 #' @family transition probability matrix functions
 #' 
 #' @param Z 
-#' Covariate design matrix with or without intercept column, i.e. of dimension \code{c(nObs, p)} or \code{c(nObs, p+1)}. If not provided, intercept column is added automatically.
+#' Covariate design matrix with or without intercept column, i.e. of dimension \code{c(nObs, p)} or \code{c(nObs, p+1)}. If \code{Z} has only \code{p} columns, an intercept column is added automatically.
 #'
 #' @param beta 
 #' Matrix of coefficients for the off-diagonal elements of the generator matrix 
@@ -985,7 +985,7 @@ generator <- function(
 #' logical indicating if the generator matrices should be filled by row
 #'
 #' @param report 
-#' logical, indicating whether the generator matrices \code{Q} should be reported from the fitted model. Defaults to \code{TRUE}, but only works if when automatic differentiation with \code{RTMB} is used.
+#' logical; if \code{TRUE} (default), the coefficient matrix \code{beta} is reported from the fitted model. Requires automatic differentiation with \code{RTMB}.
 #' 
 #' @return array of infinitesimal generator matrices of dimension \code{c(nStates, nStates, nObs)}
 #' @export
@@ -1336,7 +1336,7 @@ tpm_hsmm <- function(omega, dm,
 #' @description
 #' Hidden semi-Markov models (HSMMs) are a flexible extension of HMMs. For direct numerical maximum likelihood estimation, HSMMs can be represented as HMMs on an enlarged state space (of size \eqn{M}) and with structured transition probabilities.
 #' 
-#' This function computes the transition matrices of a periodically inhomogeneos HSMMs.
+#' This function computes the transition matrices of an inhomogeneous HSMM.
 #'
 #' @param omega embedded transition probability matrix
 #'
@@ -1346,7 +1346,7 @@ tpm_hsmm <- function(omega, dm,
 #' Each list element needs to be a matrix of dimension \code{c(nObs, N_i)}, where each row t is the (approximate) probability mass function of state i at time t.
 #' @param eps rounding value: If an entry of the transition probability matrix is smaller, it is rounded to zero. Usually, this should not be changed.
 #'
-#' @return list of dimension length \code{n - max(sapply(dm, ncol))}, containing sparse extended-state-space transition probability matrices for each time point (except the first \code{max(sapply(dm, ncol)) - 1}).
+#' @return list of length \code{nObs - max(sapply(dm, ncol)) + 1}, containing sparse extended-state-space transition probability matrices for each time point (except the first \code{max(sapply(dm, ncol)) - 1}).
 #' @export
 #'
 #' @examples

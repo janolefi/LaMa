@@ -64,7 +64,7 @@ tpm_hsmm2 = function(omega,dm,eps=1e-10){
 #' Each list element needs to be a matrix of dimension \code{c(L, N_i)}, where each row t is the (approximate) probability mass function of state i at time t.
 #' @param eps rounding value: If an entry of the transition probability matrix is smaller, it is rounded to zero.
 #'
-#' @return array of dimension c(N,N,L), containing the extended-state-space transition probability matrices of the approximating HMM for each time point of the cycle.
+#' @return array of dimension \code{c(M, M, L)}, containing the extended-state-space transition probability matrices of the approximating HMM for each time point of the cycle.
 #' @export
 #'
 #' @examples
@@ -150,7 +150,7 @@ tpm_phsmm2 = function(omega, dm, eps = 1e-10){
 #'
 #' Hidden semi-Markov models (HSMMs) are a flexible extension of HMMs that can be approximated by HMMs on an enlarged state space (of size \eqn{M}) and with structured transition probabilities.
 #'
-#' @param delta initial or stationary distribution of length N, or matrix of dimension c(k,N) for k independent tracks, if \code{trackID} is provided
+#' @param delta initial or stationary distribution of length \code{M} on the enlarged state space
 #' @param Gamma transition probability matrix of dimension \code{c(M, M)}
 #' @param allprobs matrix of state-dependent probabilities/ density values of dimension \code{c(nObs, nStates)} which will automatically be converted to the appropriate dimension.
 #' @param sizes state aggregate sizes that are used for the approximation of the semi-Markov chain.
@@ -205,7 +205,7 @@ forward_s = function(delta, Gamma, allprobs, sizes){
 #' Recently, this inference procedure has been generalised to allow either the dwell-time distributions or the conditional transition probabilities to depend on external covariates such as the time of day. This special case is implemented here.
 #' This function allows for that, by expecting a transition probability matrix for each time point in a period, and an integer valued (\eqn{1, \dots, L}) time variable that maps the data index to the according time.
 #'
-#' @param delta initial or stationary distribution of length N, or matrix of dimension c(k,N) for k independent tracks, if \code{trackID} is provided
+#' @param delta initial or stationary distribution of length \code{M} on the enlarged state space
 #' @param Gamma array of transition probability matrices of dimension \code{c(M, M, L)}.
 #' 
 #' Here we use the definition \eqn{\Pr(S_t=j \mid S_{t-1}=i) = \gamma_{ij}^{(t)}} such that the transition probabilities between time point \eqn{t-1} and \eqn{t} are an element of \eqn{\Gamma^{(t)}}.

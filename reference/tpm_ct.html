@@ -72,7 +72,8 @@ This function calculates all transition matrices based on a given generator and 
 
 
 <dl><dt id="arg-q">Q<a class="anchor" aria-label="anchor" href="#arg-q"></a></dt>
-<dd><p>infinitesimal generator matrix of the continuous-time Markov chain of dimension <code>c(nStates, nStates)</code></p></dd>
+<dd><p>infinitesimal generator matrix of the continuous-time Markov chain of dimension <code>c(nStates, nStates)</code>,
+or array of generator matrices of dimension <code>c(nStates, nStates, nObs-1)</code> (or larger) for time-varying generators, e.g. from <code><a href="generator.html">generator</a>(beta, Z)</code>.</p></dd>
 
 
 <dt id="arg-timediff">timediff<a class="anchor" aria-label="anchor" href="#arg-timediff"></a></dt>
@@ -95,6 +96,29 @@ For the MM(M)PP likelihood, the matrices needed in the forward algorithm are \(\
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>array of continuous-time transition matrices of dimension <code>c(nStates, nStates, nObs-1)</code></p>
+    </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p><strong>Transition probabilities.</strong> The entry \((i,j)\) of \(\Gamma(\Delta t) = \exp(Q \Delta t)\) is the probability that the chain is in state \(j\) at time \(t + \Delta t\), given that it is in state \(i\) at time \(t\).
+Its rows sum to one. For short intervals, \(\Gamma(\Delta t)\) is close to the identity matrix. For long intervals, each row is close to the stationary distribution (see <code><a href="stationary_ct.html">stationary_ct</a></code>).
+This is what makes continuous-time models suitable for irregularly sampled data: each interval gets its own transition matrix.</p>
+<p><strong>Time-varying generators.</strong> If <code>Q</code> is an array of generator matrices, e.g. from <code><a href="generator.html">generator</a>(beta, Z)</code>, the generator is assumed constant within each interval, and <code>Q[, , t]</code> is used for <code>timediff[t]</code>.
+Hence, row \(t\) of <code>Z</code> should contain the covariates at the start of interval \(t\), i.e. at observation \(t\). Only the first <code>length(timediff)</code> slices of <code>Q</code> are used.</p>
+<p><strong>Repeated time differences.</strong> If <code>Q</code> is a single matrix, \(\Gamma(\Delta t)\) only depends on \(\Delta t\).
+Hence, the matrix exponential is computed only once for each unique value in <code>timediff</code> and then copied to all intervals with that time difference.
+This happens automatically, so there is no need to do it manually. It saves a lot of time when there are only few unique time differences, e.g. when time is measured in days or observations are regular with occasional gaps.
+Copying is free on the <code>RTMB</code> tape, and when all time differences are unique, nothing changes.</p>
+<p><strong>MM(M)PPs.</strong> If <code>rates</code> are provided, the function returns \(\exp((Q - \Lambda) \Delta t)\) with \(\Lambda = \mathrm{diag}(\lambda_1, \dots, \lambda_N)\).
+Its entry \((i,j)\) is the probability of moving from state \(i\) to state \(j\) over the interval without any arrival in between, so its rows sum to less than one.
+Multiplied with the state-dependent rates at the arrival times (in <code>allprobs</code>), these matrices give the MM(M)PP likelihood in the forward algorithm.</p>
+<p><strong>Computation.</strong> Without automatic differentiation, the matrix exponential is calculated in C++ with Armadillo, separately for each interval.
+With automatic differentiation (<code>ad = TRUE</code>), <code><a href="https://rdrr.io/pkg/Matrix/man/expm-methods.html" class="external-link">Matrix::expm</a></code> is called for each interval, i.e. a Padé approximation with scaling and squaring, all of which is recorded on the <code>RTMB</code> tape.</p>
+<p>For <strong>two states</strong>, a closed form is used in the AD case instead. Let \(A = Q - \Lambda\) (or \(A = Q\) without rates) with real eigenvalues \(\nu_1 &gt; \nu_2\). Then
+$$\exp(A \Delta t) = e^{\nu_1 \Delta t} I + \frac{e^{\nu_1 \Delta t} - e^{\nu_2 \Delta t}}{\nu_1 - \nu_2} (A - \nu_1 I).$$
+Without rates, \(\nu_1 = 0\) and \(\nu_2 = -(q_{12} + q_{21})\), so that, e.g., \(\Gamma_{12}(\Delta t) = q_{12} (1 - e^{-(q_{12} + q_{21}) \Delta t}) / (q_{12} + q_{21})\).
+This is exact, not an approximation. For two states, models are therefore expected to be much faster to fit (often by more than an order of magnitude for the gradient):
+the closed form needs only a few elementwise operations on vectors of length <code>length(timediff)</code>,
+whereas <code><a href="https://rdrr.io/pkg/Matrix/man/expm-methods.html" class="external-link">Matrix::expm</a></code> records a full Padé approximation (matrix products, a linear solve and repeated squaring) on the tape separately for each interval, all of which needs to be evaluated and differentiated in every optimisation step.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

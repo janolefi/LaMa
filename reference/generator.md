@@ -61,17 +61,39 @@ or `Eta` is provided.
 
 ## Details
 
-Off-diagonal entries are calculated as \\\exp(\beta_i)\\ to ensure
-positivity. The diagonal entries are then set to the negative row sums,
-which is required for generator matrices.
+**Generator matrices.** The off-diagonal entry \\q\_{ij} \geq 0\\ of a
+generator \\Q\\ is the rate of switching from state \\i\\ to state
+\\j\\, i.e. \\\Pr(S\_{t+h} = j \mid S_t = i) \approx q\_{ij} h\\ for
+small \\h\\. The diagonal entries are \\q\_{ii} = -\sum\_{j \neq i}
+q\_{ij}\\, so that each row sums to zero. Hence, the time spent in state
+\\i\\ is exponentially distributed with rate \\-q\_{ii}\\, and when
+leaving state \\i\\, the chain moves to state \\j\\ with probability
+\\q\_{ij} / (-q\_{ii})\\. Transition probabilities over intervals of
+length \\\Delta t\\ are \\\exp(Q \Delta t)\\, calculated by
+[`tpm_ct`](https://janolefi.github.io/LaMa/reference/tpm_ct.md).
 
-If a design matrix `Z` or a matrix of linear predictors `Eta` is
-provided, the function will automatically call
-[`generator_g`](https://janolefi.github.io/LaMa/reference/generator_g.md)
-to build the generator matrix based on the design matrix and coefficient
-matrix. In that case, the argument `beta` needs to be a matrix of
-coefficients of dimension `c(nStates * (nStates-1), p+1)`, where the
-first column contains the intercepts.
+**Parameterisation.** The off-diagonal entries are calculated as
+\\q\_{ij} = \exp(\beta_k)\\ to ensure positivity, and the diagonal
+entries are then set to the negative row sums. By default
+(`byrow = FALSE`), the off-diagonal entries are filled column-wise, i.e.
+for 3 states \\\beta\\ corresponds to \\(q\_{21}, q\_{31}, q\_{12},
+q\_{32}, q\_{13}, q\_{23})\\. With `byrow = TRUE`, they are filled
+row-wise, i.e. \\(q\_{12}, q\_{13}, q\_{21}, q\_{23}, q\_{31},
+q\_{32})\\. For 2 states, this means \\\beta = (\log q\_{21}, \log
+q\_{12})\\ by default and \\\beta = (\log q\_{12}, \log q\_{21})\\ with
+`byrow = TRUE`.
+
+**Covariates.** If a design matrix `Z` is provided, each off-diagonal
+entry depends on covariates via \\q\_{ij}^{(t)} = \exp(z_t^\top
+\beta\_{ij})\\, where \\z_t\\ is row \\t\\ of `Z`, and one generator
+matrix is returned for each row of `Z`. Then `beta` needs to be a matrix
+of coefficients of dimension `c(nStates * (nStates-1), p+1)`, where the
+first column contains the intercepts and rows are ordered as above.
+Alternatively, a matrix of linear predictors `Eta` can be provided, with
+one column per off-diagonal entry in the same order. When passed to
+[`tpm_ct`](https://janolefi.github.io/LaMa/reference/tpm_ct.md), the
+generator is assumed constant within each interval, so row \\t\\ of `Z`
+should contain the covariates at the start of interval \\t\\.
 
 ## See also
 

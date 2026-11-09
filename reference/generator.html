@@ -98,9 +98,18 @@ If provided, <code>Z</code> and <code>beta</code> will be ignored.</p></dd>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Off-diagonal entries are calculated as \(\exp(\beta_i)\) to ensure positivity. The diagonal entries are then set to the negative row sums, which is required for generator matrices.</p>
-<p>If a design matrix <code>Z</code> or a matrix of linear predictors <code>Eta</code> is provided, the function will automatically call <code><a href="generator_g.html">generator_g</a></code> to build the generator matrix based on the design matrix and coefficient matrix.
-In that case, the argument <code>beta</code> needs to be a matrix of coefficients of dimension <code>c(nStates * (nStates-1), p+1)</code>, where the first column contains the intercepts.</p>
+    <p><strong>Generator matrices.</strong> The off-diagonal entry \(q_{ij} \geq 0\) of a generator \(Q\) is the rate of switching from state \(i\) to state \(j\), i.e. \(\Pr(S_{t+h} = j \mid S_t = i) \approx q_{ij} h\) for small \(h\).
+The diagonal entries are \(q_{ii} = -\sum_{j \neq i} q_{ij}\), so that each row sums to zero.
+Hence, the time spent in state \(i\) is exponentially distributed with rate \(-q_{ii}\), and when leaving state \(i\), the chain moves to state \(j\) with probability \(q_{ij} / (-q_{ii})\).
+Transition probabilities over intervals of length \(\Delta t\) are \(\exp(Q \Delta t)\), calculated by <code><a href="tpm_ct.html">tpm_ct</a></code>.</p>
+<p><strong>Parameterisation.</strong> The off-diagonal entries are calculated as \(q_{ij} = \exp(\beta_k)\) to ensure positivity, and the diagonal entries are then set to the negative row sums.
+By default (<code>byrow = FALSE</code>), the off-diagonal entries are filled column-wise, i.e. for 3 states \(\beta\) corresponds to \((q_{21}, q_{31}, q_{12}, q_{32}, q_{13}, q_{23})\).
+With <code>byrow = TRUE</code>, they are filled row-wise, i.e. \((q_{12}, q_{13}, q_{21}, q_{23}, q_{31}, q_{32})\).
+For 2 states, this means \(\beta = (\log q_{21}, \log q_{12})\) by default and \(\beta = (\log q_{12}, \log q_{21})\) with <code>byrow = TRUE</code>.</p>
+<p><strong>Covariates.</strong> If a design matrix <code>Z</code> is provided, each off-diagonal entry depends on covariates via \(q_{ij}^{(t)} = \exp(z_t^\top \beta_{ij})\), where \(z_t\) is row \(t\) of <code>Z</code>, and one generator matrix is returned for each row of <code>Z</code>.
+Then <code>beta</code> needs to be a matrix of coefficients of dimension <code>c(nStates * (nStates-1), p+1)</code>, where the first column contains the intercepts and rows are ordered as above.
+Alternatively, a matrix of linear predictors <code>Eta</code> can be provided, with one column per off-diagonal entry in the same order.
+When passed to <code><a href="tpm_ct.html">tpm_ct</a></code>, the generator is assumed constant within each interval, so row \(t\) of <code>Z</code> should contain the covariates at the start of interval \(t\).</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

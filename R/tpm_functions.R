@@ -653,7 +653,7 @@ tpm_p = function(tod = 1:24, L=24, beta, degree = 1, Z = NULL, byrow = FALSE, ad
 #' \deqn{\Gamma(\Delta t_i) = \exp(Q \Delta t_i),}
 #' where \eqn{\exp()} is the matrix exponential. The mapping \eqn{\Gamma(\Delta t)} is also called the \strong{Markov semigroup}.
 #' This function calculates all transition matrices based on a given generator and time differences.
-#' 
+#'
 #' @details
 #' \strong{Transition probabilities.} The entry \eqn{(i,j)} of \eqn{\Gamma(\Delta t) = \exp(Q \Delta t)} is the probability that the chain is in state \eqn{j} at time \eqn{t + \Delta t}, given that it is in state \eqn{i} at time \eqn{t}.
 #' Its rows sum to one. For short intervals, \eqn{\Gamma(\Delta t)} is close to the identity matrix. For long intervals, each row is close to the stationary distribution (see \code{\link{stationary_ct}}).
@@ -683,10 +683,10 @@ tpm_p = function(tod = 1:24, L=24, beta, degree = 1, Z = NULL, byrow = FALSE, ad
 #'
 #' @family transition probability matrix functions
 #'
-#' @param Q 
+#' @param Q
 #' infinitesimal generator matrix of the continuous-time Markov chain of dimension \code{c(nStates, nStates)},
 #' or array of generator matrices of dimension \code{c(nStates, nStates, nObs-1)} (or larger) for time-varying generators, e.g. from \code{\link{generator}(beta, Z)}.
-#' 
+#'
 #' @param timediff 
 #' time differences between observations of length \code{nObs}-1 when based on \code{nObs} observations
 #' 
@@ -754,7 +754,7 @@ tpm_ct <- function(Q, timediff, rates = NULL, ad = NULL, report = TRUE){
     # determine whether to use AD
     ad <- ad_context()
   }
-  
+
   # constant Q: matrix exponential only once per unique time difference (see details)
   ind <- NULL
   if(is.matrix(Q) && !inherits(timediff, "advector")) {
@@ -766,7 +766,7 @@ tpm_ct <- function(Q, timediff, rates = NULL, ad = NULL, report = TRUE){
   }
 
   if(!ad) {
-    
+
     if(is.matrix(Q)) {
       Qube <- semigroup_cpp(Q, timediff) # C++ version
     } else {
@@ -778,7 +778,7 @@ tpm_ct <- function(Q, timediff, rates = NULL, ad = NULL, report = TRUE){
     
     n <- length(timediff)
     Qube = array(0, dim = c(N, N, n))
-    
+
     if(N == 2) { # closed form for 2 states, vectorised over intervals (see details)
       t <- if(is.matrix(Q)) 1 else 1:n # one Q for all intervals or one per interval
       if(is.matrix(Q)) dim(Q) <- c(2, 2, 1)
@@ -803,10 +803,10 @@ tpm_ct <- function(Q, timediff, rates = NULL, ad = NULL, report = TRUE){
       }
     }
   }
-  
+
   # back to all intervals (free on the AD tape, only references are copied)
   if(!is.null(ind)) Qube <- Qube[, , ind, drop = FALSE]
-  
+
   # naming
   N <- nrow(Q)
   statenames <- paste0("S", 1:N)

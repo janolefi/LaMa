@@ -1,5 +1,8 @@
 # LaMa 3.1.0
 
+* `tpm_ct()` is much faster: with AD and 2 states it uses an exact closed form instead of 
+  `Matrix::expm()` for each interval (about 100x faster gradients), and for a constant `Q` it 
+  computes the matrix exponential only once per unique time difference
 * `qreml()` no longer evaluates the Hessian a second time for the returned model, which saves about 
   `length(par)` gradient evaluations per fit, and the final message now reads `"Final sp: ..."` as no 
   fit follows it unless the last iterate was not the best one

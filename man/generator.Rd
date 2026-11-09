@@ -39,10 +39,20 @@ infinitesimal generator matrix of dimension \code{c(nStates, nStates)} or array 
 This function builds the \strong{infinitesimal generator matrix} for a \strong{continuous-time Markov chain} from an unconstrained parameter vector.
 }
 \details{
-Off-diagonal entries are calculated as \eqn{\exp(\beta_i)} to ensure positivity. The diagonal entries are then set to the negative row sums, which is required for generator matrices.
+\strong{Generator matrices.} The off-diagonal entry \eqn{q_{ij} \geq 0} of a generator \eqn{Q} is the rate of switching from state \eqn{i} to state \eqn{j}, i.e. \eqn{\Pr(S_{t+h} = j \mid S_t = i) \approx q_{ij} h} for small \eqn{h}.
+The diagonal entries are \eqn{q_{ii} = -\sum_{j \neq i} q_{ij}}, so that each row sums to zero.
+Hence, the time spent in state \eqn{i} is exponentially distributed with rate \eqn{-q_{ii}}, and when leaving state \eqn{i}, the chain moves to state \eqn{j} with probability \eqn{q_{ij} / (-q_{ii})}.
+Transition probabilities over intervals of length \eqn{\Delta t} are \eqn{\exp(Q \Delta t)}, calculated by \code{\link{tpm_ct}}.
 
-If a design matrix \code{Z} or a matrix of linear predictors \code{Eta} is provided, the function will automatically call \code{\link{generator_g}} to build the generator matrix based on the design matrix and coefficient matrix.
-In that case, the argument \code{beta} needs to be a matrix of coefficients of dimension \code{c(nStates * (nStates-1), p+1)}, where the first column contains the intercepts.
+\strong{Parameterisation.} The off-diagonal entries are calculated as \eqn{q_{ij} = \exp(\beta_k)} to ensure positivity, and the diagonal entries are then set to the negative row sums.
+By default (\code{byrow = FALSE}), the off-diagonal entries are filled column-wise, i.e. for 3 states \eqn{\beta} corresponds to \eqn{(q_{21}, q_{31}, q_{12}, q_{32}, q_{13}, q_{23})}.
+With \code{byrow = TRUE}, they are filled row-wise, i.e. \eqn{(q_{12}, q_{13}, q_{21}, q_{23}, q_{31}, q_{32})}.
+For 2 states, this means \eqn{\beta = (\log q_{21}, \log q_{12})} by default and \eqn{\beta = (\log q_{12}, \log q_{21})} with \code{byrow = TRUE}.
+
+\strong{Covariates.} If a design matrix \code{Z} is provided, each off-diagonal entry depends on covariates via \eqn{q_{ij}^{(t)} = \exp(z_t^\top \beta_{ij})}, where \eqn{z_t} is row \eqn{t} of \code{Z}, and one generator matrix is returned for each row of \code{Z}.
+Then \code{beta} needs to be a matrix of coefficients of dimension \code{c(nStates * (nStates-1), p+1)}, where the first column contains the intercepts and rows are ordered as above.
+Alternatively, a matrix of linear predictors \code{Eta} can be provided, with one column per off-diagonal entry in the same order.
+When passed to \code{\link{tpm_ct}}, the generator is assumed constant within each interval, so row \eqn{t} of \code{Z} should contain the covariates at the start of interval \eqn{t}.
 }
 \examples{
 # 2 states: 2 free off-diagonal elements

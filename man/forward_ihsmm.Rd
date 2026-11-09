@@ -20,7 +20,7 @@ forward_ihsmm(
 
 If the dwell-time PMFs are constant, the vectors are the PMF of the dwell-time distribution fixed in time. The vector lengths correspond to the approximating state aggregate sizes, hence there should be little probability mass not covered by these.
 
-If the dwell-time PMFs are inhomogeneous, the matrices need to have n rows, where n is the number of observations. The number of columns again correponds to the size of the approximating state aggregates.
+If the dwell-time PMFs are inhomogeneous, the matrices need to have \code{nObs} rows. The number of columns again corresponds to the size of the approximating state aggregates.
 
 In the latter case, the first \code{max(sapply(dm, ncol)) - 1} observations will not be used because the first approximating transition probability matrix needs to be computed based on the first \code{max(sapply(dm, ncol))} covariate values (represented by \code{dm}).}
 
@@ -35,7 +35,7 @@ It contains the transition probabilities given the current state is left. Hence,
 If provided, the total log-likelihood will be the sum of each track's likelihood contribution.
 Instead of a single vector \code{delta} corresponding to the initial distribution, a \code{delta} matrix of initial distributions, of dimension \code{c(nTracks, nStates)}, can be provided, such that each track starts with its own initial distribution.}
 
-\item{delta}{optional vector of initial state probabilities of length N
+\item{delta}{optional vector of initial state probabilities of length \code{nStates}
 
 By default, instead of this, the stationary distribution corresponding to the first approximating transition probability matrix of each track is computed. Contrary to the homogeneous case, this is not theoretically motivated but just for convenience.}
 

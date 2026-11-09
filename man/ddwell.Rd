@@ -9,7 +9,7 @@ ddwell(x, Gamma, time = NULL, state = NULL)
 \arguments{
 \item{x}{vector of (non-negative) dwell times to compute the dwell-time distribution for}
 
-\item{Gamma}{array of \code{L} unique transition probability matrices of a periodically inhomogeneous Markov chain, with dimensions \code{c(N,N,L)}, where \code{N} is the number of states and \code{L} is the cycle length}
+\item{Gamma}{array of \code{L} unique transition probability matrices of a periodically inhomogeneous Markov chain, of dimension \code{c(nStates, nStates, L)}, where \code{L} is the cycle length}
 
 \item{time}{integer vector of time points in \code{1:L} at which to compute the dwell-time distribution. If \code{NULL}, the overall dwell-time distribution is computed.}
 

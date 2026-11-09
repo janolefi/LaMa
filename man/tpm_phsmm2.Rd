@@ -9,11 +9,11 @@ tpm_phsmm2(omega, dm, eps = 1e-10)
 \arguments{
 \item{omega}{embedded transition probability matrix
 
-Either a matrix of dimension c(N,N) for homogeneous conditional transition probabilities, or an array of dimension c(N,N,L) for inhomogeneous conditional transition probabilities.}
+Either a matrix of dimension \code{c(nStates, nStates)} for homogeneous conditional transition probabilities, or an array of dimension \code{c(nStates, nStates, L)} for inhomogeneous conditional transition probabilities.}
 
-\item{dm}{state dwell-time distributions arranged in a list of length(N)
+\item{dm}{state dwell-time distributions arranged in a list of length \code{nStates}
 
-Each list element needs to be a matrix of dimension c(L, N_i), where each row t is the (approximate) probability mass function of state i at time t.}
+Each list element needs to be a matrix of dimension \code{c(L, N_i)}, where each row t is the (approximate) probability mass function of state i at time t.}
 
 \item{eps}{rounding value: If an entry of the transition probability matrix is smaller, it is rounded to zero.}
 }

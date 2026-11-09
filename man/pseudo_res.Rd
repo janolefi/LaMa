@@ -27,7 +27,7 @@ If a discrete CDF function is passed, the \code{discrete} argument needs to be s
 Names need to correspond to the parameter names in the specified distribution (e.g. \code{list(mean = c(1,2), sd = c(1,1))} for a normal distribution and 2 states).
 This argument is as flexible as the parametric distribution allows. For example you can have a matrix of parameters with one row for each observation and one column for each state.}
 
-\item{stateprobs}{matrix of local state probabilities for each observation (of dimension c(nObs, nStates)) as computed by \code{\link{stateprobs}}}
+\item{stateprobs}{matrix of local state probabilities for each observation (of dimension \code{c(nObs, nStates)}) as computed by \code{\link{stateprobs}}}
 
 \item{mod}{optional model object containing required quantities
 

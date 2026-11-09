@@ -119,7 +119,7 @@ finish_res <- function(upper, lower = NULL, observed = !is.na(upper), normal = T
 #' 
 #' Names need to correspond to the parameter names in the specified distribution (e.g. \code{list(mean = c(1,2), sd = c(1,1))} for a normal distribution and 2 states).
 #' This argument is as flexible as the parametric distribution allows. For example you can have a matrix of parameters with one row for each observation and one column for each state.
-#' @param stateprobs matrix of local state probabilities for each observation (of dimension c(nObs, nStates)) as computed by \code{\link{stateprobs}}
+#' @param stateprobs matrix of local state probabilities for each observation (of dimension \code{c(nObs, nStates)}) as computed by \code{\link{stateprobs}}
 #' @param mod optional model object containing required quantities
 #' 
 #' When using automatic differentiation either with \code{RTMB::MakeADFun} or \code{\link{qreml}} and include \code{\link{forward}} in your likelihood function, the objects needed for state decoding are automatically reported after model fitting.

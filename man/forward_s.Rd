@@ -9,9 +9,9 @@ forward_s(delta, Gamma, allprobs, sizes)
 \arguments{
 \item{delta}{initial or stationary distribution of length N, or matrix of dimension c(k,N) for k independent tracks, if \code{trackID} is provided}
 
-\item{Gamma}{transition probability matrix of dimension c(M,M)}
+\item{Gamma}{transition probability matrix of dimension \code{c(M, M)}}
 
-\item{allprobs}{matrix of state-dependent probabilities/ density values of dimension c(n, N) which will automatically be converted to the appropriate dimension.}
+\item{allprobs}{matrix of state-dependent probabilities/ density values of dimension \code{c(nObs, nStates)} which will automatically be converted to the appropriate dimension.}
 
 \item{sizes}{state aggregate sizes that are used for the approximation of the semi-Markov chain.}
 }

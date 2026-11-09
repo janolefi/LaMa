@@ -13,7 +13,7 @@ Either a matrix of dimension \code{c(nStates, nStates)} for homogeneous conditio
 
 \item{dm}{state dwell-time distributions arranged in a list of length \code{nStates}
 
-Each list element needs to be a matrix of dimension c(L, N_i), where each row t is the (approximate) probability mass function of state i at time t.}
+Each list element needs to be a matrix of dimension \code{c(L, N_i)}, where each row t is the (approximate) probability mass function of state i at time t.}
 
 \item{eps}{rounding value: If an entry of the transition probability matrix is smaller, it is rounded to zero. Usually, this should not be changed.}
 }

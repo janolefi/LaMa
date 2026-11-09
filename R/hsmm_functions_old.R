@@ -5,8 +5,8 @@
 #' For direct numerical maximum likelihood estimation, HSMMs can be represented as HMMs on an enlarged state space (of size \eqn{M}) and with structured transition probabilities.
 #' This function computes the transition matrix of an HSMM.
 #'
-#' @param omega embedded transition probability matrix of dimension c(N,N)
-#' @param dm state dwell-time distributions arranged in a list of length(N). Each list element needs to be a vector of length N_i, where N_i is the state aggregate size.
+#' @param omega embedded transition probability matrix of dimension \code{c(nStates, nStates)}
+#' @param dm state dwell-time distributions arranged in a list of length \code{nStates}. Each list element needs to be a vector of length N_i, where N_i is the state aggregate size.
 #' @param eps rounding value: If an entry of the transition probability matrix is smaller, it is rounded to zero.
 #'
 #' @return extended-state-space transition probability matrix of the approximating HMM
@@ -58,10 +58,10 @@ tpm_hsmm2 = function(omega,dm,eps=1e-10){
 #'
 #' @param omega embedded transition probability matrix
 #' 
-#' Either a matrix of dimension c(N,N) for homogeneous conditional transition probabilities, or an array of dimension c(N,N,L) for inhomogeneous conditional transition probabilities.
-#' @param dm state dwell-time distributions arranged in a list of length(N)
+#' Either a matrix of dimension \code{c(nStates, nStates)} for homogeneous conditional transition probabilities, or an array of dimension \code{c(nStates, nStates, L)} for inhomogeneous conditional transition probabilities.
+#' @param dm state dwell-time distributions arranged in a list of length \code{nStates}
 #' 
-#' Each list element needs to be a matrix of dimension c(L, N_i), where each row t is the (approximate) probability mass function of state i at time t.
+#' Each list element needs to be a matrix of dimension \code{c(L, N_i)}, where each row t is the (approximate) probability mass function of state i at time t.
 #' @param eps rounding value: If an entry of the transition probability matrix is smaller, it is rounded to zero.
 #'
 #' @return array of dimension c(N,N,L), containing the extended-state-space transition probability matrices of the approximating HMM for each time point of the cycle.
@@ -151,8 +151,8 @@ tpm_phsmm2 = function(omega, dm, eps = 1e-10){
 #' Hidden semi-Markov models (HSMMs) are a flexible extension of HMMs that can be approximated by HMMs on an enlarged state space (of size \eqn{M}) and with structured transition probabilities.
 #'
 #' @param delta initial or stationary distribution of length N, or matrix of dimension c(k,N) for k independent tracks, if \code{trackID} is provided
-#' @param Gamma transition probability matrix of dimension c(M,M)
-#' @param allprobs matrix of state-dependent probabilities/ density values of dimension c(n, N) which will automatically be converted to the appropriate dimension.
+#' @param Gamma transition probability matrix of dimension \code{c(M, M)}
+#' @param allprobs matrix of state-dependent probabilities/ density values of dimension \code{c(nObs, nStates)} which will automatically be converted to the appropriate dimension.
 #' @param sizes state aggregate sizes that are used for the approximation of the semi-Markov chain.
 #'
 #' @return log-likelihood for given data and parameters
@@ -206,12 +206,12 @@ forward_s = function(delta, Gamma, allprobs, sizes){
 #' This function allows for that, by expecting a transition probability matrix for each time point in a period, and an integer valued (\eqn{1, \dots, L}) time variable that maps the data index to the according time.
 #'
 #' @param delta initial or stationary distribution of length N, or matrix of dimension c(k,N) for k independent tracks, if \code{trackID} is provided
-#' @param Gamma array of transition probability matrices of dimension c(M,M,L).
+#' @param Gamma array of transition probability matrices of dimension \code{c(M, M, L)}.
 #' 
 #' Here we use the definition \eqn{\Pr(S_t=j \mid S_{t-1}=i) = \gamma_{ij}^{(t)}} such that the transition probabilities between time point \eqn{t-1} and \eqn{t} are an element of \eqn{\Gamma^{(t)}}.
-#' @param allprobs matrix of state-dependent probabilities/ density values of dimension c(n, N) which will automatically be converted to the appropriate dimension.
+#' @param allprobs matrix of state-dependent probabilities/ density values of dimension \code{c(nObs, nStates)} which will automatically be converted to the appropriate dimension.
 #' @param sizes state aggregate sizes that are used for the approximation of the semi-Markov chain.
-#' @param tod (Integer valued) variable for cycle indexing in 1, ..., L, mapping the data index to a generalised time of day (length n).
+#' @param tod (Integer valued) variable for cycle indexing in 1, ..., L, mapping the data index to a generalised time of day (length \code{nObs}).
 #' For half-hourly data L = 48. It could, however, also be day of year for daily data and L = 365.
 #'
 #' @return log-likelihood for given data and parameters

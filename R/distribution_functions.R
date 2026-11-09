@@ -365,7 +365,7 @@ dgmrf2 = function(x,
 #' The Annals of Applied Statistics, 19(4), 2724--2737.
 #'
 #' @param x vector of (non-negative) dwell times to compute the dwell-time distribution for
-#' @param Gamma array of \code{L} unique transition probability matrices of a periodically inhomogeneous Markov chain, with dimensions \code{c(N,N,L)}, where \code{N} is the number of states and \code{L} is the cycle length
+#' @param Gamma array of \code{L} unique transition probability matrices of a periodically inhomogeneous Markov chain, of dimension \code{c(nStates, nStates, L)}, where \code{L} is the cycle length
 #' @param time integer vector of time points in \code{1:L} at which to compute the dwell-time distribution. If \code{NULL}, the overall dwell-time distribution is computed.
 #' @param state integer vector of state indices for which to compute the dwell-time distribution. If \code{NULL}, dwell-time distributions for all states are returned in a named list.
 #'

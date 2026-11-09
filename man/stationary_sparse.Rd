@@ -7,7 +7,7 @@
 stationary_sparse(Gamma)
 }
 \arguments{
-\item{Gamma}{sparse transition probability matrix of dimension c(N,N)}
+\item{Gamma}{sparse transition probability matrix of dimension \code{c(nStates, nStates)}}
 }
 \value{
 stationary distribution of the Markov chain with the given transition probability matrix

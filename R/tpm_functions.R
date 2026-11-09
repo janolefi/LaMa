@@ -358,24 +358,24 @@ tpm_inhom <- function(Z, beta,
 #' 
 #' @family transition probability matrix functions
 #'
-#' @param Z covariate design matrix with or without intercept column, i.e. of dimension c(n, p) or c(n, p+1)
+#' @param Z covariate design matrix with or without intercept column, i.e. of dimension \code{c(nObs, p)} or \code{c(nObs, p+1)}
 #' 
 #' If \code{Z} has only p columns, an intercept column of ones will be added automatically.
 #' 
-#' Can also be a list of N*(N-1) design matrices with different number of columns but the same number of rows. In that case, no intercept column will be added.
+#' Can also be a list of \code{nStates * (nStates-1)} design matrices with different number of columns but the same number of rows. In that case, no intercept column will be added.
 #' @param beta matrix of coefficients for the off-diagonal elements of the transition probability matrix
 #' 
-#' Needs to be of dimension c(N*(N-1), p+1), where the first column contains the intercepts.
+#' Needs to be of dimension \code{c(nStates * (nStates-1), p+1)}, where the first column contains the intercepts.
 #' 
-#' If \code{Z} is a list, \code{beta} can also be a list of length N*(N-1) with each entry being a vector or a (long) matrix of coefficients, each matching the dimension of the corresponding entry in \code{Z}.
+#' If \code{Z} is a list, \code{beta} can also be a list of length \code{nStates * (nStates-1)} with each entry being a vector or a (long) matrix of coefficients, each matching the dimension of the corresponding entry in \code{Z}.
 #' @param byrow logical indicating if each transition probability matrix should be filled by row
 #'  
 #' Defaults to \code{FALSE}, but should be set to \code{TRUE} if one wants to work with a matrix of beta parameters returned by popular HMM packages like \code{moveHMM}, \code{momentuHMM}, or \code{hmmTMB}.
 #' @param ad optional logical, indicating whether automatic differentiation with \code{RTMB} should be used. By default, the function determines this itself.
 #' @param report logical, indicating whether the coefficient matrix \code{beta} should be reported from the fitted model. Defaults to \code{TRUE}, but only works if \code{ad = TRUE}.
-#' @param ref optional vector of length N with the reference state indices for each column of the transition probability matrix. Each row in the transition matrix corresponds to a multinomial regression, hence one state needs to be the reference category. Defaults to off-diagonal elements (\code{ref = 1:N}).
+#' @param ref optional vector of length \code{nStates} with the reference state indices for each column of the transition probability matrix. Each row in the transition matrix corresponds to a multinomial regression, hence one state needs to be the reference category. Defaults to off-diagonal elements (\code{ref = 1:nStates}).
 #'
-#' @return array of transition probability matrices of dimension c(N,N,n)
+#' @return array of transition probability matrices of dimension \code{c(nStates, nStates, nObs)}
 #' @export
 #' @import RTMB
 #' @importFrom stats na.omit
@@ -1343,7 +1343,7 @@ tpm_hsmm <- function(omega, dm,
 #' Either a matrix of dimension \code{c(nStates, nStates)} for homogeneous conditional transition probabilities (as computed by \code{\link{tpm_emb}}), or an array of dimension \code{c(nStates, nStates, nObs)} for inhomogeneous conditional transition probabilities (as computed by \code{\link{tpm_emb_g}}).
 #' @param dm state dwell-time distributions arranged in a list of length \code{nStates}
 #'
-#' Each list element needs to be a matrix of dimension c(n, N_i), where each row t is the (approximate) probability mass function of state i at time t.
+#' Each list element needs to be a matrix of dimension \code{c(nObs, N_i)}, where each row t is the (approximate) probability mass function of state i at time t.
 #' @param eps rounding value: If an entry of the transition probability matrix is smaller, it is rounded to zero. Usually, this should not be changed.
 #'
 #' @return list of dimension length \code{n - max(sapply(dm, ncol))}, containing sparse extended-state-space transition probability matrices for each time point (except the first \code{max(sapply(dm, ncol)) - 1}).
@@ -1419,7 +1419,7 @@ tpm_ihsmm = function(omega, dm,
 #' Either a matrix of dimension \code{c(nStates, nStates)} for homogeneous conditional transition probabilities (as computed by \code{\link{tpm_emb}}), or an array of dimension \code{c(nStates, nStates, L)} for inhomogeneous conditional transition probabilities (as computed by \code{\link{tpm_emb_g}}).
 #' @param dm state dwell-time distributions arranged in a list of length \code{nStates}
 #'
-#' Each list element needs to be a matrix of dimension c(L, N_i), where each row t is the (approximate) probability mass function of state i at time t.
+#' Each list element needs to be a matrix of dimension \code{c(L, N_i)}, where each row t is the (approximate) probability mass function of state i at time t.
 #' @param eps rounding value: If an entry of the transition probability matrix is smaller, it is rounded to zero. Usually, this should not be changed.
 #'
 #' @return list of length L, containing sparse extended-state-space transition probability matrices of the approximating HMM for each time point of the cycle.

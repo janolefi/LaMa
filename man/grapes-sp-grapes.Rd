@@ -7,12 +7,12 @@
 A \%sp\% B
 }
 \arguments{
-\item{A}{matrix of dimension n x p}
+\item{A}{matrix of dimension \code{c(n, p)}}
 
-\item{B}{matrix of dimension p x m}
+\item{B}{matrix of dimension \code{c(p, m)}}
 }
 \value{
-the matrix product of A and B, which is of dimension n x m
+the matrix product of A and B, which is of dimension \code{c(n, m)}
 }
 \description{
 Standard matrix multiplication destroys automatic sparsity detection by \code{RTMB} which is essential for models with high-dimensional random effects.

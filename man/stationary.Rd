@@ -7,10 +7,10 @@
 stationary(Gamma)
 }
 \arguments{
-\item{Gamma}{transition probability matrix of dimension \code{c(N,N)} or array of such matrices of dimension \code{c(N,N,nTracks)} if the stationary distribution should be computed for several matrices at once}
+\item{Gamma}{transition probability matrix of dimension \code{c(nStates, nStates)} or array of such matrices of dimension \code{c(nStates, nStates, nTracks)} if the stationary distribution should be computed for several matrices at once}
 }
 \value{
-either a single stationary distribution of the Markov chain (vector of length \code{N}) or a matrix of stationary distributions of dimension \code{c(nTracks,N)} with one stationary distribution in each row
+either a single stationary distribution of the Markov chain (vector of length \code{nStates}) or a matrix of stationary distributions of dimension \code{c(nTracks, nStates)} with one stationary distribution in each row
 }
 \description{
 A homogeneous, finite state Markov chain that is irreducible and aperiodic converges to a unique stationary distribution, here called \eqn{\delta}.

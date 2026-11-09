@@ -186,10 +186,10 @@ min0_smooth <- function(x, rho = 20){
 #' This can be mitigated by changing to "plain" with \code{TapeConfig}, but this can make AD tape construction very slow.
 #' Here, we provide a different version that retains sparsity. It may be slightly slower than the standard method when constructing the AD tape.
 #'
-#' @param A matrix of dimension n x p
-#' @param B matrix of dimension p x m
+#' @param A matrix of dimension \code{c(n, p)}
+#' @param B matrix of dimension \code{c(p, m)}
 #'
-#' @return the matrix product of A and B, which is of dimension n x m
+#' @return the matrix product of A and B, which is of dimension \code{c(n, m)}
 #' @export
 #'
 #' @examples

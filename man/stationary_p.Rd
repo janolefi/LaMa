@@ -7,7 +7,7 @@
 stationary_p(Gamma, t = NULL, ad = NULL)
 }
 \arguments{
-\item{Gamma}{array of transition probability matrices of dimension c(N,N,L)}
+\item{Gamma}{array of transition probability matrices of dimension \code{c(nStates, nStates, L)}}
 
 \item{t}{integer index of the time point in the cycle, for which to calculate the stationary distribution
 

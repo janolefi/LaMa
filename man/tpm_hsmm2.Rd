@@ -7,9 +7,9 @@
 tpm_hsmm2(omega, dm, eps = 1e-10)
 }
 \arguments{
-\item{omega}{embedded transition probability matrix of dimension c(N,N)}
+\item{omega}{embedded transition probability matrix of dimension \code{c(nStates, nStates)}}
 
-\item{dm}{state dwell-time distributions arranged in a list of length(N). Each list element needs to be a vector of length N_i, where N_i is the state aggregate size.}
+\item{dm}{state dwell-time distributions arranged in a list of length \code{nStates}. Each list element needs to be a vector of length N_i, where N_i is the state aggregate size.}
 
 \item{eps}{rounding value: If an entry of the transition probability matrix is smaller, it is rounded to zero.}
 }

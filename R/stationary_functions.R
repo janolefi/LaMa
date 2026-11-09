@@ -11,9 +11,9 @@
 #' 
 #' @seealso \code{\link{tpm}} to create a transition probability matrix using the multinomial logistic link (softmax)
 #
-#' @param Gamma transition probability matrix of dimension \code{c(N,N)} or array of such matrices of dimension \code{c(N,N,nTracks)} if the stationary distribution should be computed for several matrices at once
+#' @param Gamma transition probability matrix of dimension \code{c(nStates, nStates)} or array of such matrices of dimension \code{c(nStates, nStates, nTracks)} if the stationary distribution should be computed for several matrices at once
 #'
-#' @return either a single stationary distribution of the Markov chain (vector of length \code{N}) or a matrix of stationary distributions of dimension \code{c(nTracks,N)} with one stationary distribution in each row
+#' @return either a single stationary distribution of the Markov chain (vector of length \code{nStates}) or a matrix of stationary distributions of dimension \code{c(nTracks, nStates)} with one stationary distribution in each row
 #' @export
 #' @import RTMB
 #'
@@ -84,7 +84,7 @@ stationary = function(Gamma){
 #' 
 #' @seealso \code{\link{tpm_p}} and \code{\link{tpm_g}} to create multiple transition matrices based on a cyclic variable or design matrix
 #' 
-#' @param Gamma array of transition probability matrices of dimension c(N,N,L)
+#' @param Gamma array of transition probability matrices of dimension \code{c(nStates, nStates, L)}
 #' @param t integer index of the time point in the cycle, for which to calculate the stationary distribution
 #' 
 #' If \code{t} is not provided, the function calculates all stationary distributions for each time point in the cycle.
@@ -188,9 +188,9 @@ stationary_p = function(Gamma, t = NULL, ad = NULL){
 #'
 #' @seealso \code{\link{generator}} to create a generator matrix
 #
-#' @param Q infinitesimal generator matrix of dimension \code{c(N,N)} (dense or sparse, e.g. from \code{Matrix}) or array of such matrices of dimension \code{c(N,N,nTracks)} if the stationary distribution should be computed for several matrices at once
+#' @param Q infinitesimal generator matrix of dimension \code{c(nStates, nStates)} (dense or sparse, e.g. from \code{Matrix}) or array of such matrices of dimension \code{c(nStates, nStates, nTracks)} if the stationary distribution should be computed for several matrices at once
 #'
-#' @return either a single stationary distribution of the continuous-time Markov chain (vector of length \code{N}) or a matrix of stationary distributions of dimension \code{c(nTracks,N)} with one stationary distribution in each row
+#' @return either a single stationary distribution of the continuous-time Markov chain (vector of length \code{nStates}) or a matrix of stationary distributions of dimension \code{c(nTracks, nStates)} with one stationary distribution in each row
 #' 
 #' @name stationary_ct
 #'
@@ -251,7 +251,7 @@ stationary_cont <- function(Q){
 #' This function computes the stationary distribution of a Markov chain with a given \strong{sparse} transition probability matrix.
 #' Compatible with automatic differentiation by \code{RTMB}
 #
-#' @param Gamma sparse transition probability matrix of dimension c(N,N)
+#' @param Gamma sparse transition probability matrix of dimension \code{c(nStates, nStates)}
 #'
 #' @return stationary distribution of the Markov chain with the given transition probability matrix
 #' @export

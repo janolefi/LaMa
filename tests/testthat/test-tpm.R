@@ -70,3 +70,25 @@ test_that("tpm_ct(): 2-state closed form handles extreme rates and zero Q", {
   G <- RTMB::MakeTape(function(x) c(tpm_ct(x * matrix(0, 2, 2), dt, ad = TRUE, report = FALSE)), 1)
   expect_equal(G(1), rep(c(1, 0, 0, 1), 3))
 })
+
+test_that("tpm_ct(): constant Q with repeated time differences", {
+  set.seed(2)
+  n <- 40; dt <- sample(c(1, 2, 7, 0.5), n, replace = TRUE)
+  for(N in 2:3) {
+    b <- rnorm(N * (N - 1), -1)
+    # reference: same Q as array (one slice per interval), no deduplication there
+    f_ref <- function(b) c(tpm_ct(generator(matrix(b, ncol = 1), Z = matrix(1, n, 1), report = FALSE), dt, report = FALSE))
+    f_new <- function(b) c(tpm_ct(generator(b, report = FALSE), dt, report = FALSE))
+    G <- tpm_ct(generator(b, report = FALSE), dt, report = FALSE)
+    expect_equal(dim(G), c(N, N, n))
+    expect_equal(attr(G, "time"), "continuous")
+    expect_equal(c(G), f_ref(b), tolerance = 1e-12) # C++
+    F_new <- RTMB::MakeTape(f_new, b); F_ref <- RTMB::MakeTape(f_ref, b)
+    expect_equal(F_new(b), f_ref(b), tolerance = 1e-12) # AD
+    expect_equal(F_new$jacobian(b), F_ref$jacobian(b), tolerance = 1e-10)
+  }
+  # with rates
+  Q <- generator(c(-1, -2), report = FALSE)
+  expect_equal(tpm_ct(Q, dt, rates = c(0.5, 2), report = FALSE)[, , 5], 
+               as.matrix(Matrix::expm((Q - diag(c(0.5, 2))) * dt[5])), tolerance = 1e-12, ignore_attr = TRUE)
+})

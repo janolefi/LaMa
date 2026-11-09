@@ -40,6 +40,11 @@ This is what makes continuous-time models suitable for irregularly sampled data:
 \strong{Time-varying generators.} If \code{Q} is an array of generator matrices, e.g. from \code{\link{generator}(beta, Z)}, the generator is assumed constant within each interval, and \code{Q[, , t]} is used for \code{timediff[t]}.
 Hence, row \eqn{t} of \code{Z} should contain the covariates at the start of interval \eqn{t}, i.e. at observation \eqn{t}. Only the first \code{length(timediff)} slices of \code{Q} are used.
 
+\strong{Repeated time differences.} If \code{Q} is a single matrix, \eqn{\Gamma(\Delta t)} only depends on \eqn{\Delta t}.
+Hence, the matrix exponential is computed only once for each unique value in \code{timediff} and then copied to all intervals with that time difference.
+This happens automatically, so there is no need to do it manually. It saves a lot of time when there are only few unique time differences, e.g. when time is measured in days or observations are regular with occasional gaps.
+Copying is free on the \code{RTMB} tape, and when all time differences are unique, nothing changes.
+
 \strong{MM(M)PPs.} If \code{rates} are provided, the function returns \eqn{\exp((Q - \Lambda) \Delta t)} with \eqn{\Lambda = \mathrm{diag}(\lambda_1, \dots, \lambda_N)}.
 Its entry \eqn{(i,j)} is the probability of moving from state \eqn{i} to state \eqn{j} over the interval without any arrival in between, so its rows sum to less than one.
 Multiplied with the state-dependent rates at the arrival times (in \code{allprobs}), these matrices give the MM(M)PP likelihood in the forward algorithm.

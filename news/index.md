@@ -2,6 +2,8 @@
 
 ## LaMa 3.1.0
 
+CRAN release: 2026-11-09
+
 - [`tpm_ct()`](https://janolefi.github.io/LaMa/reference/tpm_ct.md) is
   much faster: with AD and 2 states it uses an exact closed form instead
   of

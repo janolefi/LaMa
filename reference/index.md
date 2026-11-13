@@ -343,6 +343,7 @@
   distribution
 
 - [`dwrpcauchy()`](https://janolefi.github.io/LaMa/reference/wrpcauchy.md)
+  [`pwrpcauchy()`](https://janolefi.github.io/LaMa/reference/wrpcauchy.md)
   [`rwrpcauchy()`](https://janolefi.github.io/LaMa/reference/wrpcauchy.md)
   : Wrapped Cauchy distribution
 

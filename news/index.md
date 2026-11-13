@@ -21,6 +21,11 @@ CRAN release: 2026-11-09
   models samples around the final estimate, and with `joint = TRUE` (or
   `Q` from `joint_uncertainty()`) accounts for the uncertainty in the
   penalty strengths; needs RTMBdist \>= 1.2.1
+- [`pwrpcauchy()`](https://janolefi.github.io/LaMa/reference/wrpcauchy.md)
+  for the wrapped Cauchy CDF, so `pseudo_res(mod)` works for models
+  using
+  [`dwrpcauchy()`](https://janolefi.github.io/LaMa/reference/wrpcauchy.md),
+  and its error now names densities without a CDF
 - `residuals(mod)` gives the pseudo-residuals, calling
   `pseudo_res(mod = mod)`
 - `coef(mod)` and `vcov(mod)` give the estimated fixed parameters and

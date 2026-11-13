@@ -52,6 +52,8 @@
 <li>
 <code><a href="../reference/MCreport.html">MCreport()</a></code> for <code><a href="../reference/qreml.html">qreml()</a></code> models samples around the final estimate, and with <code>joint = TRUE</code> (or <code>Q</code> from <code>joint_uncertainty()</code>) accounts for the uncertainty in the penalty strengths; needs RTMBdist &gt;= 1.2.1</li>
 <li>
+<code><a href="../reference/wrpcauchy.html">pwrpcauchy()</a></code> for the wrapped Cauchy CDF, so <code>pseudo_res(mod)</code> works for models using <code><a href="../reference/wrpcauchy.html">dwrpcauchy()</a></code>, and its error now names densities without a CDF</li>
+<li>
 <code>residuals(mod)</code> gives the pseudo-residuals, calling <code>pseudo_res(mod = mod)</code>
 </li>
 <li>

@@ -1,18 +1,21 @@
 # Wrapped Cauchy distribution
 
-Density and random generation for the wrapped Cauchy distribution.
+Density, distribution function and random generation for the wrapped
+Cauchy distribution.
 
 ## Usage
 
 ``` r
 dwrpcauchy(x, mu = 0, rho, log = FALSE)
 
+pwrpcauchy(q, mu = 0, rho, from = NULL)
+
 rwrpcauchy(n, mu = 0, rho, wrap = TRUE)
 ```
 
 ## Arguments
 
-- x:
+- x, q:
 
   vector of angles measured in radians at which to evaluate the density
   function.
@@ -30,6 +33,11 @@ rwrpcauchy(n, mu = 0, rho, wrap = TRUE)
 
   logical; if `TRUE`, densities are returned on the log scale.
 
+- from:
+
+  value from which the integration for CDF starts. If `NULL`, is set to
+  `mu - pi`.
+
 - n:
 
   number of observations. If `length(n) > 1`, the length is taken to be
@@ -42,8 +50,8 @@ rwrpcauchy(n, mu = 0, rho, wrap = TRUE)
 
 ## Value
 
-`dwrpcauchy` gives the density and `rwrpcauchy` generates random
-deviates.
+`dwrpcauchy` gives the density, `pwrpcauchy` gives the distribution
+function, and `rwrpcauchy` generates random deviates.
 
 ## Details
 
@@ -57,4 +65,5 @@ imported from `circular`.
 set.seed(1)
 x = rwrpcauchy(10, 0, 0.3)
 d = dwrpcauchy(x, 0, 0.3)
+p = pwrpcauchy(x, 0, 0.3)
 ```

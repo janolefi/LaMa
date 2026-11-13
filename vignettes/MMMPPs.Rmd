@@ -32,7 +32,7 @@ library(LaMa)
 
 In a continuous-time HMM, observation *values* carry information about the latent state while the observation *times* are treated as fixed or uninformative (the snapshot property). The **Markov-modulated Poisson process (MMPP)** reverses this: the **arrival times themselves are the observations**, and their spacing carries information about the hidden state process.
 
-The key idea is that an unobserved continuous-time Markov chain (CTMC) modulates the rate of a Poisson process. While the chain stays in state $j$, events arrive at a constant, state-specific rate $\lambda_j$. A high-rate state produces rapid bursts of closely spaced arrivals; a low-rate state produces sparse events. By fitting the model to the observed arrival times alone, we can infer both the Poisson rates and the dynamics of the hidden CTMC (described by its generator matrix $Q$, as in the continuous-time HMM vignette).
+The key idea is that an unobserved continuous-time Markov chain (CTMC) modulates the rate of a Poisson process. While the chain stays in state $j$, events arrive at a constant, state-specific rate $\lambda_j$. A high-rate state produces rapid bursts of closely spaced arrivals; a low-rate state produces sparse events. By fitting the model to the observed arrival times alone, we can infer both the Poisson rates and the dynamics of the hidden CTMC (described by its generator matrix $\boldsymbol{Q}$, as in the continuous-time HMM vignette).
 
 A natural extension, the **Markov-modulated marked Poisson process (MMMPP)**, additionally associates a random **mark** $y_i$ with each arrival. Marks are drawn from a state-dependent distribution at the moment of arrival, providing a second source of information about the latent state alongside the timing. For more background see @meier1987fitting and @langrock2013markov.
 
@@ -40,25 +40,25 @@ A natural extension, the **Markov-modulated marked Poisson process (MMMPP)**, ad
 
 ### MMPP
 
-For $n$ arrivals at times $t_1 < \dots < t_n$, let $\Delta t_i = t_{i+1} - t_i$ be the inter-arrival waiting times and $\Lambda = \text{diag}(\lambda_1, \dots, \lambda_N)$ the diagonal matrix of state-dependent rates. The likelihood of a stationary MMPP is
+For $n$ arrivals at times $t_1 < \dots < t_n$, let $\Delta t_i = t_{i+1} - t_i$ be the inter-arrival waiting times and $\boldsymbol{\Lambda} = \text{diag}(\lambda_1, \dots, \lambda_N)$ the diagonal matrix of state-dependent rates. The likelihood of a stationary MMPP is
 
 $$
-L(\theta) = \pi \Bigl(\prod_{i=1}^{n-1} \exp\bigl((Q - \Lambda)\,\Delta t_i\bigr)\,\Lambda\Bigr)\,\mathbf{1}^\top,
+L(\boldsymbol{\theta}) = \boldsymbol{\pi} \Bigl(\prod_{i=1}^{n-1} \exp\bigl((\boldsymbol{Q} - \boldsymbol{\Lambda})\,\Delta t_i\bigr)\,\boldsymbol{\Lambda}\Bigr)\,\boldsymbol{1}^\top,
 $$
 
-where $\pi$ is the stationary distribution of the CTMC and $\mathbf{1}$ is a column vector of ones. The matrix $\exp((Q - \Lambda)\,\Delta t_i)$ propagates the state distribution through gap $\Delta t_i$ while accounting for the fact that *no* event occurred during this interval; $\Lambda$ then contributes the instantaneous rate of the event that *does* occur at the end of the gap.
+where $\boldsymbol{\pi}$ is the stationary distribution of the CTMC and $\boldsymbol{1}$ is a column vector of ones. The matrix $\exp((\boldsymbol{Q} - \boldsymbol{\Lambda})\,\Delta t_i)$ propagates the state distribution through gap $\Delta t_i$ while accounting for the fact that *no* event occurred during this interval; $\boldsymbol{\Lambda}$ then contributes the instantaneous rate of the event that *does* occur at the end of the gap.
 
-This has **exactly the same structure** as the regular HMM likelihood, so `forward()` applies directly. We construct the `allprobs` matrix with $n$ rows: the first row is all ones (pure initialisation with $\pi$, no density contribution), and rows $2, \dots, n$ all equal $(\lambda_1, \dots, \lambda_N)$ — the instantaneous arrival-rate density at each observed event.
+This has **exactly the same structure** as the regular HMM likelihood, so `forward()` applies directly. We construct the `allprobs` matrix with $n$ rows: the first row is all ones (pure initialisation with $\boldsymbol{\pi}$, no density contribution), and rows $2, \dots, n$ all equal $(\lambda_1, \dots, \lambda_N)$ — the instantaneous arrival-rate density at each observed event.
 
 ### MMMPP
 
 When each arrival $i$ also carries a mark $y_i$, the likelihood gains one additional factor per event:
 
 $$
-L(\theta) = \pi\,P(y_1) \Bigl(\prod_{i=1}^{n-1} \exp\bigl((Q - \Lambda)\,\Delta t_i\bigr)\,\Lambda\,P(y_{i+1})\Bigr)\,\mathbf{1}^\top,
+L(\boldsymbol{\theta}) = \boldsymbol{\pi}\,\boldsymbol{P}(y_1) \Bigl(\prod_{i=1}^{n-1} \exp\bigl((\boldsymbol{Q} - \boldsymbol{\Lambda})\,\Delta t_i\bigr)\,\boldsymbol{\Lambda}\,\boldsymbol{P}(y_{i+1})\Bigr)\,\boldsymbol{1}^\top,
 $$
 
-where $P(y_i)$ is a diagonal matrix of state-dependent densities evaluated at mark $y_i$. In practice we fold $\Lambda$ into the `allprobs` matrix: after filling in the mark densities for all $n$ rows, rows $2, \dots, n$ are multiplied element-wise by $(\lambda_1, \dots, \lambda_N)$, so the same `forward()` call handles everything.
+where $\boldsymbol{P}(y_i)$ is a diagonal matrix of state-dependent densities evaluated at mark $y_i$. In practice we fold $\boldsymbol{\Lambda}$ into the `allprobs` matrix: after filling in the mark densities for all $n$ rows, rows $2, \dots, n$ are multiplied element-wise by $(\lambda_1, \dots, \lambda_N)$, so the same `forward()` call handles everything.
 
 ## Example 1: Markov-modulated Poisson processes
 
@@ -125,7 +125,7 @@ legend("topleft", lwd = 2, col = color, legend = paste("state", 1:2), box.lwd = 
 
 ### Writing the negative log-likelihood function
 
-The `allprobs` matrix has `length(timediff) + 1` rows (one per arrival, plus one for initialisation). Row 1 is all ones; the remaining rows carry the state-dependent rates $\lambda_j$. The transition matrices are computed via `tpm_ct(Q, timediff, lambda)`, where the optional `lambda` argument internally subtracts $\Lambda$ from $Q$ before the matrix exponential — simultaneously propagating the state distribution and accounting for the absence of arrivals during each gap.
+The `allprobs` matrix has `length(timediff) + 1` rows (one per arrival, plus one for initialisation). Row 1 is all ones; the remaining rows carry the state-dependent rates $\lambda_j$. The transition matrices are computed via `tpm_ct(Q, timediff, lambda)`, where the optional `lambda` argument internally subtracts $\boldsymbol{\Lambda}$ from $\boldsymbol{Q}$ before the matrix exponential — simultaneously propagating the state distribution and accounting for the absence of arrivals during each gap.
 
 ```{r nll}
 nll = function(par) {

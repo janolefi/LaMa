@@ -44,7 +44,7 @@ We begin by considering homogeneous HSMMs. In such models, each state has an ass
 
 ### Setting parameters
 
-Here we choose the simplest case of dwell times that are **shifted Poisson** distributed. We have to specify the Poisson mean for each state, the conditional transition probability matrix called $\Omega$ and the parameters of the state-dependent process.
+Here we choose the simplest case of dwell times that are **shifted Poisson** distributed. We have to specify the Poisson mean for each state, the conditional transition probability matrix called $\boldsymbol{\Omega}$ and the parameters of the state-dependent process.
 
 ```{r, setup}
 # loading the package

@@ -40,7 +40,7 @@ library(LaMa)
 Computing the HMM likelihood for observations $x_1, \dots, x_T$ is non-trivial, as we do not observe the underlying states and need to *sum out* all possible state sequences. Exploiting the Markov property, the so-called **forward algorithm** does this recursively as a matrix product:
 
 $$
-L(\boldsymbol{\theta}) = \boldsymbol{\delta}^{(1)} \boldsymbol{P}(x_1) \boldsymbol{\Gamma} \boldsymbol{P}(x_2) \boldsymbol{\Gamma} \dots \boldsymbol{\Gamma} \boldsymbol{P}(x_T) \boldsymbol{1}^t,
+L(\boldsymbol{\theta}) = \boldsymbol{\delta}^{(1)} \boldsymbol{P}(x_1) \boldsymbol{\Gamma} \boldsymbol{P}(x_2) \boldsymbol{\Gamma} \dots \boldsymbol{\Gamma} \boldsymbol{P}(x_T) \boldsymbol{1}^\top,
 $$
 where $\boldsymbol{\delta}^{(1)}$ and $\boldsymbol{\Gamma}$ are the initial distribution and the transition probability matrix, $\boldsymbol{P}(x_t)$ is a diagonal matrix with the state-dependent densities (or probability mass functions) $f_j(x_t) = f(x_t \mid S_t = j)$ on its diagonal, $\boldsymbol{1}$ is a row vector of ones and $\boldsymbol{\theta}$ contains all model parameters.
 In practice, `forward()` does not compute this likelihood directly, but its logarithm via a scaling strategy [@zucchini].

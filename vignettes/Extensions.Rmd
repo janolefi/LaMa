@@ -291,7 +291,7 @@ legend("top", col = color, legend = c(expression(gamma[12]), expression(gamma[21
 We now look at a setting where covariates influence the mean of the state-dependent distribution, while the state switching is controlled by a homogeneous Markov chain. This is often called **Markov-switching regression**. Assuming the observation process to be conditionally normally distributed, this means
 
 $$
-X_t \mid S_t = j \sim N(\beta_j^\top z_t, \: \sigma_j^2), \quad j = 1, \dots, N.
+X_t \mid S_t = j \sim N(\boldsymbol{\beta}_j^\top \boldsymbol{z}_t, \: \sigma_j^2), \quad j = 1, \dots, N.
 $$
 
 ### Simulation example
@@ -418,7 +418,7 @@ colnames(modmat_tod$Z)
 
 If we now express the transition matrix as a function of the linear predictors $\eta^{(t)}_{ij}$ above, the Markov chain has a special property. Its transition probabilities are *periodically varying*, and hence for all $t$
 $$
-\Gamma^{(t+L)} = \Gamma^{(t)},
+\boldsymbol{\Gamma}^{(t+L)} = \boldsymbol{\Gamma}^{(t)},
 $$
 where $L$ is the cycle length. As shown by @koslik2023inference, such chains exhibit a special periodic behaviour. In particular, they converge to a unique periodically stationary state distribution. This distribution, giving the probability of the process being at any of the states at a particular time point in the cycle, can be computed using the function `stationary_p()`. It expects a tpm array with third dimension equal to the cycle length and returns a matrix, where each row gives the distribution for that time point in the cycle. 
 

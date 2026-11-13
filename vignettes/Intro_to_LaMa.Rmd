@@ -40,11 +40,11 @@ We start from the most basic hidden Markov model (HMM). An $N$-state HMM is a do
 2. $f(x_t \mid x_1, \dots, x_{t-1}, x_{t+1}, \dots, x_T, s_1, \dots, s_T) = f(x_t \mid s_t)$ (conditional independence assumption).
 
 The hidden state process is described by an $N$-state Markov chain which is fully characterised by its **initial distribution**
-$$\delta^{(1)} = (\Pr(S_1 = 1), \dots, \Pr(S_1 = N))$$
+$$\boldsymbol{\delta}^{(1)} = (\Pr(S_1 = 1), \dots, \Pr(S_1 = N))$$
 and the one-step **transition probabilities**
 $$\gamma_{ij} = \Pr(S_t = j \mid S_{t-1} = i), \quad i,j = 1, \dotsc, N.$$
 These are typically summarised in a **transition probability matrix** (t.p.m.)
-$$\Gamma = (\gamma_{ij})_{i,j = 1, \dots, N},$$
+$$\boldsymbol{\Gamma} = (\gamma_{ij})_{i,j = 1, \dots, N},$$
 where row $i$ is the conditional one-step-ahead distribution of the state process given that the current state is $i$. For example a t.p.m. for a two-state Markov chain could be
 ```{r tpm}
 library(LaMa)
@@ -53,9 +53,9 @@ library(LaMa)
                   0.2, 0.8), nrow = 2, byrow = TRUE))
 ```
 
-We often assume that the Markov chain is **stationary**, i.e. that it has been running for a long time before our observations started -- e.g. when observing an animal's behavioural states. The initial distribution is then the stationary distribution $\delta$, which solves
+We often assume that the Markov chain is **stationary**, i.e. that it has been running for a long time before our observations started -- e.g. when observing an animal's behavioural states. The initial distribution is then the stationary distribution $\boldsymbol{\delta}$, which solves
 $$
-\delta \Gamma = \delta, \quad \text{s.t.} \; \sum_{j=1}^N \delta_j = 1,
+\boldsymbol{\delta} \boldsymbol{\Gamma} = \boldsymbol{\delta}, \quad \text{s.t.} \; \sum_{j=1}^N \delta_j = 1,
 $$
 and is computed by `stationary()`:
 ```{r stationary}

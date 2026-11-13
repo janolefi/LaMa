@@ -34,9 +34,9 @@ In real-data applications, one will often be faced with a data set consisting of
 
 When the data consists of $K$ independent tracks, the joint likelihood is
 $$
-L(\theta) = \prod_{k=1}^K L_k(\theta),
+L(\boldsymbol{\theta}) = \prod_{k=1}^K L_k(\boldsymbol{\theta}),
 $$
-where $L_k(\theta)$ is the usual HMM likelihood for the $k$-th track, so the log-likelihood is a sum over $K$ tracks. In `LaMa`, this is handled efficiently by passing a `trackID` vector to `forward()`, which specifies the track index of each observation. The forward algorithm then resets to the initial distribution at the start of each new track and sums up the individual log-likelihood contributions automatically. Importantly, always using the `trackID` argument rather than calling `forward()` separately for each track ensures that the automatic reporting mechanism inside `forward()` --- on which `viterbi()`, `stateprobs()`, and other downstream functions rely --- works correctly.
+where $L_k(\boldsymbol{\theta})$ is the usual HMM likelihood for the $k$-th track, so the log-likelihood is a sum over $K$ tracks. In `LaMa`, this is handled efficiently by passing a `trackID` vector to `forward()`, which specifies the track index of each observation. The forward algorithm then resets to the initial distribution at the start of each new track and sums up the individual log-likelihood contributions automatically. Importantly, always using the `trackID` argument rather than calling `forward()` separately for each track ensures that the automatic reporting mechanism inside `forward()` --- on which `viterbi()`, `stateprobs()`, and other downstream functions rely --- works correctly.
 
 
 ## Complete pooling

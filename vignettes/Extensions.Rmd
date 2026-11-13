@@ -446,9 +446,9 @@ dat = list(
 )
 ```
 
-In the likelihood function, we only compute the unique 24 transition matrices and then, based on these, the corresponding stationary distribution(s) using `stationary_p()`.
-As `forward()` uses `Gamma[,,tod[t]]` for the transition *into* time $t$, while `stationary_p()` treats `Gamma[,,t]` as the transition from $t$ to $t+1$, we shift the rows of `Delta` by one, such that row $k$ is the distribution at time of day $k$.
-When running the forward algorithm in the last line, we then i) pick the stationary distribution corresponding to the first time of day value (`Delta[tod[1],]`) and ii) pass the 24 matrices together with `tod`, which indexes them for each time point.
+In the likelihood function, we only compute the 24 unique transition matrices and pass them to `forward()` together with `tod`, which indexes them for each time point. With `delta = "stationary"`, `forward()` would compute the periodically stationary distribution at the first time point by itself. Here, we compute it manually with `stationary_p()` instead, because we want it for all 24 times of day and use `ADREPORT()` to obtain standard errors -- the building blocks can be combined freely.
+
+As `forward()` uses `Gamma[,,tod[t]]` for the transition *into* time $t$, while `stationary_p()` treats `Gamma[,,t]` as the transition *from* $t$ to $t+1$, we shift the rows of `Delta` by one, such that row $k$ is the distribution at time of day $k$. Its row `tod[1]` is then the initial distribution.
 
 ```{r nll seasonal}
 nll_seas = function(par) {

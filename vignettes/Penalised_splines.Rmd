@@ -27,10 +27,6 @@ if(!require("MSwM")){
   options(repos = c(CRAN = "https://cloud.r-project.org"))
   install.packages("MSwM")
 }
-if(!require("scales")){
-  options(repos = c(CRAN = "https://cloud.r-project.org"))
-  install.packages("scales")
-} 
 ```
 
 <!-- *Before reading this vignette, it is advised that you read the vignettes "Introduction to LaMa", "Inhomogeneous HMMs", "periodic HMMs" and "LaMa and RTMB".* -->
@@ -369,16 +365,14 @@ energy$states = viterbi(mod3) # decoding most probable state sequence
 Mu_plot = Z_p %*% t(mod3$beta)
 Sigma_plot = exp(Z_p %*% t(mod3$alpha))
 
-library(scales) # to make colors semi-transparent
-
 # state-dependent distribution as a function of oil price
-plot(energy$Oil, energy$Price, pch = 20, bty = "n", col = alpha(color[energy$states], 0.1),
+plot(energy$Oil, energy$Price, pch = 20, bty = "n", col = adjustcolor(color[energy$states], 0.1),
      xlab = "oil price", ylab = "energy price")
 for(j in 1:2) lines(xseq, Mu_plot[,j], col = color[j], lwd = 3) # means
 qseq = qnorm(seq(0.5, 0.95, length = 4)) # sequence of quantiles
 for(i in qseq){ for(j in 1:2){
-  lines(xseq, Mu_plot[,j] + i * Sigma_plot[,j], col = alpha(color[j], 0.7), lty = 2)
-  lines(xseq, Mu_plot[,j] - i * Sigma_plot[,j], col = alpha(color[j], 0.7), lty = 2)
+  lines(xseq, Mu_plot[,j] + i * Sigma_plot[,j], col = adjustcolor(color[j], 0.7), lty = 2)
+  lines(xseq, Mu_plot[,j] - i * Sigma_plot[,j], col = adjustcolor(color[j], 0.7), lty = 2)
 }}
 legend("topright", bty = "n", legend = paste("state", 1:2), col = color, lwd = 3)
 

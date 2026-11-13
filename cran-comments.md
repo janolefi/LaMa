@@ -13,6 +13,8 @@ effects:
 * more robust convergence (lower bound on the log penalty strengths, fewer unnecessary refits)
 * new `coef()`, `vcov()` and `residuals()` methods for fitted models
 
+Further, `tpm_ct()` is much faster for continuous-time models.
+
 ## Test environments
 
 * local macOS (aarch64), R release

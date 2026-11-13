@@ -321,7 +321,7 @@ delta = stationary(Gamma) # stationary Markov chain
 
 In the simulation code, the state-dependent mean now is not fixed anymore, but changes according to the covariate values in `Z`.
 
-```{r data2}
+```{r data2, fig.dim = c(4.5, 4.5), out.width = "49%", fig.show = "hold", fig.align = "default"}
 s = x = rep(NA, n)
 s[1] = sample(1:2, 1, prob = delta)
 x[1] = rnorm(1, beta[s[1],]%*%c(1, Z[1,]), # state-dependent regression
@@ -332,14 +332,12 @@ for(t in 2:n){
                       sigma[s[t]])
 }
 
-oldpar = par(mfrow = c(1,2))
 plot(x[1:400], bty = "n", pch = 20, ylab = "x", 
      col = c(color[1], color[2])[s[1:400]])
 
 plot(z[which(s==1)], x[which(s==1)], pch = 16, col = color[1], bty = "n", 
      ylim = c(0,15), xlab = "z", ylab = "x")
 points(z[which(s==2)], x[which(s==2)], pch = 16, col = color[2])
-par(oldpar)
 ```
 
 ### Writing the negative log-likelihood function

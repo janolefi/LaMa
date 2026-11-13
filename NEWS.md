@@ -8,6 +8,8 @@
   fit follows it unless the last iterate was not the best one
 * `MCreport()` for `qreml()` models samples around the final estimate, and with `joint = TRUE` (or `Q` from 
   `joint_uncertainty()`) accounts for the uncertainty in the penalty strengths; needs RTMBdist >= 1.2.1
+* `pwrpcauchy()` for the wrapped Cauchy CDF, so `pseudo_res(mod)` works for models using `dwrpcauchy()`, 
+  and its error now names densities without a CDF
 * `residuals(mod)` gives the pseudo-residuals, calling `pseudo_res(mod = mod)`
 * `coef(mod)` and `vcov(mod)` give the estimated fixed parameters and their covariance from the inverse 
   Hessian (of the marginal likelihood with random effects, conditional on the smoothing parameters 

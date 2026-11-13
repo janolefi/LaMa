@@ -49,25 +49,28 @@ rvm <- function(n, mu = 0, kappa = 1, wrap = TRUE) {
 
 #' Wrapped Cauchy distribution
 #' 
-#' Density and random generation for the wrapped Cauchy distribution.
+#' Density, distribution function and random generation for the wrapped Cauchy distribution.
 #' 
 #' @details
 #' This implementation of \code{dwrpcauchy} allows for automatic differentiation with \code{RTMB}. 
 #' \code{rwrpcauchy} is simply a wrapper for \code{rwrappedcauchy} imported from \code{circular}.
 #'
-#' @param x vector of angles measured in radians at which to evaluate the density function.
+#' @param x,q vector of angles measured in radians at which to evaluate the density function.
 #' @param mu mean direction of the distribution measured in radians.
 #' @param rho concentration parameter of the distribution, must be in the interval from 0 to 1.
 #' @param log logical; if \code{TRUE}, densities are returned on the log scale.
+#' @param from value from which the integration for CDF starts. If \code{NULL}, is set to \code{mu - pi}.
 #' @param n number of observations. If \code{length(n) > 1}, the length is taken to be the number required.
 #' @param wrap logical; if \code{TRUE}, generated angles are wrapped to the interval [-pi, pi].
 #'
-#' @return \code{dwrpcauchy} gives the density and \code{rwrpcauchy} generates random deviates.
+#' @return \code{dwrpcauchy} gives the density, \code{pwrpcauchy} gives the distribution function, 
+#' and \code{rwrpcauchy} generates random deviates.
 #'
 #' @examples 
 #' set.seed(1)
 #' x = rwrpcauchy(10, 0, 0.3)
 #' d = dwrpcauchy(x, 0, 0.3)
+#' p = pwrpcauchy(x, 0, 0.3)
 #' @name wrpcauchy
 NULL
 
@@ -76,6 +79,13 @@ NULL
 #' @importFrom RTMBdist dwrpcauchy
 dwrpcauchy <- function(x, mu = 0, rho, log = FALSE) {
   RTMBdist::dwrpcauchy(x, mu=mu, rho=rho, log=log)
+}
+
+#' @rdname wrpcauchy
+#' @export
+#' @importFrom RTMBdist pwrpcauchy
+pwrpcauchy <- function(q, mu = 0, rho, from = NULL) {
+  RTMBdist::pwrpcauchy(q, mu=mu, rho=rho, from=from)
 }
 
 #' @rdname wrpcauchy

@@ -39,7 +39,7 @@ if(!require("scales")){
 
 This vignette explores how `LaMa` can be used to fit models involving nonparametric components, represented by **penalised splines**. The main idea here is that it may be useful to represent some relationships in our model by smooth functions for which the functional form is not pre-specified, but flexibly estimated from the data. For HMM-like models, this is particularly valuable, as the latent nature of the state process makes modelling choices more difficult. For example, choosing an appropriate parametric family for the state-dependent distributions may be difficult as we cannot do state-specific EDA before fitting the model. Also very difficult is the dependence of transition probabilities on covariates as the transitions are not directly observed. Hence, the obvious alternative is to model these kind of relationships flexibly using splines but imposing a penalty on the smoothness of the estimated functions. This leads us to **penalised splines**.
 
-`LaMa` contains helper functions that build **design** and **penalty matrices** for given formulas (using `mgcv` under the hood) and also functions to estimate models involving penalised splines in a random effects framework. For the latter to work, the **penalised negative log-likelihood** needs to be compatible with the R package `RTMB` to allow for **automatic differentiation (AD)**. For more information on `RTMB`, see the vignette *LaMa and RTMB* or check out its [documentation](https://CRAN.R-project.org/package=RTMB). For more information on penalised splines, we recommend @wood2017generalized.
+`LaMa` contains helper functions that build **design** and **penalty matrices** for given formulas (using `mgcv` under the hood) and also functions to estimate models involving penalised splines in a random effects framework. For the latter to work, the **penalised negative log-likelihood** needs to be compatible with the R package `RTMB` to allow for **automatic differentiation (AD)**. For more information on `RTMB`, see the vignette [**Finer control**](https://janolefi.github.io/LaMa/articles/Finer_control.html) or check out its [documentation](https://CRAN.R-project.org/package=RTMB). For more information on penalised splines, we recommend @wood2017generalized.
 
 ## Smooth transition probabilities
 
@@ -50,7 +50,7 @@ $$
 $$
 where $s_{ij}(t)$ is a smooth periodic function of time of day. We model the T-rex's **step lengths** and **turning angles** using state-dependent **gamma** and **von Mises** distributions.
 
-To ease with model specification, `LaMa` provides the function `modmat()` which creates **design** and **penalty** matrices for regression settings based on the R package `mgcv`. The user only needs to specify the right side of a formula using `mgcv` syntax and provide data. Here, we use `s(tod, bs = "cp")` to create the matrices for cyclic P-splines (`cp`). This results in a cubic B-Spline basis, that is wrapped at boundary of the support (0 and 24). We then append both resulting matrices to the `dat` list.
+To ease with model specification, `LaMa` provides the function `modmat()` which creates **design** and **penalty** matrices for regression settings based on the R package `mgcv`. The user only needs to specify the right side of a formula using `mgcv` syntax and provide data. Here, we use `s(tod, bs = "cp")` to create the matrices for cyclic P-splines (`cp`). This results in a cubic B-spline basis that is wrapped at the boundary of the support (0 and 24). We then append both resulting matrices to the `dat` list.
 
 ```{r LaMa}
 library(LaMa)
@@ -68,7 +68,7 @@ Z = modmat$Z # spline design matrix
 S = modmat$S # penalty matrix
 ```
 
-We can now specify the **penalised negative log-likelihood function**. The transition probability matrix can be computed the regular way using `tpm()`. In the last line we need to add the curvature penalty based on `S`, which we can conveniently do using `penalty()`.
+We can now specify the **penalised negative log-likelihood function**. The transition probability matrix can be computed the regular way using `tpm()`. As in the vignette [**Extensions**](https://janolefi.github.io/LaMa/articles/Extensions.html), we compute the periodically stationary distribution for all times of day with `stationary_p()`, here to report it for plotting later, and use its row `tod[1]` as the initial distribution. In the last line we need to add the curvature penalty based on `S`, which we can conveniently do using `penalty()`.
 
 ```{r mllk3}
 pnll = function(par) {
@@ -81,12 +81,8 @@ pnll = function(par) {
   mu = exp(logmu); REPORT(mu)
   sigma = exp(logsigma); REPORT(sigma)
   kappa = exp(logkappa); REPORT(kappa)
-  # calculating all state-dependent densities
-  allprobs = matrix(1, nrow = length(step), ncol = N)
-  ind = which(!is.na(step) & !is.na(angle)) # only for non-NA obs.
-  for(j in 1:N){
-    allprobs[ind,j] = dgamma2(step[ind],mu[j],sigma[j]) * dvm(angle[ind],0,kappa[j])
-  }
+  # state-dependent densities of both data streams
+  allprobs = statedens(step, dgamma2, mu, sigma) * statedens(angle, dvm, 0, kappa)
   -forward(Delta[tod[1],], Gamma, allprobs, tod = tod) + # regular forward algorithm
     penalty(betaSpline, S, sp) # this does all the penalisation work
 }
@@ -94,7 +90,7 @@ pnll = function(par) {
 
 We also have to append an `sp` vector to our `dat` list which is the **initial penalty strength** parameter vector. In this case it is of length two because our coefficient matrix has two rows. `modmat()` provides one initial value per penalty in `modmat$sp0`, based on `mgcv`'s initial guess, and `rep_sp()` repeats it for each row of the coefficient matrix.
 
-If you are wondering why `sp` is not added to the `par` list, this is because for penalised likelihood estimation, it is a **hyperparameter**, hence not a true parameter in the sense of the other parameters in `par`. One could, at his point, just use the above penalised likelihood function to do penalised ML for a **fixed** penalty strength `sp`.
+If you are wondering why `sp` is not added to the `par` list, this is because for penalised likelihood estimation, it is a **hyperparameter**, hence not a true parameter in the sense of the other parameters in `par`. One could, at this point, just use the above penalised likelihood function to do penalised ML for a **fixed** penalty strength `sp`.
 
 ```{r todpar2}
 par = list(logmu = log(c(0.3, 2.5)), # state-dependent mean step
@@ -112,11 +108,11 @@ dat = list(step = trex$step, # observed steps
            sp = rep_sp(modmat, 2)) # initial penalty strength, one per row of betaSpline
 ```
 
-The model fit with automatic smoothness selection can then be conducted by using the `qreml()` function contained in `LaMa`. The **quasi restricted maximum likelihood** algorithm finds a good penalty strength parameter `sp` by treating the spline coefficients as random effects. Finer control, `qreml()` also constructs an AD function with `RTMB` but uses the **qREML** algorithm [@koslik2024efficient] to fit the model. We have to tell the `qreml()` function which parameters are spline coefficients by providing the name of the corresponding list element of `par`.
+The model fit with automatic smoothness selection can then be conducted by using the `qreml()` function contained in `LaMa`. The **quasi restricted maximum likelihood** algorithm finds a good penalty strength parameter `sp` by treating the spline coefficients as random effects. Under the hood, `qreml()` also constructs an AD function with `RTMB` but uses the **qREML** algorithm [@koslik2024efficient] to fit the model. We have to tell the `qreml()` function which parameters are spline coefficients by providing the name of the corresponding list element of `par`.
 
 There are some rules to follow when using `qreml()`:
 
-1. The likelihood function needs to be `RTMB`-compatible, i.e. have the same structure as the likelihood functions in the vignette *LaMa and RTMB*. Most importantly, it should be a function of the parameter list only.
+1. The likelihood function needs to be `RTMB`-compatible, i.e. have the same structure as the likelihood functions in the vignette [**Finer control**](https://janolefi.github.io/LaMa/articles/Finer_control.html). Most importantly, it should be a function of the parameter list only.
 
 2. The penalty strength vector `sp` needs its length to correspond to the *total* number of spline coefficient vectors used. In our case, this is the number of rows of `betaSpline`, but if we additionally had a different spline coefficient (with a different name) in our parameter list, possibly with a different length and a different penalty matrix, we would have needed more elements in `sp`.
 
@@ -131,9 +127,9 @@ system.time(
   mod1 <- qreml(pnll, par, dat, random = "betaSpline")
 )
 ```
-The `mod` object is now a list that contains everything that is reported by the likelihood function, but also the `RTMB` object created in the process. After fitting the model, we can use `predict()` with the `modmat` object we created earlier to build a new interpolating design matrix using the exact same basis expansion specified above. This allows us to plot the estimated transition probabilities as a smooth function of time of day. We use `MCreport()` to draw samples from the approximate normal distribution of the MLE and propagate uncertainty into the plotted quantities.
+The `mod1` object is now a list that contains everything that is reported by the likelihood function, but also the `RTMB` object created in the process. After fitting the model, we can use `predict()` with the `modmat` object we created earlier to build a new interpolating design matrix using the exact same basis expansion specified above. This allows us to plot the estimated transition probabilities as a smooth function of time of day. We use `MCreport()` to draw samples from the approximate normal distribution of the MLE and propagate uncertainty into the plotted quantities.
 
-```{r results qreml, fig.width = 9, fig.height = 5}
+```{r results qreml, fig.width = 4.5, fig.height = 4.5, out.width = "49%", fig.show = "hold", fig.align = "default"}
 color = LaMaColors(2)
 
 tod_seq = seq(0, 24, length = 100)
@@ -156,8 +152,6 @@ Delta2.q = apply(Delta2.samples, 1, quantile, probs = c(0.025, 0.975))
 Gamma_plot = tpm(mod1$beta, Z_p)
 Delta = mod1$Delta
 
-oldpar = par(mfrow = c(1, 2))
-
 # transition probabilities with 95% confidence bands
 plot(NA, bty = "n", ylim = c(0, 1), xlim = c(0, 24),
      xlab = "time of day", ylab = "transition probability")
@@ -177,8 +171,6 @@ plot(Delta[,2], type = "b", lwd = 2, pch = 16, ylim = c(0, 1),
 polygon(c(1:24, 24:1), c(Delta2.q[1,], rev(Delta2.q[2,])),
         col = adjustcolor("deepskyblue", 0.3), border = NA)
 axis(1, at = seq(0, 24, by = 4), labels = seq(0, 24, by = 4))
-
-par(oldpar)
 ```
 
 ## Smooth density estimation
@@ -200,15 +192,12 @@ nll = function(par){
     sigma = exp(logsigma) # exp because strictly positive
     REPORT(mu); REPORT(sigma)
     Gamma = tpm(eta) # multinomial logit link
-    delta = stationary(Gamma) # stationary dist of the homogeneous Markov chain
-    allprobs = matrix(1, length(logODBA), N)
-    ind = which(!is.na(logODBA))
-    for(j in 1:N) allprobs[ind,j] = dnorm(logODBA[ind], mu[j], sigma[j])
-    -forward(delta, Gamma, allprobs)
+    allprobs = statedens(logODBA, dnorm, mu, sigma)
+    -forward("stationary", Gamma, allprobs) # stationary initial distribution
 }
 ```
 
-We then fit the model as explained in the vignette *LaMa and RTMB*.
+We then fit the model as explained in the vignette [**Introduction to LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html) and plot the estimated state-dependent densities, weighted by the stationary distribution.
 
 ```{r Gaussian fit, fig.width = 9, fig.height = 5}
 # initial parameter list
@@ -229,12 +218,8 @@ opt = nlminb(obj$par, obj$fn, obj$gr)
 mod = lama(obj)
 
 # visualising the results
-color = LaMaColors(3)
-hist(nessi$logODBA, prob = TRUE, breaks = 50, bor = "white",
-     main = "", xlab = "log(ODBA)")
-for(j in 1:3) curve(mod$delta[j] * dnorm(x, mod$mu[j], mod$sigma[j]), 
-                    add = TRUE, col = color[j], lwd = 2, n = 500)
-
+plot(mod, type = "statedens", weights = "stationary", breaks = 50, n = 500,
+     xlab = "log(ODBA)")
 ```
 
 We see a clear lack-of-fit due to the inflexibility of the Gaussian state-dependent densities. Thus, we now fit a model with state-dependent densities based on P-Splines. 
@@ -260,13 +245,11 @@ The columns of the `allprobs` matrix are then computed as linear combinations of
 ```{r pnll2}
 pnll = function(par){
   getAll(par, dat)
-  # regular stationary HMM stuff
   Gamma = tpm(eta)
-  delta = stationary(Gamma)
   # smooth state-dependent densities
   allprobs = dens$density(beta)
   # forward algorithm + penalty
-  -forward(delta, Gamma, allprobs) + 
+  -forward("stationary", Gamma, allprobs) + 
     penalty(beta, S, sp)
 }
 ```
@@ -291,10 +274,12 @@ After fitting the model, we can easily visualise the smooth densities: `predict(
 pred = predict(dens, coef = mod2$par$beta)
 sDens = pred$density # all three state-dependent densities on a grid
 xseq = pred$x
+delta = c(mod2$delta) # stationary distribution as a vector
 
+color = LaMaColors(3)
 hist(nessi$logODBA, prob = TRUE, breaks = 50, bor = "white", main = "", xlab = "log(ODBA)")
-for(j in 1:3) lines(xseq, mod2$delta[j] * sDens[,j], col = color[j], lwd = 2)
-lines(xseq, colSums(mod2$delta * t(sDens)), col = "black", lwd = 2, lty = 2)
+for(j in 1:3) lines(xseq, delta[j] * sDens[,j], col = color[j], lwd = 2)
+lines(xseq, sDens %*% delta, col = "black", lwd = 2, lty = 2) # marginal density
 ```
 
 The P-Spline model results in a very good fit to the empirical distribution. This is because the first state has a skewed distribution, the second state has a high kurtosis and the third state has a funny right tail. The P-Spline model can capture all of these features where the parametric model failed to do so.
@@ -335,7 +320,6 @@ We also pass the penalty matrix list `S` that is provided by `modmat()`. This co
 pnll = function(par) {
   getAll(par, dat)
   Gamma = tpm(eta) # computing the tpm
-  delta = stationary(Gamma) # stationary distribution
 
   # regression parameters for mean and sd
   beta = cbind(beta0, betaSpline); REPORT(beta) # mean parameter matrix
@@ -345,15 +329,14 @@ pnll = function(par) {
   Mu = Z %*% t(beta) # mean
   Sigma = exp(Z %*% t(alpha)) # sd
 
-  allprobs = cbind(dnorm(price, Mu[,1], Sigma[,1]),
-                   dnorm(price, Mu[,2], Sigma[,2])) # state-dependent densities
-  
-  - forward(delta, Gamma, allprobs) +
+  allprobs = statedens(price, dnorm, Mu, Sigma) # one column of Mu and Sigma per state
+
+  -forward("stationary", Gamma, allprobs) +
     penalty(list(betaSpline, alphaSpline), S, sp)
 }
 ```
 
-From this point on, the model fit is now basically identical to the previous two examples. We specify initial parameters and include an intial penalty strength parameter in the `dat` list.
+From this point on, the model fit is now basically identical to the previous two examples. We specify initial parameters and include an initial penalty strength parameter in the `dat` list.
 
 ```{r energy_fit}
 # initial parameter list
@@ -378,7 +361,7 @@ system.time(
 Having fitted the model, we can visualise the results. We first decode the most probable state sequence and then plot the estimated state-dependent densities as a function of the oil price, as well as the decoded time series.
 For the former, we again create a fine grid of oil price values and use `predict()` to build the associated interpolating design matrix.
 
-```{r energy_results, fig.width = 9, fig.height = 5}
+```{r energy_results, fig.width = 4.5, fig.height = 4.5, out.width = "49%", fig.show = "hold", fig.align = "default"}
 xseq = seq(min(energy$Oil), max(energy$Oil), length = 200) # sequence for prediction
 Z_p = predict(modmat, newdata = data.frame(Oil = xseq)) # prediction design matrix
 
@@ -388,8 +371,6 @@ Mu_plot = Z_p %*% t(mod3$beta)
 Sigma_plot = exp(Z_p %*% t(mod3$alpha))
 
 library(scales) # to make colors semi-transparent
-
-oldpar = par(mfrow = c(1,2))
 
 # state-dependent distribution as a function of oil price
 plot(energy$Oil, energy$Price, pch = 20, bty = "n", col = alpha(color[energy$states], 0.1),
@@ -408,7 +389,6 @@ plot(NA, xlim = c(0, nrow(energy)), ylim = c(1,10), bty = "n",
 segments(x0 = 1:(nrow(energy)-1), x1 = 2:nrow(energy),
          y0 = energy$Price[-nrow(energy)], y1 = energy$Price[-1],
          col = color[energy$states[-1]], lwd = 0.5)
-par(oldpar)
 ```
 
 

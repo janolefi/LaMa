@@ -40,7 +40,7 @@ Suggests:
     knitr,
     rmarkdown,
     testthat (>= 3.0.0),
-    PHSMM, MSwM, scales
+    PHSMM, MSwM
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 LazyData: true

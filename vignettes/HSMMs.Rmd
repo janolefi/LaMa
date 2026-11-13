@@ -1,5 +1,5 @@
 ---
-title: "9 Hidden semi-Markov models"
+title: "8 Hidden semi-Markov models"
 author: "Jan-Ole Fischer"
 output: rmarkdown::html_vignette
 # output: pdf_document
@@ -44,7 +44,7 @@ We begin by considering homogeneous HSMMs. In such models, each state has an ass
 
 ### Setting parameters
 
-Here we choose the simplest case of dwell times that are **shifted Poisson** distributed. We have to specify the Poisson mean for each state, the conditional transition probability matrix called $\Omega$ and the parameters of the state-dependent process.
+Here we choose the simplest case of dwell times that are **shifted Poisson** distributed. We have to specify the Poisson mean for each state, the conditional transition probability matrix called $\boldsymbol{\Omega}$ and the parameters of the state-dependent process.
 
 ```{r, setup}
 # loading the package
@@ -210,14 +210,12 @@ par = mod_muskox$estimate; N = 3
 
 In this case the Poisson distribution would have been sufficiently flexible as all dispersion parameters were estimated very close to zero. We can easily visualise the estimated state-specific dwell-time distributions:
 
-```{r, dwell_muskox}
-oldpar = par(mfrow = c(1,3))
+```{r dwell_muskox, fig.dim = c(3.5, 4), out.width = "32%", fig.show = "hold", fig.align = "default"}
 for(j in 1:N){
   plot(1:agsizes[j], dnbinom(1:agsizes[j]-1, mu=mu_dwell[j], size = 1/phi[j]),
        type = "h", lwd = 2, col = color[j], xlab = "dwell time (hours)",
        ylab = "probabilities", main = paste("state",j), bty = "n", ylim = c(0,0.25))
 }
-par(oldpar)
 ```
 
 ## References

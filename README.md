@@ -66,8 +66,8 @@ HMMs, from simple to complex:
 
 1)  [Introduction to
     LaMa](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html)
-2)  [Automatic
-    differentiation](https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html)
+2)  [Finer
+    control](https://janolefi.github.io/LaMa/articles/Finer_control.html)
 3)  [Model
     extensions](https://janolefi.github.io/LaMa/articles/Extensions.html)
 4)  [Longitudinal
@@ -78,12 +78,10 @@ HMMs, from simple to complex:
 Other latent Markov model classes:
 
 6)  [Continuous-time
-    HMMs](https://janolefi.github.io/LaMa/articles/Continuous_time_HMMs.html)
-7)  [Markov-modulated Poisson
-    processes](https://janolefi.github.io/LaMa/articles/MMMPPs.html)
-8)  [State-space
+    models](https://janolefi.github.io/LaMa/articles/Continuous_time_models.html)
+7)  [State-space
     models](https://janolefi.github.io/LaMa/articles/State_space_models.html)
-9)  [Hidden semi-Markov
+8)  [Hidden semi-Markov
     models](https://janolefi.github.io/LaMa/articles/HSMMs.html)
 
 <!-- ## Citation -->

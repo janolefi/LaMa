@@ -107,7 +107,7 @@ nll = function(par) {
 
 ### Fitting an SSM to the data
 
-Because the transition matrix $\Gamma$ is $100 \times 100$ and dense, we set `TapeConfig(matmul = "atomic")` before building the AD objective.
+Because the transition matrix $\boldsymbol{\Gamma}$ is $100 \times 100$ and dense, we set `TapeConfig(matmul = "atomic")` before building the AD objective.
 
 By default (`"plain"`), `RTMB` unwraps every matrix multiplication into all its individual scalar operations on the tape. This is efficient when matrices are sparse, since the tape can exploit the structure. For large, dense matrices it produces an enormous tape — one scalar entry per element of the result — which slows both tape construction and subsequent gradient evaluation.
 

@@ -7,9 +7,9 @@
 sdreport_outer(mod, invert = FALSE)
 }
 \arguments{
-\item{mod}{model objects as returned by \code{\link{qreml}}}
+\item{mod}{model object as returned by \code{\link{qreml}}}
 
-\item{invert}{optional logical; if \code{TRUE}, the inverse smoothing paramaters (variances) are returned along with the transformed standard deviations obtained via the delta method.}
+\item{invert}{optional logical; if \code{TRUE}, the inverse smoothing parameters (variances) are returned along with the transformed standard deviations obtained via the delta method.}
 }
 \value{
 list containing \code{report} matrix summarising parameters and standard deviations as well as the outer \code{Hessian} matrix.
@@ -18,7 +18,7 @@ list containing \code{report} matrix summarising parameters and standard deviati
 Computes standard deviations for the smoothing parameters of a model object returned by \code{qreml} using the delta method.
 }
 \details{
-The computations are based on the approximate gradient of the restricted log likelihood. The outer Hessian is computed by finite differencing of this gradient. If the inverse smoothing parameters are requested, the standard deviations are transformed to the variances using the delta method.
+The computations are based on the approximate gradient of the restricted log likelihood. The outer Hessian w.r.t. the log smoothing parameters is computed by central differencing of this gradient, and the standard deviations of the smoothing parameters, or of their inverses (variances), are obtained from it using the delta method.
 }
 \examples{
 ## no examples

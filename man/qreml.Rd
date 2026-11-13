@@ -20,6 +20,7 @@ qreml(
   smoothing = 1,
   method = "BFGS",
   lsp_max = 15,
+  lsp_min = -15,
   step_small = 0.05,
   max_halve = 6,
   control = list(),
@@ -63,7 +64,7 @@ The penalty strengths themselves are a poor proxy: \code{lambda} can slide along
 
 Penalty strengths are free to increase as fast as the update proposes, but cannot collapse faster than this per iteration.
 Reducing a penalty strength too quickly can push the inner optimisation into a local optimum or a numerically awkward region, which matters more here than in a GAM because the likelihood is user-written.
-Set to zero to remove the floor entirely. Step length is handled separately, by \code{max_halve} and the adaptive multiplier.}
+Set to zero to remove the floor entirely. Step length is handled separately, by \code{max_halve} and the step multiplier.}
 
 \item{tol}{\strong{fallback} convergence tolerance, on the restricted log-likelihood. Defaults to 0.01.
 
@@ -77,7 +78,13 @@ A tolerance in nats is not comparable across models, which is why it is the fall
 
 \item{lsp_max}{largest value allowed for \code{log(lambda)}. Defaults to 15, as in \code{mgcv}, i.e. penalty strengths saturate at roughly 3.3e6}
 
-\item{step_small}{size of a step in \code{log(lambda)} below which the step multiplier is allowed to double. Defaults to 0.05, as in \code{mgcv}}
+\item{lsp_min}{smallest value allowed for \code{log(lambda)}. Defaults to -15, i.e. penalty strengths stop at roughly 3e-7.
+A penalty strength on a smooth the data cannot inform otherwise keeps falling towards zero along a flat restricted likelihood, and its step never becomes small enough for convergence.
+A penalty strength ending at this bound gives a warning, as the penalty is then effectively switched off.
+If no other penalty acts on the same coefficients, the smooth is effectively unpenalised, which usually means its basis dimension is too small.
+If another penalty still does, e.g. the ridge of the random effect margin of a tensor product with \code{bs = "re"}, the penalty at the bound is merely redundant: this is usually harmless, and a larger basis dimension does not help.}
+
+\item{step_small}{size of a step in \code{log(lambda)} below which convergence may be declared. Defaults to 0.05, as in \code{mgcv}}
 
 \item{max_halve}{maximum number of times a step that decreases the restricted likelihood is halved before it is accepted anyway. Defaults to 6.
 
@@ -92,7 +99,7 @@ A tolerance in nats is not comparable across models, which is why it is the fall
 \item{saveall}{logical, if \code{TRUE}, then all model objects from each iteration are saved in the final model object}
 }
 \value{
-model object of class \code{"qremlModel"}, inheriting from \code{"LaMaModel"} (see \code{\link{lama}}), carrying the fitted quantities, the smoothness selection diagnostics shown by \code{\link{summary.qremlModel}}, and \code{outer_hessian()}, the outer Hessian that \code{\link{sdreport_outer}} turns into standard errors
+model object of class \code{"qremlModel"}, inheriting from \code{"LaMaModel"} (see \code{\link{lama}}), carrying the fitted quantities, the smoothness selection diagnostics shown by \code{\link{summary.qremlModel}}, \code{outer_hessian()}, the outer Hessian that \code{\link{sdreport_outer}} turns into standard errors, and \code{joint_uncertainty()}, the joint precision (or corrected covariance) accounting for the uncertainty in the penalty strengths
 }
 \description{
 Efficiently fits models involving quadratic penalties of the form
@@ -115,22 +122,29 @@ which equals one exactly where \eqn{\partial V / \partial \lambda_i = 0}{dV/dlam
 For a smooth carrying a single penalty the first trace is \eqn{\mathrm{rank}(S_i) / \lambda_i}{rank(S_i) / lambda_i}, obtained once from an eigendecomposition instead of at every iteration.
 Only the diagonal blocks of \eqn{J^{-1}}{J^-1} enter, and these come from the Cholesky factor by triangular solves rather than from a full inverse.
 
-\strong{Step control.} The step is taken in \eqn{\log \lambda}{log(lambda)} and scaled by a multiplier that persists across iterations: it doubles while the criterion keeps improving and is halved, up to \code{max_halve} times, while it does not.
+\strong{Step control.} The step is taken in \eqn{\log \lambda}{log(lambda)} and scaled by a multiplier that persists across iterations: it is halved, up to \code{max_halve} times, while the criterion does not improve, and doubles back towards one after each improving step.
+Unlike \code{mgcv}, there is no acceleration beyond the full step: each trial at a larger step costs a complete inner fit, which for a user-written likelihood is expensive, and rarely pays off.
 A step that still worsens the criterion after that many halvings is accepted, which is the only way the iteration can move downhill.
-In addition no penalty strength may fall by more than a factor \code{alpha} in one iteration, and \eqn{\log \lambda}{log(lambda)} is capped at \code{lsp_max}.
+Changes in the criterion smaller than \eqn{10^{-6} (1 + |V|)}{1e-6 * (1 + |V|)} count as noise here, so that a step of essentially zero at the optimum does not set off halvings.
+In addition no penalty strength may fall by more than a factor \code{alpha} in one iteration, and \eqn{\log \lambda}{log(lambda)} is kept within \code{[lsp_min, lsp_max]}.
 The fit returned is the best iterate seen, not necessarily the last one.
 
 \strong{Convergence.} The iteration stops once no smooth's effective degrees of freedom
 \deqn{\mathrm{edf}_i = K_i - \mathrm{tr}(J^{-1} \lambda_i S_i)}{edf_i = K_i - tr(J^-1 lambda_i S_i)}
 has moved by more than \code{tol_edf} over the last four iterations, provided the step in \eqn{\log \lambda}{log(lambda)} is also small; see \code{tol_edf}.
+It also stops once the inner optimiser no longer moves from its warm start (after the first three iterations and at a full step), as the change in the penalty strengths then no longer affects the fit;
+this ends a penalty strength creeping towards zero along a flat restricted likelihood, whose step never becomes small.
 Being eigenvalue sums, the effective degrees of freedom must lie in \eqn{[0, K_i]}, and they leave that range only if the data Hessian is indefinite, in which case the traces driving the update are not the quantities the method assumes.
 That is reported rather than repaired, through the returned \code{edf_valid} and a warning, and the criterion then falls back to \code{tol} on the restricted log-likelihood.
 
 \strong{Numerics.} \eqn{J} is the exact automatic differentiation Hessian, which matters because the finite differencing error of \code{\link[stats:optimHess]{optimHess}} is of the same order as the criterion differences the convergence test has to resolve.
 It is factorised by a pivoted Cholesky decomposition after scaling to a unit diagonal; should it not be positive definite, a ridge is added and reported through the returned \code{hessian_repaired}.
 
-\strong{Uncertainty.} The returned \code{outer_hessian()} gives the Hessian of the negative restricted log-likelihood in the penalty strengths, which \code{\link{sdreport_outer}} turns into standard errors.
+\strong{Uncertainty.} The returned \code{outer_hessian()} gives the Hessian of the negative restricted log-likelihood in the log penalty strengths, by central differences of its approximate gradient, which \code{\link{sdreport_outer}} turns into standard errors.
 Note that these describe the curvature of \eqn{V} only, and treat the approximation to it as exact.
+The returned \code{joint_uncertainty()} propagates this uncertainty to the parameters by the first-order correction of Wood, Pya and Saefken (2016):
+it gives the joint precision matrix of the parameters and the log penalty strengths, as \code{sdreport(getJointPrecision = TRUE)} does in \code{TMB}, which stays sparse if the Hessian is (\code{spHess = TRUE}),
+or, with \code{precision = FALSE}, the corrected covariance matrix of the parameters alone. Both take the outer Hessian as argument \code{H_rho}, by default computed by \code{outer_hessian()}.
 }
 \examples{
 data = trex[1:2000,] # subset of the data

@@ -37,10 +37,10 @@
 #' logical; whether to use automatic differentiation. Determined automatically — for debugging only.
 #' 
 #' @param report 
-#' logical; if \code{TRUE} (default), \code{delta}, \code{Gamma}, \code{allprobs}, and \code{trackID} are reported from the fitted model. Requires \code{ad = TRUE}. 
+#' logical; if \code{TRUE} (default), the coefficient matrix \code{beta} is reported from the fitted model, if \code{Z} is provided. Requires \code{ad = TRUE}.
 #' 
 #' @param param 
-#' depricated, please use argument \code{beta} instead.
+#' deprecated, please use argument \code{beta} instead.
 #' 
 #' @return Transition probability matrix of dimension \code{c(nStates, nStates)} or array of such matrices of dimension \code{c(nStates, nStates, nObs)} if \code{Z} or \code{Eta} is provided.
 #' @export
@@ -151,11 +151,11 @@ tpm <- function(
 
 #' Build all transition probability matrices of an inhomogeneous HMM
 #' 
-#' In an HMM, we often model the influence of covariates on the state process by linking them to the transition probabiltiy matrix. 
+#' In an HMM, we often model the influence of covariates on the state process by linking them to the transition probability matrix. 
 #' Most commonly, this is done by specifying a linear predictor
 #' \deqn{ \eta_{ij}^{(t)} = \beta^{(ij)}_0 + \beta^{(ij)}_1 z_{t1} + \dots + \beta^{(ij)}_p z_{tp} }
 #' for each off-diagonal element (\eqn{i \neq j}) of the transition probability matrix and then applying the inverse multinomial logistic link (also known as softmax) to each row.
-#' This function efficiently calculates all transition probabilty matrices for a given design matrix \code{Z} and parameter matrix \code{beta}.
+#' This function efficiently calculates all transition probability matrices for a given design matrix \code{Z} and parameter matrix \code{beta}.
 #' 
 #' \strong{Deprecated:} please use \code{\link{tpm}(beta, Z)} for all model types instead.
 #' 
@@ -163,11 +163,11 @@ tpm <- function(
 #'
 #' @param Z 
 #' Covariate design matrix with or without intercept column, i.e. of dimension \code{c(nObs, p)} or \code{c(nObs, p+1)}.
-#' If not provided, intercept column is added automatically.
+#' If \code{Z} has only \code{p} columns, an intercept column is added automatically.
 #'
 #' @param beta 
 #' Matrix of coefficients for the off-diagonal elements of the transition probability matrix 
-#' of dimension \code{c(nStates * (nStates-1), p+1)}. First columns contains the intercepts.
+#' of dimension \code{c(nStates * (nStates-1), p+1)}. The first column contains the intercepts.
 #' 
 #' @param Eta 
 #' optional pre-calculated matrix of linear predictors of dimension \code{c(nObs, nStates * (nStates-1))}.
@@ -185,7 +185,7 @@ tpm <- function(
 #' logical; whether to use automatic differentiation. Determined automatically — for debugging only.
 #' 
 #' @param report 
-#' logical; if \code{TRUE} (default), \code{delta}, \code{Gamma}, \code{allprobs}, and \code{trackID} are reported from the fitted model. Requires \code{ad = TRUE}. 
+#' logical; if \code{TRUE} (default), the coefficient matrix \code{beta} is reported from the fitted model, if \code{Z} is provided. Requires \code{ad = TRUE}.
 #' 
 #'
 #' @return array of transition probability matrices of dimension \code{c(nStates, nStates, nObs)}
@@ -307,6 +307,7 @@ tpm_inhom <- function(Z, beta,
     # }
     
     if(is.null(Eta)) {
+      check_matmul_tape(Z, beta)
       Eta <- Z %*% t(beta)
     }
     
@@ -349,32 +350,32 @@ tpm_inhom <- function(Z, beta,
 
 #' Build all transition probability matrices of an inhomogeneous HMM
 #' 
-#' In an HMM, we often model the influence of covariates on the state process by linking them to the transition probabiltiy matrix. 
+#' In an HMM, we often model the influence of covariates on the state process by linking them to the transition probability matrix. 
 #' Most commonly, this is done by specifying linear predictors
 #' \deqn{ \eta_{ij}^{(t)} = \beta^{(ij)}_0 + \beta^{(ij)}_1 z_{t1} + \dots + \beta^{(ij)}_p z_{tp} }
 #' for each off-diagonal element (\eqn{i \neq j}) of the transition probability matrix and then applying the inverse multinomial logistic link (also known as softmax) to each row.
-#' This function efficiently calculates all transition probabilty matrices for a given design matrix \code{Z} and parameter matrix \code{beta}.
+#' This function efficiently calculates all transition probability matrices for a given design matrix \code{Z} and parameter matrix \code{beta}.
 #' 
 #' @family transition probability matrix functions
 #'
-#' @param Z covariate design matrix with or without intercept column, i.e. of dimension c(n, p) or c(n, p+1)
+#' @param Z covariate design matrix with or without intercept column, i.e. of dimension \code{c(nObs, p)} or \code{c(nObs, p+1)}
 #' 
 #' If \code{Z} has only p columns, an intercept column of ones will be added automatically.
 #' 
-#' Can also be a list of N*(N-1) design matrices with different number of columns but the same number of rows. In that case, no intercept column will be added.
+#' Can also be a list of \code{nStates * (nStates-1)} design matrices with different number of columns but the same number of rows. In that case, no intercept column will be added.
 #' @param beta matrix of coefficients for the off-diagonal elements of the transition probability matrix
 #' 
-#' Needs to be of dimension c(N*(N-1), p+1), where the first column contains the intercepts.
+#' Needs to be of dimension \code{c(nStates * (nStates-1), p+1)}, where the first column contains the intercepts.
 #' 
-#' If \code{Z} is a list, \code{beta} can also be a list of length N*(N-1) with each entry being a vector or a (long) matrix of coefficients, each matching the dimension of the corresponding entry in \code{Z}.
+#' If \code{Z} is a list, \code{beta} can also be a list of length \code{nStates * (nStates-1)} with each entry being a vector or a (long) matrix of coefficients, each matching the dimension of the corresponding entry in \code{Z}.
 #' @param byrow logical indicating if each transition probability matrix should be filled by row
 #'  
 #' Defaults to \code{FALSE}, but should be set to \code{TRUE} if one wants to work with a matrix of beta parameters returned by popular HMM packages like \code{moveHMM}, \code{momentuHMM}, or \code{hmmTMB}.
 #' @param ad optional logical, indicating whether automatic differentiation with \code{RTMB} should be used. By default, the function determines this itself.
 #' @param report logical, indicating whether the coefficient matrix \code{beta} should be reported from the fitted model. Defaults to \code{TRUE}, but only works if \code{ad = TRUE}.
-#' @param ref optional vector of length N with the reference state indices for each column of the transition probability matrix. Each row in the transition matrix corresponds to a multinomial regression, hence one state needs to be the reference category. Defaults to off-diagonal elements (\code{ref = 1:N}).
+#' @param ref optional vector of length \code{nStates} with the reference state indices for each column of the transition probability matrix. Each row in the transition matrix corresponds to a multinomial regression, hence one state needs to be the reference category. Defaults to off-diagonal elements (\code{ref = 1:nStates}).
 #'
-#' @return array of transition probability matrices of dimension c(N,N,n)
+#' @return array of transition probability matrices of dimension \code{c(nStates, nStates, nObs)}
 #' @export
 #' @import RTMB
 #' @importFrom stats na.omit
@@ -532,17 +533,17 @@ tpm_g2 <- function(Z,
 }
 
 
-#' Compute the transition probability matrix of a thinned periodically inhomogeneous Markov chain.
+#' Compute the transition probability matrix of a thinned periodically inhomogeneous Markov chain
 #'
 #' If the transition probability matrix of an inhomogeneous Markov chain varies only periodically (with period length \eqn{L}), it converges to a so-called periodically stationary distribution. 
 #' This happens, because the thinned Markov chain, which has a full cycle as each time step, has homogeneous transition probability matrix
 #' \deqn{\Gamma_t = \Gamma^{(t)} \Gamma^{(t+1)} \dots \Gamma^{(t+L-1)}} for all \eqn{t = 1, \dots, L.}
-#' This function calculates the matrix above efficiently as a preliminery step to calculating the periodically stationary distribution.
+#' This function calculates the matrix above efficiently as a preliminary step to calculating the periodically stationary distribution.
 #' 
 #' @param Gamma array of transition probability matrices of dimension \code{c(nStates, nStates, L)}.
-#' @param t integer index of the time point in the cycle, for which to calculate the thinned transition probility matrix
+#' @param t integer index of the time point in the cycle, for which to calculate the thinned transition probability matrix
 #'
-#' @return thinned transition probabilty matrix of dimension \code{c(nStates, nStates)}
+#' @return thinned transition probability matrix of dimension \code{c(nStates, nStates)}
 #' @export
 #'
 #' @examples
@@ -569,7 +570,7 @@ tpm_thinned = function(Gamma, t){
 #' 
 #' @details
 #' Note that using this function inside the negative log-likelihood function is convenient, but it performs the basis expansion into sine and cosine terms each time it is called. 
-#' As these do not change during the optimisation, using \code{\link{tpm_g}} with a pre-calculated (by \code{\link{trigBasisExp}}) design matrix would be more efficient.
+#' As these do not change during the optimisation, using \code{\link{tpm}} with a pre-calculated (by \code{\link{trigBasisExp}}) design matrix would be more efficient.
 #'
 #' @family transition probability matrix functions
 #'
@@ -648,16 +649,44 @@ tpm_p = function(tod = 1:24, L=24, beta, degree = 1, Z = NULL, byrow = FALSE, ad
 #' Calculate continuous time transition probabilities
 #'
 #' A continuous-time Markov chain is described by an infinitesimal generator matrix \eqn{Q}. 
-#' When observing data at time points \eqn{t_1, \dots, t_n} the transition probabilites between \eqn{t_i} and \eqn{t_{i+1}} are caluclated as
+#' When observing data at time points \eqn{t_1, \dots, t_n} the transition probabilities between \eqn{t_i} and \eqn{t_{i+1}} are calculated as
 #' \deqn{\Gamma(\Delta t_i) = \exp(Q \Delta t_i),}
 #' where \eqn{\exp()} is the matrix exponential. The mapping \eqn{\Gamma(\Delta t)} is also called the \strong{Markov semigroup}.
 #' This function calculates all transition matrices based on a given generator and time differences.
-#' 
+#'
+#' @details
+#' \strong{Transition probabilities.} The entry \eqn{(i,j)} of \eqn{\Gamma(\Delta t) = \exp(Q \Delta t)} is the probability that the chain is in state \eqn{j} at time \eqn{t + \Delta t}, given that it is in state \eqn{i} at time \eqn{t}.
+#' Its rows sum to one. For short intervals, \eqn{\Gamma(\Delta t)} is close to the identity matrix. For long intervals, each row is close to the stationary distribution (see \code{\link{stationary_ct}}).
+#' This is what makes continuous-time models suitable for irregularly sampled data: each interval gets its own transition matrix.
+#'
+#' \strong{Time-varying generators.} If \code{Q} is an array of generator matrices, e.g. from \code{\link{generator}(beta, Z)}, the generator is assumed constant within each interval, and \code{Q[, , t]} is used for \code{timediff[t]}.
+#' Hence, row \eqn{t} of \code{Z} should contain the covariates at the start of interval \eqn{t}, i.e. at observation \eqn{t}. Only the first \code{length(timediff)} slices of \code{Q} are used.
+#'
+#' \strong{Repeated time differences.} If \code{Q} is a single matrix, \eqn{\Gamma(\Delta t)} only depends on \eqn{\Delta t}.
+#' Hence, the matrix exponential is computed only once for each unique value in \code{timediff} and then copied to all intervals with that time difference.
+#' This happens automatically, so there is no need to do it manually. It saves a lot of time when there are only few unique time differences, e.g. when time is measured in days or observations are regular with occasional gaps.
+#' Copying is free on the \code{RTMB} tape, and when all time differences are unique, nothing changes.
+#'
+#' \strong{MM(M)PPs.} If \code{rates} are provided, the function returns \eqn{\exp((Q - \Lambda) \Delta t)} with \eqn{\Lambda = \mathrm{diag}(\lambda_1, \dots, \lambda_N)}.
+#' Its entry \eqn{(i,j)} is the probability of moving from state \eqn{i} to state \eqn{j} over the interval without any arrival in between, so its rows sum to less than one.
+#' Multiplied with the state-dependent rates at the arrival times (in \code{allprobs}), these matrices give the MM(M)PP likelihood in the forward algorithm.
+#'
+#' \strong{Computation.} Without automatic differentiation, the matrix exponential is calculated in C++ with Armadillo, separately for each interval.
+#' With automatic differentiation (\code{ad = TRUE}), \code{Matrix::expm} is called for each interval, i.e. a Padé approximation with scaling and squaring, all of which is recorded on the \code{RTMB} tape.
+#'
+#' For \strong{two states}, a closed form is used in the AD case instead. Let \eqn{A = Q - \Lambda} (or \eqn{A = Q} without rates) with real eigenvalues \eqn{\nu_1 > \nu_2}. Then
+#' \deqn{\exp(A \Delta t) = e^{\nu_1 \Delta t} I + \frac{e^{\nu_1 \Delta t} - e^{\nu_2 \Delta t}}{\nu_1 - \nu_2} (A - \nu_1 I).}
+#' Without rates, \eqn{\nu_1 = 0} and \eqn{\nu_2 = -(q_{12} + q_{21})}, so that, e.g., \eqn{\Gamma_{12}(\Delta t) = q_{12} (1 - e^{-(q_{12} + q_{21}) \Delta t}) / (q_{12} + q_{21})}.
+#' This is exact, not an approximation. For two states, models are therefore expected to be much faster to fit (often by more than an order of magnitude for the gradient):
+#' the closed form needs only a few elementwise operations on vectors of length \code{length(timediff)},
+#' whereas \code{Matrix::expm} records a full Padé approximation (matrix products, a linear solve and repeated squaring) on the tape separately for each interval, all of which needs to be evaluated and differentiated in every optimisation step.
+#'
 #' @family transition probability matrix functions
 #'
-#' @param Q 
-#' infinitesimal generator matrix of the continuous-time Markov chain of dimension \code{c(nStates, nStates)}
-#' 
+#' @param Q
+#' infinitesimal generator matrix of the continuous-time Markov chain of dimension \code{c(nStates, nStates)},
+#' or array of generator matrices of dimension \code{c(nStates, nStates, nObs-1)} (or larger) for time-varying generators, e.g. from \code{\link{generator}(beta, Z)}.
+#'
 #' @param timediff 
 #' time differences between observations of length \code{nObs}-1 when based on \code{nObs} observations
 #' 
@@ -725,9 +754,19 @@ tpm_ct <- function(Q, timediff, rates = NULL, ad = NULL, report = TRUE){
     # determine whether to use AD
     ad <- ad_context()
   }
-  
+
+  # constant Q: matrix exponential only once per unique time difference (see details)
+  ind <- NULL
+  if(is.matrix(Q) && !inherits(timediff, "advector")) {
+    utd <- unique(timediff)
+    if(length(utd) < length(timediff)) {
+      ind <- match(timediff, utd)
+      timediff <- utd
+    }
+  }
+
   if(!ad) {
-    
+
     if(is.matrix(Q)) {
       Qube <- semigroup_cpp(Q, timediff) # C++ version
     } else {
@@ -739,8 +778,22 @@ tpm_ct <- function(Q, timediff, rates = NULL, ad = NULL, report = TRUE){
     
     n <- length(timediff)
     Qube = array(0, dim = c(N, N, n))
-    
-    if(is.matrix(Q)) {
+
+    if(N == 2) { # closed form for 2 states, vectorised over intervals (see details)
+      t <- if(is.matrix(Q)) 1 else 1:n # one Q for all intervals or one per interval
+      if(is.matrix(Q)) dim(Q) <- c(2, 2, 1)
+      q11 <- Q[1,1,t]; q12 <- Q[1,2,t]; q21 <- Q[2,1,t]; q22 <- Q[2,2,t]
+      d <- sqrt(((q11 - q22) / 2)^2 + q12 * q21 + 1e-300) # half the eigenvalue gap, kept > 0
+      l2 <- (q11 + q22) / 2 - d # smaller eigenvalue
+      l1 <- (q11 * q22 - q12 * q21) / l2 # larger eigenvalue as det / l2 (no cancellation, exactly 0 without rates)
+      e1 <- exp(l1 * timediff)
+      h <- -e1 * expm1(-2 * d * timediff) / (2 * d) # (exp(l1 dt) - exp(l2 dt)) / (l1 - l2)
+      # exp(Q dt) = exp(l1 dt) I + h (Q - l1 I)
+      Qube[1,1,] <- e1 + h * (q11 - l1)
+      Qube[1,2,] <- h * q12
+      Qube[2,1,] <- h * q21
+      Qube[2,2,] <- e1 + h * (q22 - l1)
+    } else if(is.matrix(Q)) {
       for(t in 1:n){
         Qube[,,t] = as.matrix(Matrix::expm(Q * timediff[t])) # Matrix::expm for AD
       }
@@ -750,7 +803,10 @@ tpm_ct <- function(Q, timediff, rates = NULL, ad = NULL, report = TRUE){
       }
     }
   }
-  
+
+  # back to all intervals (free on the AD tape, only references are copied)
+  if(!is.null(ind)) Qube <- Qube[, , ind, drop = FALSE]
+
   # naming
   N <- nrow(Q)
   statenames <- paste0("S", 1:N)
@@ -780,10 +836,20 @@ tpm_cont <- function(
 #' This function builds the \strong{infinitesimal generator matrix} for a \strong{continuous-time Markov chain} from an unconstrained parameter vector.
 #' 
 #' @details
-#' Off-diagonal entries are calculated as \eqn{\exp(\beta_i)} to ensure positivity. The diagonal entries are then set to the negative row sums, which is required for generator matrices.
+#' \strong{Generator matrices.} The off-diagonal entry \eqn{q_{ij} \geq 0} of a generator \eqn{Q} is the rate of switching from state \eqn{i} to state \eqn{j}, i.e. \eqn{\Pr(S_{t+h} = j \mid S_t = i) \approx q_{ij} h} for small \eqn{h}.
+#' The diagonal entries are \eqn{q_{ii} = -\sum_{j \neq i} q_{ij}}, so that each row sums to zero.
+#' Hence, the time spent in state \eqn{i} is exponentially distributed with rate \eqn{-q_{ii}}, and when leaving state \eqn{i}, the chain moves to state \eqn{j} with probability \eqn{q_{ij} / (-q_{ii})}.
+#' Transition probabilities over intervals of length \eqn{\Delta t} are \eqn{\exp(Q \Delta t)}, calculated by \code{\link{tpm_ct}}.
 #'
-#' If a design matrix \code{Z} or a matrix of linear predictors \code{Eta} is provided, the function will automatically call \code{\link{generator_g}} to build the generator matrix based on the design matrix and coefficient matrix.
-#' In that case, the argument \code{beta} needs to be a matrix of coefficients of dimension \code{c(nStates * (nStates-1), p+1)}, where the first column contains the intercepts.
+#' \strong{Parameterisation.} The off-diagonal entries are calculated as \eqn{q_{ij} = \exp(\beta_k)} to ensure positivity, and the diagonal entries are then set to the negative row sums.
+#' By default (\code{byrow = FALSE}), the off-diagonal entries are filled column-wise, i.e. for 3 states \eqn{\beta} corresponds to \eqn{(q_{21}, q_{31}, q_{12}, q_{32}, q_{13}, q_{23})}.
+#' With \code{byrow = TRUE}, they are filled row-wise, i.e. \eqn{(q_{12}, q_{13}, q_{21}, q_{23}, q_{31}, q_{32})}.
+#' For 2 states, this means \eqn{\beta = (\log q_{21}, \log q_{12})} by default and \eqn{\beta = (\log q_{12}, \log q_{21})} with \code{byrow = TRUE}.
+#'
+#' \strong{Covariates.} If a design matrix \code{Z} is provided, each off-diagonal entry depends on covariates via \eqn{q_{ij}^{(t)} = \exp(z_t^\top \beta_{ij})}, where \eqn{z_t} is row \eqn{t} of \code{Z}, and one generator matrix is returned for each row of \code{Z}.
+#' Then \code{beta} needs to be a matrix of coefficients of dimension \code{c(nStates * (nStates-1), p+1)}, where the first column contains the intercepts and rows are ordered as above.
+#' Alternatively, a matrix of linear predictors \code{Eta} can be provided, with one column per off-diagonal entry in the same order.
+#' When passed to \code{\link{tpm_ct}}, the generator is assumed constant within each interval, so row \eqn{t} of \code{Z} should contain the covariates at the start of interval \eqn{t}.
 #'
 #' @family transition probability matrix functions
 #' 
@@ -806,10 +872,10 @@ tpm_cont <- function(
 #' logical indicating if the generator matrix should be filled by row
 #'
 #' @param report 
-#' logical, indicating whether the generator matrix \code{Q} should be reported from the fitted model. Defaults to \code{TRUE}, but only works if when automatic differentiation with \code{RTMB} is used.
+#' logical; if \code{TRUE} (default), the coefficient matrix \code{beta} is reported from the fitted model, if \code{Z} is provided. Requires automatic differentiation with \code{RTMB}.
 #'
 #' @param param 
-#' depricated, please use argument \code{beta} instead.
+#' deprecated, please use argument \code{beta} instead.
 #' 
 #' @return infinitesimal generator matrix of dimension \code{c(nStates, nStates)} or array of such matrices of dimension \code{c(nStates, nStates, nObs)} if \code{Z} or \code{Eta} is provided.
 #' @export
@@ -905,11 +971,11 @@ generator <- function(
 #' @family transition probability matrix functions
 #' 
 #' @param Z 
-#' Covariate design matrix with or without intercept column, i.e. of dimension \code{c(nObs, p)} or \code{c(nObs, p+1)}. If not provided, intercept column is added automatically.
+#' Covariate design matrix with or without intercept column, i.e. of dimension \code{c(nObs, p)} or \code{c(nObs, p+1)}. If \code{Z} has only \code{p} columns, an intercept column is added automatically.
 #'
 #' @param beta 
 #' Matrix of coefficients for the off-diagonal elements of the generator matrix 
-#' of dimension \code{c(nStates * (nStates-1), p+1)}. First columns contains the intercepts.
+#' of dimension \code{c(nStates * (nStates-1), p+1)}. The first column contains the intercepts.
 #' 
 #' @param Eta 
 #' optional pre-calculated matrix of linear predictors of dimension \code{c(nObs, nStates * (nStates-1))}.
@@ -919,7 +985,7 @@ generator <- function(
 #' logical indicating if the generator matrices should be filled by row
 #'
 #' @param report 
-#' logical, indicating whether the generator matrices \code{Q} should be reported from the fitted model. Defaults to \code{TRUE}, but only works if when automatic differentiation with \code{RTMB} is used.
+#' logical; if \code{TRUE} (default), the coefficient matrix \code{beta} is reported from the fitted model. Requires automatic differentiation with \code{RTMB}.
 #' 
 #' @return array of infinitesimal generator matrices of dimension \code{c(nStates, nStates, nObs)}
 #' @export
@@ -991,6 +1057,7 @@ generator_inhom <- function(
       REPORT(beta)
     }
     
+    check_matmul_tape(Z, beta)
     Eta <- Z %*% t(beta)
   }
     
@@ -1184,7 +1251,7 @@ tpm_emb_g = function(Z, beta, report = TRUE){
 #'
 #' @description
 #' Hidden semi-Markov models (HSMMs) are a flexible extension of HMMs, where the state duration distribution is explicitly modelled.
-#' For direct numerical maximum likelhood estimation, HSMMs can be represented as HMMs on an enlarged state space (of size \eqn{M}) and with structured transition probabilities.
+#' For direct numerical maximum likelihood estimation, HSMMs can be represented as HMMs on an enlarged state space (of size \eqn{M}) and with structured transition probabilities.
 #' 
 #' This function computes the transition matrix to approximate a given HSMM by an HMM with a larger state space.
 #'
@@ -1192,7 +1259,7 @@ tpm_emb_g = function(Z, beta, report = TRUE){
 #' @param dm state dwell-time distributions arranged in a list of length \code{nStates}. Each list element needs to be a vector of length N_i, where N_i is the state aggregate size.
 #' @param Fm optional list of length \code{nStates} containing the cumulative distribution functions of the dwell-time distributions.
 #' @param sparse logical, indicating whether the output should be a \strong{sparse} matrix. Defaults to \code{TRUE}.
-#' @param eps rounding value: If an entry of the transition probabily matrix is smaller, than it is rounded to zero. Usually, this should not be changed.
+#' @param eps rounding value: If an entry of the transition probability matrix is smaller, it is rounded to zero. Usually, this should not be changed.
 #'
 #' @return extended-state-space transition probability matrix of the approximating HMM
 #' @export
@@ -1267,19 +1334,19 @@ tpm_hsmm <- function(omega, dm,
 #' Builds all transition probability matrices of an inhomogeneous-HSMM-approximating HMM
 #'
 #' @description
-#' Hidden semi-Markov models (HSMMs) are a flexible extension of HMMs. For direct numerical maximum likelhood estimation, HSMMs can be represented as HMMs on an enlarged state space (of size \eqn{M}) and with structured transition probabilities.
+#' Hidden semi-Markov models (HSMMs) are a flexible extension of HMMs. For direct numerical maximum likelihood estimation, HSMMs can be represented as HMMs on an enlarged state space (of size \eqn{M}) and with structured transition probabilities.
 #' 
-#' This function computes the transition matrices of a periodically inhomogeneos HSMMs.
+#' This function computes the transition matrices of an inhomogeneous HSMM.
 #'
 #' @param omega embedded transition probability matrix
 #'
 #' Either a matrix of dimension \code{c(nStates, nStates)} for homogeneous conditional transition probabilities (as computed by \code{\link{tpm_emb}}), or an array of dimension \code{c(nStates, nStates, nObs)} for inhomogeneous conditional transition probabilities (as computed by \code{\link{tpm_emb_g}}).
 #' @param dm state dwell-time distributions arranged in a list of length \code{nStates}
 #'
-#' Each list element needs to be a matrix of dimension c(n, N_i), where each row t is the (approximate) probability mass function of state i at time t.
-#' @param eps rounding value: If an entry of the transition probabily matrix is smaller, than it is rounded to zero. Usually, this should not be changed.
+#' Each list element needs to be a matrix of dimension \code{c(nObs, N_i)}, where each row t is the (approximate) probability mass function of state i at time t.
+#' @param eps rounding value: If an entry of the transition probability matrix is smaller, it is rounded to zero. Usually, this should not be changed.
 #'
-#' @return list of dimension length \code{n - max(sapply(dm, ncol))}, containing sparse extended-state-space transition probability matrices for each time point (except the first \code{max(sapply(dm, ncol)) - 1}).
+#' @return list of length \code{nObs - max(sapply(dm, ncol)) + 1}, containing sparse extended-state-space transition probability matrices for each time point (except the first \code{max(sapply(dm, ncol)) - 1}).
 #' @export
 #'
 #' @examples
@@ -1293,14 +1360,14 @@ tpm_hsmm <- function(omega, dm,
 #' # state dwell-time distributions
 #' dm = lapply(1:N, function(i) sapply(1:sizes[i]-1, dpois, lambda = Lambda[,i]))
 #' 
-#' ## homogeneous conditional transition probabilites
+#' ## homogeneous conditional transition probabilities
 #' # diagonal elements are zero, rowsums are one
 #' omega = matrix(c(0,1,1,0), nrow = N, byrow = TRUE)
 #' 
 #' # calculating extended-state-space t.p.m.s
 #' Gamma = tpm_ihsmm(omega, dm)
 #' 
-#' ## inhomogeneous conditional transition probabilites
+#' ## inhomogeneous conditional transition probabilities
 #' # omega can be an array
 #' omega = array(omega, dim = c(N,N,n))
 #' 
@@ -1340,22 +1407,22 @@ tpm_ihsmm = function(omega, dm,
   Gamma
 }
 
-#' Builds all transition probability matrices of an periodic-HSMM-approximating HMM
+#' Builds all transition probability matrices of a periodic-HSMM-approximating HMM
 #'
 #' @description
-#' Hidden semi-Markov models (HSMMs) are a flexible extension of HMMs. For direct numerical maximum likelhood estimation, HSMMs can be represented as HMMs on an enlarged state space (of size \eqn{M}) and with structured transition probabilities.
+#' Hidden semi-Markov models (HSMMs) are a flexible extension of HMMs. For direct numerical maximum likelihood estimation, HSMMs can be represented as HMMs on an enlarged state space (of size \eqn{M}) and with structured transition probabilities.
 #' 
-#' This function computes the transition matrices of a periodically inhomogeneos HSMMs.
+#' This function computes the transition matrices of a periodically inhomogeneous HSMM.
 #'
 #' @param omega embedded transition probability matrix
 #'
 #' Either a matrix of dimension \code{c(nStates, nStates)} for homogeneous conditional transition probabilities (as computed by \code{\link{tpm_emb}}), or an array of dimension \code{c(nStates, nStates, L)} for inhomogeneous conditional transition probabilities (as computed by \code{\link{tpm_emb_g}}).
 #' @param dm state dwell-time distributions arranged in a list of length \code{nStates}
 #'
-#' Each list element needs to be a matrix of dimension c(L, N_i), where each row t is the (approximate) probability mass function of state i at time t.
-#' @param eps rounding value: If an entry of the transition probabily matrix is smaller, than it is rounded to zero. Usually, this should not be changed.
+#' Each list element needs to be a matrix of dimension \code{c(L, N_i)}, where each row t is the (approximate) probability mass function of state i at time t.
+#' @param eps rounding value: If an entry of the transition probability matrix is smaller, it is rounded to zero. Usually, this should not be changed.
 #'
-#' @return list of dimension length L, containing sparse extended-state-space transition probability matrices of the approximating HMM for each time point of the cycle.
+#' @return list of length L, containing sparse extended-state-space transition probability matrices of the approximating HMM for each time point of the cycle.
 #' @export
 #'
 #' @examples
@@ -1369,14 +1436,14 @@ tpm_ihsmm = function(omega, dm,
 #' # state dwell-time distributions
 #' dm = lapply(1:N, function(i) sapply(1:sizes[i]-1, dpois, lambda = Lambda[,i]))
 #' 
-#' ## homogeneous conditional transition probabilites
+#' ## homogeneous conditional transition probabilities
 #' # diagonal elements are zero, rowsums are one
 #' omega = matrix(c(0,1,1,0), nrow = N, byrow = TRUE)
 #' 
 #' # calculating extended-state-space t.p.m.s
 #' Gamma = tpm_phsmm(omega, dm)
 #' 
-#' ## inhomogeneous conditional transition probabilites
+#' ## inhomogeneous conditional transition probabilities
 #' # omega can be an array
 #' omega = array(omega, dim = c(N,N,L))
 #' 

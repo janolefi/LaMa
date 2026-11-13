@@ -3,15 +3,18 @@
 \name{wrpcauchy}
 \alias{wrpcauchy}
 \alias{dwrpcauchy}
+\alias{pwrpcauchy}
 \alias{rwrpcauchy}
 \title{Wrapped Cauchy distribution}
 \usage{
 dwrpcauchy(x, mu = 0, rho, log = FALSE)
 
+pwrpcauchy(q, mu = 0, rho, from = NULL)
+
 rwrpcauchy(n, mu = 0, rho, wrap = TRUE)
 }
 \arguments{
-\item{x}{vector of angles measured in radians at which to evaluate the density function.}
+\item{x, q}{vector of angles measured in radians at which to evaluate the density function.}
 
 \item{mu}{mean direction of the distribution measured in radians.}
 
@@ -19,15 +22,18 @@ rwrpcauchy(n, mu = 0, rho, wrap = TRUE)
 
 \item{log}{logical; if \code{TRUE}, densities are returned on the log scale.}
 
+\item{from}{value from which the integration for CDF starts. If \code{NULL}, is set to \code{mu - pi}.}
+
 \item{n}{number of observations. If \code{length(n) > 1}, the length is taken to be the number required.}
 
 \item{wrap}{logical; if \code{TRUE}, generated angles are wrapped to the interval [-pi, pi].}
 }
 \value{
-\code{dwrpcauchy} gives the density and \code{rwrpcauchy} generates random deviates.
+\code{dwrpcauchy} gives the density, \code{pwrpcauchy} gives the distribution function, 
+and \code{rwrpcauchy} generates random deviates.
 }
 \description{
-Density and random generation for the wrapped Cauchy distribution.
+Density, distribution function and random generation for the wrapped Cauchy distribution.
 }
 \details{
 This implementation of \code{dwrpcauchy} allows for automatic differentiation with \code{RTMB}. 
@@ -37,4 +43,5 @@ This implementation of \code{dwrpcauchy} allows for automatic differentiation wi
 set.seed(1)
 x = rwrpcauchy(10, 0, 0.3)
 d = dwrpcauchy(x, 0, 0.3)
+p = pwrpcauchy(x, 0, 0.3)
 }

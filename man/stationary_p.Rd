@@ -7,7 +7,7 @@
 stationary_p(Gamma, t = NULL, ad = NULL)
 }
 \arguments{
-\item{Gamma}{array of transition probability matrices of dimension c(N,N,L)}
+\item{Gamma}{array of transition probability matrices of dimension \code{c(nStates, nStates, L)}}
 
 \item{t}{integer index of the time point in the cycle, for which to calculate the stationary distribution
 
@@ -49,7 +49,7 @@ Inference on the state process of periodically inhomogeneous hidden Markov model
 The Annals of Applied Statistics, 19(4), 2724--2737.
 }
 \seealso{
-\code{\link{tpm_p}} and \code{\link{tpm_g}} to create multiple transition matrices based on a cyclic variable or design matrix
+\code{\link{tpm_p}} and \code{\link{tpm}} to create multiple transition matrices based on a cyclic variable or design matrix
 
 Other stationary distribution functions: 
 \code{\link{stationary}()},

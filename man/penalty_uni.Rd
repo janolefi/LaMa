@@ -2,12 +2,12 @@
 % Please edit documentation in R/penalty_functions.R
 \name{penalty_uni}
 \alias{penalty_uni}
-\title{Penalty approximation of unimodality constraints for univariates smooths}
+\title{Penalty approximation of unimodality constraints for univariate smooths}
 \usage{
 penalty_uni(coef, m, kappa = 1000, concave = TRUE, rho = 20)
 }
 \arguments{
-\item{coef}{coefficient vector of matrix on which to apply the unimodality penalty}
+\item{coef}{coefficient vector or matrix on which to apply the unimodality penalty}
 
 \item{m}{vector of indices for the position of the coefficient mode. 
 If \code{coef} is a vector, must be of length 1. Otherwise, must be of length equal to nrow(coef)}
@@ -23,7 +23,7 @@ For large values, gets closer to true minimum function but less stable.}
 a numeric value of the penalty for the given coefficients
 }
 \description{
-Penalty approximation of unimodality constraints for univariates smooths
+Penalty approximation of unimodality constraints for univariate smooths
 }
 \examples{
 ## coefficient vector

@@ -7,17 +7,17 @@
 forward_sp(delta, Gamma, allprobs, sizes, tod)
 }
 \arguments{
-\item{delta}{initial or stationary distribution of length N, or matrix of dimension c(k,N) for k independent tracks, if \code{trackID} is provided}
+\item{delta}{initial or stationary distribution of length \code{M} on the enlarged state space}
 
-\item{Gamma}{array of transition probability matrices of dimension c(M,M,L).
+\item{Gamma}{array of transition probability matrices of dimension \code{c(M, M, L)}.
 
 Here we use the definition \eqn{\Pr(S_t=j \mid S_{t-1}=i) = \gamma_{ij}^{(t)}} such that the transition probabilities between time point \eqn{t-1} and \eqn{t} are an element of \eqn{\Gamma^{(t)}}.}
 
-\item{allprobs}{matrix of state-dependent probabilities/ density values of dimension c(n, N) which will automatically be converted to the appropriate dimension.}
+\item{allprobs}{matrix of state-dependent probabilities/ density values of dimension \code{c(nObs, nStates)} which will automatically be converted to the appropriate dimension.}
 
 \item{sizes}{state aggregate sizes that are used for the approximation of the semi-Markov chain.}
 
-\item{tod}{(Integer valued) variable for cycle indexing in 1, ..., L, mapping the data index to a generalised time of day (length n).
+\item{tod}{(Integer valued) variable for cycle indexing in 1, ..., L, mapping the data index to a generalised time of day (length \code{nObs}).
 For half-hourly data L = 48. It could, however, also be day of year for daily data and L = 365.}
 }
 \value{

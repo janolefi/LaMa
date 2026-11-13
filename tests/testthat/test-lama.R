@@ -134,3 +134,46 @@ test_that("report: deprecated, same as lama()", {
   expect_warning(mod <- report(obj_rep), "deprecated")
   expect_equal(mod, lama(obj_rep))
 })
+
+test_that("MCreport: qreml() models, conditional and joint", {
+  skip_if_not("par" %in% names(formals(RTMBdist::mcreport)))
+  modmat <- modmat(~ s(tod, bs = "cp"), data = data.frame(tod = 1:24), knots = list(tod = c(0, 24)))
+  dat <- list(step = trex$step[1:500], tod = trex$tod[1:500],
+              Z = modmat$Z, S = modmat$S, lambda = rep(100, 2))
+  pnll <- function(par) {
+    getAll(par, dat)
+    Gamma <- tpm(cbind(beta0, betaSpline), Z)
+    Delta <- stationary_p(Gamma)
+    allprobs <- matrix(1, length(step), 2)
+    ind <- which(!is.na(step))
+    for(j in 1:2) allprobs[ind, j] <- dgamma2(step[ind], exp(logmu[j]), exp(logsigma[j]))
+    -forward(Delta[tod[1], ], Gamma[, , tod], allprobs) + penalty(betaSpline, S, lambda)
+  }
+  par <- list(logmu = log(c(0.3, 2.5)), logsigma = log(c(0.3, 2)),
+              beta0 = c(-2, -2), betaSpline = matrix(0, 2, ncol(modmat$Z) - 1))
+  mod <- suppressMessages(qreml(pnll, par, dat, random = "betaSpline", silent = 2))
+  sample_mat <- function(s) t(sapply(seq_along(s$beta0), function(i) unlist(lapply(s, `[[`, i))))
+
+  # conditional: centred at the final estimate with covariance J^{-1}
+  set.seed(1); s <- sample_mat(suppressMessages(MCreport(mod, nSamples = 4000)))
+  expect_equal(ncol(s), length(mod$par_vec))
+  expect_equal(unname(colMeans(s)), unname(mod$par_vec), tolerance = 0.05)
+
+  # joint: the same as passing Q from joint_uncertainty(), wider than conditional
+  Q <- mod$joint_uncertainty()
+  set.seed(1); a <- suppressMessages(MCreport(mod, nSamples = 4000, joint = TRUE))
+  set.seed(1); b <- suppressMessages(MCreport(mod, nSamples = 4000, Q = Q))
+  expect_equal(a, b)
+  sj <- sample_mat(a)
+  expect_equal(ncol(sj), length(mod$par_vec))
+  V <- mod$joint_uncertainty(precision = FALSE)
+  spl <- grep("betaSpline", names(mod$par_vec))
+  expect_equal(unname(apply(sj[, spl], 2, var)), unname(diag(V)[spl]), tolerance = 0.15)
+  expect_true(all(diag(V)[spl] >= diag(solve(mod$Hessian_conditional))[spl] - 1e-10))
+
+  # the Hessian returned is that of the final fit, and outer_hessian() leaves no copy behind
+  expect_equal(mod$Hessian_conditional, mod$obj$he(mod$par_vec), ignore_attr = TRUE)
+  expect_null(environment(mod$outer_hessian)$fit_state$J)
+
+  expect_error(MCreport(obj_rep, joint = TRUE), "qreml")
+})

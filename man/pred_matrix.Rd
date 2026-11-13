@@ -13,7 +13,7 @@ pred_matrix(model_matrices, newdata, what = NULL, exclude = NULL)
 
 \item{what}{optional character string specifying which formula to use for prediction if \code{model_matrices} contains multiple formulas.}
 
-\item{exclude}{optional vector of terms to set to zero in the predicted design matrix. Useful for predicting main effects only when e.g. \code{sd(..., bs = "re")} terms are present. See \code{mgcv::predict.gam} for more details.}
+\item{exclude}{optional vector of terms to set to zero in the predicted design matrix. Useful for predicting main effects only when e.g. \code{s(..., bs = "re")} terms are present. See \code{mgcv::predict.gam} for more details.}
 }
 \value{
 prediction design matrix for \code{newdata} with the same basis as used for \code{model_matrices}

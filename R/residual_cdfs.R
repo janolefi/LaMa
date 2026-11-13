@@ -43,6 +43,15 @@ density_names <- function(f) {
   Filter(function(x) has_cdf(x, environment(f)), d)
 }
 
+# densities d* called in f without a CDF p* (recognised by their sampler r*), for the error message
+missing_cdfs <- function(f) {
+  fs <- c(list(f), user_functions(f))
+  d <- unique(unlist(lapply(fs, function(g) all.names(body(g)))))
+  env <- environment(f)
+  Filter(function(x) grepl("^d", x) && !has_cdf(x, env) &&
+           exists(sub("^d", "r", x), envir = env, mode = "function"), d)
+}
+
 # allprobs from the likelihood function of obj at par (like obj$par), with each density
 # replaced according to mode(stream): "one", "two", "cdf" or "cdf_lower" (F(x - 1))
 swapped_allprobs <- function(obj, par, dens, mode) {
@@ -101,6 +110,9 @@ stream_cdfs <- function(obj, par = obj$env$last.par.best) {
   # check 1: all densities 1 -> every cell 1
   one <- swapped_allprobs(obj, par, dens, function(s) "one")
   if(any(!near(one$P, 1))) {
+    miss <- missing_cdfs(obj_frame(obj)$func)
+    if(length(miss)) stop("No CDF found for ", paste(miss, collapse = ", "), " (looked for ",
+                          paste(sub("^d", "p", miss), collapse = ", "), ").", hint)
     stop("With all densities set to 1, allprobs is not 1 in ", sum(!near(one$P, 1)), " cells. ",
          "The densities do not enter allprobs as a product or mixture, so their CDFs cannot be used.", hint)
   }

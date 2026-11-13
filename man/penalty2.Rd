@@ -33,7 +33,7 @@ returns the penalty value and reports to \code{\link{qreml}}.
 This function computes a quadratic penalty of the form
 \deqn{0.5 \sum_{i} \lambda_i b^T S_i b,}
 with smoothing parameters \eqn{\lambda_i}, coefficient vector \eqn{b}, and fixed penalty matrices \eqn{S_i}.
-This generalises the \code{\link{penalty}} by allowing subsets of the coefficient vector  \eqn{b} to be penalised multiple times with different smoothing parameters, which is necessary for \strong{tensor products}, \strong{functional random effects} or \strong{adaptive smoothing}.
+This generalises \code{\link{penalty}} by allowing subsets of the coefficient vector \eqn{b} to be penalised multiple times with different smoothing parameters, which is necessary for \strong{tensor products}, \strong{functional random effects} or \strong{adaptive smoothing}.
 
 It is intended to be used inside the \strong{penalised negative log-likelihood function} when fitting models with penalised splines or simple random effects via \strong{quasi restricted maximum likelihood} (qREML) with the \code{\link{qreml}} function.
 For \code{\link{qreml}} to work, the likelihood function needs to be compatible with the \code{RTMB} R package to enable automatic differentiation.
@@ -41,7 +41,7 @@ For \code{\link{qreml}} to work, the likelihood function needs to be compatible 
 \details{
 \strong{Caution:} The formatting of \code{re_coef} needs to match the structure of the parameter list in your penalised negative log-likelihood function, 
 i.e. you cannot have two random effect vectors of different names (different list elements in the parameter list), combine them into a matrix inside your likelihood and pass the matrix to \code{penalty}.
-If these are seperate random effects, each with its own name, they need to be passed as a list to \code{penalty}. Moreover, the ordering of \code{re_coef} needs to match the character vector \code{random} specified in \code{\link{qreml}}.
+If these are separate random effects, each with its own name, they need to be passed as a list to \code{penalty}. Moreover, the ordering of \code{re_coef} needs to match the character vector \code{random} specified in \code{\link{qreml}}.
 }
 \examples{
 # Example with a single random effect

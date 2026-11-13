@@ -56,7 +56,7 @@ This is relevant for modeling e.g. diurnal variation and the flexibility can be 
 }
 \details{
 Note that using this function inside the negative log-likelihood function is convenient, but it performs the basis expansion into sine and cosine terms each time it is called. 
-As these do not change during the optimisation, using \code{\link{tpm_g}} with a pre-calculated (by \code{\link{trigBasisExp}}) design matrix would be more efficient.
+As these do not change during the optimisation, using \code{\link{tpm}} with a pre-calculated (by \code{\link{trigBasisExp}}) design matrix would be more efficient.
 }
 \examples{
 # hourly data 

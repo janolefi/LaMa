@@ -100,22 +100,29 @@ bind_dat <- function(pnll, dat, argname_dat) {
 #' For a smooth carrying a single penalty the first trace is \eqn{\mathrm{rank}(S_i) / \lambda_i}{rank(S_i) / lambda_i}, obtained once from an eigendecomposition instead of at every iteration.
 #' Only the diagonal blocks of \eqn{J^{-1}}{J^-1} enter, and these come from the Cholesky factor by triangular solves rather than from a full inverse.
 #'
-#' \strong{Step control.} The step is taken in \eqn{\log \lambda}{log(lambda)} and scaled by a multiplier that persists across iterations: it doubles while the criterion keeps improving and is halved, up to \code{max_halve} times, while it does not.
+#' \strong{Step control.} The step is taken in \eqn{\log \lambda}{log(lambda)} and scaled by a multiplier that persists across iterations: it is halved, up to \code{max_halve} times, while the criterion does not improve, and doubles back towards one after each improving step.
+#' Unlike \code{mgcv}, there is no acceleration beyond the full step: each trial at a larger step costs a complete inner fit, which for a user-written likelihood is expensive, and rarely pays off.
 #' A step that still worsens the criterion after that many halvings is accepted, which is the only way the iteration can move downhill.
-#' In addition no penalty strength may fall by more than a factor \code{alpha} in one iteration, and \eqn{\log \lambda}{log(lambda)} is capped at \code{lsp_max}.
+#' Changes in the criterion smaller than \eqn{10^{-6} (1 + |V|)}{1e-6 * (1 + |V|)} count as noise here, so that a step of essentially zero at the optimum does not set off halvings.
+#' In addition no penalty strength may fall by more than a factor \code{alpha} in one iteration, and \eqn{\log \lambda}{log(lambda)} is kept within \code{[lsp_min, lsp_max]}.
 #' The fit returned is the best iterate seen, not necessarily the last one.
 #'
 #' \strong{Convergence.} The iteration stops once no smooth's effective degrees of freedom
 #' \deqn{\mathrm{edf}_i = K_i - \mathrm{tr}(J^{-1} \lambda_i S_i)}{edf_i = K_i - tr(J^-1 lambda_i S_i)}
 #' has moved by more than \code{tol_edf} over the last four iterations, provided the step in \eqn{\log \lambda}{log(lambda)} is also small; see \code{tol_edf}.
+#' It also stops once the inner optimiser no longer moves from its warm start (after the first three iterations and at a full step), as the change in the penalty strengths then no longer affects the fit;
+#' this ends a penalty strength creeping towards zero along a flat restricted likelihood, whose step never becomes small.
 #' Being eigenvalue sums, the effective degrees of freedom must lie in \eqn{[0, K_i]}, and they leave that range only if the data Hessian is indefinite, in which case the traces driving the update are not the quantities the method assumes.
 #' That is reported rather than repaired, through the returned \code{edf_valid} and a warning, and the criterion then falls back to \code{tol} on the restricted log-likelihood.
 #'
 #' \strong{Numerics.} \eqn{J} is the exact automatic differentiation Hessian, which matters because the finite differencing error of \code{\link[stats:optimHess]{optimHess}} is of the same order as the criterion differences the convergence test has to resolve.
 #' It is factorised by a pivoted Cholesky decomposition after scaling to a unit diagonal; should it not be positive definite, a ridge is added and reported through the returned \code{hessian_repaired}.
 #'
-#' \strong{Uncertainty.} The returned \code{outer_hessian()} gives the Hessian of the negative restricted log-likelihood in the penalty strengths, which \code{\link{sdreport_outer}} turns into standard errors.
+#' \strong{Uncertainty.} The returned \code{outer_hessian()} gives the Hessian of the negative restricted log-likelihood in the log penalty strengths, by central differences of its approximate gradient, which \code{\link{sdreport_outer}} turns into standard errors.
 #' Note that these describe the curvature of \eqn{V} only, and treat the approximation to it as exact.
+#' The returned \code{joint_uncertainty()} propagates this uncertainty to the parameters by the first-order correction of Wood, Pya and Saefken (2016):
+#' it gives the joint precision matrix of the parameters and the log penalty strengths, as \code{sdreport(getJointPrecision = TRUE)} does in \code{TMB}, which stays sparse if the Hessian is (\code{spHess = TRUE}),
+#' or, with \code{precision = FALSE}, the corrected covariance matrix of the parameters alone. Both take the outer Hessian as argument \code{H_rho}, by default computed by \code{outer_hessian()}.
 #'
 #' @seealso \code{\link{penalty}} and \code{\link{penalty2}} to compute the penalty inside the likelihood function, and \code{\link{qreml_old}} for the original algorithm
 #'
@@ -147,7 +154,7 @@ bind_dat <- function(pnll, dat, argname_dat) {
 #'
 #' Penalty strengths are free to increase as fast as the update proposes, but cannot collapse faster than this per iteration.
 #' Reducing a penalty strength too quickly can push the inner optimisation into a local optimum or a numerically awkward region, which matters more here than in a GAM because the likelihood is user-written.
-#' Set to zero to remove the floor entirely. Step length is handled separately, by \code{max_halve} and the adaptive multiplier.
+#' Set to zero to remove the floor entirely. Step length is handled separately, by \code{max_halve} and the step multiplier.
 #' @param tol \strong{fallback} convergence tolerance, on the restricted log-likelihood. Defaults to 0.01.
 #'
 #' Used only when the effective degrees of freedom are not trustworthy, i.e.\ when they fall outside \eqn{[0, K_i]}, which happens when the data Hessian is indefinite (see \code{tol_edf} and the returned \code{edf_valid}).
@@ -156,7 +163,12 @@ bind_dat <- function(pnll, dat, argname_dat) {
 #' @param smoothing optional scaling factor for the final penalty strength parameters. Increasing this beyond one leads to a smoother final model
 #' @param method inner optimisation method to be used by \code{\link[stats:optim]{optim}}. Defaults to \code{"BFGS"}
 #' @param lsp_max largest value allowed for \code{log(lambda)}. Defaults to 15, as in \code{mgcv}, i.e. penalty strengths saturate at roughly 3.3e6
-#' @param step_small size of a step in \code{log(lambda)} below which the step multiplier is allowed to double. Defaults to 0.05, as in \code{mgcv}
+#' @param lsp_min smallest value allowed for \code{log(lambda)}. Defaults to -15, i.e. penalty strengths stop at roughly 3e-7.
+#' A penalty strength on a smooth the data cannot inform otherwise keeps falling towards zero along a flat restricted likelihood, and its step never becomes small enough for convergence.
+#' A penalty strength ending at this bound gives a warning, as the penalty is then effectively switched off.
+#' If no other penalty acts on the same coefficients, the smooth is effectively unpenalised, which usually means its basis dimension is too small.
+#' If another penalty still does, e.g. the ridge of the random effect margin of a tensor product with \code{bs = "re"}, the penalty at the bound is merely redundant: this is usually harmless, and a larger basis dimension does not help.
+#' @param step_small size of a step in \code{log(lambda)} below which convergence may be declared. Defaults to 0.05, as in \code{mgcv}
 #' @param max_halve maximum number of times a step that decreases the restricted likelihood is halved before it is accepted anyway. Defaults to 6.
 #'
 #' \code{mgcv} never shortens below the full Fellner-Schall step and accepts a worse one instead, which for a user-written likelihood can drift downhill for tens of iterations.
@@ -165,7 +177,7 @@ bind_dat <- function(pnll, dat, argname_dat) {
 #' @param joint_unc logical, if \code{TRUE}, joint \code{RTMB} object is returned allowing for joint uncertainty quantification
 #' @param saveall logical, if \code{TRUE}, then all model objects from each iteration are saved in the final model object
 #'
-#' @return model object of class \code{"qremlModel"}, inheriting from \code{"LaMaModel"} (see \code{\link{lama}}), carrying the fitted quantities, the smoothness selection diagnostics shown by \code{\link{summary.qremlModel}}, and \code{outer_hessian()}, the outer Hessian that \code{\link{sdreport_outer}} turns into standard errors
+#' @return model object of class \code{"qremlModel"}, inheriting from \code{"LaMaModel"} (see \code{\link{lama}}), carrying the fitted quantities, the smoothness selection diagnostics shown by \code{\link{summary.qremlModel}}, \code{outer_hessian()}, the outer Hessian that \code{\link{sdreport_outer}} turns into standard errors, and \code{joint_uncertainty()}, the joint precision (or corrected covariance) accounting for the uncertainty in the penalty strengths
 #'
 #' @export
 #'
@@ -224,7 +236,8 @@ qreml <- function(pnll, # penalised negative log-likelihood function
                   smoothing = 1,
                   method = "BFGS", # optimisation method used by optim
                   lsp_max = 15, # largest allowed log(lambda)
-                  step_small = 0.05, # step size below which the multiplier may double
+                  lsp_min = -15, # smallest allowed log(lambda)
+                  step_small = 0.05, # step size below which convergence may be declared
                   max_halve = 6, # how often a worsening step may be halved
                   control = list(), # control list for inner optimisation
                   spHess = FALSE, # evaluate the Hessian sparsely
@@ -255,6 +268,9 @@ qreml <- function(pnll, # penalised negative log-likelihood function
   if(!is.numeric(max_halve) || length(max_halve) != 1 || max_halve < 0){
     stop("'max_halve' needs to be a single non-negative number")
   }
+  if(!is.numeric(lsp_min) || length(lsp_min) != 1 || lsp_min >= lsp_max){
+    stop("'lsp_min' needs to be a single number smaller than 'lsp_max'")
+  }
   if(!is.numeric(tol_edf) || length(tol_edf) != 1 || tol_edf < 0){
     stop("'tol_edf' needs to be a single non-negative number")
   }
@@ -270,10 +286,16 @@ qreml <- function(pnll, # penalised negative log-likelihood function
   lambda <- dat[[spname]]
   lambda0 <- lambda # so that fixed parts can be refilled when 'lambda' is changed
 
-  # creating the objective function as wrapper around pnll to pull lambda from local
+  # the penalty strengths the objective currently sees, and the number of inner fits.
+  # Only fit_at() and the final fit write here, and outer_hessian() restores it
+  fit_state <- new.env(parent = emptyenv())
+  fit_state$lambda <- lambda
+  fit_state$n_fits <- 0
+
+  # creating the objective function as wrapper around pnll to pull lambda from fit_state
   f <- function(par){
     # defining function that grabs lambda
-    getLambda <- function(x) lambda
+    getLambda <- function(x) fit_state$lambda
     dat[[spname]] <- DataEval(getLambda, rep(advector(1), 0))
 
     # dat under whatever it is called in pnll()
@@ -452,9 +474,10 @@ qreml <- function(pnll, # penalised negative log-likelihood function
 
   ## one complete evaluation at a given log penalty strength:
   ## inner fit, Hessian, factorisation and criterion
-  fit_at <- function(lsp_try, start) {
-    lambda <<- unmap_lambda(exp(lsp_try))
-    Lambda <- reshape_lambda(lambda)
+  fit_at <- function(lsp_try, start, control = ctl) {
+    fit_state$n_fits <- fit_state$n_fits + 1 # including trials that were not accepted
+    fit_state$lambda <- unmap_lambda(exp(lsp_try))
+    Lambda <- reshape_lambda(fit_state$lambda)
 
     if(silent == 0) cat("\nInner optimisation at", spname, "=", round(exp(lsp_try), 3), "\n")
     counter_env$count <- 0
@@ -464,20 +487,26 @@ qreml <- function(pnll, # penalised negative log-likelihood function
     # belonging to the PREVIOUS lambda and it stops there.
     invisible(try(obj$fn(start + 1e-8 * (1 + abs(start))), silent = TRUE))
 
-    opt <- stats::optim(start, obj$fn, newgrad, method = method, control = ctl)
+    opt <- stats::optim(start, obj$fn, newgrad, method = method, control = control)
     gr <- obj$gr(opt$par) # forces evaluation at opt$par so that obj$report() matches
     if(silent == 0) cat("iter", counter_env$count, "- inner mgc:", round(max(abs(gr)), 5), "\n")
 
     mod <- obj$report()
     if(silent == 0) cat("evaluating Hessian...\n")
     J <- hessian_at(opt$par)
+    fit_state$J <- J # the last fit is always the final one, whose Hessian is returned
     fac <- pd_chol((J + t(J)) / 2, silent) # force symmetric
     llk_r <- -opt$value + logdet_Slambda(Lambda) / 2 - fac$logdet / 2 # criterion is -llk_r
 
-    # J is not kept: everything downstream works from the factor, and cur, trial
-    # and trial2 can be alive at once
+    # J is not kept in the fit: everything downstream works from the factor, and cur
+    # and trial can be alive at once
+    # gradient evaluations of the inner optimiser (function evaluations for
+    # gradient-free methods); one means it stopped at its warm start
+    n_inner <- if(is.na(opt$counts[2])) opt$counts[1] else opt$counts[2]
+
     list(opt = opt, mod = mod, fac = fac, Lambda = Lambda,
-         lsp = lsp_try, llk_r = llk_r, crit = -llk_r, mgc = max(abs(gr)))
+         lsp = lsp_try, llk_r = llk_r, crit = -llk_r, mgc = max(abs(gr)),
+         n_inner = unname(n_inner))
   }
 
   ## Fellner-Schall ratio on the mapped scale: lambda_new = lambda * r, so the step
@@ -523,7 +552,6 @@ qreml <- function(pnll, # penalised negative log-likelihood function
   ### updating algorithm
   lsp <- log(lambda_mapped)
   mult <- 1 # step multiplier, persistent across iterations, as in mgcv
-  n_success <- 0 # consecutive improving steps
   crit_hist <- rep(NA_real_, maxiter)
 
   if(silent < 2) message("Initialising with ", spname, ": ", paste(round(lambda, 3), collapse = " "))
@@ -554,7 +582,7 @@ qreml <- function(pnll, # penalised negative log-likelihood function
     # the floor applies to the step actually taken, mult * step: applied to the raw
     # step it would become alpha^mult, i.e. no guarantee when moving fastest
     lo <- if(alpha > 0) log(alpha) else -Inf # lambda may not fall faster than alpha
-    take <- function(m) pmin(lsp + pmax(m * step, lo), lsp_max)
+    take <- function(m) pmax(pmin(lsp + pmax(m * step, lo), lsp_max), lsp_min)
 
     lsp1 <- take(mult) # updated smoothing parameters
     max_step <- max(abs(lsp1 - lsp))
@@ -563,27 +591,20 @@ qreml <- function(pnll, # penalised negative log-likelihood function
 
     trial <- fit_at(lsp1, cur$opt$par) # trial fit at new smoothing parameters
 
-    if(trial$crit <= cur$crit){ ## improved
-      n_success <- n_success + 1
-      accelerated <- FALSE
-      # mgcv gates acceleration on the largest step across ALL lambda, so one busy
-      # parameter throttles the rest; two improving steps in a row opens it too
-      if(max_step < step_small || n_success >= 2){
-        lsp2 <- take(2 * mult)
-        trial2 <- fit_at(lsp2, cur$opt$par)
-        if(trial2$crit < trial$crit){
-          trial <- trial2; lsp1 <- lsp2; mult <- 2 * mult; accelerated <- TRUE
-          if(silent == 0) cat("accelerating: step multiplier now", mult, "\n")
-        }
-      }
-      # must sit outside the branch above: once mult is small the steps are too, so
-      # a rejected doubling would leave it collapsed for the rest of the run
-      if(!accelerated && mult < 1) mult <- min(2 * mult, 1)
+    # close to the optimum the criterion is flat and its last digits are noise from
+    # the inner optimisation; without this, a step of essentially zero can 'worsen'
+    # it and set off max_halve refits at the same lambda
+    noise <- 1e-6 * (1 + abs(cur$crit))
+
+    if(trial$crit <= cur$crit + noise){ ## improved (or unchanged up to noise)
+      # no acceleration beyond the full step (mgcv tries a doubled one in the tail):
+      # each trial is a complete inner fit and it rarely paid off. A halved
+      # multiplier recovers, otherwise it would stay collapsed for the rest of the run
+      if(mult < 1) mult <- min(2 * mult, 1)
     } else { ## worsened
-      n_success <- 0
       # mgcv accepts a worse step at mult = 1; here that can drift downhill for
       # tens of iterations, so it is genuinely backtracked
-      while(trial$crit > cur$crit && n_halve < max_halve){
+      while(trial$crit > cur$crit + noise && n_halve < max_halve){
         mult <- mult / 2
         n_halve <- n_halve + 1
         if(silent == 0) cat("criterion increased; step multiplier now", signif(mult, 4), "\n")
@@ -650,6 +671,15 @@ qreml <- function(pnll, # penalised negative log-likelihood function
         if(silent == 0) cat("restricted likelihood settled (edf unreliable)\n")
       }
     }
+    # Stop when the inner fit no longer moves: the optimiser stopped at its warm
+    # start, so the change in lambda no longer affects the fitted coefficients. This
+    # catches a penalty strength creeping towards zero along a flat restricted
+    # likelihood, whose step never becomes small. Not after a halving (mult < 1),
+    # where the step may just have been too small to matter.
+    if(!converged && iter > 3 && mult == 1 && cur$n_inner <= 1){
+      converged <- TRUE
+      if(silent == 0) cat("inner fit no longer changes\n")
+    }
     if(converged){
       if(silent < 2) message("Converged")
       break
@@ -677,12 +707,15 @@ qreml <- function(pnll, # penalised negative log-likelihood function
   lambda <- unmap_lambda(exp(lsp)) * smoothing
   if(silent < 2){
     if(any(smoothing != 1)) message("Smoothing factor: ", paste(smoothing, collapse = " "))
-    message("Final model fit with ", spname, ": ", paste(round(lambda, 3), collapse = " "))
+    message("Final ", spname, ": ", paste(round(lambda, 3), collapse = " "))
   }
 
   final_lsp <- log(map_lambda(lambda))
   # cur is already the fit at this lambda unless smoothing was applied or the last
-  # iterate was not the best one, so refitting would repeat a fit for nothing
+  # iterate was not the best one, so refitting would repeat a fit for nothing.
+  # The objective must see this lambda also when cur is reused, as rejected trials
+  # may have been fitted after it
+  fit_state$lambda <- lambda
   final <- if(isTRUE(all.equal(final_lsp, cur$lsp))) cur else fit_at(final_lsp, cur$opt$par)
   mod <- final$mod
   opt <- final$opt
@@ -746,6 +779,38 @@ qreml <- function(pnll, # penalised negative log-likelihood function
             " ended at the upper bound exp(lsp_max) = ", signif(exp(lsp_max), 4),
             "; those smooths are penalised to their null space")
   }
+
+  ## lambda pinned at the lower bound: that penalty no longer restricts the smooth.
+  ## If another penalty on the same coefficients is still active (e.g. the random
+  ## effect margin of a tensor product with bs = "re", a full-rank ridge), it is
+  ## merely redundant: the restricted likelihood is flat in it, and a larger basis
+  ## does not help. Otherwise the smooth is effectively unpenalised, which usually
+  ## means its basis is too small for the wiggliness the data ask for.
+  at_lower <- which(log(lambda) <= lsp_min + 1e-8)
+  mod$lambda_at_lower <- at_lower
+  # penalty block (smooth and row) of each penalty strength
+  block_id <- unlist(lapply(seq_len(n_re), function(i)
+    paste(i, rep(seq_len(re_lengths[i]), each = n_penalties[i]))))
+  redundant <- at_lower[vapply(at_lower, function(k)
+    any(block_id == block_id[k] & !(seq_along(lambda) %in% at_lower)), logical(1))]
+  mod$lambda_redundant <- redundant
+  lone <- setdiff(at_lower, redundant)
+  if(length(redundant) > 0){
+    warning(length(redundant), " of ", length(lambda), " ", spname,
+            " ended at the lower bound exp(lsp_min) = ", signif(exp(lsp_min), 4), ": ",
+            paste(names(lambda)[redundant], collapse = ", "),
+            ". Other penalties on the same coefficients still regularise these smooths, ",
+            "so these penalties are redundant (e.g. the wiggliness penalty of a tensor product ",
+            "with a random effect margin); this is usually harmless, and a larger basis ",
+            "dimension does not help.", call. = FALSE)
+  }
+  if(length(lone) > 0){
+    warning(length(lone), " of ", length(lambda), " ", spname,
+            " ended at the lower bound exp(lsp_min) = ", signif(exp(lsp_min), 4), ": ",
+            paste(names(lambda)[lone], collapse = ", "),
+            ". These smooths are effectively unpenalised; consider increasing their ",
+            "basis dimension k.", call. = FALSE)
+  }
   if(!edf_ok){
     lam_span <- range(lambda[lambda > 0])
     warning("Effective degrees of freedom outside [0, block dimension]: the inverse ",
@@ -757,8 +822,12 @@ qreml <- function(pnll, # penalised negative log-likelihood function
   mod$nobs <- count_nobs(mod$allprobs)
   mod$mgc <- final$mgc # maximum gradient component of the inner problem
 
-  mod$Hessian_conditional <- hessian_at(final$opt$par)
+  mod$Hessian_conditional <- fit_state$J # already evaluated by the final fit
+  fit_state$J <- NULL # outer_hessian() restores this, so its fits leave no stale copy
   mod$llk_restricted <- -crit_hist[seq_len(iter)]
+  # edf of the fit each outer iteration started from, so column 1 is the initial fit
+  mod$edf_hist <- edf_hist[, seq_len(iter), drop = FALSE]
+  if(length(unlist(mod$edf)) == nrow(mod$edf_hist)) rownames(mod$edf_hist) <- names(unlist(mod$edf))
 
   ## the iteration is meant to be monotone -- only an exhausted backtrack is
   ## accepted -- and this is the number that says whether that held
@@ -770,6 +839,7 @@ qreml <- function(pnll, # penalised negative log-likelihood function
   mod$tol <- tol # the scale on which a change in the criterion is negligible
   mod$converged <- converged
   mod$iter <- iter
+  mod$n_fits <- fit_state$n_fits
   mod$best_iter <- best_iter
   mod$hessian_repaired <- final$fac$repaired
 
@@ -779,24 +849,107 @@ qreml <- function(pnll, # penalised negative log-likelihood function
   mod$outer_grad <- 0.5 * map_lambda(lambda) * (fr$a - fr$bSb)
   names(mod$outer_grad) <- levels(lambda_map)
 
-  # the same gradient, w.r.t. lambda itself and as a function of it. Kept local:
-  # only the Hessian below is reported. Every call refits the inner problem, since
-  # a and b'Sb are only defined at the conditional mode.
-  outer_gr <- function(x){
-    # started cold, not at opt$par: from the fitted mode optim's relative tolerance
-    # fires before the mode has moved, and the differences taken below are far too
-    # small to survive that, which inflates the outer Hessian
-    fr <- efs_ratio(fit_at(log(x), newpar))
-    0.5 * (fr$a - fr$bSb)
+  # Hessian of the negative restricted log-likelihood w.r.t. log(lambda), as
+  # Hessian_conditional is for the inner problem, by central differences of the
+  # gradient above (2 penalised fits per free lambda). Each fit is at a perturbed
+  # lambda, so the state the objective reads is restored afterwards.
+  rho_hat <- log(map_lambda(lambda))
+  mod$outer_hessian <- function(h = 0.1){
+    old <- as.list(fit_state)
+    on.exit({
+      list2env(old, envir = fit_state)
+      obj$fn(final$opt$par) # leave the objective at the final estimate
+    })
+
+    # the gradient as a function of log(lambda); every call refits the inner problem,
+    # since a and b'Sb are only defined at the conditional mode. The fits are warm
+    # started at the final estimate, which needs a tighter inner tolerance: with the
+    # default one, optim stops before the mode has moved to the perturbed lambda, which
+    # inflates the Hessian (by up to a factor 2 for the elephant te() model)
+    ctl_tight <- ctl
+    ctl_tight$reltol <- 1e-12 # BFGS and other methods with a relative tolerance
+    ctl_tight$factr <- 1e3    # L-BFGS-B
+    gr <- function(rho){
+      fr <- efs_ratio(fit_at(rho, final$opt$par, control = ctl_tight))
+      0.5 * exp(rho) * (fr$a - fr$bSb)
+    }
+
+    L <- length(rho_hat)
+    J <- vapply(seq_len(L), function(j){
+      e <- replace(numeric(L), j, h)
+      (gr(rho_hat + e) - gr(rho_hat - e)) / (2 * h)
+    }, numeric(L))
+
+    # J is not symmetric, as the gradient is approximate and not that of a function
+    H <- -(J + t(J)) / 2
+    dimnames(H) <- list(levels(lambda_map), levels(lambda_map))
+    H
   }
 
-  # Hessian of the negative restricted log-likelihood, as Hessian_conditional is
-  # for the inner problem. lambda_hat is captured here because fit_at() overwrites
-  # 'lambda' as it differences.
-  lambda_hat <- map_lambda(lambda)
-  mod$outer_hessian <- function(x = lambda_hat){
-    H <- -numDeriv::jacobian(outer_gr, x, method = "simple")
-    (H + t(H)) / 2 # one-sided differences leave it slightly asymmetric
+  ## joint uncertainty of the parameters and log(lambda): the first-order correction of
+  ## Wood, Pya & Saefken (2016, Section 4), in the form of TMB's sdreport(getJointPrecision = TRUE).
+  # theta_hat depends on rho = log(lambda) through d theta_hat / d rho = -J^{-1} B, where
+  # B[, l] = lambda_l S_l theta_hat is the exact cross derivative of the penalised negative
+  # log-likelihood (S_l embedded at the coefficients it penalises). With H_rho the outer
+  # Hessian, the joint precision of (theta, rho) is
+  #   P = [ J  B ; B'  H_rho + B' J^{-1} B ],
+  # whose inverse has H_rho^{-1} as the covariance of rho, and
+  #   V* = J^{-1} + J^{-1} B H_rho^{-1} B' J^{-1}
+  # as that of theta. P keeps the sparsity of J and only adds one dense row and column
+  # per free lambda, so for large sparse models it is P, not V*, that should be factorised.
+  cross_deriv <- function(){
+    theta_hat <- final$opt$par
+    B <- matrix(0, length(theta_hat), length(lambda))
+    l <- 1
+    for(i in seq_len(n_re)) for(j in seq_len(nrow(re_inds[[i]]))){
+      idx <- re_inds[[i]][j, ]
+      S_ij <- if(i %in% simple_ind) list(S[[i]]) else S[[i]] # one or one per margin
+      for(k in seq_along(S_ij)){
+        B[idx, l] <- lambda[l] * as.vector(S_ij[[k]] %*% theta_hat[idx])
+        l <- l + 1
+      }
+    }
+    # tied lambdas share one log(lambda), so their columns add up; fixed ones drop out
+    B <- vapply(levels(lambda_map), function(lev)
+      rowSums(B[, which(lambda_map == lev), drop = FALSE]), numeric(nrow(B)))
+    dimnames(B) <- list(names(theta_hat), levels(lambda_map))
+    B
+  }
+
+  mod$joint_uncertainty <- function(H_rho = mod$outer_hessian(), precision = TRUE){
+    B <- cross_deriv()
+    dn <- c(names(final$opt$par), paste0("log_", spname, ".", levels(lambda_map)))
+
+    if(spHess){
+      # as in TMB's sdreport(): J stays sparse and is only used through its sparse
+      # Cholesky factor, B is dense in its few columns
+      J <- spH(final$opt$par)
+      J <- Matrix::forceSymmetric((J + Matrix::t(J)) / 2)
+      fac_J <- Matrix::Cholesky(J, LDL = FALSE, perm = TRUE)
+      JiB <- as.matrix(Matrix::solve(fac_J, B, system = "A"))
+    } else{
+      J <- mod$Hessian_conditional
+      J <- (J + t(J)) / 2 # the AD Hessian is symmetric only up to rounding
+      JiB <- solve(J, B)
+    }
+
+    if(precision){
+      C <- H_rho + crossprod(B, JiB)
+      if(spHess){
+        P <- methods::rbind2(methods::cbind2(J, B), methods::cbind2(t(B), C))
+        P <- Matrix::forceSymmetric(P, uplo = "L")
+      } else{
+        P <- rbind(cbind(J, B), cbind(t(B), C))
+      }
+      dimnames(P) <- list(dn, dn)
+      P
+    } else{
+      # V*, the covariance of the parameters alone, which is dense either way
+      Jinv <- if(spHess) as.matrix(Matrix::solve(fac_J, Matrix::Diagonal(nrow(J)), system = "A")) else solve(J)
+      V <- Jinv + JiB %*% solve(H_rho, t(JiB))
+      dimnames(V) <- list(dn[seq_len(nrow(V))], dn[seq_len(nrow(V))])
+      V
+    }
   }
 
   # removing elements only reported for the update

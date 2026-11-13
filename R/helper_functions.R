@@ -186,10 +186,10 @@ min0_smooth <- function(x, rho = 20){
 #' This can be mitigated by changing to "plain" with \code{TapeConfig}, but this can make AD tape construction very slow.
 #' Here, we provide a different version that retains sparsity. It may be slightly slower than the standard method when constructing the AD tape.
 #'
-#' @param A matrix of dimension n x p
-#' @param B matrix of dimension p x m
+#' @param A matrix of dimension \code{c(n, p)}
+#' @param B matrix of dimension \code{c(p, m)}
 #'
-#' @return the matrix product of A and B, which is of dimension n x m
+#' @return the matrix product of A and B, which is of dimension \code{c(n, m)}
 #' @export
 #'
 #' @examples
@@ -279,6 +279,27 @@ safe_chol_inv_sparse <- function(M, silent = 1, max_attempts = 50) {
 
 # getting ad_context from RTMB (not exported)
 ad_context <- get("ad_context", envir = asNamespace("RTMB"), inherits = FALSE)
+
+## With TapeConfig(matmul = "plain"), RTMB records a product of a constant design
+## matrix Z and AD coefficients scalar by scalar, skipping only exact zeros of Z. For
+## large, dense Z (e.g. thin plate splines on many observations) that tape can need
+## more memory than is available, while matmul = "atomic" stores the product as one
+## operation. 1e8 multiply-adds is roughly where the tape reaches several GB.
+## Shown once per session, and only while taping.
+check_matmul_tape <- function(Z, beta, max_ops = 1e8) {
+  if(isTRUE(.lama_env$matmul_msg_shown) || !ad_context()) return(invisible())
+  if(RTMB::TapeConfig()$matmul != "plain") return(invisible())
+  if(inherits(Z, "advector")) return(invisible()) # Z != 0 is forbidden for AD types
+  n_ops <- sum(Z != 0) * nrow(beta)
+  if(n_ops > max_ops) {
+    message("The linear predictor Z %*% t(beta) needs ", signif(n_ops, 2),
+            " multiply-adds, each recorded separately on the AD tape with TapeConfig(matmul = 'plain'). ",
+            "This can need more memory than is available; consider running ",
+            "TapeConfig(matmul = 'atomic') before MakeADFun().\n")
+    .lama_env$matmul_msg_shown <- TRUE
+  }
+  invisible()
+}
 
 
 

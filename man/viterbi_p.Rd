@@ -7,19 +7,19 @@
 viterbi_p(delta, Gamma, allprobs, tod, trackID = NULL, mod = NULL)
 }
 \arguments{
-\item{delta}{initial distribution of length N, or matrix of dimension c(k,N) for k independent tracks, if \code{trackID} is provided
+\item{delta}{initial distribution of length \code{nStates}, or matrix of dimension \code{c(nTracks, nStates)} for \code{nTracks} independent tracks, if \code{trackID} is provided
 
 This could e.g. be the periodically stationary distribution (for each track).}
 
-\item{Gamma}{array of transition probability matrices for each time point in the cycle of dimension c(N,N,L), where L is the length of the cycle}
+\item{Gamma}{array of transition probability matrices for each time point in the cycle of dimension \code{c(nStates, nStates, L)}, where L is the length of the cycle}
 
-\item{allprobs}{matrix of state-dependent probabilities/ density values of dimension c(n, N)}
+\item{allprobs}{matrix of state-dependent probabilities/ density values of dimension \code{c(nObs, nStates)}}
 
-\item{tod}{(Integer valued) variable for cycle indexing in 1, ..., L, mapping the data index to a generalised time of day (length n)
+\item{tod}{(Integer valued) variable for cycle indexing in 1, ..., L, mapping the data index to a generalised time of day (length \code{nObs})
 
 For half-hourly data L = 48. It could, however, also be day of year for daily data and L = 365.}
 
-\item{trackID}{optional vector of k track IDs, if multiple tracks need to be decoded separately. The observations of each track need to be consecutive.}
+\item{trackID}{optional vector of length \code{nObs} containing \code{nTracks} unique IDs that separate tracks. The observations of each track need to be consecutive.}
 
 \item{mod}{optional model object containing initial distribution \code{delta}, transition probability matrix \code{Gamma}, matrix of state-dependent probabilities \code{allprobs}, and potentially a \code{trackID} variable
 
@@ -27,7 +27,7 @@ If you are using automatic differentiation either with \code{RTMB::MakeADFun} or
 Hence, you can pass the model object obtained from \code{obj$report()}, \code{\link{lama}} or \code{\link{qreml}} directly to this function.}
 }
 \value{
-vector of decoded states of length n
+vector of decoded states of length \code{nObs}
 }
 \description{
 The Viterbi algorithm allows one to decode the most probable state sequence of an HMM.

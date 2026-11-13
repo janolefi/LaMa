@@ -7,17 +7,17 @@
 tpm_g2(Z, beta, byrow = FALSE, ad = NULL, report = TRUE, ref = NULL)
 }
 \arguments{
-\item{Z}{covariate design matrix with or without intercept column, i.e. of dimension c(n, p) or c(n, p+1)
+\item{Z}{covariate design matrix with or without intercept column, i.e. of dimension \code{c(nObs, p)} or \code{c(nObs, p+1)}
 
 If \code{Z} has only p columns, an intercept column of ones will be added automatically.
 
-Can also be a list of N*(N-1) design matrices with different number of columns but the same number of rows. In that case, no intercept column will be added.}
+Can also be a list of \code{nStates * (nStates-1)} design matrices with different number of columns but the same number of rows. In that case, no intercept column will be added.}
 
 \item{beta}{matrix of coefficients for the off-diagonal elements of the transition probability matrix
 
-Needs to be of dimension c(N*(N-1), p+1), where the first column contains the intercepts.
+Needs to be of dimension \code{c(nStates * (nStates-1), p+1)}, where the first column contains the intercepts.
 
-If \code{Z} is a list, \code{beta} can also be a list of length N*(N-1) with each entry being a vector or a (long) matrix of coefficients, each matching the dimension of the corresponding entry in \code{Z}.}
+If \code{Z} is a list, \code{beta} can also be a list of length \code{nStates * (nStates-1)} with each entry being a vector or a (long) matrix of coefficients, each matching the dimension of the corresponding entry in \code{Z}.}
 
 \item{byrow}{logical indicating if each transition probability matrix should be filled by row
  
@@ -27,17 +27,17 @@ Defaults to \code{FALSE}, but should be set to \code{TRUE} if one wants to work 
 
 \item{report}{logical, indicating whether the coefficient matrix \code{beta} should be reported from the fitted model. Defaults to \code{TRUE}, but only works if \code{ad = TRUE}.}
 
-\item{ref}{optional vector of length N with the reference state indices for each column of the transition probability matrix. Each row in the transition matrix corresponds to a multinomial regression, hence one state needs to be the reference category. Defaults to off-diagonal elements (\code{ref = 1:N}).}
+\item{ref}{optional vector of length \code{nStates} with the reference state indices for each column of the transition probability matrix. Each row in the transition matrix corresponds to a multinomial regression, hence one state needs to be the reference category. Defaults to off-diagonal elements (\code{ref = 1:nStates}).}
 }
 \value{
-array of transition probability matrices of dimension c(N,N,n)
+array of transition probability matrices of dimension \code{c(nStates, nStates, nObs)}
 }
 \description{
-In an HMM, we often model the influence of covariates on the state process by linking them to the transition probabiltiy matrix. 
+In an HMM, we often model the influence of covariates on the state process by linking them to the transition probability matrix. 
 Most commonly, this is done by specifying linear predictors
 \deqn{ \eta_{ij}^{(t)} = \beta^{(ij)}_0 + \beta^{(ij)}_1 z_{t1} + \dots + \beta^{(ij)}_p z_{tp} }
 for each off-diagonal element (\eqn{i \neq j}) of the transition probability matrix and then applying the inverse multinomial logistic link (also known as softmax) to each row.
-This function efficiently calculates all transition probabilty matrices for a given design matrix \code{Z} and parameter matrix \code{beta}.
+This function efficiently calculates all transition probability matrices for a given design matrix \code{Z} and parameter matrix \code{beta}.
 }
 \examples{
 Z = matrix(runif(200), ncol = 2)

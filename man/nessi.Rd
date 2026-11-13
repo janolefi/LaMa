@@ -7,7 +7,7 @@
 \format{
 A data frame with 5.000 rows and 3 variables:
 \describe{
-  \item{ODBA}{overall dynamci body acceleration}
+  \item{ODBA}{overall dynamic body acceleration}
   \item{logODBA}{logarithm of overall dynamic body acceleration}
   \item{state}{hidden state variable}
 }

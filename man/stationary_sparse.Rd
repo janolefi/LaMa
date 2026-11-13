@@ -7,13 +7,13 @@
 stationary_sparse(Gamma)
 }
 \arguments{
-\item{Gamma}{sparse transition probability matrix of dimension c(N,N)}
+\item{Gamma}{sparse transition probability matrix of dimension \code{c(nStates, nStates)}}
 }
 \value{
 stationary distribution of the Markov chain with the given transition probability matrix
 }
 \description{
-This is function computes the stationary distribution of a Markov chain with a given \strong{sparse} transition probability matrix.
+This function computes the stationary distribution of a Markov chain with a given \strong{sparse} transition probability matrix.
 Compatible with automatic differentiation by \code{RTMB}
 }
 \examples{

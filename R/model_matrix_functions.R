@@ -371,7 +371,7 @@ print.LaMa_matrices <- function(x, ...) {
 #' @param nStates number of states of the Markov chain
 #' @param ref optional vector of reference categories for each state, defaults to \code{1:nStates}. 
 #' If provided, must be of length \code{nStates} and contain valid state indices. 
-#' If a formula matrix is provided, this cannot be specified because reference categries are specified by one \code{"."} entry in each row.
+#' If a formula matrix is provided, this cannot be specified because reference categories are specified by one \code{"."} entry in each row.
 #'
 #' @returns named list of formulas of length \code{nStates * (nStates - 1)}, where each formula corresponds to a transition from state \eqn{i} to state \eqn{j}, excluding transitions from \code{i} to \code{ref[i]}.
 #' @export
@@ -595,7 +595,7 @@ predict.LaMa_matrices <- function(object, newdata, what = NULL, exclude = NULL, 
 #' @param model_matrices model_matrices object as returned from \code{\link{modmat}}
 #' @param newdata data frame containing the variables in the formula and new data for which to evaluate the basis
 #' @param what optional character string specifying which formula to use for prediction if \code{model_matrices} contains multiple formulas.
-#' @param exclude optional vector of terms to set to zero in the predicted design matrix. Useful for predicting main effects only when e.g. \code{sd(..., bs = "re")} terms are present. See \code{mgcv::predict.gam} for more details.
+#' @param exclude optional vector of terms to set to zero in the predicted design matrix. Useful for predicting main effects only when e.g. \code{s(..., bs = "re")} terms are present. See \code{mgcv::predict.gam} for more details.
 #' @return prediction design matrix for \code{newdata} with the same basis as used for \code{model_matrices}
 #'
 #' @seealso \code{\link[=predict.LaMa_matrices]{predict}}, which replaces this function

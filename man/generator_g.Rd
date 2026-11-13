@@ -7,17 +7,17 @@
 generator_g(Z, beta, Eta = NULL, byrow = FALSE, report = TRUE)
 }
 \arguments{
-\item{Z}{Covariate design matrix with or without intercept column, i.e. of dimension \code{c(nObs, p)} or \code{c(nObs, p+1)}. If not provided, intercept column is added automatically.}
+\item{Z}{Covariate design matrix with or without intercept column, i.e. of dimension \code{c(nObs, p)} or \code{c(nObs, p+1)}. If \code{Z} has only \code{p} columns, an intercept column is added automatically.}
 
 \item{beta}{Matrix of coefficients for the off-diagonal elements of the generator matrix 
-of dimension \code{c(nStates * (nStates-1), p+1)}. First columns contains the intercepts.}
+of dimension \code{c(nStates * (nStates-1), p+1)}. The first column contains the intercepts.}
 
 \item{Eta}{optional pre-calculated matrix of linear predictors of dimension \code{c(nObs, nStates * (nStates-1))}.
 If provided, no \code{Z} and \code{beta} are necessary and will be ignored.}
 
 \item{byrow}{logical indicating if the generator matrices should be filled by row}
 
-\item{report}{logical, indicating whether the generator matrices \code{Q} should be reported from the fitted model. Defaults to \code{TRUE}, but only works if when automatic differentiation with \code{RTMB} is used.}
+\item{report}{logical; if \code{TRUE} (default), the coefficient matrix \code{beta} is reported from the fitted model. Requires automatic differentiation with \code{RTMB}.}
 }
 \value{
 array of infinitesimal generator matrices of dimension \code{c(nStates, nStates, nObs)}

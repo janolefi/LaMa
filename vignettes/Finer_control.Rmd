@@ -40,9 +40,9 @@ library(LaMa)
 Computing the HMM likelihood for observations $x_1, \dots, x_T$ is non-trivial, as we do not observe the underlying states and need to *sum out* all possible state sequences. Exploiting the Markov property, the so-called **forward algorithm** does this recursively as a matrix product:
 
 $$
-L(\theta) = \delta^{(1)} P(x_1) \Gamma P(x_2) \Gamma \dots \Gamma P(x_T) 1^t,
+L(\boldsymbol{\theta}) = \boldsymbol{\delta}^{(1)} \boldsymbol{P}(x_1) \boldsymbol{\Gamma} \boldsymbol{P}(x_2) \boldsymbol{\Gamma} \dots \boldsymbol{\Gamma} \boldsymbol{P}(x_T) \boldsymbol{1}^t,
 $$
-where $\delta^{(1)}$ and $\Gamma$ are the initial distribution and the transition probability matrix, $P(x_t)$ is a diagonal matrix with the state-dependent densities (or probability mass functions) $f_j(x_t) = f(x_t \mid S_t = j)$ on its diagonal, $1$ is a row vector of ones and $\theta$ contains all model parameters.
+where $\boldsymbol{\delta}^{(1)}$ and $\boldsymbol{\Gamma}$ are the initial distribution and the transition probability matrix, $\boldsymbol{P}(x_t)$ is a diagonal matrix with the state-dependent densities (or probability mass functions) $f_j(x_t) = f(x_t \mid S_t = j)$ on its diagonal, $\boldsymbol{1}$ is a row vector of ones and $\boldsymbol{\theta}$ contains all model parameters.
 In practice, `forward()` does not compute this likelihood directly, but its logarithm via a scaling strategy [@zucchini].
 
 Many parameters are constrained, e.g. standard deviations are positive and the rows of the transition probability matrix sum to one. Instead of constrained optimisation, we maximise the likelihood w.r.t. unconstrained parameters (`par` in the code), which are transformed by link functions: e.g. the log link for positive parameters and the multinomial logistic link (softmax) for the transition probability matrix, implemented in `tpm()`.
@@ -52,7 +52,7 @@ For efficiency, the state-dependent densities are evaluated vectorised before ru
 
 ## Fitting an HMM without automatic differentiation
 
-`forward()` and the other building blocks also work without automatic differentiation. To see all parts in action, we simulate data from a 2-state HMM with Gaussian state-dependent distributions and fit it with `nlm()`.
+`forward()` and the other building blocks also work without automatic differentiation. They are then still worth using: without AD, `forward()` runs in `C++`, as does `tpm()` for many time-varying transition probability matrices, which is much faster than writing the forward algorithm yourself in `R`. To see all parts in action, we simulate data from a 2-state HMM with Gaussian state-dependent distributions and fit it with `nlm()`.
 
 ### Generating data from a 2-state HMM
 
@@ -121,6 +121,20 @@ system.time(
   opt <- nlm(nll, par, x = x)
 )
 ```
+
+This is fast because `forward()` runs in `C++`. With the forward algorithm written in `R`, the same fit takes roughly three times as long.
+
+With AD, we can use the same likelihood function, only wrapped into a function of a parameter list:
+
+```{r model_ad, message = FALSE}
+system.time({
+  obj = MakeADFun(function(p) nll(p$par, x), list(par = par), silent = TRUE)
+  opt_ad <- nlminb(obj$par, obj$fn, obj$gr)
+})
+```
+
+For such a small and simple model, it hardly matters whether we use AD. For larger models, however, it matters a lot: without AD, the gradient is approximated by finite differences, which costs one additional likelihood evaluation per parameter and is less accurate. For example, a 3-state model for the `trex` step lengths and turning angles (15 parameters) takes about 8 seconds to fit without and about 1 second with AD. The exact gradient also makes the optimisation numerically more stable.
+
 ### Visualising results
 
 Without `RTMB`, there is no model object, so we need to back-transform the estimated parameters ourselves, as in the likelihood:

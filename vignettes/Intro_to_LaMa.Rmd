@@ -69,7 +69,7 @@ As we do not observe the states, the likelihood sums over all possible state seq
 
 ## Automatic differentiation via RTMB
 
-`LaMa` fits models using automatic differentiation (AD) via the `RTMB` package, which is loaded together with `LaMa`. You write the likelihood as plain `R` code, and `RTMB` provides fast and *exact* derivatives (without doing any calculations by hand!). This makes model fitting fast and robust, and even complex models with random effects feasible.
+`LaMa` fits models using automatic differentiation (AD) via the `RTMB` package (loaded together with `LaMa`), the `R` interface to Template Model Builder [TMB, @kristensen2016tmb]. You write the likelihood as plain `R` code, and `RTMB` provides fast and *exact* derivatives (without doing any calculations by hand!). This makes model fitting fast and robust, and even complex models with random effects feasible.
 
 As an example, we analyse the `trex` data set contained in the package. It contains hourly step lengths of a Tyrannosaurus rex, living 66 million years ago, and we aim to understand its behavioural process using HMMs.
 ```{r data}
@@ -127,7 +127,7 @@ obj$fn()
 obj$gr()
 ```
 
-We fit the model with `nlminb()`, providing the gradient. We do not supply the Hessian, as a quasi-Newton method that only uses gradients is typically much faster.
+We fit the model with `nlminb()`, providing the gradient. We do not supply the Hessian, as a quasi-Newton method that uses gradients only is typically much faster.
 
 ```{r modelfit}
 opt = nlminb(obj$par, obj$fn, obj$gr) # minimisation

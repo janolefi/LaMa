@@ -219,7 +219,7 @@ system.time(
 #> outer 7 - sp: 0.308 0.114 
 #> outer 8 - sp: 0.308 0.112
 #>    user  system elapsed 
-#>   5.931   0.117   6.048
+#>   3.903   0.074   3.978
 ```
 
 The `mod` object is now a list that contains everything that is reported
@@ -456,7 +456,7 @@ system.time(
 #> Converged
 #> Final sp: 1.03 1.01 1.746
 #>    user  system elapsed 
-#>  11.130   0.018   8.662
+#>   7.196   0.016   4.770
 ```
 
 After fitting the model, we can easily visualise the smooth densities:
@@ -609,7 +609,7 @@ system.time(
 #> Converged
 #> Final sp: 22.901 7.218 8.756 4.176
 #>    user  system elapsed 
-#>  12.943   0.011  12.955
+#>   6.846   0.008   6.857
 ```
 
 Having fitted the model, we can visualise the results. We first decode

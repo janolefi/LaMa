@@ -48,7 +48,6 @@ The likelihood function is easily modified to incorporate the turning angle:
 nll_multi = function(par) {
   getAll(par, dat)
   Gamma = tpm(eta)
-  delta = stationary(Gamma)
   # Parameter transformations for strictly positive parameters
   mu = exp(log_mu); REPORT(mu)
   sigma = exp(log_sigma); REPORT(sigma)
@@ -61,7 +60,7 @@ nll_multi = function(par) {
     allprobs[ind,j] = dgamma2(step[ind], mu[j], sigma[j]) * 
       dvm(angle[ind], 0, kappa[j]) # simply multiplying the state-dep. densities
   }
-  -forward(delta, Gamma, allprobs) # simple forward algorithm
+  -forward("stationary", Gamma, allprobs) # stationary initial distribution
 }
 ```
 
@@ -95,12 +94,11 @@ Building `allprobs` with a loop over states as above is perfectly valid and give
 nll_multi2 = function(par) {
   getAll(par, dat)
   Gamma = tpm(eta)
-  delta = stationary(Gamma)
   mu = exp(log_mu); REPORT(mu)
   sigma = exp(log_sigma); REPORT(sigma)
   kappa = exp(log_kappa); REPORT(kappa)
   allprobs = statedens(step, dgamma2, mu, sigma) * statedens(angle, dvm, 0, kappa)
-  -forward(delta, Gamma, allprobs)
+  -forward("stationary", Gamma, allprobs)
 }
 
 obj_multi2 = MakeADFun(nll_multi2, par, silent = TRUE)
@@ -119,36 +117,10 @@ mod_multi2 = lama(obj_multi2)
 plot(mod_multi2, type = "statedens")
 ```
 
-We can now plot the estimated state-dependent densities separately for each state:
+By default, the densities are weighted by the local state probabilities. With `weights = "stationary"`, they are weighted by the stationary distribution instead (see `?plot.LaMaModel` for further options):
 
 ```{r state dist multi, fig.width = 8, fig.height = 4}
-# extracting estimated parameters
-delta = mod_multi$delta
-mu = mod_multi$mu
-sigma = mod_multi$sigma
-kappa = mod_multi$kappa
-
-# defining color vector
-color = LaMaColors(2)
-
-oldpar = par(mfrow = c(1,2))
-
-# step length
-hist(trex$step, prob = TRUE, breaks = 40, 
-     bor = "white", main = "", xlab = "step length")
-for(j in 1:N) curve(delta[j] * dgamma2(x, mu[j], sigma[j]), lwd = 2, add = TRUE, col = color[j])
-curve(delta[1]*dgamma2(x, mu[1], sigma[1]) + delta[2]*dgamma2(x, mu[2], sigma[2]), 
-      lwd = 2, lty = 2, add = TRUE)
-legend("top", lwd = 2, col = c(color, 1), lty = c(1,1,2), 
-       legend = c("state 1", "state 2", "marginal"), bty = "n")
-
-# turning angle
-hist(trex$angle, prob = TRUE, breaks = seq(-pi, pi, length = 20), 
-     bor = "white", main = "", xlab = "turning angle")
-for(j in 1:2) curve(delta[j] * dvm(x, 0, kappa[j]), lwd = 2, add = TRUE, col = color[j])
-curve(delta[1] * dvm(x, 0, kappa[1]) + delta[2] * dvm(x, 0, kappa[2]), 
-      lwd = 2, lty = 2, add = TRUE)
-par(oldpar)
+plot(mod_multi2, type = "statedens", weights = "stationary")
 ```
 
 The pseudo-residuals of both data streams are obtained from the model object alone, with one row of plots per stream:
@@ -206,6 +178,7 @@ delta = c(0.5, 0.5) # non-stationary initial distribution
 
 
 # Let's plot the covariate effects that we simulated:
+color = LaMaColors(2) # defining color vector
 z_p = seq(-2,2, length = 100) # prediction grid for covariate plot
 Z_p = cbind(z_p, z_p^2) # prediction matrix
 Gamma_p = tpm(beta, Z_p)

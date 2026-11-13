@@ -236,8 +236,7 @@ par = list(
 )
 dat = list(
   x = x, 
-  Z = Z,
-  N = N
+  Z = Z
 )
 
 obj_cov = MakeADFun(nll_cov, par, silent = TRUE)
@@ -385,8 +384,7 @@ beta = mod_msr$beta
 states = viterbi(mod_msr)
 
 # we have some label switching
-plot(z, x, pch = 16, bty = "n", xlab = "z", ylab = "x", col = color[states])
-points(z, x, pch = 20)
+plot(z, x, pch = 16, bty = "n", xlab = "z", ylab = "x", col = adjustcolor(color[states], 0.5))
 curve(beta[1,1] + beta[1,2]*x + beta[1,3]*x^2, 
       add = TRUE, lwd = 4, col = color[1])
 curve(beta[2,1] + beta[2,2]*x + beta[2,3]*x^2, 
@@ -439,7 +437,6 @@ par = list(
 
 dat = list(
   step = trex$step,   # hourly step lengths
-  N = 2,
   Z_tod = Z_tod,
   tod = trex$tod
 )

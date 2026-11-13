@@ -101,7 +101,6 @@ par = list(logmu = log(c(0.3, 2.5)), # state-dependent mean step
 
 dat = list(step = trex$step, # observed steps
            angle = trex$angle, # observed angle
-           N = 2, # number of states
            tod = trex$tod, # time of day (used for indexing)
            Z = Z, # spline design matrix
            S = S, # penalty matrix
@@ -206,7 +205,7 @@ par = list(mu = c(-4.5, -3.5, -2.5),
            eta = rep(-2, 6))
 
 # data and hyperparameters
-dat = list(logODBA = nessi$logODBA, N = 3)
+dat = list(logODBA = nessi$logODBA)
 
 # creating automatically differentiable objective function
 obj = MakeADFun(nll, par, silent = TRUE)

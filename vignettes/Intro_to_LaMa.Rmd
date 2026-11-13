@@ -82,7 +82,7 @@ The workflow is always the same. We
 2) turn it into an AD objective function, and
 3) fit the model by numerical optimisation of the latter.
 
-We fit a stationary 2-state HMM with state-dependent gamma distributions for the step lengths. First, we define a list `par` of initial parameter values on an unconstrained (real-valued) scale, and a list `dat` with the data and other fixed quantities -- here the number of states $N$.
+We fit a stationary 2-state HMM with state-dependent gamma distributions for the step lengths. First, we define a list `par` of initial parameter values on an unconstrained (real-valued) scale, and a list `dat` with the data and other fixed quantities. The number of states follows from the parameters, here two means and standard deviations.
 
 ```{r parameters}
 par = list(
@@ -92,8 +92,7 @@ par = list(
   )
 
 dat = list(
-  step = trex$step,   # hourly step lengths
-  N = 2
+  step = trex$step   # hourly step lengths
   )
 ```
 

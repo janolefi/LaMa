@@ -237,7 +237,7 @@ mod2$Gamma
 Writing the likelihood explicitly gives full control over each part. Throughout the vignettes, you will see examples of this, e.g.
 
 - a custom initial distribution, like an estimated one for inhomogeneous models (see [**Extensions**](https://janolefi.github.io/LaMa/articles/Extensions.html)),
-- the periodically stationary distribution computed by `stationary_p()` instead of `forward("stationary", ..., tod = tod)`,
+- the periodically stationary distribution computed by `stationary_p()` instead of `forward("stationary", ..., tod = tod)`, to report it for all times of day (see [**Extensions**](https://janolefi.github.io/LaMa/articles/Extensions.html)),
 - state-dependent densities transformed by hand, e.g. for zero-inflation or smooth densities (see [**Penalised splines**](https://janolefi.github.io/LaMa/articles/Penalised_splines.html)), or
 - transition probability matrices computed in a different way, e.g. for continuous-time HMMs or hidden semi-Markov models.
 
@@ -276,7 +276,8 @@ for(j in 1:2) curve(delta[j] * dgamma2(x, mu[j], sigma[j]),
                     lwd = 2, add = TRUE, col = color[j])
 curve(delta[1]*dgamma2(x, mu[1], sigma[1]) + delta[2]*dgamma2(x, mu[2], sigma[2]),
       lwd = 2, lty = 2, add = TRUE)
-legend("top", lwd = 2, col = color, legend = c("state 1", "state 2"), bty = "n")
+legend("top", lwd = 2, lty = c(1, 1, 2), col = c(color, "black"), bty = "n",
+       legend = c("state 1", "state 2", "marginal"))
 ```
 
 

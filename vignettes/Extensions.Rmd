@@ -85,7 +85,6 @@ dat = list(
 # Fitting the model
 obj_multi = MakeADFun(nll_multi, par, silent = TRUE)
 opt_multi = nlminb(obj_multi$par, obj_multi$fn, obj_multi$gr)
-mod_multi = lama(obj_multi) # reporting from fitted model
 ```
 
 Building `allprobs` with a loop over states as above is perfectly valid and gives full control. As a shortcut, `statedens()` builds the matrix of one data stream, with one parameter per state (or a single value for all states), and the matrices of several streams are multiplied:
@@ -111,16 +110,16 @@ c(-opt_multi$objective, -opt_multi2$objective)
 ```
 With `log = TRUE`, `statedens()` returns log-densities, which are added over streams and used with `forward(..., logspace = TRUE)`.
 
-As `statedens()` records the data, densities and parameters of each stream, the estimated state-dependent densities can also be plotted from the model object, weighted by the local state probabilities:
+As `statedens()` records the data, densities and parameters of each stream, the estimated state-dependent densities can also be plotted from the model object:
 ```{r statedens plot, fig.width = 8, fig.height = 4}
-mod_multi2 = lama(obj_multi2)
-plot(mod_multi2, type = "statedens")
+mod_multi = lama(obj_multi2)
+plot(mod_multi, type = "statedens")
 ```
 
 By default, the densities are weighted by the local state probabilities. With `weights = "stationary"`, they are weighted by the stationary distribution instead (see `?plot.LaMaModel` for further options):
 
 ```{r state dist multi, fig.width = 8, fig.height = 4}
-plot(mod_multi2, type = "statedens", weights = "stationary")
+plot(mod_multi, type = "statedens", weights = "stationary")
 ```
 
 The pseudo-residuals of both data streams are obtained from the model object alone, with one row of plots per stream:

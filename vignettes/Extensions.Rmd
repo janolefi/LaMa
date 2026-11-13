@@ -218,10 +218,7 @@ nll_cov = function(par) {
   delta = c(1, exp(logit_delta)) # make > 0
   delta = delta / sum(delta) # distribution -> needs to sum to 1
   sigma = exp(log_sigma); REPORT(sigma); REPORT(mu)
-  # calculate all state-dependent probabilities
-  allprobs = matrix(1, length(x), N)
-  for(j in 1:N) allprobs[,j] = dnorm(x, mu[j], sigma[j])
-  # forward algorithm
+  allprobs = statedens(x, dnorm, mu, sigma) # state-dependent densities
   -forward(delta, Gamma, allprobs)
 }
 ```
@@ -251,24 +248,10 @@ system.time(
 mod_cov <- lama(obj_cov) # reporting from fitted model
 ```
 
-Let's plot the fitted model, starting with the estimated state-dependent densities. We can obtain approximate global state probabilities from decoded states.
+Let's plot the fitted model, starting with the estimated state-dependent densities. As the Markov chain has no stationary distribution, they are weighted by the local state probabilities (the default):
 
 ```{r mod_cov_densities}
-mod_cov$states = viterbi(mod_cov)
-delta = prop.table(table(mod_cov$states))
-
-# get state-dependent parameters
-mu = mod_cov$mu
-sigma = mod_cov$sigma
-
-hist(x, prob = TRUE, bor = "white", breaks = 20, main = "", ylim = c(0, 0.06))
-curve(delta[1] * dnorm(x, mu[1], sigma[1]), add = TRUE, lwd = 3, col = color[1])
-curve(delta[2] * dnorm(x, mu[2], sigma[2]), add = TRUE, lwd = 3, col = color[2])
-curve(delta[1] * dnorm(x, mu[1], sigma[1]) +
-        delta[2] * dnorm(x, mu[2], sigma[2]),
-      add = TRUE, lwd = 3, lty = "dashed")
-legend("topright", col = c(color[1], color[2], "black"), lwd = 3, bty = "n",
-       lty = c(1,1,2), legend = c("state 1", "state 2", "marginal"))
+plot(mod_cov, type = "statedens")
 ```
 
 In order to plot the estimated effect with 95 percent confidence intervals, we can use `MCreport()` to get samples of `beta` from the approximate normal distribution of the MLE and then use `tpm()` to get the associated transition probabilities on our prediction grid.
@@ -362,22 +345,18 @@ par(oldpar)
 
 ### Writing the negative log-likelihood function
 
-In the likelihood function, we also add the state-dependent regression in the loop calculating the state-dependent probabilities. The code `cbind(1,Z) %*% t(beta)` computes all linear predictor for the states 1 and 2 at once. It thus returns a matrix of dimension $T \times 2$.
+In the likelihood function, the code `cbind(1, Z) %*% t(beta)` computes the linear predictors for states 1 and 2 at once. It thus returns a matrix `Mu` of dimension $T \times 2$, with one mean per observation and state. `statedens()` also accepts such matrices as parameters, using column $j$ for state $j$.
 
 ```{r mllk3}
 nll_msr = function(par) {
   getAll(par, dat)
   Gamma = tpm(eta)
-  delta = stationary(Gamma)
   sigma = exp(log_sigma); REPORT(sigma)
-  # calculate all state-dependent probabilities
-  allprobs = matrix(1, length(x), 2)
   # state-dependent regression
   REPORT(beta)
-  Mu = cbind(1,Z) %*% t(beta) # Z %*% beta[j,] all at once
-  for(j in 1:2) allprobs[,j] = dnorm(x, Mu[,j], sigma[j])
-  # forward algorithm
-  -forward(delta, Gamma, allprobs)
+  Mu = cbind(1, Z) %*% t(beta) # Z %*% beta[j,] all at once
+  allprobs = statedens(x, dnorm, Mu, sigma)
+  -forward("stationary", Gamma, allprobs)
 }
 ```
 
@@ -477,12 +456,7 @@ nll_seas = function(par) {
   # Parameter transformations for strictly positive parameters
   mu = exp(log_mu); REPORT(mu)
   sigma = exp(log_sigma); REPORT(sigma)
-  # Calculating all state-dependent densities
-  allprobs = matrix(1, nrow = length(step), ncol = N)
-  ind = which(!is.na(step)) # only for non-NA obs.
-  for(j in 1:N){
-    allprobs[ind,j] = dgamma2(step[ind], mu[j], sigma[j])
-  }
+  allprobs = statedens(step, dgamma2, mu, sigma)
   -forward(Delta[tod[1],], Gamma, allprobs, tod = tod)
 }
 ```

@@ -3,8 +3,8 @@
 > Before diving into this vignette, we recommend reading the vignettes
 > [**Introduction to
 > LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html)
-> and [**Automatic differentiation via
-> RTMB**](https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html)
+> and [**Finer
+> control**](https://janolefi.github.io/LaMa/articles/Finer_control.html)
 
 In this vignette, we discuss several extensions of the basic model
 structure, assuming you know how to fit basic models using automatic
@@ -50,7 +50,6 @@ easily modified to incorporate the turning angle:
 nll_multi = function(par) {
   getAll(par, dat)
   Gamma = tpm(eta)
-  delta = stationary(Gamma)
   # Parameter transformations for strictly positive parameters
   mu = exp(log_mu); REPORT(mu)
   sigma = exp(log_sigma); REPORT(sigma)
@@ -63,7 +62,7 @@ nll_multi = function(par) {
     allprobs[ind,j] = dgamma2(step[ind], mu[j], sigma[j]) * 
       dvm(angle[ind], 0, kappa[j]) # simply multiplying the state-dep. densities
   }
-  -forward(delta, Gamma, allprobs) # simple forward algorithm
+  -forward("stationary", Gamma, allprobs) # stationary initial distribution
 }
 ```
 
@@ -90,7 +89,6 @@ dat = list(
 # Fitting the model
 obj_multi = MakeADFun(nll_multi, par, silent = TRUE)
 opt_multi = nlminb(obj_multi$par, obj_multi$fn, obj_multi$gr)
-mod_multi = lama(obj_multi) # reporting from fitted model
 ```
 
 Building `allprobs` with a loop over states as above is perfectly valid
@@ -105,12 +103,11 @@ multiplied:
 nll_multi2 = function(par) {
   getAll(par, dat)
   Gamma = tpm(eta)
-  delta = stationary(Gamma)
   mu = exp(log_mu); REPORT(mu)
   sigma = exp(log_sigma); REPORT(sigma)
   kappa = exp(log_kappa); REPORT(kappa)
   allprobs = statedens(step, dgamma2, mu, sigma) * statedens(angle, dvm, 0, kappa)
-  -forward(delta, Gamma, allprobs)
+  -forward("stationary", Gamma, allprobs)
 }
 
 obj_multi2 = MakeADFun(nll_multi2, par, silent = TRUE)
@@ -138,56 +135,28 @@ returns log-densities, which are added over streams and used with
 As
 [`statedens()`](https://janolefi.github.io/LaMa/reference/statedens.md)
 records the data, densities and parameters of each stream, the estimated
-state-dependent densities can also be plotted from the model object,
-weighted by the local state probabilities:
+state-dependent densities can also be plotted from the model object:
 
 ``` r
 
-mod_multi2 = lama(obj_multi2)
-plot(mod_multi2, type = "statedens")
+mod_multi = lama(obj_multi2)
+plot(mod_multi, type = "statedens")
 ```
 
 ![](Extensions_files/figure-html/statedens%20plot-1.png)
 
-We can now plot the estimated state-dependent densities separately for
-each state:
+By default, the densities are weighted by the local state probabilities.
+With `weights = "stationary"`, they are weighted by the stationary
+distribution instead (see
+[`?plot.LaMaModel`](https://janolefi.github.io/LaMa/reference/plot.LaMaModel.md)
+for further options):
 
 ``` r
 
-# extracting estimated parameters
-delta = mod_multi$delta
-mu = mod_multi$mu
-sigma = mod_multi$sigma
-kappa = mod_multi$kappa
-
-# defining color vector
-color = LaMaColors(2)
-
-oldpar = par(mfrow = c(1,2))
-
-# step length
-hist(trex$step, prob = TRUE, breaks = 40, 
-     bor = "white", main = "", xlab = "step length")
-for(j in 1:N) curve(delta[j] * dgamma2(x, mu[j], sigma[j]), lwd = 2, add = TRUE, col = color[j])
-curve(delta[1]*dgamma2(x, mu[1], sigma[1]) + delta[2]*dgamma2(x, mu[2], sigma[2]), 
-      lwd = 2, lty = 2, add = TRUE)
-legend("top", lwd = 2, col = c(color, 1), lty = c(1,1,2), 
-       legend = c("state 1", "state 2", "marginal"), bty = "n")
-
-# turning angle
-hist(trex$angle, prob = TRUE, breaks = seq(-pi, pi, length = 20), 
-     bor = "white", main = "", xlab = "turning angle")
-for(j in 1:2) curve(delta[j] * dvm(x, 0, kappa[j]), lwd = 2, add = TRUE, col = color[j])
-curve(delta[1] * dvm(x, 0, kappa[1]) + delta[2] * dvm(x, 0, kappa[2]), 
-      lwd = 2, lty = 2, add = TRUE)
+plot(mod_multi, type = "statedens", weights = "stationary")
 ```
 
 ![](Extensions_files/figure-html/state%20dist%20multi-1.png)
-
-``` r
-
-par(oldpar)
-```
 
 The pseudo-residuals of both data streams are obtained from the model
 object alone, with one row of plots per stream:
@@ -272,6 +241,7 @@ delta = c(0.5, 0.5) # non-stationary initial distribution
 
 
 # Let's plot the covariate effects that we simulated:
+color = LaMaColors(2) # defining color vector
 z_p = seq(-2,2, length = 100) # prediction grid for covariate plot
 Z_p = cbind(z_p, z_p^2) # prediction matrix
 Gamma_p = tpm(beta, Z_p)
@@ -325,10 +295,7 @@ nll_cov = function(par) {
   delta = c(1, exp(logit_delta)) # make > 0
   delta = delta / sum(delta) # distribution -> needs to sum to 1
   sigma = exp(log_sigma); REPORT(sigma); REPORT(mu)
-  # calculate all state-dependent probabilities
-  allprobs = matrix(1, length(x), N)
-  for(j in 1:N) allprobs[,j] = dnorm(x, mu[j], sigma[j])
-  # forward algorithm
+  allprobs = statedens(x, dnorm, mu, sigma) # state-dependent densities
   -forward(delta, Gamma, allprobs)
 }
 ```
@@ -350,8 +317,7 @@ par = list(
 )
 dat = list(
   x = x, 
-  Z = Z,
-  N = N
+  Z = Z
 )
 
 obj_cov = MakeADFun(nll_cov, par, silent = TRUE)
@@ -359,31 +325,17 @@ system.time(
   opt <- nlminb(obj_cov$par, obj_cov$fn, obj_cov$gr)
 )
 #>    user  system elapsed 
-#>   0.014   0.000   0.014
+#>   0.032   0.000   0.033
 mod_cov <- lama(obj_cov) # reporting from fitted model
 ```
 
 Let’s plot the fitted model, starting with the estimated state-dependent
-densities. We can obtain approximate global state probabilities from
-decoded states.
+densities. As the Markov chain has no stationary distribution, they are
+weighted by the local state probabilities (the default):
 
 ``` r
 
-mod_cov$states = viterbi(mod = mod_cov)
-delta = prop.table(table(mod_cov$states))
-
-# get state-dependent parameters
-mu = mod_cov$mu
-sigma = mod_cov$sigma
-
-hist(x, prob = TRUE, bor = "white", breaks = 20, main = "", ylim = c(0, 0.06))
-curve(delta[1] * dnorm(x, mu[1], sigma[1]), add = TRUE, lwd = 3, col = color[1])
-curve(delta[2] * dnorm(x, mu[2], sigma[2]), add = TRUE, lwd = 3, col = color[2])
-curve(delta[1] * dnorm(x, mu[1], sigma[1]) +
-        delta[2] * dnorm(x, mu[2], sigma[2]),
-      add = TRUE, lwd = 3, lty = "dashed")
-legend("topright", col = c(color[1], color[2], "black"), lwd = 3, bty = "n",
-       lty = c(1,1,2), legend = c("state 1", "state 2", "marginal"))
+plot(mod_cov, type = "statedens")
 ```
 
 ![](Extensions_files/figure-html/mod_cov_densities-1.png)
@@ -438,8 +390,8 @@ a homogeneous Markov chain. This is often called **Markov-switching
 regression**. Assuming the observation process to be conditionally
 normally distributed, this means
 
-X_t \mid S_t = j \sim N(\beta_j^\top z_t, \\ \sigma_j^2), \quad j = 1,
-\dots, N.
+X_t \mid S_t = j \sim N(\boldsymbol{\beta}\_j^\top \boldsymbol{z}\_t, \\
+\sigma_j^2), \quad j = 1, \dots, N.
 
 #### Simulation example
 
@@ -484,7 +436,6 @@ for(t in 2:n){
                       sigma[s[t]])
 }
 
-oldpar = par(mfrow = c(1,2))
 plot(x[1:400], bty = "n", pch = 20, ylab = "x", 
      col = c(color[1], color[2])[s[1:400]])
 
@@ -493,35 +444,28 @@ plot(z[which(s==1)], x[which(s==1)], pch = 16, col = color[1], bty = "n",
 points(z[which(s==2)], x[which(s==2)], pch = 16, col = color[2])
 ```
 
-![](Extensions_files/figure-html/data2-1.png)
-
-``` r
-
-par(oldpar)
-```
+![](Extensions_files/figure-html/data2-1.png)![](Extensions_files/figure-html/data2-2.png)
 
 #### Writing the negative log-likelihood function
 
-In the likelihood function, we also add the state-dependent regression
-in the loop calculating the state-dependent probabilities. The code
-`cbind(1,Z) %*% t(beta)` computes all linear predictor for the states 1
-and 2 at once. It thus returns a matrix of dimension T \times 2.
+In the likelihood function, the code `cbind(1, Z) %*% t(beta)` computes
+the linear predictors for states 1 and 2 at once. It thus returns a
+matrix `Mu` of dimension T \times 2, with one mean per observation and
+state.
+[`statedens()`](https://janolefi.github.io/LaMa/reference/statedens.md)
+also accepts such matrices as parameters, using column j for state j.
 
 ``` r
 
 nll_msr = function(par) {
   getAll(par, dat)
   Gamma = tpm(eta)
-  delta = stationary(Gamma)
   sigma = exp(log_sigma); REPORT(sigma)
-  # calculate all state-dependent probabilities
-  allprobs = matrix(1, length(x), 2)
   # state-dependent regression
   REPORT(beta)
-  Mu = cbind(1,Z) %*% t(beta) # Z %*% beta[j,] all at once
-  for(j in 1:2) allprobs[,j] = dnorm(x, Mu[,j], sigma[j])
-  # forward algorithm
-  -forward(delta, Gamma, allprobs)
+  Mu = cbind(1, Z) %*% t(beta) # Z %*% beta[j,] all at once
+  allprobs = statedens(x, dnorm, Mu, sigma)
+  -forward("stationary", Gamma, allprobs)
 }
 ```
 
@@ -547,25 +491,20 @@ mod_msr = lama(obj_msr)
 
 #### Visualising results
 
-To visualise the results, we transform the parameters to working
-parameters and add the two estimated state-specific regressions to the
-scatter plot.
+To visualise the results, we add the two estimated state-specific
+regressions to the scatter plot, coloured by the decoded states.
 
 ``` r
 
-Gamma_hat_reg = mod_msr$Gamma
-delta_hat_reg = mod_msr$delta
-sigma_hat_reg = mod_msr$sigma
-beta_hat_reg = mod_msr$beta
+beta = mod_msr$beta
 
-states = viterbi(mod = mod_msr)
+states = viterbi(mod_msr)
 
 # we have some label switching
-plot(z, x, pch = 16, bty = "n", xlab = "z", ylab = "x", col = color[states])
-points(z, x, pch = 20)
-curve(beta_hat_reg[1,1] + beta_hat_reg[1,2]*x + beta_hat_reg[1,3]*x^2, 
+plot(z, x, pch = 16, bty = "n", xlab = "z", ylab = "x", col = adjustcolor(color[states], 0.5))
+curve(beta[1,1] + beta[1,2]*x + beta[1,3]*x^2, 
       add = TRUE, lwd = 4, col = color[1])
-curve(beta_hat_reg[2,1] + beta_hat_reg[2,2]*x + beta_hat_reg[2,3]*x^2, 
+curve(beta[2,1] + beta[2,2]*x + beta[2,3]*x^2, 
       add = TRUE, lwd = 4, col = color[2])
 ```
 
@@ -604,16 +543,35 @@ head(Z_tod)
 #> [6,]         1.0000000      6.123234e-17
 ```
 
+[`cosinor()`](https://janolefi.github.io/LaMa/reference/cosinor.md) can
+also be used in formulas passed to
+[`modmat()`](https://janolefi.github.io/LaMa/reference/modmat.md). This
+is usually the easier route when the seasonal effect is combined with
+other covariates, e.g. when it interacts with temperature. The resulting
+design matrix contains an intercept column, and
+[`tpm()`](https://janolefi.github.io/LaMa/reference/tpm.md) works with
+both versions alike.
+
+``` r
+
+data = data.frame(tod = rep(1:24, 2), temp = rnorm(48, 20, 3))
+modmat_tod = modmat(~ temp * cosinor(tod), data)
+colnames(modmat_tod$Z)
+#> [1] "(Intercept)"               "temp"                     
+#> [3] "sin(2 * pi * tod/24)"      "cos(2 * pi * tod/24)"     
+#> [5] "temp:sin(2 * pi * tod/24)" "temp:cos(2 * pi * tod/24)"
+```
+
 If we now express the transition matrix as a function of the linear
 predictors \eta^{(t)}\_{ij} above, the Markov chain has a special
 property. Its transition probabilities are *periodically varying*, and
-hence for all t \Gamma^{(t+L)} = \Gamma^{(t)}, where L is the cycle
-length. As shown by Koslik et al. ([2025](#ref-koslik2023inference)),
-such chains exhibit a special periodic behaviour. In particular, they
-converge to a unique periodically stationary state distribution. This
-distribution, giving the probability of the process being at any of the
-states at a particular time point in the cycle, can be computed using
-the function
+hence for all t \boldsymbol{\Gamma}^{(t+L)} = \boldsymbol{\Gamma}^{(t)},
+where L is the cycle length. As shown by Koslik et al.
+([2025](#ref-koslik2023inference)), such chains exhibit a special
+periodic behaviour. In particular, they converge to a unique
+periodically stationary state distribution. This distribution, giving
+the probability of the process being at any of the states at a
+particular time point in the cycle, can be computed using the function
 [`stationary_p()`](https://janolefi.github.io/LaMa/reference/stationary_p.md).
 It expects a tpm array with third dimension equal to the cycle length
 and returns a matrix, where each row gives the distribution for that
@@ -648,25 +606,30 @@ par = list(
 
 dat = list(
   step = trex$step,   # hourly step lengths
-  N = 2,
   Z_tod = Z_tod,
   tod = trex$tod
 )
 ```
 
-In the likelihood function, we only compute the unique 24 transition
-matrices and then, based on these, the corresponding stationary
-distribution(s) using
-[`stationary_p()`](https://janolefi.github.io/LaMa/reference/stationary_p.md).
+In the likelihood function, we only compute the 24 unique transition
+matrices and pass them to
+[`forward()`](https://janolefi.github.io/LaMa/reference/forward.md)
+together with `tod`, which indexes them for each time point. With
+`delta = "stationary"`,
+[`forward()`](https://janolefi.github.io/LaMa/reference/forward.md)
+would compute the periodically stationary distribution at the first time
+point by itself. Here, we compute it manually with
+[`stationary_p()`](https://janolefi.github.io/LaMa/reference/stationary_p.md)
+instead, because we want it for all 24 times of day and use
+[`ADREPORT()`](https://rdrr.io/pkg/RTMB/man/TMB-interface.html) to
+obtain standard errors – the building blocks can be combined freely.
+
 As [`forward()`](https://janolefi.github.io/LaMa/reference/forward.md)
 uses `Gamma[,,tod[t]]` for the transition *into* time t, while
 [`stationary_p()`](https://janolefi.github.io/LaMa/reference/stationary_p.md)
-treats `Gamma[,,t]` as the transition from t to t+1, we shift the rows
+treats `Gamma[,,t]` as the transition *from* t to t+1, we shift the rows
 of `Delta` by one, such that row k is the distribution at time of day k.
-When running the forward algorithm in the last line, we then i) pick the
-stationary distribution corresponding to the first time of day value
-(`Delta[tod[1],]`) and ii) pass the 24 matrices together with `tod`,
-which indexes them for each time point.
+Its row `tod[1]` is then the initial distribution.
 
 ``` r
 
@@ -678,12 +641,7 @@ nll_seas = function(par) {
   # Parameter transformations for strictly positive parameters
   mu = exp(log_mu); REPORT(mu)
   sigma = exp(log_sigma); REPORT(sigma)
-  # Calculating all state-dependent densities
-  allprobs = matrix(1, nrow = length(step), ncol = N)
-  ind = which(!is.na(step)) # only for non-NA obs.
-  for(j in 1:N){
-    allprobs[ind,j] = dgamma2(step[ind], mu[j], sigma[j])
-  }
+  allprobs = statedens(step, dgamma2, mu, sigma)
   -forward(Delta[tod[1],], Gamma, allprobs, tod = tod)
 }
 ```

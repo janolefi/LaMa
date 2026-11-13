@@ -1,4 +1,4 @@
-# 9 Hidden semi-Markov models
+# 8 Hidden semi-Markov models
 
 This vignette has not yet been updated to work with RTMB
 
@@ -38,8 +38,8 @@ and the conditional transition probabilities given the state is left.
 
 Here we choose the simplest case of dwell times that are **shifted
 Poisson** distributed. We have to specify the Poisson mean for each
-state, the conditional transition probability matrix called \Omega and
-the parameters of the state-dependent process.
+state, the conditional transition probability matrix called
+\boldsymbol{\Omega} and the parameters of the state-dependent process.
 
 ``` r
 
@@ -157,7 +157,7 @@ system.time(
 )
 #> forward_s() is deprecated, please use forward_hsmm(dm, omega, allprobs) instead.
 #>    user  system elapsed 
-#>   0.457   0.052   0.510
+#>   0.962   0.052   1.013
 ```
 
 Fitting HSMMs is rather slow (even using C++) as we translate the
@@ -178,7 +178,7 @@ N = 3
 (omega = tpm_emb(mod$estimate[3*N+1:(N*(N-2))]))
 #>           S1        S2        S3
 #> S1 0.0000000 0.5541031 0.4458969
-#> S2 0.5040939 0.0000000 0.4959061
+#> S2 0.5040938 0.0000000 0.4959062
 #> S3 0.6654703 0.3345297 0.0000000
 ```
 
@@ -257,7 +257,7 @@ system.time(
                     agsizes = agsizes, iterlim = 500)
 )
 #>    user  system elapsed 
-#>   2.018   0.003   2.021
+#>   4.021   0.002   4.024
 ```
 
 ### Results
@@ -268,18 +268,18 @@ We retransform the parameters for interpretation
 
 par = mod_muskox$estimate; N = 3
 (mu = exp(par[1:N])) # step mean
-#> [1]   4.408162  55.517717 306.514567
+#> [1]   4.408183  55.518269 306.519309
 (sigma = exp(par[N+1:N])) # step standard deviation
-#> [1]   3.148184  50.339179 331.548177
+#> [1]   3.148214  50.338427 331.552682
 (mu_dwell = exp(par[2*N+1:N])) # dwell time mean
-#> [1] 2.545003 2.660352 5.541728
+#> [1] 2.545047 2.660233 5.541572
 (phi = exp(par[3*N+1:N])) # dwell time dispersion
-#> [1] 5.521832e-05 3.750521e-02 5.323967e-09
+#> [1] 1.284639e-05 3.753894e-02 1.271990e-10
 (omega = tpm_emb(par[4*N+1:(N*(N-2))])) # embedded t.p.m.
 #>           S1        S2           S3
-#> S1 0.0000000 0.6865985 3.134015e-01
-#> S2 0.9999999 0.0000000 5.792850e-08
-#> S3 0.8210746 0.1789254 0.000000e+00
+#> S1 0.0000000 0.6865950 3.134050e-01
+#> S2 1.0000000 0.0000000 5.505861e-09
+#> S3 0.8209621 0.1790379 0.000000e+00
 ```
 
 In this case the Poisson distribution would have been sufficiently
@@ -289,7 +289,6 @@ distributions:
 
 ``` r
 
-oldpar = par(mfrow = c(1,3))
 for(j in 1:N){
   plot(1:agsizes[j], dnbinom(1:agsizes[j]-1, mu=mu_dwell[j], size = 1/phi[j]),
        type = "h", lwd = 2, col = color[j], xlab = "dwell time (hours)",
@@ -297,12 +296,7 @@ for(j in 1:N){
 }
 ```
 
-![](HSMMs_files/figure-html/dwell_muskox-1.png)
-
-``` r
-
-par(oldpar)
-```
+![](HSMMs_files/figure-html/dwell_muskox-1.png)![](HSMMs_files/figure-html/dwell_muskox-2.png)![](HSMMs_files/figure-html/dwell_muskox-3.png)
 
 ## References
 

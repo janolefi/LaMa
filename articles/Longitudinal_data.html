@@ -33,15 +33,19 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/Intro_to_LaMa.html">1 Introduction to LaMa</a></li>
-    <li><a class="dropdown-item" href="../articles/LaMa_and_RTMB.html">2 Automatic differentiation</a></li>
+<li><h6 class="dropdown-header" data-toc-skip>Getting started</h6></li>
+    <li><a class="dropdown-item" href="../articles/Intro_to_LaMa.html">1 Introduction to LaMa</a></li>
+    <li><a class="dropdown-item" href="../articles/Finer_control.html">2 Finer control</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>HMMs from simple to complex</h6></li>
     <li><a class="dropdown-item" href="../articles/Extensions.html">3 Model extensions</a></li>
     <li><a class="dropdown-item" href="../articles/Longitudinal_data.html">4 Longitudinal data</a></li>
     <li><a class="dropdown-item" href="../articles/Penalised_splines.html">5 Penalised splines</a></li>
-    <li><a class="dropdown-item" href="../articles/Continuous_time_HMMs.html">6 Continuous-time HMMs</a></li>
-    <li><a class="dropdown-item" href="../articles/MMMPPs.html">7 Markov modulated Poisson processes</a></li>
-    <li><a class="dropdown-item" href="../articles/State_space_models.html">8 State space models</a></li>
-    <li><a class="dropdown-item" href="../articles/HSMMs.html">9 Hidden semi-Markov models</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Other latent Markov models</h6></li>
+    <li><a class="dropdown-item" href="../articles/Continuous_time_models.html">6 Continuous-time models</a></li>
+    <li><a class="dropdown-item" href="../articles/State_space_models.html">7 State space models</a></li>
+    <li><a class="dropdown-item" href="../articles/HSMMs.html">8 Hidden semi-Markov models</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -77,8 +81,8 @@ Fischer</h4>
 <blockquote>
 <p>Before diving into this vignette, we recommend reading the vignettes
 <a href="https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html"><strong>Introduction
-to LaMa</strong></a> and <a href="https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html"><strong>Automatic
-differentiation via RTMB</strong></a>.</p>
+to LaMa</strong></a> and <a href="https://janolefi.github.io/LaMa/articles/Finer_control.html"><strong>Finer
+control</strong></a>.</p>
 </blockquote>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://janolefi.github.io/LaMa/">LaMa</a></span><span class="op">)</span></span>
@@ -93,16 +97,16 @@ pool parameters across tracks or not. Here, we provide brief examples
 for complete and partial pooling.</p>
 <p>When the data consists of <span class="math inline">K</span>
 independent tracks, the joint likelihood is <span class="math display">
-L(\theta) = \prod_{k=1}^K L_k(\theta),
-</span> where <span class="math inline">L_k(\theta)</span> is the usual
-HMM likelihood for the <span class="math inline">k</span>-th track, so
-the log-likelihood is a sum over <span class="math inline">K</span>
-tracks. In <code>LaMa</code>, this is handled efficiently by passing a
-<code>trackID</code> vector to <code><a href="../reference/forward.html">forward()</a></code>, which specifies
-the track index of each observation. The forward algorithm then resets
-to the initial distribution at the start of each new track and sums up
-the individual log-likelihood contributions automatically. Importantly,
-always using the <code>trackID</code> argument rather than calling
+L(\boldsymbol{\theta}) = \prod_{k=1}^K L_k(\boldsymbol{\theta}),
+</span> where <span class="math inline">L_k(\boldsymbol{\theta})</span>
+is the usual HMM likelihood for the <span class="math inline">k</span>-th track, so the log-likelihood is a sum
+over <span class="math inline">K</span> tracks. In <code>LaMa</code>,
+this is handled efficiently by passing a <code>trackID</code> vector to
+<code><a href="../reference/forward.html">forward()</a></code>, which specifies the track index of each
+observation. The forward algorithm then resets to the initial
+distribution at the start of each new track and sums up the individual
+log-likelihood contributions automatically. Importantly, always using
+the <code>trackID</code> argument rather than calling
 <code><a href="../reference/forward.html">forward()</a></code> separately for each track ensures that the
 automatic reporting mechanism inside <code><a href="../reference/forward.html">forward()</a></code> — on which
 <code><a href="../reference/viterbi.html">viterbi()</a></code>, <code><a href="../reference/stateprobs.html">stateprobs()</a></code>, and other downstream
@@ -113,70 +117,69 @@ functions rely — works correctly.</p>
 <p>With complete pooling, all parameters are shared across
 individuals.</p>
 <div class="section level3">
-<h3 id="generating-data">Generating data<a class="anchor" aria-label="anchor" href="#generating-data"></a>
-</h3>
-<p>We generate <span class="math inline">K</span> separate tracks from
-the same model:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># parameters shared across individuals</span></span>
-<span><span class="va">mu</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">60</span><span class="op">)</span>    <span class="co"># state-dependent means</span></span>
-<span><span class="va">sigma</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">40</span><span class="op">)</span> <span class="co"># state-dependent standard deviations</span></span>
-<span><span class="va">Gamma</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.95</span>, <span class="fl">0.05</span>,</span>
-<span>                 <span class="fl">0.15</span>, <span class="fl">0.85</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">2</span>, byrow <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">delta</span> <span class="op">=</span> <span class="fu"><a href="../reference/stationary.html">stationary</a></span><span class="op">(</span><span class="va">Gamma</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
-<span><span class="va">K</span> <span class="op">=</span> <span class="fl">200</span> <span class="co"># number of individuals</span></span>
-<span><span class="va">N</span> <span class="op">=</span> <span class="fl">2</span>   <span class="co"># number of states</span></span>
-<span><span class="va">n</span> <span class="op">=</span> <span class="fl">50</span>  <span class="co"># observations per individual</span></span>
-<span></span>
-<span><span class="va">s</span> <span class="op">=</span> <span class="va">x</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="va">n</span> <span class="op">*</span> <span class="va">K</span><span class="op">)</span></span>
-<span><span class="kw">for</span><span class="op">(</span><span class="va">k</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">K</span><span class="op">)</span><span class="op">{</span></span>
-<span>  <span class="va">sk</span> <span class="op">=</span> <span class="va">xk</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="va">n</span><span class="op">)</span></span>
-<span>  <span class="va">sk</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, <span class="fl">1</span>, prob <span class="op">=</span> <span class="va">delta</span><span class="op">)</span></span>
-<span>  <span class="va">xk</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">mu</span><span class="op">[</span><span class="va">sk</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, <span class="va">sigma</span><span class="op">[</span><span class="va">sk</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="kw">for</span><span class="op">(</span><span class="va">t</span> <span class="kw">in</span> <span class="fl">2</span><span class="op">:</span><span class="va">n</span><span class="op">)</span><span class="op">{</span></span>
-<span>    <span class="va">sk</span><span class="op">[</span><span class="va">t</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, <span class="fl">1</span>, prob <span class="op">=</span> <span class="va">Gamma</span><span class="op">[</span><span class="va">sk</span><span class="op">[</span><span class="va">t</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>,<span class="op">]</span><span class="op">)</span></span>
-<span>    <span class="va">xk</span><span class="op">[</span><span class="va">t</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">mu</span><span class="op">[</span><span class="va">sk</span><span class="op">[</span><span class="va">t</span><span class="op">]</span><span class="op">]</span>, <span class="va">sigma</span><span class="op">[</span><span class="va">sk</span><span class="op">[</span><span class="va">t</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="op">}</span></span>
-<span>  <span class="va">s</span><span class="op">[</span><span class="op">(</span><span class="va">k</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">*</span><span class="va">n</span> <span class="op">+</span> <span class="fl">1</span><span class="op">:</span><span class="va">n</span><span class="op">]</span> <span class="op">=</span> <span class="va">sk</span></span>
-<span>  <span class="va">x</span><span class="op">[</span><span class="op">(</span><span class="va">k</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">*</span><span class="va">n</span> <span class="op">+</span> <span class="fl">1</span><span class="op">:</span><span class="va">n</span><span class="op">]</span> <span class="op">=</span> <span class="va">xk</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="va">trackID</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">K</span>, each <span class="op">=</span> <span class="va">n</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
 <h3 id="writing-the-negative-log-likelihood-function">Writing the negative log-likelihood function<a class="anchor" aria-label="anchor" href="#writing-the-negative-log-likelihood-function"></a>
 </h3>
 <p>The likelihood function is almost identical to the single-track case
 — the only difference is passing <code>trackID</code> as an additional
-argument to <code><a href="../reference/forward.html">forward()</a></code>:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+argument to <code><a href="../reference/forward.html">forward()</a></code>. With
+<code>delta = "stationary"</code>, each track starts in the stationary
+distribution.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nll_pool</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">par</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">getAll</a></span><span class="op">(</span><span class="va">par</span>, <span class="va">dat</span><span class="op">)</span></span>
 <span>  <span class="va">Gamma</span> <span class="op">=</span> <span class="fu"><a href="../reference/tpm.html">tpm</a></span><span class="op">(</span><span class="va">eta</span><span class="op">)</span></span>
-<span>  <span class="va">delta</span> <span class="op">=</span> <span class="fu"><a href="../reference/stationary.html">stationary</a></span><span class="op">(</span><span class="va">Gamma</span><span class="op">)</span></span>
 <span>  <span class="va">mu</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">log_mu</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">REPORT</a></span><span class="op">(</span><span class="va">mu</span><span class="op">)</span></span>
 <span>  <span class="va">sigma</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">log_sigma</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">REPORT</a></span><span class="op">(</span><span class="va">sigma</span><span class="op">)</span></span>
-<span>  <span class="va">allprobs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>, <span class="va">N</span><span class="op">)</span></span>
-<span>  <span class="kw">for</span><span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">)</span> <span class="va">allprobs</span><span class="op">[</span>,<span class="va">j</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">mu</span><span class="op">[</span><span class="va">j</span><span class="op">]</span>, <span class="va">sigma</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="op">-</span><span class="fu"><a href="../reference/forward.html">forward</a></span><span class="op">(</span><span class="va">delta</span>, <span class="va">Gamma</span>, <span class="va">allprobs</span>, <span class="va">trackID</span><span class="op">)</span></span>
+<span>  <span class="va">allprobs</span> <span class="op">=</span> <span class="fu"><a href="../reference/statedens.html">statedens</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">dnorm</span>, <span class="va">mu</span>, <span class="va">sigma</span><span class="op">)</span></span>
+<span>  <span class="op">-</span><span class="fu"><a href="../reference/forward.html">forward</a></span><span class="op">(</span><span class="st">"stationary"</span>, <span class="va">Gamma</span>, <span class="va">allprobs</span>, <span class="va">trackID</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="simulating-data">Simulating data<a class="anchor" aria-label="anchor" href="#simulating-data"></a>
+</h3>
+<p>We can use the same likelihood function to simulate data.
+<code><a href="../reference/lama.html">lama()</a></code> does not need a fitted model: called on an object
+from <code>MakeADFun()</code> before optimisation, it reports at the
+parameter values the object was built with – here the true parameters.
+<code><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate()</a></code> then draws states and observations from this
+model on the same design, i.e. with the tracks given by
+<code>trackID</code>. As there are no data yet, we pass an
+all-<code>NA</code> placeholder for <code>x</code>, which tells
+<code><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate()</a></code> to fill in the whole stream. We simulate <span class="math inline">K = 200</span> tracks of length <span class="math inline">n = 50</span>:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">K</span> <span class="op">=</span> <span class="fl">200</span> <span class="co"># number of individuals</span></span>
+<span><span class="va">n</span> <span class="op">=</span> <span class="fl">50</span>  <span class="co"># observations per individual</span></span>
+<span></span>
+<span><span class="co"># true parameters, on the same scale as in the likelihood</span></span>
+<span><span class="va">par_true</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  eta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">3</span>, <span class="op">-</span><span class="fl">2</span><span class="op">)</span>,           <span class="co"># t.p.m. parameters (logit scale)</span></span>
+<span>  log_mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">60</span><span class="op">)</span><span class="op">)</span>,   <span class="co"># state-dependent means (log scale)</span></span>
+<span>  log_sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">40</span><span class="op">)</span><span class="op">)</span> <span class="co"># state-dependent sds (log scale)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">dat</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="va">n</span> <span class="op">*</span> <span class="va">K</span><span class="op">)</span>,        <span class="co"># placeholder for the observations</span></span>
+<span>  trackID <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">K</span>, each <span class="op">=</span> <span class="va">n</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">sim</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="fu"><a href="../reference/lama.html">lama</a></span><span class="op">(</span><span class="fu">MakeADFun</span><span class="op">(</span><span class="va">nll_pool</span>, <span class="va">par_true</span>, silent <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span>, seed <span class="op">=</span> <span class="fl">123</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sim</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   trackID state         x</span></span>
+<span><span class="co">#&gt; 1       1     2 120.94832</span></span>
+<span><span class="co">#&gt; 2       1     2  32.25963</span></span>
+<span><span class="co">#&gt; 3       1     2 120.33054</span></span>
+<span><span class="co">#&gt; 4       1     2  58.43673</span></span>
+<span><span class="co">#&gt; 5       1     2  83.11626</span></span>
+<span><span class="co">#&gt; 6       1     2  65.91779</span></span>
+<span><span class="va">dat</span><span class="op">$</span><span class="va">x</span> <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">x</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="estimating-the-model">Estimating the model<a class="anchor" aria-label="anchor" href="#estimating-the-model"></a>
 </h3>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">par</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  eta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span>, <span class="va">N</span><span class="op">*</span><span class="op">(</span><span class="va">N</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span>,    <span class="co"># initial t.p.m. parameters (logit scale)</span></span>
-<span>  log_mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">60</span><span class="op">)</span><span class="op">)</span>,   <span class="co"># initial state-dependent means (log scale)</span></span>
-<span>  log_sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">40</span><span class="op">)</span><span class="op">)</span> <span class="co"># initial state-dependent sds (log scale)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">dat</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  x <span class="op">=</span> <span class="va">x</span>,</span>
-<span>  trackID <span class="op">=</span> <span class="va">trackID</span>,</span>
-<span>  N <span class="op">=</span> <span class="va">N</span></span>
+<span>  eta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span>,          <span class="co"># initial t.p.m. parameters (logit scale)</span></span>
+<span>  log_mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">50</span><span class="op">)</span><span class="op">)</span>,   <span class="co"># initial state-dependent means (log scale)</span></span>
+<span>  log_sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">30</span><span class="op">)</span><span class="op">)</span> <span class="co"># initial state-dependent sds (log scale)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">obj_pool</span> <span class="op">=</span> <span class="fu">MakeADFun</span><span class="op">(</span><span class="va">nll_pool</span>, <span class="va">par</span>, silent <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -184,19 +187,23 @@ argument to <code><a href="../reference/forward.html">forward()</a></code>:</p>
 <span>  <span class="va">opt_pool</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></span><span class="op">(</span><span class="va">obj_pool</span><span class="op">$</span><span class="va">par</span>, <span class="va">obj_pool</span><span class="op">$</span><span class="va">fn</span>, <span class="va">obj_pool</span><span class="op">$</span><span class="va">gr</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.061   0.000   0.061</span></span>
+<span><span class="co">#&gt;   0.204   0.000   0.204</span></span>
 <span><span class="va">mod_pool</span> <span class="op">=</span> <span class="fu"><a href="../reference/lama.html">lama</a></span><span class="op">(</span><span class="va">obj_pool</span><span class="op">)</span></span></code></pre></div>
-<p>We can inspect the estimated parameters, which should be close to the
-true values used in the simulation:</p>
+<p>The estimated parameters should be close to the true values used in
+the simulation:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_pool</span><span class="op">$</span><span class="va">mu</span>     <span class="co"># true: 15, 60</span></span>
-<span><span class="co">#&gt; [1] 15.00258 59.10962</span></span>
+<span><span class="co">#&gt; [1] 15.04398 59.97678</span></span>
 <span><span class="va">mod_pool</span><span class="op">$</span><span class="va">sigma</span>  <span class="co"># true: 10, 40</span></span>
-<span><span class="co">#&gt; [1]  9.913063 39.856396</span></span>
-<span><span class="va">mod_pool</span><span class="op">$</span><span class="va">Gamma</span>  <span class="co"># true: c(0.95, 0.05, 0.15, 0.85)</span></span>
-<span><span class="co">#&gt;           S1         S2</span></span>
-<span><span class="co">#&gt; S1 0.9500705 0.04992952</span></span>
-<span><span class="co">#&gt; S2 0.1450977 0.85490231</span></span></code></pre></div>
+<span><span class="co">#&gt; [1]  9.994448 40.204912</span></span>
+<span><span class="va">mod_pool</span><span class="op">$</span><span class="va">Gamma</span></span>
+<span><span class="co">#&gt;            S1        S2</span></span>
+<span><span class="co">#&gt; S1 0.89197388 0.1080261</span></span>
+<span><span class="co">#&gt; S2 0.04650452 0.9534955</span></span>
+<span><span class="fu"><a href="../reference/tpm.html">tpm</a></span><span class="op">(</span><span class="va">par_true</span><span class="op">$</span><span class="va">eta</span><span class="op">)</span> <span class="co"># true t.p.m.</span></span>
+<span><span class="co">#&gt;            S1        S2</span></span>
+<span><span class="co">#&gt; S1 0.88079708 0.1192029</span></span>
+<span><span class="co">#&gt; S2 0.04742587 0.9525741</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -204,88 +211,60 @@ true values used in the simulation:</p>
 </h2>
 <p>If some parameters are individual-specific while the rest are shared,
 we speak of partial pooling. We demonstrate this for <span class="math inline">K = 5</span> individuals whose transition
-probability matrices depend on an individual-level covariate, while the
-state-dependent observation parameters remain shared. We estimate the
+probability matrices depend on an individual-level covariate (e.g. age),
+while the state-dependent parameters remain shared. We estimate the
 effect of this covariate on the transition probabilities.</p>
-<div class="section level3">
-<h3 id="generating-data-1">Generating data<a class="anchor" aria-label="anchor" href="#generating-data-1"></a>
-</h3>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">K</span> <span class="op">=</span> <span class="fl">5</span>   <span class="co"># number of individuals</span></span>
-<span><span class="va">N</span> <span class="op">=</span> <span class="fl">2</span>   <span class="co"># number of states</span></span>
-<span><span class="va">n</span> <span class="op">=</span> <span class="fl">200</span> <span class="co"># observations per individual</span></span>
-<span></span>
-<span><span class="co"># state-dependent parameters shared across individuals</span></span>
-<span><span class="va">mu</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">60</span><span class="op">)</span></span>
-<span><span class="va">sigma</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">40</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># individual-specific tpms depending on a covariate (e.g. age)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
-<span><span class="va">z</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">K</span><span class="op">)</span></span>
-<span><span class="va">beta</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span>, <span class="op">-</span><span class="fl">2</span>, <span class="fl">1</span>, <span class="op">-</span><span class="fl">1</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="va">N</span><span class="op">*</span><span class="op">(</span><span class="va">N</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># compute K individual-specific tpms</span></span>
-<span><span class="va">Gamma</span> <span class="op">=</span> <span class="fu"><a href="../reference/tpm.html">tpm</a></span><span class="op">(</span><span class="va">beta</span>, <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">z</span>, ncol <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co"># stationary() on an array returns a c(K, N) matrix of stationary distributions</span></span>
-<span><span class="va">Delta</span> <span class="op">=</span> <span class="fu"><a href="../reference/stationary.html">stationary</a></span><span class="op">(</span><span class="va">Gamma</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># simulate all tracks</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
-<span><span class="va">s</span> <span class="op">=</span> <span class="va">x</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="va">n</span> <span class="op">*</span> <span class="va">K</span><span class="op">)</span></span>
-<span><span class="kw">for</span><span class="op">(</span><span class="va">k</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">K</span><span class="op">)</span><span class="op">{</span></span>
-<span>  <span class="va">sk</span> <span class="op">=</span> <span class="va">xk</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="va">n</span><span class="op">)</span></span>
-<span>  <span class="va">sk</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, <span class="fl">1</span>, prob <span class="op">=</span> <span class="va">Delta</span><span class="op">[</span><span class="va">k</span>,<span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="va">xk</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">mu</span><span class="op">[</span><span class="va">sk</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, <span class="va">sigma</span><span class="op">[</span><span class="va">sk</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="kw">for</span><span class="op">(</span><span class="va">t</span> <span class="kw">in</span> <span class="fl">2</span><span class="op">:</span><span class="va">n</span><span class="op">)</span><span class="op">{</span></span>
-<span>    <span class="va">sk</span><span class="op">[</span><span class="va">t</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, <span class="fl">1</span>, prob <span class="op">=</span> <span class="va">Gamma</span><span class="op">[</span><span class="va">sk</span><span class="op">[</span><span class="va">t</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>,,<span class="va">k</span><span class="op">]</span><span class="op">)</span></span>
-<span>    <span class="va">xk</span><span class="op">[</span><span class="va">t</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">mu</span><span class="op">[</span><span class="va">sk</span><span class="op">[</span><span class="va">t</span><span class="op">]</span><span class="op">]</span>, <span class="va">sigma</span><span class="op">[</span><span class="va">sk</span><span class="op">[</span><span class="va">t</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="op">}</span></span>
-<span>  <span class="va">s</span><span class="op">[</span><span class="op">(</span><span class="va">k</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">*</span><span class="va">n</span> <span class="op">+</span> <span class="fl">1</span><span class="op">:</span><span class="va">n</span><span class="op">]</span> <span class="op">=</span> <span class="va">sk</span></span>
-<span>  <span class="va">x</span><span class="op">[</span><span class="op">(</span><span class="va">k</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">*</span><span class="va">n</span> <span class="op">+</span> <span class="fl">1</span><span class="op">:</span><span class="va">n</span><span class="op">]</span> <span class="op">=</span> <span class="va">xk</span></span>
-<span><span class="op">}</span></span></code></pre></div>
-</div>
 <div class="section level3">
 <h3 id="writing-the-negative-log-likelihood-function-1">Writing the negative log-likelihood function<a class="anchor" aria-label="anchor" href="#writing-the-negative-log-likelihood-function-1"></a>
 </h3>
 <p>Each individual has its own constant transition probability matrix,
-determined by its covariate value. We compute all <span class="math inline">K</span> individual-specific tpms at once using
-<code><a href="../reference/tpm.html">tpm()</a></code>. When passed an array of transition matrices of
-dimension <code>c(N,N,K)</code>, <code><a href="../reference/stationary.html">stationary()</a></code> returns a
-matrix of dimension <code>c(K,N)</code> with the stationary distribution
-for each tpm in its rows. Both are then passed to <code><a href="../reference/forward.html">forward()</a></code>
-together with <code>trackID</code>.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+determined by its covariate value. <code><a href="../reference/tpm.html">tpm()</a></code> computes all <span class="math inline">K</span> individual-specific matrices at once, and
+<code><a href="../reference/forward.html">forward()</a></code> uses matrix <span class="math inline">k</span>
+for track <span class="math inline">k</span>. With
+<code>delta = "stationary"</code>, each track starts in the stationary
+distribution of its own matrix.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nll_partial</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">par</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">getAll</a></span><span class="op">(</span><span class="va">par</span>, <span class="va">dat</span><span class="op">)</span></span>
-<span>  <span class="va">Gamma</span> <span class="op">=</span> <span class="fu"><a href="../reference/tpm.html">tpm</a></span><span class="op">(</span><span class="va">beta</span>, <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">z</span>, ncol <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="co"># array of K individual-specific tpms</span></span>
-<span>  <span class="va">Delta</span> <span class="op">=</span> <span class="fu"><a href="../reference/stationary.html">stationary</a></span><span class="op">(</span><span class="va">Gamma</span><span class="op">)</span> <span class="co"># when passed an array, returns a matrix of dim c(K, N),</span></span>
-<span>                            <span class="co"># each row being the stationary distribution for one tpm</span></span>
+<span>  <span class="va">Gamma</span> <span class="op">=</span> <span class="fu"><a href="../reference/tpm.html">tpm</a></span><span class="op">(</span><span class="va">beta</span>, <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">z</span>, ncol <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">REPORT</a></span><span class="op">(</span><span class="va">beta</span><span class="op">)</span> <span class="co"># array of K individual-specific tpms</span></span>
 <span>  <span class="va">mu</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">log_mu</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">REPORT</a></span><span class="op">(</span><span class="va">mu</span><span class="op">)</span></span>
 <span>  <span class="va">sigma</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">log_sigma</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">REPORT</a></span><span class="op">(</span><span class="va">sigma</span><span class="op">)</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">REPORT</a></span><span class="op">(</span><span class="va">beta</span><span class="op">)</span></span>
-<span>  <span class="va">allprobs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>, <span class="va">N</span><span class="op">)</span></span>
-<span>  <span class="kw">for</span><span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">)</span> <span class="va">allprobs</span><span class="op">[</span>,<span class="va">j</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">mu</span><span class="op">[</span><span class="va">j</span><span class="op">]</span>, <span class="va">sigma</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="co"># Delta matrix and Gamma array supply individual-specific starts and tpms</span></span>
-<span>  <span class="op">-</span><span class="fu"><a href="../reference/forward.html">forward</a></span><span class="op">(</span><span class="va">Delta</span>, <span class="va">Gamma</span>, <span class="va">allprobs</span>, <span class="va">trackID</span><span class="op">)</span></span>
+<span>  <span class="va">allprobs</span> <span class="op">=</span> <span class="fu"><a href="../reference/statedens.html">statedens</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">dnorm</span>, <span class="va">mu</span>, <span class="va">sigma</span><span class="op">)</span></span>
+<span>  <span class="op">-</span><span class="fu"><a href="../reference/forward.html">forward</a></span><span class="op">(</span><span class="st">"stationary"</span>, <span class="va">Gamma</span>, <span class="va">allprobs</span>, <span class="va">trackID</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="simulating-data-1">Simulating data<a class="anchor" aria-label="anchor" href="#simulating-data-1"></a>
+</h3>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">K</span> <span class="op">=</span> <span class="fl">5</span>   <span class="co"># number of individuals</span></span>
+<span><span class="va">n</span> <span class="op">=</span> <span class="fl">200</span> <span class="co"># observations per individual</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
+<span><span class="va">z</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">K</span><span class="op">)</span> <span class="co"># individual-level covariate</span></span>
+<span></span>
+<span><span class="va">par_true</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  beta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span>, <span class="op">-</span><span class="fl">2</span>, <span class="fl">1</span>, <span class="op">-</span><span class="fl">1</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>, <span class="co"># intercepts and slopes of the tpm regression</span></span>
+<span>  log_mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">60</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  log_sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">40</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">dat</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="va">n</span> <span class="op">*</span> <span class="va">K</span><span class="op">)</span>,</span>
+<span>  z <span class="op">=</span> <span class="va">z</span>,</span>
+<span>  trackID <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">K</span>, each <span class="op">=</span> <span class="va">n</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">sim</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="fu"><a href="../reference/lama.html">lama</a></span><span class="op">(</span><span class="fu">MakeADFun</span><span class="op">(</span><span class="va">nll_partial</span>, <span class="va">par_true</span>, silent <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span>, seed <span class="op">=</span> <span class="fl">123</span><span class="op">)</span></span>
+<span><span class="va">dat</span><span class="op">$</span><span class="va">x</span> <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">x</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="estimating-the-model-1">Estimating the model<a class="anchor" aria-label="anchor" href="#estimating-the-model-1"></a>
 </h3>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">trackID</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">K</span>, each <span class="op">=</span> <span class="va">n</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">par</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  beta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span>, <span class="op">-</span><span class="fl">2</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="va">N</span><span class="op">*</span><span class="op">(</span><span class="va">N</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span>, <span class="co"># regression coefficients for tpm</span></span>
-<span>  log_mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">60</span><span class="op">)</span><span class="op">)</span>,                         <span class="co"># initial state-dependent means</span></span>
-<span>  log_sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">40</span><span class="op">)</span><span class="op">)</span>                       <span class="co"># initial state-dependent sds</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">dat</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  x <span class="op">=</span> <span class="va">x</span>,</span>
-<span>  z <span class="op">=</span> <span class="va">z</span>,</span>
-<span>  trackID <span class="op">=</span> <span class="va">trackID</span>,</span>
-<span>  N <span class="op">=</span> <span class="va">N</span></span>
+<code class="sourceCode R"><span><span class="va">par</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  beta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span>, <span class="op">-</span><span class="fl">2</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>, <span class="co"># regression coefficients for tpm</span></span>
+<span>  log_mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">50</span><span class="op">)</span><span class="op">)</span>,                  <span class="co"># initial state-dependent means</span></span>
+<span>  log_sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">30</span><span class="op">)</span><span class="op">)</span>                <span class="co"># initial state-dependent sds</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">obj_partial</span> <span class="op">=</span> <span class="fu">MakeADFun</span><span class="op">(</span><span class="va">nll_partial</span>, <span class="va">par</span>, silent <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -293,19 +272,19 @@ together with <code>trackID</code>.</p>
 <span>  <span class="va">opt_partial</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></span><span class="op">(</span><span class="va">obj_partial</span><span class="op">$</span><span class="va">par</span>, <span class="va">obj_partial</span><span class="op">$</span><span class="va">fn</span>, <span class="va">obj_partial</span><span class="op">$</span><span class="va">gr</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.006   0.000   0.007</span></span>
+<span><span class="co">#&gt;   0.017   0.000   0.017</span></span>
 <span><span class="va">mod_partial</span> <span class="op">=</span> <span class="fu"><a href="../reference/lama.html">lama</a></span><span class="op">(</span><span class="va">obj_partial</span><span class="op">)</span></span></code></pre></div>
 <p>The estimated regression coefficients for the transition
 probabilities and the shared state-dependent parameters:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_partial</span><span class="op">$</span><span class="va">beta</span>   <span class="co"># true: c(-2, -2, 1, -1)</span></span>
 <span><span class="co">#&gt;           [,1]       [,2]</span></span>
-<span><span class="co">#&gt; [1,] -2.055222  0.6029733</span></span>
-<span><span class="co">#&gt; [2,] -2.088381 -1.2557279</span></span>
+<span><span class="co">#&gt; [1,] -1.875389  0.6667121</span></span>
+<span><span class="co">#&gt; [2,] -1.823894 -0.9405922</span></span>
 <span><span class="va">mod_partial</span><span class="op">$</span><span class="va">mu</span>     <span class="co"># true: 15, 60</span></span>
-<span><span class="co">#&gt; [1] 15.70795 57.88094</span></span>
+<span><span class="co">#&gt; [1] 15.17265 61.42479</span></span>
 <span><span class="va">mod_partial</span><span class="op">$</span><span class="va">sigma</span>  <span class="co"># true: 10, 40</span></span>
-<span><span class="co">#&gt; [1] 10.33312 41.92609</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 10.29714 38.78404</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -320,7 +299,8 @@ estimating <span class="math inline">K</span> independent transition
 structures, we model each individual’s linear predictor as a deviation
 from a shared population-level intercept: <span class="math display">
 \text{logit}(\gamma_{ij}^{(k)}) = \beta_0^{(ij)} + u_{ij}^{(k)}, \quad
-u_{ij}^{(k)} \overset{\text{iid}}{\sim} N\bigl(0, \sigma_u^{(ij)}\bigr),
+u_{ij}^{(k)} \overset{\text{iid}}{\sim} N\bigl(0,
+(\sigma_u^{(ij)})^2\bigr),
 </span> for each off-diagonal element (<span class="math inline">i \neq
 j</span>) and each individual <span class="math inline">k = 1, \dots,
 K</span>. The population-level intercept <span class="math inline">\beta_0^{(ij)}</span> captures the average switching
@@ -335,102 +315,85 @@ the joint likelihood. <code>RTMB</code> handles this automatically when
 the random effects are declared via the <code>random</code> argument of
 <code>MakeADFun()</code>.</p>
 <div class="section level3">
-<h3 id="generating-data-2">Generating data<a class="anchor" aria-label="anchor" href="#generating-data-2"></a>
-</h3>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
-<span><span class="va">K</span> <span class="op">=</span> <span class="fl">50</span>    <span class="co"># number of individuals</span></span>
-<span><span class="va">N</span> <span class="op">=</span> <span class="fl">2</span>     <span class="co"># number of states</span></span>
-<span><span class="va">n</span> <span class="op">=</span> <span class="fl">100</span>   <span class="co"># observations per individual</span></span>
-<span></span>
-<span><span class="co"># Shared state-dependent parameters</span></span>
-<span><span class="va">mu</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">60</span><span class="op">)</span></span>
-<span><span class="va">sigma</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">40</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Population-level intercepts and individual random effects</span></span>
-<span><span class="va">beta_0</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span>, <span class="op">-</span><span class="fl">2</span><span class="op">)</span>  <span class="co"># one per off-diagonal element</span></span>
-<span><span class="va">sigma_u</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>   <span class="co"># one per off-diagonal element</span></span>
-<span></span>
-<span><span class="va">u_true</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">K</span> <span class="op">*</span> <span class="va">N</span><span class="op">*</span><span class="op">(</span><span class="va">N</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span>, <span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">sigma_u</span>, each <span class="op">=</span> <span class="va">K</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>                nrow <span class="op">=</span> <span class="va">K</span>, ncol <span class="op">=</span> <span class="va">N</span><span class="op">*</span><span class="op">(</span><span class="va">N</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># K individual-specific tpms and their stationary distributions</span></span>
-<span><span class="va">Gamma_true</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">N</span>, <span class="va">N</span>, <span class="va">K</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="kw">for</span><span class="op">(</span><span class="va">k</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">K</span><span class="op">)</span> <span class="va">Gamma_true</span><span class="op">[</span>,,<span class="va">k</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="../reference/tpm.html">tpm</a></span><span class="op">(</span><span class="va">beta_0</span> <span class="op">+</span> <span class="va">u_true</span><span class="op">[</span><span class="va">k</span>,<span class="op">]</span><span class="op">)</span></span>
-<span><span class="va">Delta_true</span> <span class="op">=</span> <span class="fu"><a href="../reference/stationary.html">stationary</a></span><span class="op">(</span><span class="va">Gamma_true</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Simulate all tracks</span></span>
-<span><span class="va">s</span> <span class="op">=</span> <span class="va">x</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="va">n</span> <span class="op">*</span> <span class="va">K</span><span class="op">)</span></span>
-<span><span class="kw">for</span><span class="op">(</span><span class="va">k</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">K</span><span class="op">)</span><span class="op">{</span></span>
-<span>  <span class="va">sk</span> <span class="op">=</span> <span class="va">xk</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="va">n</span><span class="op">)</span></span>
-<span>  <span class="va">sk</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, <span class="fl">1</span>, prob <span class="op">=</span> <span class="va">Delta_true</span><span class="op">[</span><span class="va">k</span>,<span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="va">xk</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">mu</span><span class="op">[</span><span class="va">sk</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, <span class="va">sigma</span><span class="op">[</span><span class="va">sk</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="kw">for</span><span class="op">(</span><span class="va">t</span> <span class="kw">in</span> <span class="fl">2</span><span class="op">:</span><span class="va">n</span><span class="op">)</span><span class="op">{</span></span>
-<span>    <span class="va">sk</span><span class="op">[</span><span class="va">t</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, <span class="fl">1</span>, prob <span class="op">=</span> <span class="va">Gamma_true</span><span class="op">[</span><span class="va">sk</span><span class="op">[</span><span class="va">t</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>,,<span class="va">k</span><span class="op">]</span><span class="op">)</span></span>
-<span>    <span class="va">xk</span><span class="op">[</span><span class="va">t</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">mu</span><span class="op">[</span><span class="va">sk</span><span class="op">[</span><span class="va">t</span><span class="op">]</span><span class="op">]</span>, <span class="va">sigma</span><span class="op">[</span><span class="va">sk</span><span class="op">[</span><span class="va">t</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="op">}</span></span>
-<span>  <span class="va">s</span><span class="op">[</span><span class="op">(</span><span class="va">k</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">*</span><span class="va">n</span> <span class="op">+</span> <span class="fl">1</span><span class="op">:</span><span class="va">n</span><span class="op">]</span> <span class="op">=</span> <span class="va">sk</span></span>
-<span>  <span class="va">x</span><span class="op">[</span><span class="op">(</span><span class="va">k</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">*</span><span class="va">n</span> <span class="op">+</span> <span class="fl">1</span><span class="op">:</span><span class="va">n</span><span class="op">]</span> <span class="op">=</span> <span class="va">xk</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="va">trackID</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">K</span>, each <span class="op">=</span> <span class="va">n</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
 <h3 id="writing-the-joint-negative-log-likelihood">Writing the joint negative log-likelihood<a class="anchor" aria-label="anchor" href="#writing-the-joint-negative-log-likelihood"></a>
 </h3>
 <p>The joint negative log-likelihood includes both the data likelihood
-(via <code><a href="../reference/forward.html">forward()</a></code>) and the Gaussian prior on the random
-effects:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+(via <code><a href="../reference/forward.html">forward()</a></code>) and the Gaussian density of the random
+effects. The random effects are stored in a matrix <code>u</code> with
+one row per individual, so <code>u + rep(beta_0, each = K)</code> is the
+matrix of linear predictors, from which <code>tpm(Eta = ...)</code>
+computes one transition probability matrix per row.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">jnll_re</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">par</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">getAll</a></span><span class="op">(</span><span class="va">par</span>, <span class="va">dat</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="co"># Random effect standard deviations</span></span>
+<span>  <span class="co"># random effects: u[,ij] ~ N(0, sigma_u[ij]^2)</span></span>
 <span>  <span class="va">sigma_u</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">log_sigma_u</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">REPORT</a></span><span class="op">(</span><span class="va">sigma_u</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">ADREPORT</a></span><span class="op">(</span><span class="va">sigma_u</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="co"># Gaussian prior on u: u[,ij] ~ N(0, sigma_u[ij])</span></span>
-<span>  <span class="va">jnll</span> <span class="op">=</span> <span class="fl">0</span></span>
-<span>  <span class="kw">for</span><span class="op">(</span><span class="va">ij</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="op">(</span><span class="va">N</span><span class="op">*</span><span class="op">(</span><span class="va">N</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">jnll</span> <span class="op">=</span> <span class="va">jnll</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">u</span><span class="op">[</span>,<span class="va">ij</span><span class="op">]</span>, <span class="fl">0</span>, <span class="va">sigma_u</span><span class="op">[</span><span class="va">ij</span><span class="op">]</span>, log <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="op">}</span></span>
-<span></span>
-<span>  <span class="co"># Individual-specific tpms from population intercept + random effect</span></span>
-<span>  <span class="va">Gamma</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/AD.html" class="external-link">AD</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">N</span>, <span class="va">N</span>, <span class="va">K</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="kw">for</span><span class="op">(</span><span class="va">k</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">K</span><span class="op">)</span> <span class="va">Gamma</span><span class="op">[</span>,,<span class="va">k</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="../reference/tpm.html">tpm</a></span><span class="op">(</span><span class="va">beta_0</span> <span class="op">+</span> <span class="va">u</span><span class="op">[</span><span class="va">k</span>,<span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="va">Delta</span> <span class="op">=</span> <span class="fu"><a href="../reference/stationary.html">stationary</a></span><span class="op">(</span><span class="va">Gamma</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="co"># Observation model</span></span>
+<span>  <span class="va">jnll</span> <span class="op">=</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">u</span>, <span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">sigma_u</span>, each <span class="op">=</span> <span class="va">K</span><span class="op">)</span>, log <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="co"># individual-specific tpms from population intercept + random effect</span></span>
+<span>  <span class="va">Gamma</span> <span class="op">=</span> <span class="fu"><a href="../reference/tpm.html">tpm</a></span><span class="op">(</span>Eta <span class="op">=</span> <span class="va">u</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">beta_0</span>, each <span class="op">=</span> <span class="va">K</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="co"># observation model</span></span>
 <span>  <span class="va">mu</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">log_mu</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">REPORT</a></span><span class="op">(</span><span class="va">mu</span><span class="op">)</span></span>
 <span>  <span class="va">sigma</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">log_sigma</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">REPORT</a></span><span class="op">(</span><span class="va">sigma</span><span class="op">)</span></span>
-<span>  <span class="va">allprobs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>, <span class="va">N</span><span class="op">)</span></span>
-<span>  <span class="kw">for</span><span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">)</span> <span class="va">allprobs</span><span class="op">[</span>,<span class="va">j</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">mu</span><span class="op">[</span><span class="va">j</span><span class="op">]</span>, <span class="va">sigma</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="va">jnll</span> <span class="op">-</span> <span class="fu"><a href="../reference/forward.html">forward</a></span><span class="op">(</span><span class="va">Delta</span>, <span class="va">Gamma</span>, <span class="va">allprobs</span>, <span class="va">trackID</span><span class="op">)</span></span>
+<span>  <span class="va">allprobs</span> <span class="op">=</span> <span class="fu"><a href="../reference/statedens.html">statedens</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">dnorm</span>, <span class="va">mu</span>, <span class="va">sigma</span><span class="op">)</span></span>
+<span>  <span class="va">jnll</span> <span class="op">-</span> <span class="fu"><a href="../reference/forward.html">forward</a></span><span class="op">(</span><span class="st">"stationary"</span>, <span class="va">Gamma</span>, <span class="va">allprobs</span>, <span class="va">trackID</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="simulating-data-2">Simulating data<a class="anchor" aria-label="anchor" href="#simulating-data-2"></a>
+</h3>
+<p>For models with random effects, <code><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate()</a></code> can work in
+two ways:</p>
+<ul>
+<li>By default, it simulates <strong>conditional on the reported random
+effects</strong>, i.e. for the same individuals. For a fitted model,
+these are the estimated random effects. Here, they would be the zeros in
+<code>par_true</code>, so all individuals would have the same transition
+probabilities.</li>
+<li>With <code>random = TRUE</code>, it first <strong>draws new random
+effects</strong> from their distribution and then the states and
+observations given these draws, i.e. for new individuals. This requires
+that the density of <code>u</code> is evaluated in the likelihood before
+<code>u</code> is used, as in <code>jnll_re</code>.</li>
+</ul>
+<p>To generate data from the random effects model, we hence need
+<code>random = TRUE</code>:</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">K</span> <span class="op">=</span> <span class="fl">50</span>  <span class="co"># number of individuals</span></span>
+<span><span class="va">n</span> <span class="op">=</span> <span class="fl">100</span> <span class="co"># observations per individual</span></span>
+<span></span>
+<span><span class="va">par_true</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  beta_0 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span>, <span class="op">-</span><span class="fl">2</span><span class="op">)</span>,         <span class="co"># population-level intercepts</span></span>
+<span>  log_sigma_u <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span>, <span class="co"># log-SDs of random effects</span></span>
+<span>  u <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">K</span>, <span class="fl">2</span><span class="op">)</span>,        <span class="co"># random effects, drawn by simulate()</span></span>
+<span>  log_mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">60</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  log_sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">40</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">dat</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="va">n</span> <span class="op">*</span> <span class="va">K</span><span class="op">)</span>,</span>
+<span>  trackID <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">K</span>, each <span class="op">=</span> <span class="va">n</span><span class="op">)</span>,</span>
+<span>  K <span class="op">=</span> <span class="va">K</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">obj_true</span> <span class="op">=</span> <span class="fu">MakeADFun</span><span class="op">(</span><span class="va">jnll_re</span>, <span class="va">par_true</span>, random <span class="op">=</span> <span class="st">"u"</span>, silent <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">sim</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="fu"><a href="../reference/lama.html">lama</a></span><span class="op">(</span><span class="va">obj_true</span><span class="op">)</span>, seed <span class="op">=</span> <span class="fl">123</span>, random <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">dat</span><span class="op">$</span><span class="va">x</span> <span class="op">=</span> <span class="va">sim</span><span class="op">$</span><span class="va">x</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="estimating-the-model-2">Estimating the model<a class="anchor" aria-label="anchor" href="#estimating-the-model-2"></a>
 </h3>
 <p>The random effects matrix <code>u</code> is declared via
 <code>random = "u"</code>, telling <code>RTMB</code> to integrate it
-out. The optimiser only sees the marginal (random-effects-free)
-likelihood as a function of the fixed-effect parameters
-<code>beta_0</code>, <code>log_sigma_u</code>, <code>log_mu</code>, and
+out. The optimiser only sees the marginal likelihood as a function of
+the fixed-effect parameters <code>beta_0</code>,
+<code>log_sigma_u</code>, <code>log_mu</code>, and
 <code>log_sigma</code>.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">par</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  beta_0 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span>, <span class="va">N</span><span class="op">*</span><span class="op">(</span><span class="va">N</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span>,      <span class="co"># population-level intercepts</span></span>
-<span>  log_sigma_u <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span>,     <span class="co"># log-SDs of random effects</span></span>
-<span>  u <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">K</span>, <span class="va">N</span><span class="op">*</span><span class="op">(</span><span class="va">N</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span>,      <span class="co"># random effects (integrated out)</span></span>
-<span>  log_mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">60</span><span class="op">)</span><span class="op">)</span>,        <span class="co"># initial state-dependent means</span></span>
-<span>  log_sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">40</span><span class="op">)</span><span class="op">)</span>      <span class="co"># initial state-dependent sds</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">dat</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  x <span class="op">=</span> <span class="va">x</span>,</span>
-<span>  trackID <span class="op">=</span> <span class="va">trackID</span>,</span>
-<span>  K <span class="op">=</span> <span class="va">K</span>,</span>
-<span>  N <span class="op">=</span> <span class="va">N</span></span>
+<span>  beta_0 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span>,        <span class="co"># population-level intercepts</span></span>
+<span>  log_sigma_u <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span>, <span class="co"># log-SDs of random effects</span></span>
+<span>  u <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">K</span>, <span class="fl">2</span><span class="op">)</span>,        <span class="co"># random effects (integrated out)</span></span>
+<span>  log_mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">50</span><span class="op">)</span><span class="op">)</span>,    <span class="co"># initial state-dependent means</span></span>
+<span>  log_sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">30</span><span class="op">)</span><span class="op">)</span>  <span class="co"># initial state-dependent sds</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">obj_re</span> <span class="op">=</span> <span class="fu">MakeADFun</span><span class="op">(</span><span class="va">jnll_re</span>, <span class="va">par</span>, random <span class="op">=</span> <span class="st">"u"</span>, silent <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -438,7 +401,7 @@ likelihood as a function of the fixed-effect parameters
 <span>  <span class="va">opt_re</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></span><span class="op">(</span><span class="va">obj_re</span><span class="op">$</span><span class="va">par</span>, <span class="va">obj_re</span><span class="op">$</span><span class="va">fn</span>, <span class="va">obj_re</span><span class="op">$</span><span class="va">gr</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   1.050   0.063   1.114</span></span>
+<span><span class="co">#&gt;   3.866   0.072   3.939</span></span>
 <span><span class="va">mod_re</span> <span class="op">=</span> <span class="fu"><a href="../reference/lama.html">lama</a></span><span class="op">(</span><span class="va">obj_re</span><span class="op">)</span></span></code></pre></div>
 <p>The estimated standard deviations of the random effects tell us how
 much the transition probabilities vary across individuals. We can check
@@ -446,19 +409,34 @@ the key population-level estimates against the true values used in the
 simulation:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mod_re</span><span class="op">$</span><span class="va">sigma_u</span>  <span class="co"># true: 1, 1</span></span>
-<span><span class="co">#&gt; [1] 1.073841 0.934637</span></span>
+<span><span class="co">#&gt; [1] 1.0921681 0.8144595</span></span>
 <span><span class="va">mod_re</span><span class="op">$</span><span class="va">mu</span>       <span class="co"># true: 15, 60</span></span>
-<span><span class="co">#&gt; [1] 14.62212 60.00429</span></span>
+<span><span class="co">#&gt; [1] 14.72053 60.42473</span></span>
 <span><span class="va">mod_re</span><span class="op">$</span><span class="va">sigma</span>    <span class="co"># true: 10, 40</span></span>
-<span><span class="co">#&gt; [1]  9.937914 39.891970</span></span></code></pre></div>
+<span><span class="co">#&gt; [1]  9.798952 39.633995</span></span></code></pre></div>
 <p>Standard errors for all fixed effects and <code><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">ADREPORT()</a></code>ed
 quantities are available via <code>sdreport()</code>:</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sdr_re</span> <span class="op">=</span> <span class="fu">sdreport</span><span class="op">(</span><span class="va">obj_re</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">sdr_re</span>, <span class="st">"report"</span><span class="op">)</span> <span class="co"># sigma_u with SEs</span></span>
-<span><span class="co">#&gt;         Estimate Std. Error</span></span>
-<span><span class="co">#&gt; sigma_u 1.073841  0.1693166</span></span>
-<span><span class="co">#&gt; sigma_u 0.934637  0.1572146</span></span></code></pre></div>
+<span><span class="co">#&gt;          Estimate Std. Error</span></span>
+<span><span class="co">#&gt; sigma_u 1.0921681  0.1592198</span></span>
+<span><span class="co">#&gt; sigma_u 0.8144595  0.1399563</span></span></code></pre></div>
+<p>For the fitted model, the two ways of simulating answer different
+questions. <code>simulate(mod_re)</code> simulates new data for the 50
+individuals in the data, using their estimated random effects, while
+<code>simulate(mod_re, random = TRUE)</code> simulates data for 50 new
+individuals from the estimated population. Comparing the empirical
+switching rates per individual shows the difference:</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">switch_rate</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">sim</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/tapply.html" class="external-link">tapply</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">state</span>, <span class="va">sim</span><span class="op">$</span><span class="va">trackID</span>, <span class="kw">function</span><span class="op">(</span><span class="va">s</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span> <span class="op">!=</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">rates_same</span> <span class="op">=</span> <span class="fu">switch_rate</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">mod_re</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">rates_new</span> <span class="op">=</span> <span class="fu">switch_rate</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">mod_re</span>, seed <span class="op">=</span> <span class="fl">1</span>, random <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">rates_same</span>, <span class="fu">switch_rate</span><span class="op">(</span><span class="va">sim</span><span class="op">)</span><span class="op">)</span> <span class="co"># same individuals: related to the original rates</span></span>
+<span><span class="co">#&gt; [1] 0.8934546</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">rates_new</span>, <span class="fu">switch_rate</span><span class="op">(</span><span class="va">sim</span><span class="op">)</span><span class="op">)</span>  <span class="co"># new individuals: unrelated</span></span>
+<span><span class="co">#&gt; [1] -0.02842753</span></span></code></pre></div>
 <blockquote>
 <p>Continue reading with <a href="https://janolefi.github.io/LaMa/articles/Penalised_splines.html"><strong>Penalised
 splines</strong></a>.</p>

@@ -3,8 +3,8 @@
 > Before diving into this vignette, we recommend reading the vignettes
 > [**Introduction to
 > LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html)
-> and [**Automatic differentiation via
-> RTMB**](https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html).
+> and [**Finer
+> control**](https://janolefi.github.io/LaMa/articles/Finer_control.html).
 
 ``` r
 
@@ -22,10 +22,10 @@ pool parameters across tracks or not. Here, we provide brief examples
 for complete and partial pooling.
 
 When the data consists of K independent tracks, the joint likelihood is
-L(\theta) = \prod\_{k=1}^K L_k(\theta), where L_k(\theta) is the usual
-HMM likelihood for the k-th track, so the log-likelihood is a sum over K
-tracks. In `LaMa`, this is handled efficiently by passing a `trackID`
-vector to
+L(\boldsymbol{\theta}) = \prod\_{k=1}^K L_k(\boldsymbol{\theta}), where
+L_k(\boldsymbol{\theta}) is the usual HMM likelihood for the k-th track,
+so the log-likelihood is a sum over K tracks. In `LaMa`, this is handled
+efficiently by passing a `trackID` vector to
 [`forward()`](https://janolefi.github.io/LaMa/reference/forward.md),
 which specifies the track index of each observation. The forward
 algorithm then resets to the initial distribution at the start of each
@@ -45,58 +45,66 @@ and other downstream functions rely — works correctly.
 
 With complete pooling, all parameters are shared across individuals.
 
-### Generating data
-
-We generate K separate tracks from the same model:
-
-``` r
-
-# parameters shared across individuals
-mu = c(15, 60)    # state-dependent means
-sigma = c(10, 40) # state-dependent standard deviations
-Gamma = matrix(c(0.95, 0.05,
-                 0.15, 0.85), nrow = 2, byrow = TRUE)
-delta = stationary(Gamma)
-
-set.seed(123)
-K = 200 # number of individuals
-N = 2   # number of states
-n = 50  # observations per individual
-
-s = x = rep(NA, n * K)
-for(k in 1:K){
-  sk = xk = rep(NA, n)
-  sk[1] = sample(1:2, 1, prob = delta)
-  xk[1] = rnorm(1, mu[sk[1]], sigma[sk[1]])
-  for(t in 2:n){
-    sk[t] = sample(1:2, 1, prob = Gamma[sk[t-1],])
-    xk[t] = rnorm(1, mu[sk[t]], sigma[sk[t]])
-  }
-  s[(k-1)*n + 1:n] = sk
-  x[(k-1)*n + 1:n] = xk
-}
-
-trackID = rep(1:K, each = n)
-```
-
 ### Writing the negative log-likelihood function
 
 The likelihood function is almost identical to the single-track case —
 the only difference is passing `trackID` as an additional argument to
-[`forward()`](https://janolefi.github.io/LaMa/reference/forward.md):
+[`forward()`](https://janolefi.github.io/LaMa/reference/forward.md).
+With `delta = "stationary"`, each track starts in the stationary
+distribution.
 
 ``` r
 
 nll_pool = function(par) {
   getAll(par, dat)
   Gamma = tpm(eta)
-  delta = stationary(Gamma)
   mu = exp(log_mu); REPORT(mu)
   sigma = exp(log_sigma); REPORT(sigma)
-  allprobs = matrix(1, length(x), N)
-  for(j in 1:N) allprobs[,j] = dnorm(x, mu[j], sigma[j])
-  -forward(delta, Gamma, allprobs, trackID)
+  allprobs = statedens(x, dnorm, mu, sigma)
+  -forward("stationary", Gamma, allprobs, trackID)
 }
+```
+
+### Simulating data
+
+We can use the same likelihood function to simulate data.
+[`lama()`](https://janolefi.github.io/LaMa/reference/lama.md) does not
+need a fitted model: called on an object from `MakeADFun()` before
+optimisation, it reports at the parameter values the object was built
+with – here the true parameters.
+[`simulate()`](https://rdrr.io/r/stats/simulate.html) then draws states
+and observations from this model on the same design, i.e. with the
+tracks given by `trackID`. As there are no data yet, we pass an all-`NA`
+placeholder for `x`, which tells
+[`simulate()`](https://rdrr.io/r/stats/simulate.html) to fill in the
+whole stream. We simulate K = 200 tracks of length n = 50:
+
+``` r
+
+K = 200 # number of individuals
+n = 50  # observations per individual
+
+# true parameters, on the same scale as in the likelihood
+par_true = list(
+  eta = c(-3, -2),           # t.p.m. parameters (logit scale)
+  log_mu = log(c(15, 60)),   # state-dependent means (log scale)
+  log_sigma = log(c(10, 40)) # state-dependent sds (log scale)
+)
+dat = list(
+  x = rep(NA, n * K),        # placeholder for the observations
+  trackID = rep(1:K, each = n)
+)
+
+sim = simulate(lama(MakeADFun(nll_pool, par_true, silent = TRUE)), seed = 123)
+head(sim)
+#>   trackID state         x
+#> 1       1     2 120.94832
+#> 2       1     2  32.25963
+#> 3       1     2 120.33054
+#> 4       1     2  58.43673
+#> 5       1     2  83.11626
+#> 6       1     2  65.91779
+dat$x = sim$x
 ```
 
 ### Estimating the model
@@ -104,15 +112,9 @@ nll_pool = function(par) {
 ``` r
 
 par = list(
-  eta = rep(-2, N*(N-1)),    # initial t.p.m. parameters (logit scale)
-  log_mu = log(c(15, 60)),   # initial state-dependent means (log scale)
-  log_sigma = log(c(10, 40)) # initial state-dependent sds (log scale)
-)
-
-dat = list(
-  x = x,
-  trackID = trackID,
-  N = N
+  eta = rep(-2, 2),          # initial t.p.m. parameters (logit scale)
+  log_mu = log(c(20, 50)),   # initial state-dependent means (log scale)
+  log_sigma = log(c(10, 30)) # initial state-dependent sds (log scale)
 )
 
 obj_pool = MakeADFun(nll_pool, par, silent = TRUE)
@@ -120,23 +122,27 @@ system.time(
   opt_pool <- nlminb(obj_pool$par, obj_pool$fn, obj_pool$gr)
 )
 #>    user  system elapsed 
-#>   0.061   0.000   0.061
+#>   0.204   0.000   0.204
 mod_pool = lama(obj_pool)
 ```
 
-We can inspect the estimated parameters, which should be close to the
-true values used in the simulation:
+The estimated parameters should be close to the true values used in the
+simulation:
 
 ``` r
 
 mod_pool$mu     # true: 15, 60
-#> [1] 15.00258 59.10962
+#> [1] 15.04398 59.97678
 mod_pool$sigma  # true: 10, 40
-#> [1]  9.913063 39.856396
-mod_pool$Gamma  # true: c(0.95, 0.05, 0.15, 0.85)
-#>           S1         S2
-#> S1 0.9500705 0.04992952
-#> S2 0.1450977 0.85490231
+#> [1]  9.994448 40.204912
+mod_pool$Gamma
+#>            S1        S2
+#> S1 0.89197388 0.1080261
+#> S2 0.04650452 0.9534955
+tpm(par_true$eta) # true t.p.m.
+#>            S1        S2
+#> S1 0.88079708 0.1192029
+#> S2 0.04742587 0.9525741
 ```
 
 ## Partial pooling
@@ -144,95 +150,65 @@ mod_pool$Gamma  # true: c(0.95, 0.05, 0.15, 0.85)
 If some parameters are individual-specific while the rest are shared, we
 speak of partial pooling. We demonstrate this for K = 5 individuals
 whose transition probability matrices depend on an individual-level
-covariate, while the state-dependent observation parameters remain
+covariate (e.g. age), while the state-dependent parameters remain
 shared. We estimate the effect of this covariate on the transition
 probabilities.
-
-### Generating data
-
-``` r
-
-K = 5   # number of individuals
-N = 2   # number of states
-n = 200 # observations per individual
-
-# state-dependent parameters shared across individuals
-mu = c(15, 60)
-sigma = c(10, 40)
-
-# individual-specific tpms depending on a covariate (e.g. age)
-set.seed(123)
-z = rnorm(K)
-beta = matrix(c(-2, -2, 1, -1), nrow = N*(N-1))
-
-# compute K individual-specific tpms
-Gamma = tpm(beta, matrix(z, ncol = 1))
-# stationary() on an array returns a c(K, N) matrix of stationary distributions
-Delta = stationary(Gamma)
-
-# simulate all tracks
-set.seed(123)
-s = x = rep(NA, n * K)
-for(k in 1:K){
-  sk = xk = rep(NA, n)
-  sk[1] = sample(1:2, 1, prob = Delta[k,])
-  xk[1] = rnorm(1, mu[sk[1]], sigma[sk[1]])
-  for(t in 2:n){
-    sk[t] = sample(1:2, 1, prob = Gamma[sk[t-1],,k])
-    xk[t] = rnorm(1, mu[sk[t]], sigma[sk[t]])
-  }
-  s[(k-1)*n + 1:n] = sk
-  x[(k-1)*n + 1:n] = xk
-}
-```
 
 ### Writing the negative log-likelihood function
 
 Each individual has its own constant transition probability matrix,
-determined by its covariate value. We compute all K individual-specific
-tpms at once using
-[`tpm()`](https://janolefi.github.io/LaMa/reference/tpm.md). When passed
-an array of transition matrices of dimension `c(N,N,K)`,
-[`stationary()`](https://janolefi.github.io/LaMa/reference/stationary.md)
-returns a matrix of dimension `c(K,N)` with the stationary distribution
-for each tpm in its rows. Both are then passed to
-[`forward()`](https://janolefi.github.io/LaMa/reference/forward.md)
-together with `trackID`.
+determined by its covariate value.
+[`tpm()`](https://janolefi.github.io/LaMa/reference/tpm.md) computes all
+K individual-specific matrices at once, and
+[`forward()`](https://janolefi.github.io/LaMa/reference/forward.md) uses
+matrix k for track k. With `delta = "stationary"`, each track starts in
+the stationary distribution of its own matrix.
 
 ``` r
 
 nll_partial = function(par) {
   getAll(par, dat)
-  Gamma = tpm(beta, matrix(z, ncol = 1)) # array of K individual-specific tpms
-  Delta = stationary(Gamma) # when passed an array, returns a matrix of dim c(K, N),
-                            # each row being the stationary distribution for one tpm
+  Gamma = tpm(beta, matrix(z, ncol = 1)); REPORT(beta) # array of K individual-specific tpms
   mu = exp(log_mu); REPORT(mu)
   sigma = exp(log_sigma); REPORT(sigma)
-  REPORT(beta)
-  allprobs = matrix(1, length(x), N)
-  for(j in 1:N) allprobs[,j] = dnorm(x, mu[j], sigma[j])
-  # Delta matrix and Gamma array supply individual-specific starts and tpms
-  -forward(Delta, Gamma, allprobs, trackID)
+  allprobs = statedens(x, dnorm, mu, sigma)
+  -forward("stationary", Gamma, allprobs, trackID)
 }
+```
+
+### Simulating data
+
+``` r
+
+K = 5   # number of individuals
+n = 200 # observations per individual
+
+set.seed(123)
+z = rnorm(K) # individual-level covariate
+
+par_true = list(
+  beta = matrix(c(-2, -2, 1, -1), nrow = 2), # intercepts and slopes of the tpm regression
+  log_mu = log(c(15, 60)),
+  log_sigma = log(c(10, 40))
+)
+dat = list(
+  x = rep(NA, n * K),
+  z = z,
+  trackID = rep(1:K, each = n)
+)
+
+sim = simulate(lama(MakeADFun(nll_partial, par_true, silent = TRUE)), seed = 123)
+dat$x = sim$x
 ```
 
 ### Estimating the model
 
 ``` r
 
-trackID = rep(1:K, each = n)
-
 par = list(
-  beta = matrix(c(-2, -2, 0, 0), nrow = N*(N-1)), # regression coefficients for tpm
-  log_mu = log(c(15, 60)),                         # initial state-dependent means
-  log_sigma = log(c(10, 40))                       # initial state-dependent sds
-)
-
-dat = list(
-  x = x,
-  z = z,
-  trackID = trackID,
-  N = N
+  beta = matrix(c(-2, -2, 0, 0), nrow = 2), # regression coefficients for tpm
+  log_mu = log(c(20, 50)),                  # initial state-dependent means
+  log_sigma = log(c(10, 30))                # initial state-dependent sds
 )
 
 obj_partial = MakeADFun(nll_partial, par, silent = TRUE)
@@ -240,7 +216,7 @@ system.time(
   opt_partial <- nlminb(obj_partial$par, obj_partial$fn, obj_partial$gr)
 )
 #>    user  system elapsed 
-#>   0.006   0.000   0.007
+#>   0.017   0.000   0.017
 mod_partial = lama(obj_partial)
 ```
 
@@ -251,12 +227,12 @@ and the shared state-dependent parameters:
 
 mod_partial$beta   # true: c(-2, -2, 1, -1)
 #>           [,1]       [,2]
-#> [1,] -2.055222  0.6029733
-#> [2,] -2.088381 -1.2557279
+#> [1,] -1.875389  0.6667121
+#> [2,] -1.823894 -0.9405922
 mod_partial$mu     # true: 15, 60
-#> [1] 15.70795 57.88094
+#> [1] 15.17265 61.42479
 mod_partial$sigma  # true: 10, 40
-#> [1] 10.33312 41.92609
+#> [1] 10.29714 38.78404
 ```
 
 ## Random effects
@@ -270,8 +246,8 @@ transition structures, we model each individual’s linear predictor as a
 deviation from a shared population-level intercept:
 \text{logit}(\gamma\_{ij}^{(k)}) = \beta_0^{(ij)} + u\_{ij}^{(k)}, \quad
 u\_{ij}^{(k)} \overset{\text{iid}}{\sim} N\bigl(0,
-\sigma_u^{(ij)}\bigr), for each off-diagonal element (i \neq j) and each
-individual k = 1, \dots, K. The population-level intercept
+(\sigma_u^{(ij)})^2\bigr), for each off-diagonal element (i \neq j) and
+each individual k = 1, \dots, K. The population-level intercept
 \beta_0^{(ij)} captures the average switching tendency, while
 \sigma_u^{(ij)} quantifies how much individuals vary around it. The
 number of state-process parameters is 2 \times N(N-1) — two intercepts
@@ -282,105 +258,90 @@ To fit this model we need to integrate out the random effects from the
 joint likelihood. `RTMB` handles this automatically when the random
 effects are declared via the `random` argument of `MakeADFun()`.
 
-### Generating data
-
-``` r
-
-set.seed(123)
-K = 50    # number of individuals
-N = 2     # number of states
-n = 100   # observations per individual
-
-# Shared state-dependent parameters
-mu = c(15, 60)
-sigma = c(10, 40)
-
-# Population-level intercepts and individual random effects
-beta_0 = c(-2, -2)  # one per off-diagonal element
-sigma_u = c(1, 1)   # one per off-diagonal element
-
-u_true = matrix(rnorm(K * N*(N-1), 0, rep(sigma_u, each = K)),
-                nrow = K, ncol = N*(N-1))
-
-# K individual-specific tpms and their stationary distributions
-Gamma_true = array(NA, c(N, N, K))
-for(k in 1:K) Gamma_true[,,k] = tpm(beta_0 + u_true[k,])
-Delta_true = stationary(Gamma_true)
-
-# Simulate all tracks
-s = x = rep(NA, n * K)
-for(k in 1:K){
-  sk = xk = rep(NA, n)
-  sk[1] = sample(1:2, 1, prob = Delta_true[k,])
-  xk[1] = rnorm(1, mu[sk[1]], sigma[sk[1]])
-  for(t in 2:n){
-    sk[t] = sample(1:2, 1, prob = Gamma_true[sk[t-1],,k])
-    xk[t] = rnorm(1, mu[sk[t]], sigma[sk[t]])
-  }
-  s[(k-1)*n + 1:n] = sk
-  x[(k-1)*n + 1:n] = xk
-}
-
-trackID = rep(1:K, each = n)
-```
-
 ### Writing the joint negative log-likelihood
 
 The joint negative log-likelihood includes both the data likelihood (via
 [`forward()`](https://janolefi.github.io/LaMa/reference/forward.md)) and
-the Gaussian prior on the random effects:
+the Gaussian density of the random effects. The random effects are
+stored in a matrix `u` with one row per individual, so
+`u + rep(beta_0, each = K)` is the matrix of linear predictors, from
+which `tpm(Eta = ...)` computes one transition probability matrix per
+row.
 
 ``` r
 
 jnll_re = function(par) {
   getAll(par, dat)
-
-  # Random effect standard deviations
+  # random effects: u[,ij] ~ N(0, sigma_u[ij]^2)
   sigma_u = exp(log_sigma_u); REPORT(sigma_u); ADREPORT(sigma_u)
-
-  # Gaussian prior on u: u[,ij] ~ N(0, sigma_u[ij])
-  jnll = 0
-  for(ij in 1:(N*(N-1))) {
-    jnll = jnll - sum(dnorm(u[,ij], 0, sigma_u[ij], log = TRUE))
-  }
-
-  # Individual-specific tpms from population intercept + random effect
-  Gamma = AD(array(0, c(N, N, K)))
-  for(k in 1:K) Gamma[,,k] = tpm(beta_0 + u[k,])
-  Delta = stationary(Gamma)
-
-  # Observation model
+  jnll = -sum(dnorm(u, 0, rep(sigma_u, each = K), log = TRUE))
+  # individual-specific tpms from population intercept + random effect
+  Gamma = tpm(Eta = u + rep(beta_0, each = K))
+  # observation model
   mu = exp(log_mu); REPORT(mu)
   sigma = exp(log_sigma); REPORT(sigma)
-  allprobs = matrix(1, length(x), N)
-  for(j in 1:N) allprobs[,j] = dnorm(x, mu[j], sigma[j])
-
-  jnll - forward(Delta, Gamma, allprobs, trackID)
+  allprobs = statedens(x, dnorm, mu, sigma)
+  jnll - forward("stationary", Gamma, allprobs, trackID)
 }
+```
+
+### Simulating data
+
+For models with random effects,
+[`simulate()`](https://rdrr.io/r/stats/simulate.html) can work in two
+ways:
+
+- By default, it simulates **conditional on the reported random
+  effects**, i.e. for the same individuals. For a fitted model, these
+  are the estimated random effects. Here, they would be the zeros in
+  `par_true`, so all individuals would have the same transition
+  probabilities.
+- With `random = TRUE`, it first **draws new random effects** from their
+  distribution and then the states and observations given these draws,
+  i.e. for new individuals. This requires that the density of `u` is
+  evaluated in the likelihood before `u` is used, as in `jnll_re`.
+
+To generate data from the random effects model, we hence need
+`random = TRUE`:
+
+``` r
+
+K = 50  # number of individuals
+n = 100 # observations per individual
+
+par_true = list(
+  beta_0 = c(-2, -2),         # population-level intercepts
+  log_sigma_u = log(c(1, 1)), # log-SDs of random effects
+  u = matrix(0, K, 2),        # random effects, drawn by simulate()
+  log_mu = log(c(15, 60)),
+  log_sigma = log(c(10, 40))
+)
+dat = list(
+  x = rep(NA, n * K),
+  trackID = rep(1:K, each = n),
+  K = K
+)
+
+obj_true = MakeADFun(jnll_re, par_true, random = "u", silent = TRUE)
+sim = simulate(lama(obj_true), seed = 123, random = TRUE)
+dat$x = sim$x
 ```
 
 ### Estimating the model
 
 The random effects matrix `u` is declared via `random = "u"`, telling
 `RTMB` to integrate it out. The optimiser only sees the marginal
-(random-effects-free) likelihood as a function of the fixed-effect
-parameters `beta_0`, `log_sigma_u`, `log_mu`, and `log_sigma`.
+likelihood as a function of the fixed-effect parameters `beta_0`,
+`log_sigma_u`, `log_mu`, and `log_sigma`.
 
 ``` r
 
 par = list(
-  beta_0 = rep(-2, N*(N-1)),      # population-level intercepts
-  log_sigma_u = log(c(1, 1)),     # log-SDs of random effects
-  u = matrix(0, K, N*(N-1)),      # random effects (integrated out)
-  log_mu = log(c(15, 60)),        # initial state-dependent means
-  log_sigma = log(c(10, 40))      # initial state-dependent sds
-)
-
-dat = list(
-  x = x,
-  trackID = trackID,
-  K = K,
-  N = N
+  beta_0 = rep(-2, 2),        # population-level intercepts
+  log_sigma_u = log(c(1, 1)), # log-SDs of random effects
+  u = matrix(0, K, 2),        # random effects (integrated out)
+  log_mu = log(c(20, 50)),    # initial state-dependent means
+  log_sigma = log(c(10, 30))  # initial state-dependent sds
 )
 
 obj_re = MakeADFun(jnll_re, par, random = "u", silent = TRUE)
@@ -388,7 +349,7 @@ system.time(
   opt_re <- nlminb(obj_re$par, obj_re$fn, obj_re$gr)
 )
 #>    user  system elapsed 
-#>   1.050   0.063   1.114
+#>   3.866   0.072   3.939
 mod_re = lama(obj_re)
 ```
 
@@ -400,11 +361,11 @@ simulation:
 ``` r
 
 mod_re$sigma_u  # true: 1, 1
-#> [1] 1.073841 0.934637
+#> [1] 1.0921681 0.8144595
 mod_re$mu       # true: 15, 60
-#> [1] 14.62212 60.00429
+#> [1] 14.72053 60.42473
 mod_re$sigma    # true: 10, 40
-#> [1]  9.937914 39.891970
+#> [1]  9.798952 39.633995
 ```
 
 Standard errors for all fixed effects and
@@ -415,9 +376,28 @@ quantities are available via `sdreport()`:
 
 sdr_re = sdreport(obj_re)
 summary(sdr_re, "report") # sigma_u with SEs
-#>         Estimate Std. Error
-#> sigma_u 1.073841  0.1693166
-#> sigma_u 0.934637  0.1572146
+#>          Estimate Std. Error
+#> sigma_u 1.0921681  0.1592198
+#> sigma_u 0.8144595  0.1399563
+```
+
+For the fitted model, the two ways of simulating answer different
+questions. `simulate(mod_re)` simulates new data for the 50 individuals
+in the data, using their estimated random effects, while
+`simulate(mod_re, random = TRUE)` simulates data for 50 new individuals
+from the estimated population. Comparing the empirical switching rates
+per individual shows the difference:
+
+``` r
+
+switch_rate = function(sim) tapply(sim$state, sim$trackID, function(s) mean(diff(s) != 0))
+
+rates_same = switch_rate(simulate(mod_re, seed = 1))
+rates_new = switch_rate(simulate(mod_re, seed = 1, random = TRUE))
+cor(rates_same, switch_rate(sim)) # same individuals: related to the original rates
+#> [1] 0.8934546
+cor(rates_new, switch_rate(sim))  # new individuals: unrelated
+#> [1] -0.02842753
 ```
 
 > Continue reading with [**Penalised

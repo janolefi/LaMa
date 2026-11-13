@@ -1,10 +1,10 @@
-# 8 State-space models
+# 7 State-space models
 
 > Before diving into this vignette, we recommend reading the vignettes
 > [**Introduction to
 > LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html)
-> and [**Automatic differentiation via
-> RTMB**](https://janolefi.github.io/LaMa/articles/LaMa_and_RTMB.html).
+> and [**Finer
+> control**](https://janolefi.github.io/LaMa/articles/Finer_control.html).
 
 ``` r
 
@@ -37,7 +37,8 @@ which implies y_t \mid g_t \sim N(0, (\beta e^{g_t / 2})^2).
 
 ### Simulating data
 
-We start by simulating data from the above specified model:
+We start by simulating data from the above specified model and plot the
+share returns together with the underlying log-volatility:
 
 ``` r
 
@@ -56,23 +57,13 @@ for(t in 2:n){
 # sampling zero-mean observations with standard deviation given by latent process
 y = rnorm(n, 0, beta * exp(g/2)) 
 
-# share returns
 color = LaMaColors(2)
-oldpar = par(mar = c(5,4,3,4.5)+0.1)
-plot(y, type = "l", bty = "n", ylim = c(-40,20), yaxt = "n")
-# true underlying standard deviation
-lines(beta*exp(g)/7 - 40, col = color[2], lwd = 2)
-axis(side=2, at = seq(-20,20,by=5), labels = seq(-20,20,by=5))
-axis(side=4, at = seq(0,150,by=75)/7-40, labels = seq(0,150,by=75))
-mtext("standard deviation", side=4, line=3, at = -30)
+plot(y, type = "l", bty = "n", xlab = "time", ylab = "y", main = "Share returns")
+plot(g, type = "l", bty = "n", col = color[2], lwd = 2, xlab = "time", ylab = "g",
+     main = "Log-volatility")
 ```
 
-![](State_space_models_files/figure-html/data-1.png)
-
-``` r
-
-par(oldpar)
-```
+![](State_space_models_files/figure-html/data-1.png)![](State_space_models_files/figure-html/data-2.png)
 
 ### Writing the negative log-likelihood function
 
@@ -82,7 +73,25 @@ quadrature which ultimately results in a fine discretisation of the
 continuous state space into the intervals `b` with width `h` and
 midpoints `bstar` ([Langrock 2011](#ref-langrock2011some)). Thus, the
 likelihood below corresponds to a basic HMM likelihood with a large
-number of states.
+number of states. The discretisation does not depend on the parameters,
+so we compute it once:
+
+``` r
+
+bm = 5   # truncation of state space at ±bm
+m  = 100 # number of quadrature points
+
+b     = seq(-bm, bm, length = m + 1) # intervals for midpoint quadrature
+h     = b[2] - b[1]                  # interval width
+bstar = (b[-1] + b[-(m+1)]) / 2      # interval midpoints
+```
+
+Each midpoint is one state of the approximating HMM. As the
+state-dependent standard deviation `beta * exp(bstar / 2)` is a vector
+with one entry per state,
+[`statedens()`](https://janolefi.github.io/LaMa/reference/statedens.md)
+builds the T \times m matrix `allprobs` just like for an HMM with few
+states.
 
 ``` r
 
@@ -91,23 +100,21 @@ nll = function(par) {
   phi   = plogis(logit_phi); REPORT(phi)
   sigma = exp(log_sigma);    REPORT(sigma)
   beta  = exp(log_beta);     REPORT(beta)
-  b     = seq(-bm, bm, length = m + 1) # intervals for midpoint quadrature
-  h     = b[2] - b[1]                  # interval width
-  bstar = (b[-1] + b[-(m+1)]) / 2     # interval midpoints
   # approximating t.p.m. via midpoint quadrature
   Gamma = sapply(bstar, dnorm, mean = phi * bstar, sd = sigma) * h
   # stationary distribution of the AR(1) process: g ~ N(0, sigma^2/(1-phi^2))
-  delta = h * dnorm(bstar, 0, sigma / sqrt(1 - phi^2))
+  delta = dnorm(bstar, 0, sigma / sqrt(1 - phi^2)) * h
   # state-dependent densities: y_t | g_t ~ N(0, (beta * exp(g_t/2))^2)
-  allprobs = t(sapply(y, dnorm, mean = 0, sd = beta * exp(bstar / 2)))
+  allprobs = statedens(y, dnorm, 0, beta * exp(bstar / 2))
   -forward(delta, Gamma, allprobs)
 }
 ```
 
 ### Fitting an SSM to the data
 
-Because the transition matrix \Gamma is 100 \times 100 and dense, we set
-`TapeConfig(matmul = "atomic")` before building the AD objective.
+Because the transition matrix \boldsymbol{\Gamma} is 100 \times 100 and
+dense, we set `TapeConfig(matmul = "atomic")` before building the AD
+objective.
 
 By default (`"plain"`), `RTMB` unwraps every matrix multiplication into
 all its individual scalar operations on the tape. This is efficient when
@@ -126,22 +133,19 @@ preferable.
 
 TapeConfig(matmul = "atomic")
 
-bm = 5   # truncation of state space at ±bm
-m  = 100 # number of quadrature points
-
 par = list(
   logit_phi = qlogis(0.95),
   log_sigma = log(0.3),
   log_beta  = log(1)
 )
-dat = list(y = y, bm = bm, m = m)
+dat = list(y = y, bstar = bstar, h = h)
 
 obj = MakeADFun(nll, par, silent = TRUE)
 system.time(
   opt <- nlminb(obj$par, obj$fn, obj$gr)
 )
 #>    user  system elapsed 
-#>   0.446   0.000   0.446
+#>   0.567   0.001   0.568
 mod = lama(obj)
 ```
 
@@ -155,42 +159,53 @@ mod$sigma  # true: 0.5
 #> [1] 0.4436881
 mod$beta   # true: 2
 #> [1] 2.18407
+```
 
-## decoding states
-b     = seq(-bm, bm, length = m + 1)
-h     = b[2] - b[1]
-bstar = (b[-1] + b[-(m+1)]) / 2
-Gamma    = sapply(bstar, dnorm, mean = mod$phi * bstar, sd = mod$sigma) * h
-delta    = h * dnorm(bstar, 0, mod$sigma / sqrt(1 - mod$phi^2))
-allprobs = t(sapply(y, dnorm, mean = 0, sd = mod$beta * exp(bstar / 2)))
+As for any HMM, the model object contains everything needed for state
+decoding. With many states, the most probable state alone is not very
+informative. Instead, the local state probabilities from
+[`stateprobs()`](https://janolefi.github.io/LaMa/reference/stateprobs.md)
+are the (discretised) conditional distribution of g_t given all
+observations, from which we obtain its mean and a 95% interval for each
+time point:
 
-probs  = stateprobs(delta, Gamma, allprobs) # local/soft decoding
-states = viterbi(delta, Gamma, allprobs)    # global/hard decoding
+``` r
 
-oldpar = par(mar = c(5,4,3,4.5)+0.1)
-plot(y, type = "l", bty = "n", ylim = c(-50,20), yaxt = "n")
-# with many states, plotting the full conditional distribution is more informative
-# than just the single most-probable state
-maxprobs = apply(probs, 1, max)
-for(t in 1:nrow(probs)){
-  colend = round((probs[t,] / (maxprobs[t] * 5)) * 100)
-  colend[which(colend < 10)] = paste0("0", colend[which(colend < 10)])
-  points(rep(t, m), bstar * 4 - 35, col = paste0("#FFA200", colend), pch = 20)
-}
-# Viterbi-decoded path as a summary line
-lines(bstar[states] * 4 - 35)
+probs = stateprobs(mod) # T x m matrix, row t: distribution of g_t on the grid
 
-axis(side = 2, at = seq(-20, 20, by = 5), labels = seq(-20, 20, by = 5))
-axis(side = 4, at = seq(-5, 5, by = 5) * 4 - 35, labels = seq(-5, 5, by = 5))
-mtext("g", side = 4, line = 3, at = -30)
+g_mean = probs %*% bstar # conditional mean
+cdf = t(apply(probs, 1, cumsum)) # conditional distribution function
+g_lower = bstar[max.col(cdf >= 0.025, "first")] # 2.5% quantile
+g_upper = bstar[max.col(cdf >= 0.975, "first")] # 97.5% quantile
+
+plot(NA, xlim = c(1, n), ylim = c(-4, 6), bty = "n",
+     xlab = "time", ylab = "g", main = "Decoded log-volatility")
+polygon(c(1:n, n:1), c(g_lower, rev(g_upper)), col = adjustcolor(color[2], 0.3), border = NA)
+lines(g, lwd = 1) # true log-volatility
+lines(g_mean, col = color[2], lwd = 2)
+legend("top", horiz = TRUE, bty = "n", lwd = c(2, 1, 8),
+       col = c(color[2], 1, adjustcolor(color[2], 0.3)),
+       legend = c("conditional mean", "true", "95% interval"))
 ```
 
 ![](State_space_models_files/figure-html/results-1.png)
 
+`viterbi(mod)` works as well, returning the indices of the most probable
+sequence of grid points, i.e. `bstar[viterbi(mod)]` is the decoded
+log-volatility.
+
+We can check whether the model is adequate using pseudo-residuals, which
+should be standard normally distributed if the model is correctly
+specified. As `allprobs` was built with
+[`statedens()`](https://janolefi.github.io/LaMa/reference/statedens.md),
+`plot(mod)` computes and plots them directly:
+
 ``` r
 
-par(oldpar)
+plot(mod)
 ```
+
+![](State_space_models_files/figure-html/residuals-1.png)
 
 ## Comparison to Laplace approximation
 
@@ -204,8 +219,8 @@ out automatically using the Laplace approximation.
 
 For the stochastic volatility model the joint negative log-likelihood is
 
--\ell(\theta,\\ g\_{1:T}) = -\log f(g_1) - \sum\_{t=2}^T \log f(g_t \mid
-g\_{t-1}) - \sum\_{t=1}^T \log f(y_t \mid g_t),
+-\ell(\boldsymbol{\theta},\\ g\_{1:T}) = -\log f(g_1) - \sum\_{t=2}^T
+\log f(g_t \mid g\_{t-1}) - \sum\_{t=1}^T \log f(y_t \mid g_t),
 
 where g_1 \sim N(0,\\ \sigma^2/(1-\phi^2)), g_t \mid g\_{t-1} \sim
 N(\phi g\_{t-1},\\ \sigma^2), and y_t \mid g_t \sim N(0,\\ (\beta
@@ -248,7 +263,7 @@ system.time(
   opt_lap <- nlminb(obj_lap$par, obj_lap$fn, obj_lap$gr)
 )
 #>    user  system elapsed 
-#>   0.289   0.000   0.101
+#>   0.167   0.008   0.174
 mod_lap = lama(obj_lap)
 ```
 
@@ -268,17 +283,17 @@ Markov state process the Hessian of the random-effect log-posterior is
 tridiagonal, so each Laplace step costs O(T) rather than O(m^2 T).
 
 Comparing the two sets of estimates, \hat{\phi} and \hat{\sigma} differ
-slightly between the two approaches — only at the third decimal place
-here, and with a single dataset we cannot distinguish approximation
-error from ordinary sampling variation. In general, however, the Laplace
-approximation is not exact: it is only exact when the random-effect
-posterior is truly Gaussian given the fixed parameters, which is never
-strictly the case because \phi and \sigma enter the likelihood in a
-nonlinear way. Systematic discrepancies can grow substantially for
-non-Gaussian state processes such as Markov-switching autoregressive
-models, or for strongly non-Gaussian conditional distributions such as
-Bernoulli observations, where the posterior over g is multimodal or
-strongly skewed.
+slightly between the two approaches (at the third and second decimal
+place here), and with a single dataset we cannot distinguish
+approximation error from ordinary sampling variation. In general,
+however, the Laplace approximation is not exact: it is only exact when
+the random-effect posterior is truly Gaussian given the fixed
+parameters, which is never strictly the case because \phi and \sigma
+enter the likelihood in a nonlinear way. Systematic discrepancies can
+grow substantially for non-Gaussian state processes such as
+Markov-switching autoregressive models, or for strongly non-Gaussian
+conditional distributions such as Bernoulli observations, where the
+posterior over g is multimodal or strongly skewed.
 
 The discretisation approach makes no such assumption: increasing `m`
 reduces the quadrature error at the cost of computation time, giving

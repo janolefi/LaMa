@@ -410,6 +410,13 @@ Z_tod = cosinor(1:24, period = 24)
 head(Z_tod)
 ```
 
+`cosinor()` can also be used in formulas passed to `modmat()`, which is convenient for combining several periods or interacting the seasonal effect with other covariates. The resulting design matrix contains an intercept column, and `tpm()` works with both versions alike.
+
+```{r cosinor modmat}
+modmat_tod = modmat(~ cosinor(tod, period = c(24, 12)), data.frame(tod = 1:24))
+head(modmat_tod$Z)
+```
+
 If we now express the transition matrix as a function of the linear predictors $\eta^{(t)}_{ij}$ above, the Markov chain has a special property. Its transition probabilities are *periodically varying*, and hence for all $t$
 $$
 \Gamma^{(t+L)} = \Gamma^{(t)},

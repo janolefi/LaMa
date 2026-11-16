@@ -11,10 +11,9 @@ standard software does not easily support. Writing tailored `R` code
 offers flexibility but suffers from slow estimation speeds. `LaMa`
 solves these issues by providing easy-to-use building-blocks for common
 tasks, which can be combined into custom models in a Lego-type approach,
-offering very fast estimation speeds. `LaMa` now also allows for
-automatic differentiation with the `RTMB` package, which drastically
-increases speed and accuracy even more and allows for rich random
-effects structures.
+offering very fast estimation speeds. Models are fitted using automatic
+differentiation via the `RTMB` package, which makes estimation fast and
+accurate and allows for rich random effects structures.
 
 ## Installation
 
@@ -72,7 +71,6 @@ distributions for the step lengths.
 ``` r
 
 library(LaMa)
-#> Loading required package: RTMB
 
 head(trex, 3)
 #>   tod      step     angle state
@@ -86,72 +84,79 @@ really convenient by the functions
 [`tpm()`](https://janolefi.github.io/LaMa/reference/tpm.md) which
 computes the transition probability matrix via the multinomial logit
 link,
-[`stationary()`](https://janolefi.github.io/LaMa/reference/stationary.md)
-which computes the stationary distribution of the Markov chain and
+[`statedens()`](https://janolefi.github.io/LaMa/reference/statedens.md)
+which computes the state-dependent densities of all observations, and
 [`forward()`](https://janolefi.github.io/LaMa/reference/forward.md)
-which calculates the log-likelihood via the forward algorithm.
+which calculates the log-likelihood via the forward algorithm, here with
+the stationary distribution as initial distribution.
 
 ``` r
 
-nll = function(par, step){
-  # parameter transformations for unconstrained optimisation
-  Gamma = tpm(par[1:2]) # rowwise softmax
-  delta = stationary(Gamma) # stationary distribution
-  mu = exp(par[3:4]) # state-dependent means
-  sigma = exp(par[5:6]) # state-dependent sds
-  # calculating all state-dependent probabilities
-  allprobs = matrix(1, length(step), 2)
-  ind = which(!is.na(step))
-  for(j in 1:2) allprobs[ind,j] = dgamma2(step[ind], mu[j], sigma[j])
-  # simple forward algorithm to calculate log-likelihood
-  -forward(delta, Gamma, allprobs)
+nll = function(par) {
+  getAll(par, dat) # makes parameters and data available by name
+  Gamma = tpm(eta) # transition probability matrix
+  mu = exp(log_mu); REPORT(mu) # state-dependent means
+  sigma = exp(log_sigma); REPORT(sigma) # state-dependent sds
+  allprobs = statedens(step, dgamma2, mu, sigma)
+  -forward("stationary", Gamma, allprobs)
 }
 ```
 
-To fit the model, we define the intial parameter vector and numerically
-optimise the above function using
-[`nlm()`](https://rdrr.io/r/stats/nlm.html):
+To fit the model, we define initial parameters and the data, build the
+automatically differentiable objective function with `MakeADFun()` and
+minimise it with [`nlminb()`](https://rdrr.io/r/stats/nlminb.html):
 
 ``` r
 
-par = c(-2,-2,             # initial tpm params (logit-scale)
-        log(c(0.3, 2.5)),  # initial means for step length (log-transformed)
-        log(c(0.2, 1.5)))  # initial sds for step length (log-transformed)
+par = list(eta = rep(-2, 2),             # initial tpm params (logit-scale)
+           log_mu = log(c(0.3, 2.5)),    # initial means for step length (log-transformed)
+           log_sigma = log(c(0.2, 1.5))) # initial sds for step length (log-transformed)
+dat = list(step = trex$step)
 
+obj = MakeADFun(nll, par, silent = TRUE)
 system.time(
-  mod <- nlm(nll, par, step = trex$step)
+  opt <- nlminb(obj$par, obj$fn, obj$gr)
 )
 #>    user  system elapsed 
-#>   0.354   0.011   0.367
+#>   0.124   0.006   0.147
 ```
 
 Really fast for 10.000 data points!
 
-After tranforming the working (unconstrained) parameters to natural
-parameters using
-[`tpm()`](https://janolefi.github.io/LaMa/reference/tpm.md) and
-[`stationary()`](https://janolefi.github.io/LaMa/reference/stationary.md),
-we can visualise the results:
+[`lama()`](https://janolefi.github.io/LaMa/reference/lama.md) turns the
+fitted object into a model object, which gives a summary, state
+decoding, plots, residuals and simulation:
 
 ``` r
 
-# transform parameters to working
-(Gamma = tpm(mod$estimate[1:2]))
-#>           S1        S2
-#> S1 0.8269546 0.1730454
-#> S2 0.1608470 0.8391530
-(delta = stationary(Gamma)) # stationary HMM
-#>       S1       S2 
-#> 0.481733 0.518267
-(mu = exp(mod$estimate[3:4]))
-#> [1] 0.3034926 2.5057054
-(sigma = exp(mod$estimate[5:6]))
-#> [1] 0.2015258 1.4908153
+mod = lama(obj)
+summary(mod)
+#> Latent Markov model with 2 states (discrete time, homogeneous)
+#> 9999 observations (1 missing), 6 parameters
+#> 
+#> Transition probability matrix:
+#>        S1     S2
+#> S1 0.8270 0.1730
+#> S2 0.1608 0.8392
+#> 
+#> Stationary distribution:
+#>     S1     S2 
+#> 0.4817 0.5183 
+#> 
+#> Mean dwell times:
+#>    S1    S2 
+#> 5.779 6.217 
+#> 
+#> Reported quantities:
+#>           S1    S2
+#> mu    0.3035 2.506
+#> sigma 0.2015 1.491
+#> 
+#> Log-likelihood: -10847.12   AIC: 21706.25   BIC: 21749.51
+#> Maximum gradient component: 0.00335
 
-hist(trex$step, prob = TRUE, bor = "white", breaks = 40, main = "", xlab = "Step length")
-curve(delta[1] * dgamma2(x, mu[1], sigma[1]), add = TRUE, lwd = 2, col = "orange", n=500)
-curve(delta[2] * dgamma2(x, mu[2], sigma[2]), add = TRUE, lwd = 2, col = "deepskyblue", n=500)
-legend("topright", col = c("orange", "deepskyblue"), lwd = 2, bty = "n", legend = c("state 1", "state 2"))
+states = viterbi(mod) # most probable state sequence
+plot(mod, type = "statedens") # estimated state-dependent distributions
 ```
 
 ![](reference/figures/README-visualization-1.png)

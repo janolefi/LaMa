@@ -914,6 +914,178 @@ forward_hsmm <- function(dm, omega, allprobs,
 }
 
 
+#' Forward algorithm for continuous-time hidden semi-Markov models
+#'
+#' Calculates the (approximate) log-likelihood of a sequence of observations at irregular time points under a continuous-time hidden semi-Markov model using a modified \strong{forward algorithm}.
+#'
+#' @family forward algorithms
+#'
+#' @details
+#' Continuous-time hidden semi-Markov models (CTHSMMs) are a flexible extension of continuous-time HMMs, where the state dwell-time distribution is explicitly modelled.
+#' For direct numerical maximum likelihood estimation, the dwell-time distributions are approximated by modified Coxian phase-type distributions, such that the CTHSMM can be represented as a continuous-time HMM on an enlarged state space (of size \eqn{M}) with the structured generator matrix computed by \code{\link{generator_cthsmm}}.
+#' The forward algorithm then propagates the forward variable over each time interval \eqn{\Delta t} with the matrix exponential \eqn{\exp(Q \Delta t)} applied to the vector (\code{RTMB::expAv}), without computing the full matrix exponential.
+#'
+#' This function is designed to be used with automatic differentiation based on the \code{R} package \code{RTMB}. It will be very slow without it!
+#'
+#' @references
+#' 
+#' 
+#' @param dm list of length \code{nStates} containing vectors of interval probabilities of the dwell-time distributions for each state. The vector lengths correspond to the approximating state aggregate sizes, hence there should be little probability mass not covered by the grid.
+#' @param omega matrix of dimension \code{c(nStates, nStates + nAbs)} of conditional transition probabilities, also called embedded transition probability matrix. The last \code{nAbs} columns correspond to absorbing states.
+#'
+#' Contains the transition probabilities given that the current state is left. Hence, the diagonal elements need to be zero and the rows need to sum to one. Can be constructed using \code{\link{tpm_emb}} if there are no absorbing states.
+#' @param allprobs matrix of state-dependent probabilities/ density values of dimension \code{c(nObs, nStates + nAbs)} which will automatically be converted to the appropriate dimension. The columns of absorbing states are 1 where the absorbing state is observed and 0 otherwise.
+#' @param timediff time differences between consecutive observations of length \code{nObs-1}. If \code{trackID} is provided, of length \code{nObs}, where the entries at the first observation of each track are ignored.
+#' @param tmax start of the exponential tail, i.e. the time at which the constant-hazard tail starts.  A vector of length \code{nStates} or a single value for all states, see \code{\link{generator_cthsmm}}.
+#' @param trackID optional vector of length \code{nObs} containing IDs
+#'
+#' If provided, the total log-likelihood will be the sum of each track's likelihood contribution.
+#' Instead of a single vector \code{delta} corresponding to the initial distribution, a \code{delta} matrix of initial distributions, of dimension \code{c(nTracks, nStates + nAbs)}, can be provided, such that each track starts with its own initial distribution.
+#' @param delta optional vector of initial state probabilities of length \code{nStates} (or \code{nStates + nAbs}), entering each state in its first phase
+#'
+#' By default, the stationary distribution of the approximating continuous-time Markov chain is computed. With absorbing states, all probability ends up in the absorbing states, so \code{delta} has to be provided.
+#' @param exact optional logical vector of length \code{nObs}, indicating the observations where the time of entering an absorbing state is observed exactly (e.g. the time of death). The likelihood contribution of such an observation is then the density of entering the absorbing state at that time, not the probability of being in it. The absorbing state is the one with \code{allprobs} equal to 1 in that row. Defaults to \code{NULL}, where an absorbing state is treated as observed at the time of the observation (interval-censored).
+#' @param eps small value to avoid numerical issues in the approximating generator matrix construction. Usually, this should not be changed.
+#' @param report logical, indicating whether initial distribution, approximating generator matrix and \code{allprobs} matrix should be reported from the fitted model. Defaults to \code{TRUE}.
+#' @param tol tolerance of the matrix exponential applied to the forward variable. Usually, this should not be changed.
+#'
+#' @return CTHSMM log-likelihood for given data and parameters
+#' @export
+#' @import RTMB
+#'
+#' @examples
+#' # currently no examples
+forward_cthsmm = function(dm, omega, allprobs, timediff, tmax,
+                          trackID = NULL, delta = NULL, exact = NULL, eps = 1e-10, report = TRUE, tol = 1e-10){
+  "[<-" <- ADoverload("[<-")
+  "c" <- ADoverload("c")
+  "diag<-" <- ADoverload("diag<-")
+
+  N = ncol(allprobs)
+  agsizes = c(vapply(dm, length, 1L), rep(1L, N - length(dm)))
+  M = sum(agsizes)
+
+  stateInds <- rep(1:N, times = agsizes)
+  cols_to_fill = c(1, cumsum(agsizes[-N])+1)
+
+  nTrans = length(dm)
+  nAbs = N - nTrans
+  absStates = nTrans + seq_len(nAbs)
+  absCols = M - nAbs + seq_len(nAbs)
+
+  stationary = is.null(delta)
+  if(stationary & N > nTrans) stop("delta needs to be provided if there are absorbing states.")
+
+  if(is.null(exact)) exact = rep(FALSE, nrow(allprobs))
+  if(length(exact) != nrow(allprobs)) stop("exact needs to have length nObs.")
+
+  Q = generator_cthsmm(omega, dm, tmax, eps = eps)
+  if(nAbs > 0) Qabs = as.matrix(Q[, absCols, drop = FALSE])
+
+  if(is.null(trackID)) {
+    if(length(timediff) != nrow(allprobs) - 1) stop("timediff needs to have length nObs - 1.")
+
+    if(stationary){
+      delta = stationary_ct(Q)
+      Delta = matrix(delta, nrow = 1)
+    } else{
+      if(length(delta) == nTrans) delta = c(delta, rep(0, N - nTrans))
+      Delta = matrix(0, 1, M)
+      Delta[1, cols_to_fill] = delta
+    }
+
+    if(report){
+      RTMB::REPORT(Delta)
+      RTMB::REPORT(Q)
+      RTMB::REPORT(allprobs)
+    }
+
+    allprobs <- AD(allprobs)
+
+    foo = Delta * allprobs[1, stateInds, drop = FALSE]
+    sumfoo = rowSums(foo)
+    phi = foo / sumfoo
+    l = log(sumfoo)
+
+    for(t in 2:nrow(allprobs)) {
+      foo = t(RTMB::expAv(Q * timediff[t-1], t(phi), transpose = TRUE, tol = tol, trace = FALSE))
+      if(exact[t]) {
+        multiplier = t(Qabs %*% allprobs[t, absStates])
+      } else {
+        multiplier = allprobs[t, stateInds, drop = FALSE]
+      }
+      foo = foo * multiplier
+      sumfoo = rowSums(foo)
+      phi = foo / sumfoo
+      l = l + log(sumfoo)
+    }
+
+  } else if(!is.null(trackID)) {
+    if(length(timediff) != nrow(allprobs)) stop("timediff needs to have length nObs if trackID is provided.")
+
+    RTMB::REPORT(trackID)
+
+    uID = unique(trackID)
+    k = length(uID)
+
+    if(stationary){
+      delta = stationary_ct(Q)
+      Delta = matrix(delta, nrow = k, ncol = M, byrow = TRUE)
+    } else{
+      delta = as.matrix(delta)
+
+      if(!(ncol(delta) %in% c(nTrans, N))) delta = t(delta)
+
+      if(nrow(delta) == 1) {
+        delta = matrix(delta, nrow = k, ncol = ncol(delta), byrow = TRUE)
+      }
+
+      if(ncol(delta) == nTrans) delta = cbind(delta, matrix(0, k, N - nTrans))
+
+      Delta = matrix(0, k, M)
+      Delta[, cols_to_fill] = delta
+    }
+
+    if(report){
+      RTMB::REPORT(Delta)
+      RTMB::REPORT(Q)
+      RTMB::REPORT(allprobs)
+    }
+
+    allprobs <- AD(allprobs)
+
+    l = 0
+    for(i in 1:k) {
+      ind = which(trackID == uID[i])
+
+      delta_i = Delta[i, , drop = FALSE]
+
+      foo = delta_i * allprobs[ind[1], stateInds, drop = FALSE]
+      sumfoo = rowSums(foo)
+      phi = foo / sumfoo
+      l_i = log(sumfoo)
+
+      for(t in 2:length(ind)) {
+        foo = t(RTMB::expAv(Q * timediff[ind[t]], t(phi), transpose = TRUE, tol = tol, trace = FALSE))
+        if(exact[ind[t]]) {
+          multiplier = t(Qabs %*% allprobs[ind[t], absStates])
+        } else {
+          multiplier = allprobs[ind[t], stateInds, drop = FALSE]
+        }
+        foo = foo * multiplier
+        sumfoo = rowSums(foo)
+        phi = foo / sumfoo
+        l_i = l_i + log(sumfoo)
+      }
+
+      l = l + l_i
+    }
+  }
+
+  as.numeric(l)
+}
+
+
 #' \href{https://www.taylorfrancis.com/books/mono/10.1201/b20790/hidden-markov-models-time-series-walter-zucchini-iain-macdonald-roland-langrock}{Forward algorithm} for hidden semi-Markov models with inhomogeneous state durations and/ or conditional transition probabilities
 #'
 #' Calculates the (approximate) log-likelihood of a sequence of observations under an inhomogeneous hidden semi-Markov model using a modified \strong{forward algorithm}.

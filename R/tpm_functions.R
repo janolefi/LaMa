@@ -1098,6 +1098,93 @@ generator_inhom <- function(
 
 
 
+#' Builds the generator matrix of a CTHSMM-approximating CTMC
+#'
+#' @description
+#' Continuous-time hidden semi-Markov models (CTHSMMs) are a flexible extension of continuous-time HMMs, where the state dwell-time distribution is explicitly modelled.
+#' For direct numerical maximum likelihood estimation, CTHSMMs can be represented as continuous-time HMMs on an enlarged state space (of size \eqn{M}) with a structured generator matrix, where each dwell-time distribution is approximated by a Coxian phase-type distribution.
+#'
+#' This function computes the generator matrix to approximate a given CTHSMM by a continuous-time HMM with a larger state space. It is the continuous-time analogue of \code{\link{tpm_hsmm}}.
+#'
+#' @family transition probability matrix functions
+#'
+#' @param omega embedded transition probability matrix of dimension \code{c(nStates, nStates + nAbs)}. The last \code{nAbs} columns correspond to absorbing states, which have a single phase each.
+#' @param dm state dwell-time distributions arranged in a list of length \code{nStates}. Each list element needs to be a vector of length m_i, where m_i is the state aggregate size, containing the probabilities \eqn{F(t_k) - F(t_{k-1})} of the intervals \eqn{(t_{k-1}, t_k]}, \eqn{t_k = k \Delta_i}, \eqn{\Delta_i = t_{\max, i} / (m_i - 1)}.
+#' @param tmax start of the exponential tail, i.e. the end of the equidistant grid: a vector of length \code{nStates}, or a single value used for all states.
+#' @param eps small value to avoid numerical issues in the approximating generator matrix construction. Usually, this should not be changed.
+#'
+#' @return extended-state-space generator matrix of the approximating continuous-time HMM
+#' @export
+#' @import RTMB
+#'
+#' @examples
+#' # building the t.p.m. of the embedded Markov chain
+#' omega = matrix(c(0, 1, 1, 0), nrow = 2, byrow = TRUE)
+#' # Weibull dwell times
+#' shape = c(1.5, 0.8); scale = c(2, 3)
+#' # defining state aggregate sizes
+#' m = c(20, 30)
+#' # start of the exponential tail 
+#' tmax = qweibull(0.99, shape, scale)
+#' # defining interval probabilities on an equidistant grid
+#' interval_length = tmax / (m-1)
+#' #' # defining interval probabilities on the grids
+#' dm = lapply(1:2, function(i) diff(c(0, pweibull(1:m[i] * interval_length[i], shape[i], scale[i]))))
+#' # generator of the approximating continuous-time Markov chain
+#' Q = generator_cthsmm(omega, dm, tmax)
+generator_cthsmm <- function(omega, dm, tmax, eps = 1e-10) {
+  "[<-" <- ADoverload("[<-")
+  "c" <- ADoverload("c")
+  "diag<-" <- ADoverload("diag<-")
+
+  N <- length(dm)
+  nAbs <- ncol(omega) - N
+  if (nAbs < 0 || nrow(omega) != N) stop("omega needs dimension c(nStates, nStates + nAbs).")
+  if (length(tmax) == 1) tmax <- rep(tmax, N)
+
+  agsizes <- vapply(dm, length, 1L)
+  M <- sum(agsizes) + nAbs
+  starts <- c(0L, cumsum(agsizes))
+
+  Q <- AD(Matrix::Matrix(0, M, M))
+  for (i in 1:N) {
+    idx_i <- (starts[i] + 1):starts[i + 1]
+    ph <- coxian_ph(dm[[i]], tmax[i], eps)
+    Q[idx_i, idx_i] <- ph$B
+    for (j in setdiff(1:N, i)) Q[idx_i, starts[j] + 1] <- omega[i, j] * ph$exit
+    for (a in seq_len(nAbs)) Q[idx_i, sum(agsizes) + a] <- omega[i, N + a] * ph$exit
+  }
+
+  diag(Q) <- 0
+  diag(Q) <- -rowSums(Q)
+  Q
+}
+
+coxian_ph <- function(dm, tmax, eps = 1e-10) {
+  "[<-" <- ADoverload("[<-")
+  "c" <- ADoverload("c")
+  "diag<-" <- ADoverload("diag<-")
+
+  m <- length(dm)
+  if (m < 2) stop("Each state needs at least 2 phases.")
+  Delta <- tmax / (m - 1)
+
+  Fm <- cumsum(c(0, dm[-m]))
+  ci <- max2(dm, eps) / (1 - Fm + eps / 2)
+  cim <- max2(1 - ci, 0)
+  dH_k <- -log(max2(cim, eps))
+
+  pi_k <- -expm1(-dH_k)
+  hbar_k <- dH_k / Delta
+  lambda_k <- hbar_k / pi_k
+  prog_rate_k <- (1 - pi_k[-m]) * lambda_k[-m]
+
+  B <- matrix(0, m, m)
+  diag(B) <- -(c(prog_rate_k, 0) + hbar_k)
+  B[cbind(1:(m - 1), 2:m)] <- prog_rate_k
+
+  list(B = B, exit = hbar_k)
+}
 
 
 

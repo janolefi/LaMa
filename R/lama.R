@@ -185,8 +185,9 @@ coef.LaMaModel <- function(object, ...) {
 #'
 #' Computes the approximate covariance matrix of the estimated parameters \code{coef(object)},
 #' either as the inverse Hessian of the negative log-likelihood at the estimate (\code{type = "hessian"}),
-#' or as a sandwich that remains valid if the model is misspecified: heteroskedasticity and autocorrelation
-#' consistent (\code{type = "HAC"}) or cluster-robust over tracks (\code{type = "cluster"}).
+#' or as a sandwich that remains valid if the model is misspecified: with the outer product of the scores
+#' (\code{type = "sandwich"}), heteroskedasticity and autocorrelation consistent (\code{type = "HAC"}) or
+#' cluster-robust over tracks (\code{type = "cluster"}).
 #'
 #' @details
 #' \strong{Hessian.} The Hessian \eqn{H} is
@@ -199,6 +200,13 @@ coef.LaMaModel <- function(object, ...) {
 #' }
 #' If the Hessian is not positive definite, which indicates that the model has not converged,
 #' a warning is issued.
+#'
+#' \strong{Sandwich.} With the per-observation score contributions \eqn{u_t} from \code{\link{scores}},
+#' the covariance is \eqn{H^{-1} M H^{-1}} with the outer product of the scores as meat, \eqn{M = \sum_t u_t u_t^\top}
+#' (the outer product of gradients, OPG). It is robust to a misspecified predictive distribution as long as the \eqn{u_t}
+#' are serially uncorrelated, which they are under correct specification (martingale differences), but not to
+#' dependence the model misses. It equals the HAC sandwich with \code{lag = 0}. Not to be confused with the inverse of the
+#' outer product alone, \eqn{M^{-1}} (the BHHH estimator), which, like \eqn{H^{-1}}, is only valid under correct specification.
 #'
 #' \strong{HAC sandwich.} With the per-observation score contributions \eqn{u_t} from \code{\link{scores}},
 #' the covariance is \eqn{H^{-1} M H^{-1}}, with the Newey-West (Bartlett kernel) estimate
@@ -232,14 +240,14 @@ coef.LaMaModel <- function(object, ...) {
 #' positive definite: if leaving out a cluster makes it singular or indefinite, as for parameters not or only weakly
 #' identified without that cluster, an error is issued.
 #'
-#' Both sandwiches require the likelihood function to call \code{\link{forward}} once (with \code{trackID} for several tracks)
+#' All sandwiches require the likelihood function to call \code{\link{forward}} once (with \code{trackID} for several tracks)
 #' and are not available for models with random effects or from \code{\link{qreml}}.
 #'
 #' @param object model object of class \code{"LaMaModel"}
-#' @param type \code{"hessian"} (default) for the inverse Hessian, \code{"HAC"} for the HAC sandwich,
-#' or \code{"cluster"} for the cluster-robust sandwich
+#' @param type \code{"hessian"} (default) for the inverse Hessian, \code{"sandwich"} for the sandwich with the outer
+#' product of the scores, \code{"HAC"} for the HAC sandwich, or \code{"cluster"} for the cluster-robust sandwich
 #' @param lag bandwidth \eqn{L} of the HAC sandwich, i.e. the maximum lag of the autocovariances included.
-#' Defaults to the rule of thumb \eqn{L = \lfloor 4 (\bar T / 100)^{2/9} \rfloor}, with \eqn{\bar T} the mean track length (see Details). \code{lag = 0} gives the ordinary (heteroskedasticity robust) sandwich.
+#' Defaults to the rule of thumb \eqn{L = \lfloor 4 (\bar T / 100)^{2/9} \rfloor}, with \eqn{\bar T} the mean track length (see Details). \code{lag = 0} gives the same as \code{type = "sandwich"}.
 #' @param cluster cluster identifier for \code{type = "cluster"}, one value per observation (of any type, in the order of the
 #' observations in \code{\link{forward}}). Defaults to the tracks, i.e. the \code{trackID} reported by \code{\link{forward}}.
 #' @param cr small-sample adjustment for \code{type = "cluster"}: \code{"CR1"} (default) multiplies the meat by \eqn{G / (G - 1)},
@@ -258,7 +266,7 @@ coef.LaMaModel <- function(object, ...) {
 #' @seealso \code{\link{coef.LaMaModel}}, \code{\link{scores}}
 #' @importFrom stats vcov optimHess
 #' @export
-vcov.LaMaModel <- function(object, type = c("hessian", "HAC", "cluster"), lag = NULL,
+vcov.LaMaModel <- function(object, type = c("hessian", "sandwich", "HAC", "cluster"), lag = NULL,
                            cluster = NULL, cr = c("CR1", "CR0", "CR3"), ...) {
   type <- match.arg(type)
   cr <- match.arg(cr)
@@ -286,8 +294,10 @@ vcov.LaMaModel <- function(object, type = c("hessian", "HAC", "cluster"), lag = 
     if(type == "cluster" && cr == "CR3") {
       V <- cr3_vcov(tp, U, cluster_ids(U, object$trackID, cluster))
     } else {
-      M <- if(type == "HAC") hac_meat(U, object$trackID, lag)
-           else cluster_meat(U, object$trackID, cluster, cr, npar = length(p))
+      M <- switch(type,
+                  sandwich = crossprod(U),
+                  HAC = hac_meat(U, object$trackID, lag),
+                  cluster = cluster_meat(U, object$trackID, cluster, cr, npar = length(p)))
       V <- V %*% M %*% V
     }
     V <- (V + t(V)) / 2

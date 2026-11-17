@@ -79,8 +79,9 @@ test_that("vcov HAC: single track as sandwich::meatHAC with Bartlett weights", {
                                      prewhite = FALSE, adjust = FALSE)
     expect_equal(vcov(mod, type = "HAC", lag = L), Hi %*% M %*% Hi, ignore_attr = TRUE, tolerance = 1e-6)
   }
-  # lag 0: ordinary sandwich
+  # lag 0: sandwich with the outer product of the scores
   expect_equal(vcov(mod, type = "HAC", lag = 0), Hi %*% crossprod(U) %*% Hi, ignore_attr = TRUE, tolerance = 1e-6)
+  expect_equal(vcov(mod, type = "sandwich"), vcov(mod, type = "HAC", lag = 0))
   # default lag: floor(4 * (200 / 100)^(2/9)) = 4
   expect_equal(vcov(mod, type = "HAC"), vcov(mod, type = "HAC", lag = 4))
   expect_equal(rownames(vcov(mod, type = "HAC")), names(coef(mod)))
@@ -121,6 +122,7 @@ test_that("vcov HAC: errors for qreml models, random effects, bad lag and trackI
                             c(par_rep, list(u = 0)), random = "u", silent = TRUE)
   expect_error(vcov(structure(list(obj = obj_re), class = "LaMaModel"), type = "HAC"), "random effects")
   expect_error(vcov(qmod, type = "cluster"), "qreml")
+  expect_error(vcov(qmod, type = "sandwich"), "qreml")
   expect_error(vcov(structure(list(obj = obj_re), class = "LaMaModel"), type = "cluster"), "random effects")
 })
 

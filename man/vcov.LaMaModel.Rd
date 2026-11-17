@@ -6,7 +6,7 @@
 \usage{
 \method{vcov}{LaMaModel}(
   object,
-  type = c("hessian", "HAC", "cluster"),
+  type = c("hessian", "sandwich", "HAC", "cluster"),
   lag = NULL,
   cluster = NULL,
   cr = c("CR1", "CR0", "CR3"),
@@ -16,11 +16,11 @@
 \arguments{
 \item{object}{model object of class \code{"LaMaModel"}}
 
-\item{type}{\code{"hessian"} (default) for the inverse Hessian, \code{"HAC"} for the HAC sandwich,
-or \code{"cluster"} for the cluster-robust sandwich}
+\item{type}{\code{"hessian"} (default) for the inverse Hessian, \code{"sandwich"} for the sandwich with the outer
+product of the scores, \code{"HAC"} for the HAC sandwich, or \code{"cluster"} for the cluster-robust sandwich}
 
 \item{lag}{bandwidth \eqn{L} of the HAC sandwich, i.e. the maximum lag of the autocovariances included.
-Defaults to the rule of thumb \eqn{L = \lfloor 4 (\bar T / 100)^{2/9} \rfloor}, with \eqn{\bar T} the mean track length (see Details). \code{lag = 0} gives the ordinary (heteroskedasticity robust) sandwich.}
+Defaults to the rule of thumb \eqn{L = \lfloor 4 (\bar T / 100)^{2/9} \rfloor}, with \eqn{\bar T} the mean track length (see Details). \code{lag = 0} gives the same as \code{type = "sandwich"}.}
 
 \item{cluster}{cluster identifier for \code{type = "cluster"}, one value per observation (of any type, in the order of the
 observations in \code{\link{forward}}). Defaults to the tracks, i.e. the \code{trackID} reported by \code{\link{forward}}.}
@@ -36,8 +36,9 @@ covariance matrix with rows and columns named like \code{coef(object)}
 \description{
 Computes the approximate covariance matrix of the estimated parameters \code{coef(object)},
 either as the inverse Hessian of the negative log-likelihood at the estimate (\code{type = "hessian"}),
-or as a sandwich that remains valid if the model is misspecified: heteroskedasticity and autocorrelation
-consistent (\code{type = "HAC"}) or cluster-robust over tracks (\code{type = "cluster"}).
+or as a sandwich that remains valid if the model is misspecified: with the outer product of the scores
+(\code{type = "sandwich"}), heteroskedasticity and autocorrelation consistent (\code{type = "HAC"}) or
+cluster-robust over tracks (\code{type = "cluster"}).
 }
 \details{
 \strong{Hessian.} The Hessian \eqn{H} is
@@ -50,6 +51,13 @@ consistent (\code{type = "HAC"}) or cluster-robust over tracks (\code{type = "cl
 }
 If the Hessian is not positive definite, which indicates that the model has not converged,
 a warning is issued.
+
+\strong{Sandwich.} With the per-observation score contributions \eqn{u_t} from \code{\link{scores}},
+the covariance is \eqn{H^{-1} M H^{-1}} with the outer product of the scores as meat, \eqn{M = \sum_t u_t u_t^\top}
+(the outer product of gradients, OPG). It is robust to a misspecified predictive distribution as long as the \eqn{u_t}
+are serially uncorrelated, which they are under correct specification (martingale differences), but not to
+dependence the model misses. It equals the HAC sandwich with \code{lag = 0}. Not to be confused with the inverse of the
+outer product alone, \eqn{M^{-1}} (the BHHH estimator), which, like \eqn{H^{-1}}, is only valid under correct specification.
 
 \strong{HAC sandwich.} With the per-observation score contributions \eqn{u_t} from \code{\link{scores}},
 the covariance is \eqn{H^{-1} M H^{-1}}, with the Newey-West (Bartlett kernel) estimate
@@ -83,7 +91,7 @@ It costs one Hessian per cluster. The one-step deletion is a pure Newton step, s
 positive definite: if leaving out a cluster makes it singular or indefinite, as for parameters not or only weakly
 identified without that cluster, an error is issued.
 
-Both sandwiches require the likelihood function to call \code{\link{forward}} once (with \code{trackID} for several tracks)
+All sandwiches require the likelihood function to call \code{\link{forward}} once (with \code{trackID} for several tracks)
 and are not available for models with random effects or from \code{\link{qreml}}.
 }
 \references{

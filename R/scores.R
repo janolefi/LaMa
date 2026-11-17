@@ -64,10 +64,31 @@ obj_frame <- function(obj){
 #' U <- scores(mod)
 #' colSums(U) # ~ 0 at the MLE
 scores <- function(obj, par = NULL){
+  tp <- weighted_tape(obj, par)
+  w1 <- rep(1, tp$nObs)
+  # gradient w.r.t. theta as a function of w (linear in w); d/dw_t of the gradient of the
+  # negative log-likelihood is -u_t
+  Gw <- RTMB::MakeTape(function(w) tp$G(c(RTMB::AD(unname(tp$theta)), w))[seq_len(tp$p)], w1)
+  U <- -t(Gw$jacobian(w1))
+  colnames(U) <- tp$names
+  U
+}
+
+
+# Taped gradient of the weighted negative log-likelihood -sum_t w_t log p(x_t | x_1, ..., x_t-1),
+# with weights w_t on the log-likelihood contributions in forward(). Shared by scores() and
+# weighted_hessian(). The likelihood function is taken from obj and evaluated again, with the data
+# as they are now; map is respected, random effects are not supported.
+# Returns a list with
+#   theta: parameters (like obj$par) at which the tape was made, by default the estimates
+#   G:     function of c(theta, w) returning the gradient w.r.t. (theta, w); its first p entries
+#          are the gradient of the weighted negative log-likelihood w.r.t. theta
+#   p, nObs, names: number of parameters, number of observations, names(obj$par)
+weighted_tape <- function(obj, par = NULL){
   if(is.null(par)) par <- est_par(obj)
   obj <- get_obj(obj)
   fr <- obj_frame(obj)
-  if(length(fr$random)) stop("scores() does not support random effects.")
+  if(length(fr$random)) stop("Score contributions are not available for models with random effects.")
   p <- length(obj$par)
   if(length(par) != p) stop("par must have the same length as obj$par.")
 
@@ -91,13 +112,23 @@ scores <- function(obj, par = NULL){
   obj_w <- RTMB::MakeADFun(f, c(parlist, list(weights_ = rep(1, nObs))), map = fr$map, silent = TRUE)
   if(used != nObs) stop("forward() used ", used, " of ", nObs, " observations while taping.")
 
-  # gradient w.r.t. (theta, w), restricted to theta as a function of w (linear in w)
-  theta <- obj_w$par[seq_len(p)]
-  G <- RTMB::GetTape(obj_w)$jacfun()
-  Gw <- RTMB::MakeTape(function(w) G(c(RTMB::AD(unname(theta)), w))[seq_len(p)], rep(1, nObs))
+  list(theta = obj_w$par[seq_len(p)], G = RTMB::GetTape(obj_w)$jacfun(), p = p, nObs = nObs,
+       names = names(obj$par))
+}
 
-  # d/dw_t of the gradient of the negative log-likelihood is -u_t
-  U <- -t(Gw$jacobian(rep(1, nObs)))
-  colnames(U) <- names(obj$par)
-  U
+
+# Hessian H(w) = -sum_t w_t d^2 log p(x_t | x_1, ..., x_t-1) / d theta d theta' of the weighted negative
+# log-likelihood, the full p x p matrix in the order of obj$par: the Jacobian of the taped gradient
+# w.r.t. theta at fixed weights (about p gradient sweeps). Linear in w, so w = 1 gives obj$he(),
+# w = (trackID == k) the contribution H_k of track k and w = (trackID != k) the leave-one-track-out
+# Hessian H - H_k. w is just a numeric (or logical) vector, so any type of track identifier works.
+weighted_hessian <- function(tp, w = rep(1, tp$nObs), theta = tp$theta){
+  if(length(w) != tp$nObs) stop("w must have length ", tp$nObs, " (number of observations in forward()).")
+  w <- as.numeric(w)
+  th <- unname(theta)
+  Hw <- RTMB::MakeTape(function(x) tp$G(c(x, RTMB::AD(w)))[seq_len(tp$p)], th)
+  H <- Hw$jacobian(th)
+  H <- (H + t(H)) / 2
+  dimnames(H) <- list(tp$names, tp$names)
+  H
 }

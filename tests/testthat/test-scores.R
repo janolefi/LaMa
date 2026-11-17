@@ -135,3 +135,26 @@ test_that("scores: informative errors", {
   expect_error(scores(obj_re), "random effects")
   expect_error(scores(list(a = 1)), "Expected an RTMB object")
 })
+
+test_that("weighted_hessian: full Hessian, track contributions and leave-one-track-out", {
+  tp <- weighted_tape(obj_sc, est_sc)
+  H <- weighted_hessian(tp)
+  expect_equal(H, obj_sc$he(est_sc), ignore_attr = TRUE, tolerance = 1e-8)
+  expect_equal(rownames(H), names(obj_sc$par))
+  # linear in w: track contributions add up, logical weights work
+  H1 <- weighted_hessian(tp, dat_sc$ID == 1)
+  H2 <- weighted_hessian(tp, dat_sc$ID == 2)
+  expect_equal(H1 + H2, H, tolerance = 1e-8)
+  # leaving out track 1 is the Hessian of a model with track 2 only
+  nll2 <- function(par) {
+    getAll(par, dat_sc)
+    Gamma <- tpm(beta, z, report = FALSE)
+    allprobs <- cbind(dnorm(x, mu[1], exp(log_sigma[1])), dnorm(x, mu[2], exp(log_sigma[2])))
+    -forward(c(0.5, 0.5), Gamma[, , 16:30], allprobs[16:30, ], report = FALSE)
+  }
+  obj2 <- RTMB::MakeADFun(nll2, par_sc, silent = TRUE)
+  expect_equal(weighted_hessian(tp, dat_sc$ID != 1), obj2$he(est_sc), ignore_attr = TRUE, tolerance = 1e-8)
+  # other evaluation point
+  expect_equal(weighted_hessian(tp, theta = est_sc + 0.1), obj_sc$he(est_sc + 0.1), ignore_attr = TRUE, tolerance = 1e-8)
+  expect_error(weighted_hessian(tp, 1:3), "must have length 30")
+})

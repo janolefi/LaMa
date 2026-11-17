@@ -16,7 +16,7 @@ vcov(
   type = c("hessian", "HAC", "cluster"),
   lag = NULL,
   cluster = NULL,
-  cr = c("CR1", "CR0"),
+  cr = c("CR1", "CR0", "CR3"),
   ...
 )
 ```
@@ -49,7 +49,8 @@ vcov(
 - cr:
 
   small-sample adjustment for `type = "cluster"`: `"CR1"` (default)
-  multiplies the meat by \\G / (G - 1)\\, `"CR0"` does not adjust.
+  multiplies the meat by \\G / (G - 1)\\, `"CR0"` does not adjust,
+  `"CR3"` is the (one-step) jackknife, see Details.
 
 - ...:
 
@@ -110,6 +111,19 @@ initial distributions, it is not meaningful. Clusters may combine
 several tracks (e.g. several tracks of one individual), but a track must
 not be split between clusters.
 
+`cr = "CR3"` gives the jackknife estimator (MacKinnon, Nielsen and Webb,
+2023) \$\$V = \frac{G - 1}{G} \sum\_{k=1}^G d_k d_k^\top, \qquad d_k =
+(H - H_k)^{-1} s_k,\$\$ where \\d_k\\ approximates the change in the
+estimate when cluster \\k\\ is left out by one Newton step from the
+estimate, and \\H - H_k\\ is the Hessian without cluster \\k\\, from the
+weighted likelihood with weight zero on its observations. For linear
+least squares, the step is exact. Compared to CR1, it inflates the
+contributions of clusters with high leverage (e.g. long tracks), whose
+score sums are shrunk the most by fitting; with equal leverage \\H_k = H
+/ G\\, both coincide. It costs one Hessian per cluster. If leaving out a
+cluster makes the Hessian singular, as for parameters only informed by
+that cluster, an error is issued.
+
 Both sandwiches require the likelihood function to call
 [`forward`](https://janolefi.github.io/LaMa/reference/forward.md) once
 (with `trackID` for several tracks) and are not available for models
@@ -121,6 +135,10 @@ with random effects or from
 Newey, W. K. and West, K. D. (1987). A simple, positive semi-definite,
 heteroskedasticity and autocorrelation consistent covariance matrix.
 *Econometrica*, 55(3), 703–708.
+
+MacKinnon, J. G., Nielsen, M. O. and Webb, M. D. (2023). Cluster-robust
+inference: A guide to empirical practice. *Journal of Econometrics*,
+232(2), 272–299.
 
 Cameron, A. C. and Miller, D. L. (2015). A practitioner's guide to
 cluster-robust inference. *Journal of Human Resources*, 50(2), 317–372.

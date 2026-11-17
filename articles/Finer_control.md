@@ -160,7 +160,7 @@ system.time(
   opt <- nlm(nll, par, x = x)
 )
 #>    user  system elapsed 
-#>   0.070   0.005   0.075
+#>   0.086   0.013   0.099
 ```
 
 This is fast because
@@ -178,7 +178,7 @@ system.time({
   opt_ad <- nlminb(obj$par, obj$fn, obj$gr)
 })
 #>    user  system elapsed 
-#>   0.083   0.000   0.082
+#>   0.104   0.000   0.104
 ```
 
 For such a small and simple model, it hardly matters whether we use AD.

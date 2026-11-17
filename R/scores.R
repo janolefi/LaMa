@@ -64,7 +64,12 @@ obj_frame <- function(obj){
 #' U <- scores(mod)
 #' colSums(U) # ~ 0 at the MLE
 scores <- function(obj, par = NULL){
-  tp <- weighted_tape(obj, par)
+  tape_scores(weighted_tape(obj, par))
+}
+
+# score contributions from a tape of weighted_tape(), so that callers needing the tape
+# for more (e.g. weighted_hessian()) only tape once
+tape_scores <- function(tp){
   w1 <- rep(1, tp$nObs)
   # gradient w.r.t. theta as a function of w (linear in w); d/dw_t of the gradient of the
   # negative log-likelihood is -u_t

@@ -222,6 +222,15 @@ coef.LaMaModel <- function(object, ...) {
 #' it is not meaningful. Clusters may combine several tracks (e.g. several tracks of one individual), but a track must not
 #' be split between clusters.
 #'
+#' \code{cr = "CR3"} gives the jackknife estimator (MacKinnon, Nielsen and Webb, 2023)
+#' \deqn{V = \frac{G - 1}{G} \sum_{k=1}^G d_k d_k^\top, \qquad d_k = (H - H_k)^{-1} s_k,}
+#' where \eqn{d_k} approximates the change in the estimate when cluster \eqn{k} is left out by one Newton step from the estimate,
+#' and \eqn{H - H_k} is the Hessian without cluster \eqn{k}, from the weighted likelihood with weight zero on its observations.
+#' For linear least squares, the step is exact. Compared to CR1, it inflates the contributions of clusters with high leverage
+#' (e.g. long tracks), whose score sums are shrunk the most by fitting; with equal leverage \eqn{H_k = H / G}, both coincide.
+#' It costs one Hessian per cluster. If leaving out a cluster makes the Hessian singular, as for parameters only informed
+#' by that cluster, an error is issued.
+#'
 #' Both sandwiches require the likelihood function to call \code{\link{forward}} once (with \code{trackID} for several tracks)
 #' and are not available for models with random effects or from \code{\link{qreml}}.
 #'
@@ -233,12 +242,15 @@ coef.LaMaModel <- function(object, ...) {
 #' @param cluster cluster identifier for \code{type = "cluster"}, one value per observation (of any type, in the order of the
 #' observations in \code{\link{forward}}). Defaults to the tracks, i.e. the \code{trackID} reported by \code{\link{forward}}.
 #' @param cr small-sample adjustment for \code{type = "cluster"}: \code{"CR1"} (default) multiplies the meat by \eqn{G / (G - 1)},
-#' \code{"CR0"} does not adjust.
+#' \code{"CR0"} does not adjust, \code{"CR3"} is the (one-step) jackknife, see Details.
 #' @param ... additional arguments (not used)
 #'
 #' @returns covariance matrix with rows and columns named like \code{coef(object)}
 #' @references Newey, W. K. and West, K. D. (1987). A simple, positive semi-definite, heteroskedasticity
 #' and autocorrelation consistent covariance matrix. \emph{Econometrica}, 55(3), 703--708.
+#'
+#' MacKinnon, J. G., Nielsen, M. O. and Webb, M. D. (2023). Cluster-robust inference: A guide to empirical practice.
+#' \emph{Journal of Econometrics}, 232(2), 272--299.
 #'
 #' Cameron, A. C. and Miller, D. L. (2015). A practitioner's guide to cluster-robust inference.
 #' \emph{Journal of Human Resources}, 50(2), 317--372.
@@ -246,7 +258,7 @@ coef.LaMaModel <- function(object, ...) {
 #' @importFrom stats vcov optimHess
 #' @export
 vcov.LaMaModel <- function(object, type = c("hessian", "HAC", "cluster"), lag = NULL,
-                           cluster = NULL, cr = c("CR1", "CR0"), ...) {
+                           cluster = NULL, cr = c("CR1", "CR0", "CR3"), ...) {
   type <- match.arg(type)
   cr <- match.arg(cr)
   obj <- get_obj(object)
@@ -268,10 +280,15 @@ vcov.LaMaModel <- function(object, type = c("hessian", "HAC", "cluster"), lag = 
   }
 
   if(type != "hessian") {
-    U <- scores(object)
-    M <- if(type == "HAC") hac_meat(U, object$trackID, lag)
-         else cluster_meat(U, object$trackID, cluster, cr, npar = length(p))
-    V <- V %*% M %*% V
+    tp <- weighted_tape(object)
+    U <- tape_scores(tp)
+    if(type == "cluster" && cr == "CR3") {
+      V <- cr3_vcov(tp, U, cluster_ids(U, object$trackID, cluster))
+    } else {
+      M <- if(type == "HAC") hac_meat(U, object$trackID, lag)
+           else cluster_meat(U, object$trackID, cluster, cr, npar = length(p))
+      V <- V %*% M %*% V
+    }
     V <- (V + t(V)) / 2
   }
   dimnames(V) <- list(names(p), names(p))
@@ -301,9 +318,8 @@ hac_meat <- function(U, trackID = NULL, lag = NULL){
   M
 }
 
-# Cluster-robust meat c * sum_k s_k s_k' from score contributions U, with s_k the score sums of
-# the clusters (default: the tracks) and c = G / (G - 1) for CR1, c = 1 for CR0.
-cluster_meat <- function(U, trackID = NULL, cluster = NULL, cr = "CR1", npar = ncol(U)){
+# Cluster identifiers, one per observation (default: the tracks), checked against the scores and tracks
+cluster_ids <- function(U, trackID = NULL, cluster = NULL){
   n <- nrow(U)
   if(!is.null(trackID) && length(trackID) != n) {
     stop("Length of the reported trackID (", length(trackID), ") does not match the number of score contributions (", n,
@@ -320,13 +336,43 @@ cluster_meat <- function(U, trackID = NULL, cluster = NULL, cr = "CR1", npar = n
       stop("A track is split between clusters: each track must lie within a single cluster.")
     }
   }
+  if(length(unique(cluster)) < 2) stop("type = \"cluster\" needs at least two clusters.")
+  cluster
+}
+
+# Cluster-robust meat c * sum_k s_k s_k' from score contributions U, with s_k the score sums of
+# the clusters (default: the tracks) and c = G / (G - 1) for CR1, c = 1 for CR0.
+cluster_meat <- function(U, trackID = NULL, cluster = NULL, cr = "CR1", npar = ncol(U)){
+  cluster <- cluster_ids(U, trackID, cluster)
   S <- rowsum(U, cluster, reorder = FALSE) # G x p score sums
   G <- nrow(S)
-  if(G < 2) stop("type = \"cluster\" needs at least two clusters.")
   if(G - 1 < npar) {
     warning("Only ", G, " clusters for ", npar, " parameters: the cluster-robust covariance has rank at most ",
             G - 1, " and is singular.", call. = FALSE)
   }
   adj <- if(cr == "CR1") G / (G - 1) else 1
   adj * crossprod(S)
+}
+
+# One-step CR3 (jackknife): (G - 1) / G * sum_k d_k d_k', with d_k = (H - H_k)^{-1} s_k one Newton step
+# from the estimate on the likelihood without cluster k, i.e. the approximate change in the estimate
+# when leaving it out (exact for least squares). H - H_k is the Hessian with weight zero on cluster k.
+cr3_vcov <- function(tp, U, cluster){
+  grp <- match(cluster, unique(cluster)) # 1, ..., G in order of appearance
+  S <- rowsum(U, grp, reorder = FALSE)
+  G <- nrow(S)
+  if(G < tp$p) {
+    warning("Only ", G, " clusters for ", tp$p, " parameters: the cluster-robust covariance has rank at most ",
+            G, " and is singular.", call. = FALSE)
+  }
+  D <- matrix(0, G, tp$p)
+  for(k in seq_len(G)) {
+    H_k <- weighted_hessian(tp, grp != k) # H - H_k
+    if(rcond(H_k) < 1e-12) {
+      stop("The Hessian without cluster ", format(unique(cluster)[k]), " is singular: some parameters are only informed ",
+           "by this cluster (e.g. track-specific parameters), so CR3 is not available.")
+    }
+    D[k, ] <- solve(H_k, S[k, ])
+  }
+  (G - 1) / G * crossprod(D)
 }

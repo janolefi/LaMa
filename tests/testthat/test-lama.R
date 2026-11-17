@@ -169,7 +169,7 @@ test_that("vcov cluster: errors without tracks, for one cluster and bad cluster 
   expect_error(vcov(mod, type = "cluster", cluster = rep(1, 200)), "at least two clusters")
   expect_error(vcov(mod, type = "cluster", cluster = 1:10), "one value per observation")
   expect_error(vcov(mod, type = "cluster", cluster = c(NA, rep(1:2, each = 100)[-1])), "missing values")
-  expect_error(vcov(mod, type = "cluster", cr = "CR3"), "should be one of")
+  expect_error(vcov(mod, type = "cluster", cr = "CR2"), "should be one of")
 })
 
 test_that("print: state process, missing observations and reported quantities", {
@@ -280,4 +280,54 @@ test_that("MCreport: qreml() models, conditional and joint", {
   expect_null(environment(mod$outer_hessian)$fit_state$J)
 
   expect_error(MCreport(obj_rep, joint = TRUE), "qreml")
+})
+
+test_that("vcov CR3: one-step jackknife from leave-one-cluster-out Hessians", {
+  mod <- lama(obj_cl)
+  tp <- weighted_tape(mod)
+  U <- scores(mod)
+  S <- rowsum(U, dat_cl$ID, reorder = FALSE)
+  D <- t(vapply(unique(dat_cl$ID), function(k) solve(obj_cl$he(opt_cl$par) - weighted_hessian(tp, dat_cl$ID == k), S[k, ]),
+                numeric(6)))
+  expect_equal(vcov(mod, type = "cluster", cr = "CR3"), 7 / 8 * crossprod(D), ignore_attr = TRUE, tolerance = 1e-6)
+  expect_equal(rownames(vcov(mod, type = "cluster", cr = "CR3")), names(coef(mod)))
+})
+
+# linear regression as a 1-state model: Gaussian log-likelihood with known sd is quadratic,
+# so the one-step leave-one-cluster-out estimates are exact
+set.seed(1)
+dat_lm <- list(y = rnorm(60), x = runif(60), ID = rep(c("a", "b", "c", "d"), c(10, 10, 15, 25)))
+nll_lm <- function(par) {
+  getAll(par, dat_lm)
+  -forward(1, matrix(1, 1, 1), matrix(dnorm(y, b0 + b1 * x, 1), ncol = 1), trackID = ID)
+}
+obj_lm <- RTMB::MakeADFun(nll_lm, list(b0 = 0, b1 = 0), silent = TRUE)
+opt_lm <- nlminb(obj_lm$par, obj_lm$fn, obj_lm$gr)
+
+test_that("vcov CR3: exact jackknife of MacKinnon, Nielsen and Webb for linear regression", {
+  mod <- lama(obj_lm)
+  b <- coef(lm(y ~ x, dat_lm))
+  D <- t(vapply(unique(dat_lm$ID), function(k) coef(lm(y ~ x, dat_lm, subset = ID != k)) - b, numeric(2)))
+  expect_equal(vcov(mod, type = "cluster", cr = "CR3"), 3 / 4 * crossprod(D), ignore_attr = TRUE, tolerance = 1e-6)
+})
+
+test_that("vcov CR3: equals CR1 with equal leverage", {
+  # mean only, equal cluster sizes: H_k = H / G, so (G - 1) / G * (G / (G - 1))^2 = G / (G - 1)
+  y <- dat_lm$y; ID <- rep(1:4, each = 15)
+  nll <- function(par) -forward(1, matrix(1, 1, 1), matrix(dnorm(y, par$b0, 1), ncol = 1), trackID = ID)
+  obj <- RTMB::MakeADFun(nll, list(b0 = 0), silent = TRUE)
+  nlminb(obj$par, obj$fn, obj$gr)
+  mod <- lama(obj)
+  expect_equal(vcov(mod, type = "cluster", cr = "CR3"), vcov(mod, type = "cluster", cr = "CR1"), tolerance = 1e-8)
+})
+
+test_that("vcov CR3: error for parameters informed by a single cluster", {
+  # intercept per track: leaving out a track leaves its intercept unidentified
+  nll <- function(par) {
+    getAll(par, dat_lm)
+    -forward(1, matrix(1, 1, 1), matrix(dnorm(y, b0[match(ID, unique(ID))] + b1 * x, 1), ncol = 1), trackID = ID)
+  }
+  obj <- RTMB::MakeADFun(nll, list(b0 = rep(0, 4), b1 = 0), silent = TRUE)
+  nlminb(obj$par, obj$fn, obj$gr)
+  expect_error(suppressWarnings(vcov(lama(obj), type = "cluster", cr = "CR3")), "Hessian without cluster 1 is singular")
 })

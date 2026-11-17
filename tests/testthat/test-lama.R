@@ -329,5 +329,13 @@ test_that("vcov CR3: error for parameters informed by a single cluster", {
   }
   obj <- RTMB::MakeADFun(nll, list(b0 = rep(0, 4), b1 = 0), silent = TRUE)
   nlminb(obj$par, obj$fn, obj$gr)
-  expect_error(suppressWarnings(vcov(lama(obj), type = "cluster", cr = "CR3")), "Hessian without cluster 1 is singular")
+  expect_error(suppressWarnings(vcov(lama(obj), type = "cluster", cr = "CR3")), "Hessian without cluster 1 is singular or not positive definite")
+})
+
+test_that("vcov CR3: error if the Hessian without a cluster is indefinite", {
+  # mock tape: H - H_k = diag(c(1, -1)) is indefinite but well conditioned
+  tp <- list(p = 2, nObs = 4, names = c("a", "b"), theta = c(0, 0),
+             G = function(x) c(x[1] * sum(x[3:6]), -x[2] * sum(x[3:6]), rep(0, 4)))
+  U <- matrix(1, 4, 2)
+  expect_error(cr3_vcov(tp, U, c(1, 1, 2, 2)), "not positive definite")
 })

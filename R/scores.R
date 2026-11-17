@@ -86,6 +86,8 @@ tape_scores <- function(tp){
 # as they are now; map is respected, random effects are not supported.
 # Returns a list with
 #   theta: parameters (like obj$par) at which the tape was made, by default the estimates
+#   F:     function of c(theta, w) returning the weighted negative log-likelihood (e.g. for refits
+#          with weights fixed, as for the exact leave-one-cluster-out jackknife)
 #   G:     function of c(theta, w) returning the gradient w.r.t. (theta, w); its first p entries
 #          are the gradient of the weighted negative log-likelihood w.r.t. theta
 #   p, nObs, names: number of parameters, number of observations, names(obj$par)
@@ -117,7 +119,8 @@ weighted_tape <- function(obj, par = NULL){
   obj_w <- RTMB::MakeADFun(f, c(parlist, list(weights_ = rep(1, nObs))), map = fr$map, silent = TRUE)
   if(used != nObs) stop("forward() used ", used, " of ", nObs, " observations while taping.")
 
-  list(theta = obj_w$par[seq_len(p)], G = RTMB::GetTape(obj_w)$jacfun(), p = p, nObs = nObs,
+  F <- RTMB::GetTape(obj_w)
+  list(theta = obj_w$par[seq_len(p)], F = F, G = F$jacfun(), p = p, nObs = nObs,
        names = names(obj$par))
 }
 

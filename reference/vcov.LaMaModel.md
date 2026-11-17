@@ -35,8 +35,10 @@ vcov(
 - lag:
 
   bandwidth \\L\\ of the HAC sandwich, i.e. the maximum lag of the
-  autocovariances included. Defaults to the rule of thumb above.
-  `lag = 0` gives the ordinary (heteroskedasticity robust) sandwich.
+  autocovariances included. Defaults to the rule of thumb \\L = \lfloor
+  4 (\bar T / 100)^{2/9} \rfloor\\, with \\\bar T\\ the mean track
+  length (see Details). `lag = 0` gives the ordinary (heteroskedasticity
+  robust) sandwich.
 
 - cluster:
 
@@ -120,9 +122,11 @@ weighted likelihood with weight zero on its observations. For linear
 least squares, the step is exact. Compared to CR1, it inflates the
 contributions of clusters with high leverage (e.g. long tracks), whose
 score sums are shrunk the most by fitting; with equal leverage \\H_k = H
-/ G\\, both coincide. It costs one Hessian per cluster. If leaving out a
-cluster makes the Hessian singular, as for parameters only informed by
-that cluster, an error is issued.
+/ G\\, both coincide. It costs one Hessian per cluster. The one-step
+deletion is a pure Newton step, so it requires \\H - H_k\\ to be
+positive definite: if leaving out a cluster makes it singular or
+indefinite, as for parameters not or only weakly identified without that
+cluster, an error is issued.
 
 Both sandwiches require the likelihood function to call
 [`forward`](https://janolefi.github.io/LaMa/reference/forward.md) once

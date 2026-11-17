@@ -89,7 +89,7 @@ or <code>"cluster"</code> for the cluster-robust sandwich</p></dd>
 
 <dt id="arg-lag">lag<a class="anchor" aria-label="anchor" href="#arg-lag"></a></dt>
 <dd><p>bandwidth \(L\) of the HAC sandwich, i.e. the maximum lag of the autocovariances included.
-Defaults to the rule of thumb above. <code>lag = 0</code> gives the ordinary (heteroskedasticity robust) sandwich.</p></dd>
+Defaults to the rule of thumb \(L = \lfloor 4 (\bar T / 100)^{2/9} \rfloor\), with \(\bar T\) the mean track length (see Details). <code>lag = 0</code> gives the ordinary (heteroskedasticity robust) sandwich.</p></dd>
 
 
 <dt id="arg-cluster">cluster<a class="anchor" aria-label="anchor" href="#arg-cluster"></a></dt>
@@ -144,8 +144,9 @@ where \(d_k\) approximates the change in the estimate when cluster \(k\) is left
 and \(H - H_k\) is the Hessian without cluster \(k\), from the weighted likelihood with weight zero on its observations.
 For linear least squares, the step is exact. Compared to CR1, it inflates the contributions of clusters with high leverage
 (e.g. long tracks), whose score sums are shrunk the most by fitting; with equal leverage \(H_k = H / G\), both coincide.
-It costs one Hessian per cluster. If leaving out a cluster makes the Hessian singular, as for parameters only informed
-by that cluster, an error is issued.</p>
+It costs one Hessian per cluster. The one-step deletion is a pure Newton step, so it requires \(H - H_k\) to be
+positive definite: if leaving out a cluster makes it singular or indefinite, as for parameters not or only weakly
+identified without that cluster, an error is issued.</p>
 <p>Both sandwiches require the likelihood function to call <code><a href="forward.html">forward</a></code> once (with <code>trackID</code> for several tracks)
 and are not available for models with random effects or from <code><a href="qreml.html">qreml</a></code>.</p>
     </div>

@@ -185,8 +185,8 @@ coef.LaMaModel <- function(object, ...) {
 #'
 #' Computes the approximate covariance matrix of the estimated parameters \code{coef(object)},
 #' either as the inverse Hessian of the negative log-likelihood at the estimate (\code{type = "hessian"}),
-#' or as a heteroskedasticity and autocorrelation consistent (HAC) sandwich (\code{type = "HAC"}),
-#' which remains valid if the model is misspecified.
+#' or as a sandwich that remains valid if the model is misspecified: heteroskedasticity and autocorrelation
+#' consistent (\code{type = "HAC"}) or cluster-robust over tracks (\code{type = "cluster"}).
 #'
 #' @details
 #' \strong{Hessian.} The Hessian \eqn{H} is
@@ -210,27 +210,49 @@ coef.LaMaModel <- function(object, ...) {
 #'
 #' If the model is correctly specified, the \eqn{u_t} are martingale differences, so \eqn{\Gamma_l \approx 0} for \eqn{l \ge 1}
 #' and \eqn{M \approx H}: both types then agree approximately, and marked differences point to misspecification.
-#' The HAC sandwich requires the likelihood function to call \code{\link{forward}} once (with \code{trackID} for several tracks)
-#' and is not available for models with random effects or from \code{\link{qreml}}.
+#'
+#' \strong{Cluster-robust sandwich.} With the score sums \eqn{s_k = \sum_{t \in k} u_t} of the clusters \eqn{k = 1, \dots, G}
+#' (by default the tracks), the meat is
+#' \deqn{M = c \sum_{k=1}^G s_k s_k^\top,}
+#' with \eqn{c = 1} (\code{cr = "CR0"}) or \eqn{c = G / (G - 1)} (\code{cr = "CR1"}, default).
+#' It makes no assumption about the dependence within clusters, so no bandwidth is needed, but requires
+#' independent clusters and is only reliable for many of them. As the \eqn{s_k} sum to the gradient,
+#' which is zero at the estimate, \eqn{M} has rank at most \eqn{G - 1}, so the covariance is singular if \eqn{G - 1} is less than
+#' the number of parameters. For parameters informed by a single cluster only, such as track-specific initial distributions,
+#' it is not meaningful. Clusters may combine several tracks (e.g. several tracks of one individual), but a track must not
+#' be split between clusters.
+#'
+#' Both sandwiches require the likelihood function to call \code{\link{forward}} once (with \code{trackID} for several tracks)
+#' and are not available for models with random effects or from \code{\link{qreml}}.
 #'
 #' @param object model object of class \code{"LaMaModel"}
-#' @param type \code{"hessian"} (default) for the inverse Hessian, or \code{"HAC"} for the HAC sandwich
+#' @param type \code{"hessian"} (default) for the inverse Hessian, \code{"HAC"} for the HAC sandwich,
+#' or \code{"cluster"} for the cluster-robust sandwich
 #' @param lag bandwidth \eqn{L} of the HAC sandwich, i.e. the maximum lag of the autocovariances included.
 #' Defaults to the rule of thumb above. \code{lag = 0} gives the ordinary (heteroskedasticity robust) sandwich.
+#' @param cluster cluster identifier for \code{type = "cluster"}, one value per observation (of any type, in the order of the
+#' observations in \code{\link{forward}}). Defaults to the tracks, i.e. the \code{trackID} reported by \code{\link{forward}}.
+#' @param cr small-sample adjustment for \code{type = "cluster"}: \code{"CR1"} (default) multiplies the meat by \eqn{G / (G - 1)},
+#' \code{"CR0"} does not adjust.
 #' @param ... additional arguments (not used)
 #'
 #' @returns covariance matrix with rows and columns named like \code{coef(object)}
 #' @references Newey, W. K. and West, K. D. (1987). A simple, positive semi-definite, heteroskedasticity
 #' and autocorrelation consistent covariance matrix. \emph{Econometrica}, 55(3), 703--708.
+#'
+#' Cameron, A. C. and Miller, D. L. (2015). A practitioner's guide to cluster-robust inference.
+#' \emph{Journal of Human Resources}, 50(2), 317--372.
 #' @seealso \code{\link{coef.LaMaModel}}, \code{\link{scores}}
 #' @importFrom stats vcov optimHess
 #' @export
-vcov.LaMaModel <- function(object, type = c("hessian", "HAC"), lag = NULL, ...) {
+vcov.LaMaModel <- function(object, type = c("hessian", "HAC", "cluster"), lag = NULL,
+                           cluster = NULL, cr = c("CR1", "CR0"), ...) {
   type <- match.arg(type)
+  cr <- match.arg(cr)
   obj <- get_obj(object)
-  if(type == "HAC") {
-    if(inherits(object, "qremlModel")) stop("type = \"HAC\" is not available for models from qreml().")
-    if(length(obj$env$random)) stop("type = \"HAC\" is not available for models with random effects.")
+  if(type != "hessian") {
+    if(inherits(object, "qremlModel")) stop("type = \"", type, "\" is not available for models from qreml().")
+    if(length(obj$env$random)) stop("type = \"", type, "\" is not available for models with random effects.")
   }
   p <- coef(object)
   H <- if(inherits(object, "qremlModel")) object$Hessian_conditional
@@ -245,8 +267,10 @@ vcov.LaMaModel <- function(object, type = c("hessian", "HAC"), lag = NULL, ...) 
     V <- tryCatch(solve(H), error = function(e) matrix(NA_real_, nrow(H), ncol(H)))
   }
 
-  if(type == "HAC") {
-    M <- hac_meat(scores(object), object$trackID, lag)
+  if(type != "hessian") {
+    U <- scores(object)
+    M <- if(type == "HAC") hac_meat(U, object$trackID, lag)
+         else cluster_meat(U, object$trackID, cluster, cr, npar = length(p))
     V <- V %*% M %*% V
     V <- (V + t(V)) / 2
   }
@@ -275,4 +299,34 @@ hac_meat <- function(U, trackID = NULL, lag = NULL){
     M <- M + (1 - l / (lag + 1)) * (G + t(G))
   }
   M
+}
+
+# Cluster-robust meat c * sum_k s_k s_k' from score contributions U, with s_k the score sums of
+# the clusters (default: the tracks) and c = G / (G - 1) for CR1, c = 1 for CR0.
+cluster_meat <- function(U, trackID = NULL, cluster = NULL, cr = "CR1", npar = ncol(U)){
+  n <- nrow(U)
+  if(!is.null(trackID) && length(trackID) != n) {
+    stop("Length of the reported trackID (", length(trackID), ") does not match the number of score contributions (", n,
+         "). The likelihood function should call forward() once, with trackID for several tracks.")
+  }
+  if(is.null(cluster)) {
+    if(is.null(trackID)) stop("type = \"cluster\" needs several tracks (trackID in forward()) or a cluster argument.")
+    cluster <- trackID
+  } else {
+    if(length(cluster) != n) stop("cluster must have one value per observation (", n, "), but has length ", length(cluster), ".")
+    if(anyNA(cluster)) stop("cluster must not contain missing values.")
+    # tracks are dependent internally, so splitting one between clusters is invalid
+    if(!is.null(trackID) && any(tapply(cluster, trackID, function(x) length(unique(x))) > 1)) {
+      stop("A track is split between clusters: each track must lie within a single cluster.")
+    }
+  }
+  S <- rowsum(U, cluster, reorder = FALSE) # G x p score sums
+  G <- nrow(S)
+  if(G < 2) stop("type = \"cluster\" needs at least two clusters.")
+  if(G - 1 < npar) {
+    warning("Only ", G, " clusters for ", npar, " parameters: the cluster-robust covariance has rank at most ",
+            G - 1, " and is singular.", call. = FALSE)
+  }
+  adj <- if(cr == "CR1") G / (G - 1) else 1
+  adj * crossprod(S)
 }

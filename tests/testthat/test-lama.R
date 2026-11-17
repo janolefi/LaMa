@@ -120,6 +120,56 @@ test_that("vcov HAC: errors for qreml models, random effects, bad lag and trackI
   obj_re <- RTMB::MakeADFun(function(par) nll_rep(par[names(par_rep)]) - sum(dnorm(par$u, log = TRUE)),
                             c(par_rep, list(u = 0)), random = "u", silent = TRUE)
   expect_error(vcov(structure(list(obj = obj_re), class = "LaMaModel"), type = "HAC"), "random effects")
+  expect_error(vcov(qmod, type = "cluster"), "qreml")
+  expect_error(vcov(structure(list(obj = obj_re), class = "LaMaModel"), type = "cluster"), "random effects")
+})
+
+# 8 tracks of 50 steps, character IDs
+dat_cl <- list(step = trex$step[1:400], ID = rep(paste0("track", 1:8), each = 50))
+nll_cl <- function(par) {
+  getAll(par, dat_cl)
+  Gamma <- tpm(eta)
+  allprobs <- matrix(1, length(step), 2)
+  ind <- which(!is.na(step))
+  for(j in 1:2) allprobs[ind, j] <- dgamma2(step[ind], exp(log_mu[j]), exp(log_sigma[j]))
+  -forward(stationary(Gamma), Gamma, allprobs, trackID = ID)
+}
+obj_cl <- RTMB::MakeADFun(nll_cl, par_rep, silent = TRUE)
+opt_cl <- nlminb(obj_cl$par, obj_cl$fn, obj_cl$gr)
+
+test_that("vcov cluster: CR0 and CR1 from the score sums of the tracks", {
+  mod <- lama(obj_cl)
+  U <- scores(mod)
+  Hi <- solve(obj_cl$he(opt_cl$par))
+  S <- rowsum(U, dat_cl$ID)
+  V0 <- Hi %*% crossprod(S) %*% Hi
+  expect_equal(vcov(mod, type = "cluster", cr = "CR0"), V0, ignore_attr = TRUE, tolerance = 1e-6)
+  expect_equal(vcov(mod, type = "cluster", cr = "CR1"), 8 / 7 * V0, ignore_attr = TRUE, tolerance = 1e-6)
+  expect_equal(vcov(mod, type = "cluster"), vcov(mod, type = "cluster", cr = "CR1")) # CR1 is the default
+  expect_equal(rownames(vcov(mod, type = "cluster")), names(coef(mod)))
+  # explicit cluster = tracks gives the same, whatever the type of the IDs
+  expect_equal(vcov(mod, type = "cluster", cluster = factor(dat_cl$ID)), vcov(mod, type = "cluster"))
+})
+
+test_that("vcov cluster: clusters combining tracks, but not splitting them", {
+  mod <- lama(obj_cl)
+  U <- scores(mod)
+  Hi <- solve(obj_cl$he(opt_cl$par))
+  # 4 "individuals" with 2 tracks each (G = 4 < 7: singular, hence the warning)
+  indiv <- rep(c("A", "B", "C", "D"), each = 100)
+  expect_warning(V <- vcov(mod, type = "cluster", cluster = indiv, cr = "CR0"), "rank at most 3")
+  expect_equal(V, Hi %*% crossprod(rowsum(U, indiv)) %*% Hi, ignore_attr = TRUE, tolerance = 1e-6)
+  # splitting a track between clusters is an error
+  expect_error(vcov(mod, type = "cluster", cluster = rep(1:16, each = 25)), "split between clusters")
+})
+
+test_that("vcov cluster: errors without tracks, for one cluster and bad cluster vectors", {
+  mod <- lama(obj_rep) # single track
+  expect_error(vcov(mod, type = "cluster"), "needs several tracks")
+  expect_error(vcov(mod, type = "cluster", cluster = rep(1, 200)), "at least two clusters")
+  expect_error(vcov(mod, type = "cluster", cluster = 1:10), "one value per observation")
+  expect_error(vcov(mod, type = "cluster", cluster = c(NA, rep(1:2, each = 100)[-1])), "missing values")
+  expect_error(vcov(mod, type = "cluster", cr = "CR3"), "should be one of")
 })
 
 test_that("print: state process, missing observations and reported quantities", {

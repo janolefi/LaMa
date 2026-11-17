@@ -4,15 +4,29 @@
 \alias{vcov.LaMaModel}
 \title{Variance-covariance matrix of a \code{LaMaModel} object}
 \usage{
-\method{vcov}{LaMaModel}(object, type = c("hessian", "HAC"), lag = NULL, ...)
+\method{vcov}{LaMaModel}(
+  object,
+  type = c("hessian", "HAC", "cluster"),
+  lag = NULL,
+  cluster = NULL,
+  cr = c("CR1", "CR0"),
+  ...
+)
 }
 \arguments{
 \item{object}{model object of class \code{"LaMaModel"}}
 
-\item{type}{\code{"hessian"} (default) for the inverse Hessian, or \code{"HAC"} for the HAC sandwich}
+\item{type}{\code{"hessian"} (default) for the inverse Hessian, \code{"HAC"} for the HAC sandwich,
+or \code{"cluster"} for the cluster-robust sandwich}
 
 \item{lag}{bandwidth \eqn{L} of the HAC sandwich, i.e. the maximum lag of the autocovariances included.
 Defaults to the rule of thumb above. \code{lag = 0} gives the ordinary (heteroskedasticity robust) sandwich.}
+
+\item{cluster}{cluster identifier for \code{type = "cluster"}, one value per observation (of any type, in the order of the
+observations in \code{\link{forward}}). Defaults to the tracks, i.e. the \code{trackID} reported by \code{\link{forward}}.}
+
+\item{cr}{small-sample adjustment for \code{type = "cluster"}: \code{"CR1"} (default) multiplies the meat by \eqn{G / (G - 1)},
+\code{"CR0"} does not adjust.}
 
 \item{...}{additional arguments (not used)}
 }
@@ -22,8 +36,8 @@ covariance matrix with rows and columns named like \code{coef(object)}
 \description{
 Computes the approximate covariance matrix of the estimated parameters \code{coef(object)},
 either as the inverse Hessian of the negative log-likelihood at the estimate (\code{type = "hessian"}),
-or as a heteroskedasticity and autocorrelation consistent (HAC) sandwich (\code{type = "HAC"}),
-which remains valid if the model is misspecified.
+or as a sandwich that remains valid if the model is misspecified: heteroskedasticity and autocorrelation
+consistent (\code{type = "HAC"}) or cluster-robust over tracks (\code{type = "cluster"}).
 }
 \details{
 \strong{Hessian.} The Hessian \eqn{H} is
@@ -47,12 +61,27 @@ The default bandwidth is \eqn{L = \lfloor 4 (\bar T / 100)^{2/9} \rfloor}, with 
 
 If the model is correctly specified, the \eqn{u_t} are martingale differences, so \eqn{\Gamma_l \approx 0} for \eqn{l \ge 1}
 and \eqn{M \approx H}: both types then agree approximately, and marked differences point to misspecification.
-The HAC sandwich requires the likelihood function to call \code{\link{forward}} once (with \code{trackID} for several tracks)
-and is not available for models with random effects or from \code{\link{qreml}}.
+
+\strong{Cluster-robust sandwich.} With the score sums \eqn{s_k = \sum_{t \in k} u_t} of the clusters \eqn{k = 1, \dots, G}
+(by default the tracks), the meat is
+\deqn{M = c \sum_{k=1}^G s_k s_k^\top,}
+with \eqn{c = 1} (\code{cr = "CR0"}) or \eqn{c = G / (G - 1)} (\code{cr = "CR1"}, default).
+It makes no assumption about the dependence within clusters, so no bandwidth is needed, but requires
+independent clusters and is only reliable for many of them. As the \eqn{s_k} sum to the gradient,
+which is zero at the estimate, \eqn{M} has rank at most \eqn{G - 1}, so the covariance is singular if \eqn{G - 1} is less than
+the number of parameters. For parameters informed by a single cluster only, such as track-specific initial distributions,
+it is not meaningful. Clusters may combine several tracks (e.g. several tracks of one individual), but a track must not
+be split between clusters.
+
+Both sandwiches require the likelihood function to call \code{\link{forward}} once (with \code{trackID} for several tracks)
+and are not available for models with random effects or from \code{\link{qreml}}.
 }
 \references{
 Newey, W. K. and West, K. D. (1987). A simple, positive semi-definite, heteroskedasticity
 and autocorrelation consistent covariance matrix. \emph{Econometrica}, 55(3), 703--708.
+
+Cameron, A. C. and Miller, D. L. (2015). A practitioner's guide to cluster-robust inference.
+\emph{Journal of Human Resources}, 50(2), 317--372.
 }
 \seealso{
 \code{\link{coef.LaMaModel}}, \code{\link{scores}}

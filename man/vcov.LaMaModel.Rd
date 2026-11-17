@@ -4,10 +4,15 @@
 \alias{vcov.LaMaModel}
 \title{Variance-covariance matrix of a \code{LaMaModel} object}
 \usage{
-\method{vcov}{LaMaModel}(object, ...)
+\method{vcov}{LaMaModel}(object, type = c("hessian", "HAC"), lag = NULL, ...)
 }
 \arguments{
 \item{object}{model object of class \code{"LaMaModel"}}
+
+\item{type}{\code{"hessian"} (default) for the inverse Hessian, or \code{"HAC"} for the HAC sandwich}
+
+\item{lag}{bandwidth \eqn{L} of the HAC sandwich, i.e. the maximum lag of the autocovariances included.
+Defaults to the rule of thumb above. \code{lag = 0} gives the ordinary (heteroskedasticity robust) sandwich.}
 
 \item{...}{additional arguments (not used)}
 }
@@ -16,10 +21,12 @@ covariance matrix with rows and columns named like \code{coef(object)}
 }
 \description{
 Computes the approximate covariance matrix of the estimated parameters \code{coef(object)},
-as the inverse Hessian of the negative log-likelihood at the estimate.
+either as the inverse Hessian of the negative log-likelihood at the estimate (\code{type = "hessian"}),
+or as a heteroskedasticity and autocorrelation consistent (HAC) sandwich (\code{type = "HAC"}),
+which remains valid if the model is misspecified.
 }
 \details{
-The Hessian is
+\strong{Hessian.} The Hessian \eqn{H} is
 \itemize{
   \item the exact Hessian \code{obj$he()} for models without random effects,
   \item for models with random effects, the Hessian of the Laplace-approximated marginal likelihood
@@ -29,7 +36,24 @@ The Hessian is
 }
 If the Hessian is not positive definite, which indicates that the model has not converged,
 a warning is issued.
+
+\strong{HAC sandwich.} With the per-observation score contributions \eqn{u_t} from \code{\link{scores}},
+the covariance is \eqn{H^{-1} M H^{-1}}, with the Newey-West (Bartlett kernel) estimate
+\deqn{M = \Gamma_0 + \sum_{l=1}^{L} \Bigl(1 - \frac{l}{L+1}\Bigr) (\Gamma_l + \Gamma_l^\top), \qquad
+\Gamma_l = \sum_t u_t u_{t-l}^\top,}
+where the sum in \eqn{\Gamma_l} only runs over pairs of observations from the same track (as reported by \code{\link{forward}}),
+as different tracks are independent. Missing observations contribute zero scores, so lags remain in units of time.
+The default bandwidth is \eqn{L = \lfloor 4 (\bar T / 100)^{2/9} \rfloor}, with \eqn{\bar T} the mean track length.
+
+If the model is correctly specified, the \eqn{u_t} are martingale differences, so \eqn{\Gamma_l \approx 0} for \eqn{l \ge 1}
+and \eqn{M \approx H}: both types then agree approximately, and marked differences point to misspecification.
+The HAC sandwich requires the likelihood function to call \code{\link{forward}} once (with \code{trackID} for several tracks)
+and is not available for models with random effects or from \code{\link{qreml}}.
+}
+\references{
+Newey, W. K. and West, K. D. (1987). A simple, positive semi-definite, heteroskedasticity
+and autocorrelation consistent covariance matrix. \emph{Econometrica}, 55(3), 703--708.
 }
 \seealso{
-\code{\link{coef.LaMaModel}}
+\code{\link{coef.LaMaModel}}, \code{\link{scores}}
 }

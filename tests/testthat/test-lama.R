@@ -68,6 +68,60 @@ test_that("vcov: qreml models use the conditional Hessian, warning if not positi
   expect_warning(vcov(mod), "not positive definite")
 })
 
+test_that("vcov HAC: single track as sandwich::meatHAC with Bartlett weights", {
+  skip_if_not_installed("sandwich")
+  mod <- lama(obj_rep)
+  U <- scores(mod)
+  registerS3method("estfun", "lama_scores", function(x, ...) unclass(x), envir = asNamespace("sandwich"))
+  Hi <- solve(obj_rep$he(opt_rep$par))
+  for(L in c(0, 3)) {
+    M <- nrow(U) * sandwich::meatHAC(structure(U, class = "lama_scores"), weights = 1 - (0:L) / (L + 1),
+                                     prewhite = FALSE, adjust = FALSE)
+    expect_equal(vcov(mod, type = "HAC", lag = L), Hi %*% M %*% Hi, ignore_attr = TRUE, tolerance = 1e-6)
+  }
+  # lag 0: ordinary sandwich
+  expect_equal(vcov(mod, type = "HAC", lag = 0), Hi %*% crossprod(U) %*% Hi, ignore_attr = TRUE, tolerance = 1e-6)
+  # default lag: floor(4 * (200 / 100)^(2/9)) = 4
+  expect_equal(vcov(mod, type = "HAC"), vcov(mod, type = "HAC", lag = 4))
+  expect_equal(rownames(vcov(mod, type = "HAC")), names(coef(mod)))
+})
+
+test_that("vcov HAC: autocovariances only within tracks", {
+  dat2 <- list(step = trex$step[1:300], ID = rep(c("a", "b"), c(120, 180)))
+  nll2 <- function(par) {
+    getAll(par, dat2)
+    Gamma <- tpm(eta)
+    allprobs <- matrix(1, length(step), 2)
+    ind <- which(!is.na(step))
+    for(j in 1:2) allprobs[ind, j] <- dgamma2(step[ind], exp(log_mu[j]), exp(log_sigma[j]))
+    -forward(stationary(Gamma), Gamma, allprobs, trackID = ID)
+  }
+  obj2 <- RTMB::MakeADFun(nll2, par_rep, silent = TRUE)
+  opt2 <- nlminb(obj2$par, obj2$fn, obj2$gr)
+  mod <- lama(obj2)
+  U <- scores(mod)
+  Hi <- solve(obj2$he(opt2$par))
+  ind <- split(seq_len(nrow(U)), dat2$ID)
+  M <- hac_meat(U[ind$a, ], lag = 5) + hac_meat(U[ind$b, ], lag = 5)
+  expect_equal(vcov(mod, type = "HAC", lag = 5), Hi %*% M %*% Hi, ignore_attr = TRUE, tolerance = 1e-6)
+  # a single series would include pairs across the track boundary
+  expect_false(isTRUE(all.equal(hac_meat(U, lag = 5), M)))
+  # default lag from the mean track length: floor(4 * 1.5^(2/9)) = 4
+  expect_equal(vcov(mod, type = "HAC"), vcov(mod, type = "HAC", lag = 4))
+})
+
+test_that("vcov HAC: errors for qreml models, random effects, bad lag and trackID", {
+  mod <- lama(obj_rep)
+  expect_error(vcov(mod, type = "HAC", lag = -1), "non-negative integer")
+  expect_error(vcov(mod, type = "HAC", lag = 1.5), "non-negative integer")
+  expect_error(hac_meat(matrix(0, 10, 2), trackID = 1:5), "does not match")
+  qmod <- structure(list(obj = obj_rep), class = c("qremlModel", "LaMaModel"))
+  expect_error(vcov(qmod, type = "HAC"), "qreml")
+  obj_re <- RTMB::MakeADFun(function(par) nll_rep(par[names(par_rep)]) - sum(dnorm(par$u, log = TRUE)),
+                            c(par_rep, list(u = 0)), random = "u", silent = TRUE)
+  expect_error(vcov(structure(list(obj = obj_re), class = "LaMaModel"), type = "HAC"), "random effects")
+})
+
 test_that("print: state process, missing observations and reported quantities", {
   mod <- lama(obj_rep)
   expect_output(print(mod), "2 states \\(discrete time, homogeneous\\)")

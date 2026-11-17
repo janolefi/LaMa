@@ -184,10 +184,12 @@ coef.LaMaModel <- function(object, ...) {
 #' Variance-covariance matrix of a \code{LaMaModel} object
 #'
 #' Computes the approximate covariance matrix of the estimated parameters \code{coef(object)},
-#' as the inverse Hessian of the negative log-likelihood at the estimate.
+#' either as the inverse Hessian of the negative log-likelihood at the estimate (\code{type = "hessian"}),
+#' or as a heteroskedasticity and autocorrelation consistent (HAC) sandwich (\code{type = "HAC"}),
+#' which remains valid if the model is misspecified.
 #'
 #' @details
-#' The Hessian is
+#' \strong{Hessian.} The Hessian \eqn{H} is
 #' \itemize{
 #'   \item the exact Hessian \code{obj$he()} for models without random effects,
 #'   \item for models with random effects, the Hessian of the Laplace-approximated marginal likelihood
@@ -198,15 +200,38 @@ coef.LaMaModel <- function(object, ...) {
 #' If the Hessian is not positive definite, which indicates that the model has not converged,
 #' a warning is issued.
 #'
+#' \strong{HAC sandwich.} With the per-observation score contributions \eqn{u_t} from \code{\link{scores}},
+#' the covariance is \eqn{H^{-1} M H^{-1}}, with the Newey-West (Bartlett kernel) estimate
+#' \deqn{M = \Gamma_0 + \sum_{l=1}^{L} \Bigl(1 - \frac{l}{L+1}\Bigr) (\Gamma_l + \Gamma_l^\top), \qquad
+#' \Gamma_l = \sum_t u_t u_{t-l}^\top,}
+#' where the sum in \eqn{\Gamma_l} only runs over pairs of observations from the same track (as reported by \code{\link{forward}}),
+#' as different tracks are independent. Missing observations contribute zero scores, so lags remain in units of time.
+#' The default bandwidth is \eqn{L = \lfloor 4 (\bar T / 100)^{2/9} \rfloor}, with \eqn{\bar T} the mean track length.
+#'
+#' If the model is correctly specified, the \eqn{u_t} are martingale differences, so \eqn{\Gamma_l \approx 0} for \eqn{l \ge 1}
+#' and \eqn{M \approx H}: both types then agree approximately, and marked differences point to misspecification.
+#' The HAC sandwich requires the likelihood function to call \code{\link{forward}} once (with \code{trackID} for several tracks)
+#' and is not available for models with random effects or from \code{\link{qreml}}.
+#'
 #' @param object model object of class \code{"LaMaModel"}
+#' @param type \code{"hessian"} (default) for the inverse Hessian, or \code{"HAC"} for the HAC sandwich
+#' @param lag bandwidth \eqn{L} of the HAC sandwich, i.e. the maximum lag of the autocovariances included.
+#' Defaults to the rule of thumb above. \code{lag = 0} gives the ordinary (heteroskedasticity robust) sandwich.
 #' @param ... additional arguments (not used)
 #'
 #' @returns covariance matrix with rows and columns named like \code{coef(object)}
-#' @seealso \code{\link{coef.LaMaModel}}
+#' @references Newey, W. K. and West, K. D. (1987). A simple, positive semi-definite, heteroskedasticity
+#' and autocorrelation consistent covariance matrix. \emph{Econometrica}, 55(3), 703--708.
+#' @seealso \code{\link{coef.LaMaModel}}, \code{\link{scores}}
 #' @importFrom stats vcov optimHess
 #' @export
-vcov.LaMaModel <- function(object, ...) {
+vcov.LaMaModel <- function(object, type = c("hessian", "HAC"), lag = NULL, ...) {
+  type <- match.arg(type)
   obj <- get_obj(object)
+  if(type == "HAC") {
+    if(inherits(object, "qremlModel")) stop("type = \"HAC\" is not available for models from qreml().")
+    if(length(obj$env$random)) stop("type = \"HAC\" is not available for models with random effects.")
+  }
   p <- coef(object)
   H <- if(inherits(object, "qremlModel")) object$Hessian_conditional
        else if(length(obj$env$random)) optimHess(p, obj$fn, obj$gr)
@@ -219,6 +244,35 @@ vcov.LaMaModel <- function(object, ...) {
             "(maximum gradient component ", signif(object$mgc, 3), ").", call. = FALSE)
     V <- tryCatch(solve(H), error = function(e) matrix(NA_real_, nrow(H), ncol(H)))
   }
+
+  if(type == "HAC") {
+    M <- hac_meat(scores(object), object$trackID, lag)
+    V <- V %*% M %*% V
+    V <- (V + t(V)) / 2
+  }
   dimnames(V) <- list(names(p), names(p))
   V
+}
+
+# Newey-West (Bartlett kernel) meat from score contributions U (one row per observation),
+# summing autocovariances only within tracks. Tracks are contiguous, as forward() requires.
+hac_meat <- function(U, trackID = NULL, lag = NULL){
+  n <- nrow(U)
+  if(is.null(trackID)) trackID <- rep(1L, n)
+  if(length(trackID) != n) {
+    stop("Length of the reported trackID (", length(trackID), ") does not match the number of score contributions (", n,
+         "). The likelihood function should call forward() once, with trackID for several tracks.")
+  }
+  trackID <- match(trackID, unique(trackID))
+  if(is.null(lag)) lag <- floor(4 * (mean(tabulate(trackID)) / 100)^(2/9))
+  if(length(lag) != 1 || is.na(lag) || lag < 0 || lag != round(lag)) stop("lag must be a non-negative integer.")
+
+  M <- crossprod(U)
+  for(l in seq_len(min(lag, n - 1))) {
+    i <- which(trackID[(l + 1):n] == trackID[1:(n - l)]) # pairs (i, i + l) within a track
+    if(!length(i)) next
+    G <- crossprod(U[i + l, , drop = FALSE], U[i, , drop = FALSE]) # sum_t u_t u_{t-l}'
+    M <- M + (1 - l / (lag + 1)) * (G + t(G))
+  }
+  M
 }

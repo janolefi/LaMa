@@ -3,7 +3,8 @@
 Computes the approximate covariance matrix of the estimated parameters
 `coef(object)`, either as the inverse Hessian of the negative
 log-likelihood at the estimate (`type = "hessian"`), or as a sandwich
-that remains valid if the model is misspecified: heteroskedasticity and
+that remains valid if the model is misspecified: with the outer product
+of the scores (`type = "sandwich"`), heteroskedasticity and
 autocorrelation consistent (`type = "HAC"`) or cluster-robust over
 tracks (`type = "cluster"`).
 
@@ -13,7 +14,7 @@ tracks (`type = "cluster"`).
 # S3 method for class 'LaMaModel'
 vcov(
   object,
-  type = c("hessian", "HAC", "cluster"),
+  type = c("hessian", "sandwich", "HAC", "cluster"),
   lag = NULL,
   cluster = NULL,
   cr = c("CR1", "CR0", "CR3"),
@@ -29,7 +30,8 @@ vcov(
 
 - type:
 
-  `"hessian"` (default) for the inverse Hessian, `"HAC"` for the HAC
+  `"hessian"` (default) for the inverse Hessian, `"sandwich"` for the
+  sandwich with the outer product of the scores, `"HAC"` for the HAC
   sandwich, or `"cluster"` for the cluster-robust sandwich
 
 - lag:
@@ -37,8 +39,7 @@ vcov(
   bandwidth \\L\\ of the HAC sandwich, i.e. the maximum lag of the
   autocovariances included. Defaults to the rule of thumb \\L = \lfloor
   4 (\bar T / 100)^{2/9} \rfloor\\, with \\\bar T\\ the mean track
-  length (see Details). `lag = 0` gives the ordinary (heteroskedasticity
-  robust) sandwich.
+  length (see Details). `lag = 0` gives the same as `type = "sandwich"`.
 
 - cluster:
 
@@ -80,6 +81,18 @@ covariance matrix with rows and columns named like `coef(object)`
 
 If the Hessian is not positive definite, which indicates that the model
 has not converged, a warning is issued.
+
+**Sandwich.** With the per-observation score contributions \\u_t\\ from
+[`scores`](https://janolefi.github.io/LaMa/reference/scores.md), the
+covariance is \\H^{-1} M H^{-1}\\ with the outer product of the scores
+as meat, \\M = \sum_t u_t u_t^\top\\ (the outer product of gradients,
+OPG). It is robust to a misspecified predictive distribution as long as
+the \\u_t\\ are serially uncorrelated, which they are under correct
+specification (martingale differences), but not to dependence the model
+misses. It equals the HAC sandwich with `lag = 0`. Not to be confused
+with the inverse of the outer product alone, \\M^{-1}\\ (the BHHH
+estimator), which, like \\H^{-1}\\, is only valid under correct
+specification.
 
 **HAC sandwich.** With the per-observation score contributions \\u_t\\
 from [`scores`](https://janolefi.github.io/LaMa/reference/scores.md),
@@ -128,7 +141,7 @@ positive definite: if leaving out a cluster makes it singular or
 indefinite, as for parameters not or only weakly identified without that
 cluster, an error is issued.
 
-Both sandwiches require the likelihood function to call
+All sandwiches require the likelihood function to call
 [`forward`](https://janolefi.github.io/LaMa/reference/forward.md) once
 (with `trackID` for several tracks) and are not available for models
 with random effects or from

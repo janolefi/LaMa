@@ -1,3 +1,18 @@
+# LaMa 3.2.0
+
+* `vcov(mod, type = )` gives robust covariances that remain valid if the model is misspecified: 
+  `"sandwich"` with the outer product of the scores, `"HAC"` (heteroskedasticity and autocorrelation 
+  consistent) for serially dependent scores within tracks, and `"cluster"` for independent tracks or 
+  groups of tracks
+* `type = "HAC"` uses the Quadratic Spectral kernel by default (or `kernel = "Bartlett"`, Newey-West) 
+  with the data-driven bandwidth of Andrews (1991), or a given `bw`; all lags are computed exactly 
+  with the fast Fourier transform
+* `type = "cluster"` has small-sample adjustments `cr = "CR1"` (default), `"CR0"` and `"CR3"`, a 
+  one-step jackknife that inflates the contributions of clusters with high leverage
+* `TIC()` gives the Takeuchi information criterion, whose penalty, the effective number of 
+  parameters `tr(J H^{-1})`, uses the HAC covariance by default; several models are compared as with 
+  `AIC()`
+
 # LaMa 3.1.0
 
 * `tpm_ct()` is much faster: with AD and 2 states it uses an exact closed form instead of 

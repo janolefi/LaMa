@@ -15,7 +15,8 @@ tracks (`type = "cluster"`).
 vcov(
   object,
   type = c("hessian", "sandwich", "HAC", "cluster"),
-  lag = NULL,
+  kernel = c("QS", "Bartlett"),
+  bw = NULL,
   cluster = NULL,
   cr = c("CR1", "CR0", "CR3"),
   ...
@@ -34,12 +35,17 @@ vcov(
   sandwich with the outer product of the scores, `"HAC"` for the HAC
   sandwich, or `"cluster"` for the cluster-robust sandwich
 
-- lag:
+- kernel:
 
-  bandwidth \\L\\ of the HAC sandwich, i.e. the maximum lag of the
-  autocovariances included. Defaults to the rule of thumb \\L = \lfloor
-  4 (\bar T / 100)^{2/9} \rfloor\\, with \\\bar T\\ the mean track
-  length (see Details). `lag = 0` gives the same as `type = "sandwich"`.
+  kernel of the HAC sandwich: `"QS"` (Quadratic Spectral, default) or
+  `"Bartlett"` (Newey-West), see Details
+
+- bw:
+
+  bandwidth of the HAC sandwich, a non-negative number. Defaults to the
+  data-driven bandwidth of Andrews (1991) for the chosen kernel, see
+  Details. For the Bartlett kernel, `bw = L + 1` includes the lags up to
+  \\L\\, and `bw` at most 1 gives the same as `type = "sandwich"`.
 
 - cluster:
 
@@ -89,23 +95,59 @@ as meat, \\M = \sum_t u_t u_t^\top\\ (the outer product of gradients,
 OPG). It is robust to a misspecified predictive distribution as long as
 the \\u_t\\ are serially uncorrelated, which they are under correct
 specification (martingale differences), but not to dependence the model
-misses. It equals the HAC sandwich with `lag = 0`. Not to be confused
-with the inverse of the outer product alone, \\M^{-1}\\ (the BHHH
-estimator), which, like \\H^{-1}\\, is only valid under correct
-specification.
+misses. It equals the HAC sandwich with the Bartlett kernel and `bw` at
+most 1. Not to be confused with the inverse of the outer product alone,
+\\M^{-1}\\ (the BHHH estimator), which, like \\H^{-1}\\, is only valid
+under correct specification.
 
 **HAC sandwich.** With the per-observation score contributions \\u_t\\
 from [`scores`](https://janolefi.github.io/LaMa/reference/scores.md),
-the covariance is \\H^{-1} M H^{-1}\\, with the Newey-West (Bartlett
-kernel) estimate \$\$M = \Gamma_0 + \sum\_{l=1}^{L} \Bigl(1 -
-\frac{l}{L+1}\Bigr) (\Gamma_l + \Gamma_l^\top), \qquad \Gamma_l = \sum_t
-u_t u\_{t-l}^\top,\$\$ where the sum in \\\Gamma_l\\ only runs over
-pairs of observations from the same track (as reported by
+the covariance is \\H^{-1} M H^{-1}\\, with the kernel estimate of the
+variance of the score sum \$\$M = \Gamma_0 + \sum\_{l \ge 1} k(l / b)
+(\Gamma_l + \Gamma_l^\top), \qquad \Gamma_l = \sum_t u_t
+u\_{t-l}^\top,\$\$ where the sum in \\\Gamma_l\\ only runs over pairs of
+observations from the same track (as reported by
 [`forward`](https://janolefi.github.io/LaMa/reference/forward.md)), as
 different tracks are independent. Missing observations contribute zero
-scores, so lags remain in units of time. The default bandwidth is \\L =
-\lfloor 4 (\bar T / 100)^{2/9} \rfloor\\, with \\\bar T\\ the mean track
-length.
+scores, so lags remain in units of time. The kernel \\k\\ down-weights
+the autocovariances at longer lags, which are estimated with much noise,
+and the bandwidth \\b\\ (`bw`) scales the lag axis. Two kernels are
+available:
+
+- `kernel = "QS"` (default), the Quadratic Spectral kernel \$\$k(x) =
+  \frac{25}{12 \pi^2 x^2} \Bigl(\frac{\sin(6 \pi x / 5)}{6 \pi x / 5} -
+  \cos(6 \pi x / 5)\Bigr).\$\$ Its weights are positive up to lag \\1.2
+  b\\ and then oscillate with small amplitude, so all lags contribute.
+  It is the most efficient kernel among those that guarantee a positive
+  semi-definite \\M\\ (Andrews, 1991): it keeps the short lags at nearly
+  full weight, which reduces the bias.
+
+- `kernel = "Bartlett"`, \\k(x) = \max(1 - \|x\|, 0)\\, the Newey-West
+  estimator: with \\b = L + 1\\, lags up to \\L\\ enter with weights
+  \\1 - l / (L + 1)\\.
+
+The default bandwidth is the data-driven choice of Andrews (1991), which
+minimises the asymptotic mean squared error of \\M\\ for an AR(1)
+approximation of the scores: with \\\rho_a\\ and \\\sigma_a^2\\ the
+coefficient and innovation variance of an AR(1) with intercept fitted to
+each score column \\a\\ (by least squares on consecutive observations
+within tracks), \$\$b = 1.3221 \\ (\alpha_2 \bar T)^{1/5} \\
+\text{(QS)}, \qquad b = 1.1447 \\ (\alpha_1 \bar T)^{1/3} \\
+\text{(Bartlett)},\$\$ with \\\bar T\\ the mean track length, \\\alpha_2
+= \sum_a 4 \rho_a^2 \sigma_a^4 (1 - \rho_a)^{-8} / D\\, \\\alpha_1 =
+\sum_a 4 \rho_a^2 \sigma_a^4 (1 - \rho_a)^{-6} (1 + \rho_a)^{-2} / D\\
+and \\D = \sum_a \sigma_a^4 (1 - \rho_a)^{-4}\\. For a single track,
+this is
+[`sandwich::bwAndrews()`](https://zeileis.codeberg.page/sandwich/reference/weightsAndrews.html)
+without prewhitening and with equal weights. All score columns are
+weighted equally, so the bandwidth is driven by the most persistent and
+most variable ones. Stronger serial dependence of the scores gives a
+larger bandwidth.
+
+All lags are computed exactly, with the fast Fourier transform within
+each track, which takes \\O(p T \log T + T p^2)\\ operations for \\T\\
+observations and \\p\\ parameters instead of \\O(T^2 p^2)\\ for summing
+all lagged products directly.
 
 If the model is correctly specified, the \\u_t\\ are martingale
 differences, so \\\Gamma_l \approx 0\\ for \\l \ge 1\\ and \\M \approx
@@ -148,6 +190,9 @@ with random effects or from
 [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md).
 
 ## References
+
+Andrews, D. W. K. (1991). Heteroskedasticity and autocorrelation
+consistent covariance matrix estimation. *Econometrica*, 59(3), 817–858.
 
 Newey, W. K. and West, K. D. (1987). A simple, positive semi-definite,
 heteroskedasticity and autocorrelation consistent covariance matrix.

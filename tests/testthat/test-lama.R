@@ -68,23 +68,50 @@ test_that("vcov: qreml models use the conditional Hessian, warning if not positi
   expect_warning(vcov(mod), "not positive definite")
 })
 
-test_that("vcov HAC: single track as sandwich::meatHAC with Bartlett weights", {
+test_that("vcov HAC: single track as sandwich::meatHAC, both kernels, all lags", {
   skip_if_not_installed("sandwich")
   mod <- lama(obj_rep)
   U <- scores(mod)
   registerS3method("estfun", "lama_scores", function(x, ...) unclass(x), envir = asNamespace("sandwich"))
+  x <- structure(U, class = "lama_scores")
   Hi <- solve(obj_rep$he(opt_rep$par))
-  for(L in c(0, 3)) {
-    M <- nrow(U) * sandwich::meatHAC(structure(U, class = "lama_scores"), weights = 1 - (0:L) / (L + 1),
-                                     prewhite = FALSE, adjust = FALSE)
-    expect_equal(vcov(mod, type = "HAC", lag = L), Hi %*% M %*% Hi, ignore_attr = TRUE, tolerance = 1e-6)
+  for(kernel in c("QS", "Bartlett")) {
+    sw_kernel <- if(kernel == "QS") "Quadratic Spectral" else "Bartlett"
+    for(bw in c(0.5, 1, 3.7, 25)) {
+      # tol = 0: sandwich keeps all lags (by default it drops those with weight below 1e-7)
+      w <- sandwich::weightsAndrews(x, bw = bw, kernel = sw_kernel, prewhite = 0, tol = 0)
+      M <- nrow(U) * sandwich::meatHAC(x, weights = w, prewhite = 0, adjust = FALSE)
+      expect_equal(hac_meat(U, kernel = kernel, bw = bw), M, ignore_attr = TRUE, tolerance = 1e-10)
+      expect_equal(vcov(mod, type = "HAC", kernel = kernel, bw = bw), Hi %*% M %*% Hi, ignore_attr = TRUE, tolerance = 1e-6)
+    }
+    # default: Andrews bandwidth, as sandwich::bwAndrews without prewhitening and with equal weights for all
+    # score columns (by default, sandwich guesses which columns belong to an intercept and gives them weight 0)
+    b <- sandwich::bwAndrews(x, kernel = sw_kernel, prewhite = 0, weights = rep(1, ncol(U)))
+    expect_equal(bw_andrews(U, list(seq_len(nrow(U))), kernel), b, tolerance = 1e-10)
+    expect_equal(vcov(mod, type = "HAC", kernel = kernel), vcov(mod, type = "HAC", kernel = kernel, bw = b))
   }
-  # lag 0: sandwich with the outer product of the scores
-  expect_equal(vcov(mod, type = "HAC", lag = 0), Hi %*% crossprod(U) %*% Hi, ignore_attr = TRUE, tolerance = 1e-6)
-  expect_equal(vcov(mod, type = "sandwich"), vcov(mod, type = "HAC", lag = 0))
-  # default lag: floor(4 * (200 / 100)^(2/9)) = 4
-  expect_equal(vcov(mod, type = "HAC"), vcov(mod, type = "HAC", lag = 4))
+  expect_equal(vcov(mod, type = "HAC"), vcov(mod, type = "HAC", kernel = "QS"))
   expect_equal(rownames(vcov(mod, type = "HAC")), names(coef(mod)))
+  # Bartlett with bw <= 1, or any kernel with bw = 0: lag 0 only, the sandwich
+  expect_equal(vcov(mod, type = "HAC", kernel = "Bartlett", bw = 1), vcov(mod, type = "sandwich"))
+  expect_equal(vcov(mod, type = "HAC", bw = 0), vcov(mod, type = "sandwich"))
+  expect_equal(vcov(mod, type = "sandwich"), Hi %*% crossprod(U) %*% Hi, ignore_attr = TRUE, tolerance = 1e-6)
+})
+
+test_that("vcov HAC: FFT equals the direct sum over lags", {
+  set.seed(1)
+  for(n in c(1, 2, 5, 40)) {
+    U <- matrix(rnorm(3 * n), n, 3)
+    for(kernel in c("QS", "Bartlett")) {
+      w <- hac_kernel((0:(n - 1)) / 2.3, kernel)
+      M <- w[1] * crossprod(U)
+      for(l in seq_len(n - 1)) {
+        G <- crossprod(U[(l + 1):n, , drop = FALSE], U[1:(n - l), , drop = FALSE])
+        M <- M + w[l + 1] * (G + t(G))
+      }
+      expect_equal(fft_meat(U, w), M, tolerance = 1e-10)
+    }
+  }
 })
 
 test_that("vcov HAC: autocovariances only within tracks", {
@@ -103,18 +130,28 @@ test_that("vcov HAC: autocovariances only within tracks", {
   U <- scores(mod)
   Hi <- solve(obj2$he(opt2$par))
   ind <- split(seq_len(nrow(U)), dat2$ID)
-  M <- hac_meat(U[ind$a, ], lag = 5) + hac_meat(U[ind$b, ], lag = 5)
-  expect_equal(vcov(mod, type = "HAC", lag = 5), Hi %*% M %*% Hi, ignore_attr = TRUE, tolerance = 1e-6)
-  # a single series would include pairs across the track boundary
-  expect_false(isTRUE(all.equal(hac_meat(U, lag = 5), M)))
-  # default lag from the mean track length: floor(4 * 1.5^(2/9)) = 4
-  expect_equal(vcov(mod, type = "HAC"), vcov(mod, type = "HAC", lag = 4))
+  for(kernel in c("QS", "Bartlett")) {
+    M <- hac_meat(U[ind$a, ], kernel = kernel, bw = 5) + hac_meat(U[ind$b, ], kernel = kernel, bw = 5)
+    expect_equal(hac_meat(U, dat2$ID, kernel, bw = 5), M)
+    expect_equal(vcov(mod, type = "HAC", kernel = kernel, bw = 5), Hi %*% M %*% Hi, ignore_attr = TRUE, tolerance = 1e-6)
+    # a single series would include pairs across the track boundary
+    expect_false(isTRUE(all.equal(hac_meat(U, kernel = kernel, bw = 5), M)))
+    # default bandwidth: AR(1) fits on pairs within tracks, mean track length 150
+    expect_equal(vcov(mod, type = "HAC", kernel = kernel),
+                 vcov(mod, type = "HAC", kernel = kernel, bw = bw_andrews(U, ind, kernel)))
+  }
+  # the Andrews bandwidth uses the mean track length
+  U2 <- rbind(U, U)
+  expect_equal(bw_andrews(U2, list(1:300, 301:600), "QS"), bw_andrews(U, list(1:300), "QS"), tolerance = 1e-10)
 })
 
-test_that("vcov HAC: errors for qreml models, random effects, bad lag and trackID", {
+test_that("vcov HAC: errors for qreml models, random effects, bad bw, kernel and trackID", {
   mod <- lama(obj_rep)
-  expect_error(vcov(mod, type = "HAC", lag = -1), "non-negative integer")
-  expect_error(vcov(mod, type = "HAC", lag = 1.5), "non-negative integer")
+  expect_error(vcov(mod, type = "HAC", bw = -1), "non-negative number")
+  expect_error(vcov(mod, type = "HAC", bw = c(1, 2)), "non-negative number")
+  expect_error(vcov(mod, type = "HAC", bw = Inf), "non-negative number")
+  expect_error(vcov(mod, type = "HAC", bw = "a"), "non-negative number")
+  expect_error(vcov(mod, type = "HAC", kernel = "Parzen"), "should be one of")
   expect_error(hac_meat(matrix(0, 10, 2), trackID = 1:5), "does not match")
   qmod <- structure(list(obj = obj_rep), class = c("qremlModel", "LaMaModel"))
   expect_error(vcov(qmod, type = "HAC"), "qreml")

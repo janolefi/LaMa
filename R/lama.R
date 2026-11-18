@@ -205,16 +205,40 @@ coef.LaMaModel <- function(object, ...) {
 #' the covariance is \eqn{H^{-1} M H^{-1}} with the outer product of the scores as meat, \eqn{M = \sum_t u_t u_t^\top}
 #' (the outer product of gradients, OPG). It is robust to a misspecified predictive distribution as long as the \eqn{u_t}
 #' are serially uncorrelated, which they are under correct specification (martingale differences), but not to
-#' dependence the model misses. It equals the HAC sandwich with \code{lag = 0}. Not to be confused with the inverse of the
+#' dependence the model misses. It equals the HAC sandwich with the Bartlett kernel and \code{bw} at most 1. Not to be confused with the inverse of the
 #' outer product alone, \eqn{M^{-1}} (the BHHH estimator), which, like \eqn{H^{-1}}, is only valid under correct specification.
 #'
 #' \strong{HAC sandwich.} With the per-observation score contributions \eqn{u_t} from \code{\link{scores}},
-#' the covariance is \eqn{H^{-1} M H^{-1}}, with the Newey-West (Bartlett kernel) estimate
-#' \deqn{M = \Gamma_0 + \sum_{l=1}^{L} \Bigl(1 - \frac{l}{L+1}\Bigr) (\Gamma_l + \Gamma_l^\top), \qquad
+#' the covariance is \eqn{H^{-1} M H^{-1}}, with the kernel estimate of the variance of the score sum
+#' \deqn{M = \Gamma_0 + \sum_{l \ge 1} k(l / b) (\Gamma_l + \Gamma_l^\top), \qquad
 #' \Gamma_l = \sum_t u_t u_{t-l}^\top,}
 #' where the sum in \eqn{\Gamma_l} only runs over pairs of observations from the same track (as reported by \code{\link{forward}}),
 #' as different tracks are independent. Missing observations contribute zero scores, so lags remain in units of time.
-#' The default bandwidth is \eqn{L = \lfloor 4 (\bar T / 100)^{2/9} \rfloor}, with \eqn{\bar T} the mean track length.
+#' The kernel \eqn{k} down-weights the autocovariances at longer lags, which are estimated with much noise, and the
+#' bandwidth \eqn{b} (\code{bw}) scales the lag axis. Two kernels are available:
+#' \itemize{
+#'   \item \code{kernel = "QS"} (default), the Quadratic Spectral kernel
+#'   \deqn{k(x) = \frac{25}{12 \pi^2 x^2} \Bigl(\frac{\sin(6 \pi x / 5)}{6 \pi x / 5} - \cos(6 \pi x / 5)\Bigr).}
+#'   Its weights are positive up to lag \eqn{1.2 b} and then oscillate with small amplitude, so all lags contribute.
+#'   It is the most efficient kernel among those that guarantee a positive semi-definite \eqn{M} (Andrews, 1991):
+#'   it keeps the short lags at nearly full weight, which reduces the bias.
+#'   \item \code{kernel = "Bartlett"}, \eqn{k(x) = \max(1 - |x|, 0)}, the Newey-West estimator: with \eqn{b = L + 1},
+#'   lags up to \eqn{L} enter with weights \eqn{1 - l / (L + 1)}.
+#' }
+#' The default bandwidth is the data-driven choice of Andrews (1991), which minimises the asymptotic mean squared error
+#' of \eqn{M} for an AR(1) approximation of the scores: with \eqn{\rho_a} and \eqn{\sigma_a^2} the coefficient and innovation
+#' variance of an AR(1) with intercept fitted to each score column \eqn{a} (by least squares on consecutive observations
+#' within tracks),
+#' \deqn{b = 1.3221 \, (\alpha_2 \bar T)^{1/5} \; \text{(QS)}, \qquad b = 1.1447 \, (\alpha_1 \bar T)^{1/3} \; \text{(Bartlett)},}
+#' with \eqn{\bar T} the mean track length, \eqn{\alpha_2 = \sum_a 4 \rho_a^2 \sigma_a^4 (1 - \rho_a)^{-8} / D},
+#' \eqn{\alpha_1 = \sum_a 4 \rho_a^2 \sigma_a^4 (1 - \rho_a)^{-6} (1 + \rho_a)^{-2} / D} and
+#' \eqn{D = \sum_a \sigma_a^4 (1 - \rho_a)^{-4}}. For a single track, this is \code{sandwich::bwAndrews()} without
+#' prewhitening and with equal weights. All score columns are weighted equally, so the bandwidth is driven by the most persistent and most variable ones.
+#' Stronger serial dependence of the scores gives a larger bandwidth.
+#'
+#' All lags are computed exactly, with the fast Fourier transform within each track, which takes
+#' \eqn{O(p T \log T + T p^2)} operations for \eqn{T} observations and \eqn{p} parameters instead of \eqn{O(T^2 p^2)} for
+#' summing all lagged products directly.
 #'
 #' If the model is correctly specified, the \eqn{u_t} are martingale differences, so \eqn{\Gamma_l \approx 0} for \eqn{l \ge 1}
 #' and \eqn{M \approx H}: both types then agree approximately, and marked differences point to misspecification.
@@ -246,8 +270,11 @@ coef.LaMaModel <- function(object, ...) {
 #' @param object model object of class \code{"LaMaModel"}
 #' @param type \code{"hessian"} (default) for the inverse Hessian, \code{"sandwich"} for the sandwich with the outer
 #' product of the scores, \code{"HAC"} for the HAC sandwich, or \code{"cluster"} for the cluster-robust sandwich
-#' @param lag bandwidth \eqn{L} of the HAC sandwich, i.e. the maximum lag of the autocovariances included.
-#' Defaults to the rule of thumb \eqn{L = \lfloor 4 (\bar T / 100)^{2/9} \rfloor}, with \eqn{\bar T} the mean track length (see Details). \code{lag = 0} gives the same as \code{type = "sandwich"}.
+#' @param kernel kernel of the HAC sandwich: \code{"QS"} (Quadratic Spectral, default) or \code{"Bartlett"} (Newey-West),
+#' see Details
+#' @param bw bandwidth of the HAC sandwich, a non-negative number. Defaults to the data-driven bandwidth of Andrews (1991)
+#' for the chosen kernel, see Details. For the Bartlett kernel, \code{bw = L + 1} includes the lags up to \eqn{L},
+#' and \code{bw} at most 1 gives the same as \code{type = "sandwich"}.
 #' @param cluster cluster identifier for \code{type = "cluster"}, one value per observation (of any type, in the order of the
 #' observations in \code{\link{forward}}). Defaults to the tracks, i.e. the \code{trackID} reported by \code{\link{forward}}.
 #' @param cr small-sample adjustment for \code{type = "cluster"}: \code{"CR1"} (default) multiplies the meat by \eqn{G / (G - 1)},
@@ -255,7 +282,10 @@ coef.LaMaModel <- function(object, ...) {
 #' @param ... additional arguments (not used)
 #'
 #' @returns covariance matrix with rows and columns named like \code{coef(object)}
-#' @references Newey, W. K. and West, K. D. (1987). A simple, positive semi-definite, heteroskedasticity
+#' @references Andrews, D. W. K. (1991). Heteroskedasticity and autocorrelation consistent covariance matrix estimation.
+#' \emph{Econometrica}, 59(3), 817--858.
+#'
+#' Newey, W. K. and West, K. D. (1987). A simple, positive semi-definite, heteroskedasticity
 #' and autocorrelation consistent covariance matrix. \emph{Econometrica}, 55(3), 703--708.
 #'
 #' MacKinnon, J. G., Nielsen, M. O. and Webb, M. D. (2023). Cluster-robust inference: A guide to empirical practice.
@@ -266,9 +296,10 @@ coef.LaMaModel <- function(object, ...) {
 #' @seealso \code{\link{coef.LaMaModel}}, \code{\link{scores}}
 #' @importFrom stats vcov optimHess
 #' @export
-vcov.LaMaModel <- function(object, type = c("hessian", "sandwich", "HAC", "cluster"), lag = NULL,
-                           cluster = NULL, cr = c("CR1", "CR0", "CR3"), ...) {
+vcov.LaMaModel <- function(object, type = c("hessian", "sandwich", "HAC", "cluster"), kernel = c("QS", "Bartlett"),
+                           bw = NULL, cluster = NULL, cr = c("CR1", "CR0", "CR3"), ...) {
   type <- match.arg(type)
+  kernel <- match.arg(kernel)
   cr <- match.arg(cr)
   obj <- get_obj(object)
   if(type != "hessian") {
@@ -296,7 +327,7 @@ vcov.LaMaModel <- function(object, type = c("hessian", "sandwich", "HAC", "clust
     } else {
       M <- switch(type,
                   sandwich = crossprod(U),
-                  HAC = hac_meat(U, object$trackID, lag),
+                  HAC = hac_meat(U, object$trackID, kernel, bw),
                   cluster = cluster_meat(U, object$trackID, cluster, cr, npar = length(p)))
       V <- V %*% M %*% V
     }
@@ -306,27 +337,68 @@ vcov.LaMaModel <- function(object, type = c("hessian", "sandwich", "HAC", "clust
   V
 }
 
-# Newey-West (Bartlett kernel) meat from score contributions U (one row per observation),
-# summing autocovariances only within tracks. Tracks are contiguous, as forward() requires.
-hac_meat <- function(U, trackID = NULL, lag = NULL){
+# HAC meat from score contributions U (one row per observation): M = sum_l k(l / bw) Gamma_l over all lags,
+# with autocovariances only within tracks. Tracks are contiguous, as forward() requires.
+hac_meat <- function(U, trackID = NULL, kernel = "QS", bw = NULL){
   n <- nrow(U)
   if(is.null(trackID)) trackID <- rep(1L, n)
   if(length(trackID) != n) {
     stop("Length of the reported trackID (", length(trackID), ") does not match the number of score contributions (", n,
          "). The likelihood function should call forward() once, with trackID for several tracks.")
   }
-  trackID <- match(trackID, unique(trackID))
-  if(is.null(lag)) lag <- floor(4 * (mean(tabulate(trackID)) / 100)^(2/9))
-  if(length(lag) != 1 || is.na(lag) || lag < 0 || lag != round(lag)) stop("lag must be a non-negative integer.")
+  tracks <- split(seq_len(n), factor(trackID, levels = unique(trackID))) # row indices of each track
+  if(is.null(bw)) bw <- bw_andrews(U, tracks, kernel)
+  if(!is.numeric(bw) || length(bw) != 1 || !is.finite(bw) || bw < 0) stop("bw must be a non-negative number.")
 
-  M <- crossprod(U)
-  for(l in seq_len(min(lag, n - 1))) {
-    i <- which(trackID[(l + 1):n] == trackID[1:(n - l)]) # pairs (i, i + l) within a track
-    if(!length(i)) next
-    G <- crossprod(U[i + l, , drop = FALSE], U[i, , drop = FALSE]) # sum_t u_t u_{t-l}'
-    M <- M + (1 - l / (lag + 1)) * (G + t(G))
+  M <- matrix(0, ncol(U), ncol(U))
+  for(i in tracks) {
+    lags <- seq_along(i) - 1
+    w <- if(bw > 0) hac_kernel(lags / bw, kernel) else as.numeric(lags == 0) # bw = 0: lag 0 only
+    M <- M + fft_meat(U[i, , drop = FALSE], w)
   }
   M
+}
+
+# kernel weights k(x), x = lag / bandwidth
+hac_kernel <- function(x, kernel = "QS"){
+  x <- abs(x)
+  if(kernel == "Bartlett") return(pmax(1 - x, 0))
+  z <- 6 * pi * x / 5
+  w <- 25 / (12 * pi^2 * x^2) * (sin(z) / z - cos(z))
+  w[x == 0] <- 1
+  w
+}
+
+# Gamma_0 + sum_{l >= 1} w[l + 1] (Gamma_l + Gamma_l') for one track, over all lags l = 1, ..., n - 1, by FFT:
+# with F the Fourier transforms of the score columns and W that of the weights, the weighted sum of all lagged
+# products is sum_j W_j F_j F_j^H / (2n). Zero-padding to length 2n avoids wrap-around, so this is exact.
+fft_meat <- function(U, w){
+  n <- nrow(U)
+  if(n == 1) return(w[1] * crossprod(U))
+  F <- stats::mvfft(rbind(U, matrix(0, n, ncol(U))))  # Fourier transform of each zero-padded score column
+  W <- Re(stats::fft(c(w, 0, rev(w[-1]))))     # weights of lags 0, ..., n - 1, (n), -(n - 1), ..., -1
+  Re(crossprod(F, W * Conj(F))) / (2 * n)
+}
+
+# Andrews (1991) bandwidth from AR(1) fits to each score column (least squares with intercept on the consecutive
+# pairs within tracks, as stats::ar.ols()), all columns weighted equally; T is the mean track length.
+# For a single track, as sandwich::bwAndrews(prewhite = 0, weights = 1).
+bw_andrews <- function(U, tracks, kernel = "QS"){
+  t0 <- unlist(lapply(tracks, function(i) i[-length(i)])) # pairs (t0, t1 = t0 + 1) within a track
+  t1 <- unlist(lapply(tracks, function(i) i[-1]))
+  num <- den <- 0
+  for(a in seq_len(ncol(U))) {
+    y <- U[t1, a] - mean(U[t1, a])
+    z <- U[t0, a] - mean(U[t0, a])
+    if(sum(z^2) == 0) next # constant score column, e.g. a parameter with no information
+    rho <- sum(y * z) / sum(z^2)  # least squares slope of u_t on u_{t-1}
+    s2 <- mean((y - rho * z)^2)   # innovation variance
+    den <- den + s2^2 / (1 - rho)^4
+    num <- num + 4 * rho^2 * s2^2 / (if(kernel == "QS") (1 - rho)^8 else (1 - rho)^6 * (1 + rho)^2)
+  }
+  if(den == 0) return(0)
+  nT <- nrow(U) / length(tracks)
+  if(kernel == "QS") 1.3221 * (num / den * nT)^(1/5) else 1.1447 * (num / den * nT)^(1/3)
 }
 
 # Cluster identifiers, one per observation (default: the tracks), checked against the scores and tracks

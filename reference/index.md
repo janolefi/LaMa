@@ -8,6 +8,9 @@
 - [`MCreport()`](https://janolefi.github.io/LaMa/reference/MCreport.md)
   : Sample parameters from approximate Gaussian posterior distribution
 
+- [`TIC()`](https://janolefi.github.io/LaMa/reference/TIC.md) : Takeuchi
+  information criterion
+
 - [`calc_trackInd()`](https://janolefi.github.io/LaMa/reference/calc_trackInd.md)
   : Calculate the index of the first observation of each track based on
   an ID variable

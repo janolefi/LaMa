@@ -337,6 +337,72 @@ vcov.LaMaModel <- function(object, type = c("hessian", "sandwich", "HAC", "clust
   V
 }
 
+#' Takeuchi information criterion
+#'
+#' Computes the Takeuchi information criterion (TIC), a version of AIC whose penalty remains valid if the model is
+#' misspecified, for one or several fitted models.
+#'
+#' @details
+#' With \eqn{H} the Hessian of the negative log-likelihood and \eqn{J} the variance of the score sum (the meat of the
+#' sandwich, see \code{\link{vcov.LaMaModel}}),
+#' \deqn{\mathrm{TIC} = -2 \log L(\hat\theta) + 2 \, \mathrm{edf}, \qquad \mathrm{edf} = \mathrm{tr}(J H^{-1}).}
+#' The penalty of AIC, the number of parameters \eqn{p}, assumes \eqn{J = H}, which holds if the model is correctly
+#' specified. TIC estimates it instead: the effective number of parameters \code{edf} approximates the optimism
+#' \eqn{E[(\hat\theta - \theta^*)^\top H (\hat\theta - \theta^*)] \approx \mathrm{tr}(H \, \mathrm{Var}(\hat\theta))}
+#' of the maximised log-likelihood, so models whose estimates are more variable than the model itself suggests are
+#' penalised more.
+#'
+#' It is computed from the robust covariance \eqn{V = H^{-1} J H^{-1}} as \eqn{\mathrm{edf} = \mathrm{tr}(H V)}, so
+#' every robust \code{type} of \code{\link{vcov.LaMaModel}} can be used, including the jackknife \code{cr = "CR3"}.
+#' The default is the HAC sandwich, as the penalty needs the correct variance of the estimator, which for serially
+#' dependent scores is not given by the outer product of the scores (\code{type = "sandwich"}). For several
+#' independent tracks, \code{type = "cluster"} is an alternative.
+#'
+#' Under correct specification, \code{edf} is close to \eqn{p}, and TIC close to AIC. Values well above \eqn{p} indicate
+#' misspecification, e.g. serial dependence the model misses. Values below \eqn{p} arise from noise in the
+#' estimated \eqn{J}, from a model that overstates the variability of the data, or from parameters that are nearly not
+#' identified, e.g. a superfluous state. In the last case, neither AIC nor TIC is justified, so neither should be
+#' used to choose the number of states. \code{edf} is itself estimated and, especially for short series, noisy.
+#'
+#' @param object model object of class \code{"LaMaModel"}
+#' @param ... further models of class \code{"LaMaModel"}, compared as in \code{\link[stats]{AIC}}
+#' @param type robust covariance used for the penalty: \code{"HAC"} (default), \code{"sandwich"} or \code{"cluster"},
+#' see \code{\link{vcov.LaMaModel}}
+#' @param kernel,bw,cluster,cr passed to \code{\link{vcov.LaMaModel}}
+#'
+#' @returns For one model, the TIC, with the effective number of parameters as attribute \code{"edf"}.
+#' For several, a data frame with one row per model and columns \code{df} (number of parameters), \code{edf} and \code{TIC}.
+#' @references Takeuchi, K. (1976). Distribution of informational statistics and a criterion of model fitting.
+#' \emph{Suri-Kagaku (Mathematical Sciences)}, 153, 12--18 (in Japanese).
+#'
+#' Konishi, S. and Kitagawa, G. (2008). \emph{Information Criteria and Statistical Modeling}. Springer, New York.
+#' @seealso \code{\link{vcov.LaMaModel}}, \code{\link[stats]{AIC}}
+#' @export
+TIC <- function(object, ...) UseMethod("TIC")
+
+#' @rdname TIC
+#' @export
+TIC.LaMaModel <- function(object, ..., type = c("HAC", "sandwich", "cluster"), kernel = c("QS", "Bartlett"),
+                          bw = NULL, cluster = NULL, cr = c("CR1", "CR0", "CR3")) {
+  type <- match.arg(type)
+  kernel <- match.arg(kernel)
+  cr <- match.arg(cr)
+  models <- c(list(object), list(...))
+  if(!all(vapply(models, inherits, TRUE, what = "LaMaModel"))) stop("All models must be of class \"LaMaModel\".")
+  out <- data.frame(df = numeric(0), edf = numeric(0), TIC = numeric(0))
+  for(m in models) {
+    H <- solve(vcov(m)) # Hessian of the negative log-likelihood
+    V <- vcov(m, type = type, kernel = kernel, bw = bw, cluster = cluster, cr = cr)
+    edf <- sum(H * V)   # tr(H V), as H and V are symmetric
+    out <- rbind(out, data.frame(df = length(coef(m)), edf = edf, TIC = -2 * as.numeric(logLik(m)) + 2 * edf))
+  }
+  if(length(models) == 1) return(structure(out$TIC, edf = out$edf))
+  # row names as in AIC(): the model arguments as written in the call
+  cl <- match.call(expand.dots = FALSE)
+  rownames(out) <- c(deparse(cl$object), vapply(cl$..., deparse, ""))
+  out
+}
+
 # HAC meat from score contributions U (one row per observation): M = sum_l k(l / bw) Gamma_l over all lags,
 # with autocovariances only within tracks. Tracks are contiguous, as forward() requires.
 hac_meat <- function(U, trackID = NULL, kernel = "QS", bw = NULL){

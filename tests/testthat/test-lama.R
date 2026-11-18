@@ -378,3 +378,37 @@ test_that("vcov CR3: error if the Hessian without a cluster is indefinite", {
   U <- matrix(1, 4, 2)
   expect_error(cr3_vcov(tp, U, c(1, 1, 2, 2)), "not positive definite")
 })
+
+test_that("TIC: penalty tr(J H^{-1}) with the HAC, outer product and cluster meats", {
+  mod <- lama(obj_rep)
+  U <- scores(mod)
+  H <- obj_rep$he(opt_rep$par)
+  ll <- -opt_rep$objective
+  tic <- TIC(mod)
+  edf <- sum(diag(hac_meat(U) %*% solve(H)))
+  expect_equal(attr(tic, "edf"), edf, tolerance = 1e-6)
+  expect_equal(as.numeric(tic), -2 * ll + 2 * edf, tolerance = 1e-6)
+  expect_equal(TIC(mod, type = "HAC", kernel = "QS"), tic) # HAC with QS is the default
+  edf_s <- sum(diag(crossprod(U) %*% solve(H)))
+  expect_equal(attr(TIC(mod, type = "sandwich"), "edf"), edf_s, tolerance = 1e-6)
+  expect_equal(TIC(mod, bw = 0), TIC(mod, type = "sandwich"))
+  # several tracks: cluster meat, and CR3 via tr(H V) although it is not a sandwich
+  mod_cl <- lama(obj_cl)
+  H_cl <- obj_cl$he(opt_cl$par)
+  expect_equal(attr(TIC(mod_cl, type = "cluster", cr = "CR3"), "edf"),
+               sum(H_cl * vcov(mod_cl, type = "cluster", cr = "CR3")), tolerance = 1e-6)
+})
+
+test_that("TIC: several models as in AIC(), errors", {
+  mod1 <- lama(obj_rep)
+  mod2 <- lama(obj_cl)
+  tab <- TIC(mod1, mod2, type = "sandwich")
+  expect_s3_class(tab, "data.frame")
+  expect_equal(rownames(tab), c("mod1", "mod2"))
+  expect_equal(names(tab), c("df", "edf", "TIC"))
+  expect_equal(tab$df, c(6, 6))
+  expect_equal(tab$TIC, c(TIC(mod1, type = "sandwich"), TIC(mod2, type = "sandwich")), ignore_attr = TRUE)
+  expect_error(TIC(mod1, list(a = 1)), "LaMaModel")
+  expect_error(TIC(mod1, type = "hessian"), "should be one of")
+  expect_error(TIC(mod1, kernel = "Parzen"), "should be one of")
+})

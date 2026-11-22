@@ -990,9 +990,9 @@ forward_cthsmm = function(dm, omega, allprobs, timediff, tmax,
 
   # Remove absorbing rows of omega, if provided
   omega_trans = omega[seq_len(nTrans), , drop = FALSE]
-
-  Q = generator_cthsmm(omega_trans, dm, tmax, eps = eps)
-  if(nAbs > 0) Qabs = as.matrix(Q[, absCols, drop = FALSE])
+  # Generator can take non-square omega but outputs a square Q with the absorbing 0 rows.
+  Q = generator_cthsmm(omega_trans, dm, tmax, eps = eps) 
+  if(nAbs > 0) Qabs = as.matrix(Q[, absCols, drop = FALSE]) # just the columns of the absorbing states
 
   if(is.null(trackID)) {
     if(length(timediff) != nrow(allprobs) - 1) stop("timediff needs to have length nObs - 1.")

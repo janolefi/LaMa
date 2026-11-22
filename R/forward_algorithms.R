@@ -705,7 +705,7 @@ forward_p <- function(delta,
 #'
 #' @examples
 #' # currently no examples
-forward_hsmm <- function(dm, omega, allprobs, agsizes,
+forward_hsmm <- function(dm, omega, allprobs,
                          trackID = NULL, delta = NULL, eps = 1e-10, report = TRUE){
   # overloading assignment operators, currently necessary
   "[<-" <- ADoverload("[<-")

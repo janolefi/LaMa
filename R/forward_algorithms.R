@@ -997,6 +997,7 @@ forward_cthsmm = function(dm, omega, allprobs, timediff, tmax,
   if(is.null(trackID)) {
     if(length(timediff) != nrow(allprobs) - 1) stop("timediff needs to have length nObs - 1.")
 
+    # initial distribution (for transient states only in case of initial distribution)
     if(stationary){
       delta = stationary_ct(Q)
       Delta = matrix(delta, nrow = 1)
@@ -1022,8 +1023,10 @@ forward_cthsmm = function(dm, omega, allprobs, timediff, tmax,
     for(t in 2:nrow(allprobs)) {
       foo = t(RTMB::expAv(Q * timediff[t-1], t(phi), transpose = TRUE, tol = tol, trace = FALSE))
       if(exact[t]) {
+        # Likelihood contribution for exactly observed absorption
         multiplier = t(Qabs %*% allprobs[t, absStates])
       } else {
+        # Standard likelihood contribution (observations and censoring)
         multiplier = allprobs[t, stateInds, drop = FALSE]
       }
       foo = foo * multiplier

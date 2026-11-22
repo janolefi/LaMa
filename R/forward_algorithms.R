@@ -705,7 +705,7 @@ forward_p <- function(delta,
 #'
 #' @examples
 #' # currently no examples
-forward_hsmm <- function(dm, omega, allprobs,
+forward_hsmm <- function(dm, omega, allprobs, agsizes,
                          trackID = NULL, delta = NULL, eps = 1e-10, report = TRUE){
   # overloading assignment operators, currently necessary
   "[<-" <- ADoverload("[<-")
@@ -957,29 +957,41 @@ forward_hsmm <- function(dm, omega, allprobs,
 #' # currently no examples
 forward_cthsmm = function(dm, omega, allprobs, timediff, tmax,
                           trackID = NULL, delta = NULL, exact = NULL, eps = 1e-10, report = TRUE, tol = 1e-10){
+  
+  force(allprobs) 
+  .lama_env$streams <- NULL
+  
   "[<-" <- ADoverload("[<-")
   "c" <- ADoverload("c")
   "diag<-" <- ADoverload("diag<-")
 
-  N = ncol(allprobs)
-  agsizes = c(vapply(dm, length, 1L), rep(1L, N - length(dm)))
+  N = ncol(allprobs) # total number of states
+  nTrans = length(dm) # transient states
+  nAbs = N - nTrans # absorbing states
+
+  if(nAbs < 0 || ncol(omega) != N ||
+    !(nrow(omega) %in% c(nTrans, N)))
+    stop("Dimensions of omega, dm and allprobs do not match.")
+
+  agsizes = c(vapply(dm, length, 1L), rep(1L, nAbs))
   M = sum(agsizes)
 
-  stateInds <- rep(1:N, times = agsizes)
-  cols_to_fill = c(1, cumsum(agsizes[-N])+1)
+  stateInds = rep(1:N, times = agsizes)
+  cols_to_fill = c(1, cumsum(agsizes[-N]) + 1)
 
-  nTrans = length(dm)
-  nAbs = N - nTrans
   absStates = nTrans + seq_len(nAbs)
   absCols = M - nAbs + seq_len(nAbs)
 
   stationary = is.null(delta)
-  if(stationary & N > nTrans) stop("delta needs to be provided if there are absorbing states.")
+  if(stationary & nAbs > 0) stop("delta needs to be provided if there are absorbing states.")
 
   if(is.null(exact)) exact = rep(FALSE, nrow(allprobs))
   if(length(exact) != nrow(allprobs)) stop("exact needs to have length nObs.")
 
-  Q = generator_cthsmm(omega, dm, tmax, eps = eps)
+  # Remove absorbing rows of omega, if provided
+  omega_trans = omega[seq_len(nTrans), , drop = FALSE]
+
+  Q = generator_cthsmm(omega_trans, dm, tmax, eps = eps)
   if(nAbs > 0) Qabs = as.matrix(Q[, absCols, drop = FALSE])
 
   if(is.null(trackID)) {

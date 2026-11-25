@@ -21,7 +21,8 @@ hsmm_stay <- function(d, eps = 1e-10, F_before = NULL){
     F_before <- d %*% before
   }
   hazard <- max2(d, eps) / (1 - F_before + eps / 2)
-  max2(1 - hazard, 0)
+  stay <- max2(1 - hazard, 0)
+  matrix(stay, nrow(d), Ni) # a 1 x 1 AD matrix loses its dimensions above
 }
 
 # Stay probabilities of all M states for the steps into the time points `into` (one row each)
@@ -264,4 +265,71 @@ hsmm_delta <- function(delta, Ni, nTracks){
   delta_M <- matrix(0, nTracks, sum(Ni))
   delta_M[, I_low] <- delta
   delta_M
+}
+
+
+# Forward algorithm --------------------------------------------------------
+
+# Runs the forward algorithm on the output of prepare_hsmm(), as run_forward() for HMMs
+run_forward_hsmm <- function(inp){
+  nObs <- nrow(inp$allprobs)
+  used <- unlist(Map(seq, inp$start, inp$end)) # without dropped observations
+
+  # value check, only possible without AD
+  if(!ad_context() && anyNA(inp$allprobs[used, ])) {
+    stop("allprobs contains NA values. For missing observations, keep the rows of allprobs at 1, ",
+         "e.g. by only filling allprobs[ind, ] with ind = which(!is.na(x)).")
+  }
+  if(!ad_context() && any(inp$allprobs[used, ] < 0)) {
+    stop("allprobs contains negative values. For log-densities, use logspace = TRUE.")
+  }
+
+  # weights of the log-likelihood contributions, only set by scores()
+  # w[t] belongs to observation t
+  w <- get_weights(length(used))
+  if(!is.null(w)) {
+    position <- rep(NA, nObs)
+    position[used] <- seq_along(used)
+    w <- w[position]
+  }
+
+  l <- forward_hsmm_ad(inp, w)
+
+  # add back the row maxima of allprobs, if logspace (else shift is zero)
+  if(length(inp$shift) == nObs) {
+    shift <- inp$shift[used]
+    if(!is.null(w)) shift <- w[used] * shift
+    l <- l + sum(shift)
+  }
+  as.numeric(l)
+}
+
+# forward algorithm in R, taped by RTMB for automatic differentiation
+# w: optional weights of the log-likelihood contributions (see run_forward_hsmm())
+forward_hsmm_ad <- function(inp, w = NULL){
+
+  allprobs <- inp$allprobs
+  Ni <- inp$Ni
+  state <- rep(seq_along(Ni), Ni) # all M states of the chain: which HSMM state?
+
+  # log-likelihood contribution of observation t, weighted if w is given
+  lc <- function(sumfoo, t) if(is.null(w)) log(sumfoo) else w[t] * log(sumfoo)
+
+  l <- 0
+  for(i in seq_along(inp$start)) {
+    ind <- inp$start[i]:inp$end[i] # observations of track i
+
+    foo <- inp$delta[i, ] * allprobs[ind[1], state]
+    sumfoo <- sum(foo)
+    phi <- foo / sumfoo
+    l <- l + lc(sumfoo, ind[1])
+
+    for(t in ind[-1]) {
+      foo <- hsmm_step(phi, inp$stay[t, ], inp$omega[, , inp$oidx[t]], Ni) * allprobs[t, state]
+      sumfoo <- sum(foo)
+      phi <- foo / sumfoo
+      l <- l + lc(sumfoo, t)
+    }
+  }
+  l
 }

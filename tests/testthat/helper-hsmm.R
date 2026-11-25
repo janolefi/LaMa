@@ -50,23 +50,8 @@ ref_delta_fresh <- function(delta, Ni) {
   replace(numeric(sum(Ni)), I_low, delta)
 }
 
-# ---- forward algorithm with the internal functions ----
-
-# forward algorithm built on hsmm_step()
-# stay_into(t), omega_into(t): for the step from t - 1 into t, delta: length M
-hsmm_forward <- function(delta, stay_into, omega_into, allprobs, Ni, start = 1) {
-  state <- rep(seq_along(Ni), Ni) # aggregate of each of the M states
-  foo <- delta * allprobs[start, state]
-  l <- log(sum(foo))
-  phi <- foo / sum(foo)
-  for(t in seq_len(nrow(allprobs))) {
-    if(t <= start) next
-    foo <- hsmm_step(phi, stay_into(t), omega_into(t), Ni) * allprobs[t, state]
-    l <- l + log(sum(foo))
-    phi <- foo / sum(foo)
-  }
-  l
-}
+# forward algorithm with the internal functions, arguments of prepare_hsmm()
+new_forward <- function(...) run_forward_hsmm(prepare_hsmm(...))
 
 # ---- known bugs ----
 

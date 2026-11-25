@@ -188,51 +188,6 @@ test_that("hsmm_step and hsmm_Gamma with AD and constant inputs", {
   }
 })
 
-test_that("forward algorithm with hsmm_step: value and gradient with AD", {
-  delta <- ref_delta_fresh(c(0.5, 0.3, 0.2), Ni_test)
-  par <- c(beta0_test, beta1_test, 0.3, -0.2, 0.1)
-
-  # with the direct step, all observations, a fresh stay starts at t = 1
-  f_step <- function(par) {
-    stay <- lapply(dm_poisson(par[1:3], par[4:6], z_test, Ni_test), hsmm_stay)
-    omega <- tpm_emb(par[7:9])
-    # a stay entered before t = 1 is impossible here, row 1 is never used for it
-    stay_into <- function(t) {
-      padded <- lapply(stay, function(s) s[c(rep(1, max(Ni_test)), 1:30), ])
-      hsmm_lag(padded, t + max(Ni_test))[1, ]
-    }
-    hsmm_forward(delta, stay_into, function(t) omega, ap, Ni_test)
-  }
-  # exact reference, entries before t = 1 get probability 0 of ending
-  f_ref <- function(par) {
-    dm <- dm_poisson(par[1:3], par[4:6], z_test, Ni_test)
-    omega <- tpm_emb(par[7:9])
-    pad <- max(Ni_test)
-    dm_pad <- lapply(dm, function(d) rbind(matrix(0, pad, ncol(d)), d))
-    ref_forward(delta, function(t, i) ref_Gamma_t(t - 1 + pad, omega, dm_pad), lp_M)
-  }
-  F <- RTMB::MakeTape(f_step, par)
-  expect_close(F(par), f_ref(par))
-  h <- 1e-5
-  num <- sapply(seq_along(par), function(k) {
-    e <- replace(0 * par, k, h)
-    (f_ref(par + e) - f_ref(par - e)) / (2 * h)
-  })
-  expect_close(F$jacobian(par), num, tolerance = 1e-5)
-})
-
-test_that("hsmm_step: hazards of stays entered before t = 1 do not matter for a given delta", {
-  delta <- ref_delta_fresh(c(0.5, 0.3, 0.2), Ni_test)
-  stay <- lapply(dm_inhom, hsmm_stay)
-  pad <- max(Ni_test)
-  loglik <- function(before) {
-    padded <- lapply(stay, function(s) rbind(matrix(before, pad, ncol(s)), s))
-    hsmm_forward(delta, function(t) hsmm_lag(padded, t + pad)[1, ],
-                 function(t) omega_test, ap, Ni_test)
-  }
-  expect_close(loglik(0.1), loglik(0.9), tolerance = 1e-12)
-})
-
 # ---- prepare_hsmm ----
 
 # compare the transition matrices of prepare_hsmm() with Gamma_into(t) (step from t - 1 into t)
@@ -370,17 +325,6 @@ test_that("prepare_hsmm: use_all_obs", {
                    prepare_hsmm(dm_per, omega_test, ap, tod = tod_test))
 })
 
-test_that("prepare_hsmm: use_all_obs is exact, stays before the first observation have no effect", {
-  # same model with 10 rows of nonsense dm before the first observation
-  before <- function(d, value) rbind(matrix(value, 10, ncol(d)), d)
-  Gamma_into <- function(t, value) ref_Gamma_t(t - 1 + 10, omega_test, lapply(dm_inhom, before, value))
-  inp <- prepare_hsmm(dm_inhom, omega_test, ap, delta = delta_N, use_all_obs = TRUE)
-  l <- hsmm_forward(inp$delta[1, ], function(t) inp$stay[t, ], function(t) omega_test, ap, Ni_test)
-  for(value in c(0.01, 0.1)) {
-    expect_close(l, ref_forward(delta_M, function(t, i) Gamma_into(t, value), lp_M))
-  }
-})
-
 test_that("prepare_hsmm: checks", {
   prep <- function(dm = dm_hom, omega = omega_test, allprobs = ap, ...) prepare_hsmm(dm, omega, allprobs, ...)
   expect_error(prep(allprobs = ap[, 1]), "matrix")
@@ -437,6 +381,160 @@ test_that("prepare_hsmm works with AD, also if only some inputs are AD", {
     })
     expect_close(F$jacobian(par), num, tolerance = 1e-5)
   }
+})
+
+# ---- forward_hsmm_ad ----
+
+# compare log-likelihood with ref, with and without AD, with and without logspace
+expect_loglik <- function(ref, ..., logP = lp) {
+  for(logspace in c(FALSE, TRUE)) {
+    f <- function(x) new_forward(..., allprobs = if(logspace) x else exp(x), logspace = logspace)
+    F <- RTMB::MakeTape(function(x) f(matrix(x, nrow(logP))), 0.9 * as.vector(logP))
+    expect_close(F(as.vector(logP)), ref)
+    expect_close(f(logP), ref)
+  }
+}
+
+# log-likelihood of the reference: Gamma_into(t, i), delta (nTracks x M), used observations
+ref_loglik <- function(Gamma_into, delta, used = 1:30, ID = rep(1, 30), logP = lp) {
+  ref_forward(delta, function(t, i) Gamma_into(used[t], i), logP[used, state_test, drop = FALSE], ID[used])
+}
+
+test_that("forward_hsmm_ad: homogeneous", {
+  Gamma <- ref_Gamma(omega_test, lapply(dm_hom, ref_hazard))
+  delta <- t(ref_delta_stat(Gamma))
+  into <- function(t, i) Gamma
+  expect_loglik(ref_loglik(into, delta), dm = dm_hom, omega = omega_test)
+  expect_loglik(ref_loglik(into, t(delta_M)), dm = dm_hom, omega = omega_test, delta = delta_N)
+  # tracks, also of length one
+  for(ID in list(two_tracks, rep(1:3, c(8, 10, 12)), rep(c("b", "a", "c"), c(1, 28, 1)))) {
+    Delta <- delta[rep(1, length(unique(ID))), ]
+    expect_loglik(ref_loglik(into, Delta, ID = ID), dm = dm_hom, omega = omega_test, trackID = ID)
+  }
+  expect_loglik(ref_loglik(into, delta, used = 1), dm = dm_hom, omega = omega_test, logP = lp[1, , drop = FALSE])
+})
+
+test_that("forward_hsmm_ad: aggregates of size 1 and 2", {
+  for(Ni in list(c(1, 5, 2), c(1, 1, 1))) {
+    dm <- lapply(dm_poisson(beta0_test, 0 * beta1_test, 0, Ni), as.vector)
+    Gamma <- ref_Gamma(omega_test, lapply(dm, ref_hazard))
+    ref <- ref_forward(ref_delta_stat(Gamma), function(t, i) Gamma, lp[, rep(1:3, Ni)])
+    expect_loglik(ref, dm = dm, omega = omega_test)
+  }
+})
+
+test_that("forward_hsmm_ad: track-specific dm, omega and delta", {
+  dm2 <- dm_poisson(beta0_test, beta1_test, c(-0.5, 0.8), Ni_test)
+  omega2 <- omega_t_test[, , 1:2]
+  Gamma <- lapply(1:2, function(i) ref_Gamma(omega2[, , i], lapply(dm2, function(d) ref_hazard(d[i, ]))))
+  into <- function(t, i) Gamma[[i]]
+  expect_loglik(ref_loglik(into, t(sapply(Gamma, ref_delta_stat)), ID = two_tracks),
+                dm = dm2, omega = omega2, trackID = two_tracks)
+  Delta <- rbind(delta_N, rev(delta_N))
+  expect_loglik(ref_loglik(into, t(apply(Delta, 1, ref_delta_fresh, Ni = Ni_test)), ID = two_tracks),
+                dm = dm2, omega = omega2, trackID = two_tracks, delta = Delta)
+})
+
+test_that("forward_hsmm_ad: time-varying dm and omega", {
+  first <- max(Ni_test)
+  for(omega in list(omega_test, omega_t_test)) {
+    om <- function(t) if(is.matrix(omega)) omega else omega[, , t]
+    into <- function(t, i) ref_Gamma_t(t - 1, om(t), dm_inhom)
+    expect_loglik(ref_loglik(into, t(ref_delta_stat(into(first + 1))), first:30), dm = dm_inhom, omega = omega)
+    expect_loglik(ref_loglik(into, t(ref_delta_stat(into(11))), 10:30), dm = dm_inhom, omega = omega, startInd = 10)
+    expect_loglik(ref_loglik(into, t(delta_M), first:30), dm = dm_inhom, omega = omega, delta = delta_N)
+    # two tracks
+    starts <- c(1, 13)
+    into <- function(t, i) ref_Gamma_t(t - starts[i], om(t), lapply(dm_inhom, function(d) d[starts[i]:30, ]))
+    Delta <- t(sapply(1:2, function(i) ref_delta_stat(into(starts[i] + first, i))))
+    used <- c(first:12, (12 + first):30)
+    expect_loglik(ref_loglik(into, Delta, used, two_tracks), dm = dm_inhom, omega = omega, trackID = two_tracks)
+  }
+  # fixed dm
+  into <- function(t, i) ref_Gamma(omega_t_test[, , t], lapply(dm_hom, ref_hazard))
+  expect_loglik(ref_loglik(into, t(ref_delta_stat(into(2)))), dm = dm_hom, omega = omega_t_test)
+})
+
+test_that("forward_hsmm_ad: use_all_obs is exact for a given delta", {
+  starts <- c(1, 13)
+  for(value in c(0.01, 0.1)) { # nonsense dm before the first observation of each track has no effect
+    into <- function(t, i) {
+      dm_i <- lapply(dm_inhom, function(d) rbind(matrix(value, 10, ncol(d)), d[starts[i]:30, ]))
+      ref_Gamma_t(t - starts[i] + 10, omega_t_test[, , t], dm_i)
+    }
+    expect_loglik(ref_loglik(into, rbind(delta_M, delta_M), ID = two_tracks), dm = dm_inhom, omega = omega_t_test,
+                  trackID = two_tracks, delta = delta_N, use_all_obs = TRUE)
+  }
+})
+
+test_that("forward_hsmm_ad: periodic dm and omega", {
+  tod <- c(3:6, rep(1:6, 4), 1:2)
+  into_tod <- function(s) ref_Gamma_t(s - 1, omega_p_test[, , s], dm_per, L_test)
+  into <- function(t, i) into_tod(tod[t])
+  delta <- t(ref_delta_stat(Reduce(`%*%`, lapply(c(4:6, 1:3), into_tod))))
+  expect_loglik(ref_loglik(into, delta), dm = dm_per, omega = omega_p_test, tod = tod)
+  expect_loglik(ref_loglik(into, t(delta_M)), dm = dm_per, omega = omega_p_test, tod = tod, delta = delta_N)
+})
+
+test_that("forward_hsmm_ad agrees with forward() on the extended chain, value and gradient", {
+  par <- c(beta0_test, beta1_test, 0.3, -0.2, 0.1)
+  f_new <- function(par) {
+    new_forward(dm_poisson(par[1:3], par[4:6], z_test, Ni_test), tpm_emb(par[7:9]), ap, trackID = two_tracks)
+  }
+  f_dense <- function(par) {
+    inp <- prepare_hsmm(dm_poisson(par[1:3], par[4:6], z_test, Ni_test), tpm_emb(par[7:9]), ap, two_tracks)
+    used <- unlist(Map(seq, inp$start, inp$end))
+    Gamma <- hsmm_Gammas(inp$stay[used, ], inp$omega[, , inp$oidx[used]], Ni_test)
+    forward(inp$delta, Gamma, ap[used, state_test], trackID = two_tracks[used], report = FALSE)
+  }
+  F_new <- RTMB::MakeTape(f_new, 0.9 * par)
+  F_dense <- RTMB::MakeTape(f_dense, 0.9 * par)
+  expect_close(F_new(par), F_dense(par), tolerance = 1e-12)
+  expect_close(F_new(par), f_new(par), tolerance = 1e-12)
+  expect_close(F_new$jacobian(par), F_dense$jacobian(par), tolerance = 1e-10)
+  h <- 1e-5
+  num <- sapply(seq_along(par), function(j) {
+    e <- replace(0 * par, j, h)
+    (f_new(par + e) - f_new(par - e)) / (2 * h)
+  })
+  expect_close(F_new$jacobian(par), num, tolerance = 1e-6)
+})
+
+test_that("forward_hsmm_ad: delta as a parameter", {
+  F <- RTMB::MakeTape(function(delta) new_forward(dm_hom, omega_test, ap, delta = delta), rev(delta_N))
+  f <- function(delta) new_forward(dm_hom, omega_test, ap, delta = delta)
+  expect_close(F(delta_N), f(delta_N), tolerance = 1e-12)
+  num <- sapply(1:3, function(j) (f(delta_N + 1e-6 * (1:3 == j)) - f(delta_N - 1e-6 * (1:3 == j))) / 2e-6)
+  expect_close(F$jacobian(delta_N), num, tolerance = 1e-6)
+})
+
+test_that("forward_hsmm_ad: weights of the log-likelihood contributions", {
+  first <- max(Ni_test)
+  used <- c(first:12, (12 + first):30)
+  starts <- c(1, 13)
+  into <- function(t, i) ref_Gamma_t(t - starts[i], omega_test, lapply(dm_inhom, function(d) d[starts[i]:30, ]))
+  Delta <- t(sapply(1:2, function(i) ref_delta_stat(into(starts[i] + first, i))))
+  contrib <- ref_contrib(Delta, function(t, i) into(used[t], i), lp[used, state_test], two_tracks[used])
+  set.seed(5)
+  w <- runif(length(used))
+  for(logspace in c(FALSE, TRUE)) {
+    l <- forward_weighted(function(x) new_forward(dm_inhom, omega_test, x, two_tracks, logspace = logspace), lp, w, logspace)
+    expect_close(l, sum(w * contrib))
+  }
+})
+
+test_that("forward_hsmm_ad: dropped observations and missing values", {
+  dropped <- 1:(max(Ni_test) - 1)
+  changed <- lp; changed[dropped, ] <- -5
+  for(logspace in c(FALSE, TRUE)) {
+    trans <- if(logspace) identity else exp
+    expect_close(new_forward(dm_inhom, omega_test, trans(changed), logspace = logspace),
+                 new_forward(dm_inhom, omega_test, trans(lp), logspace = logspace), tolerance = 1e-12)
+  }
+  missing <- ap; missing[3, 1] <- NA
+  expect_error(new_forward(dm_hom, omega_test, missing), "NA")
+  expect_silent(new_forward(dm_inhom, omega_test, missing)) # row 3 is dropped
+  expect_error(new_forward(dm_hom, omega_test, lp), "logspace")
 })
 
 # ---- current forward functions ----
@@ -516,27 +614,6 @@ test_that("forward_phsmm matches the paper", {
     expect_hsmm(function(ap) forward_phsmm(dm_per, omega, ap, tod_test, delta = delta, report = FALSE),
                 ref_hsmm(ref_delta_fresh(delta, Ni_test), function(t) Gamma_t(tod_test[t])))
   }
-})
-
-test_that("gradients of the forward functions match the direct step", {
-  par <- c(beta0_test, beta1_test, 0.3, -0.2, 0.1)
-  first <- max(Ni_test)
-  f_ihsmm <- function(par) {
-    dm <- dm_poisson(par[1:3], par[4:6], z_test, Ni_test)
-    forward_ihsmm(dm, tpm_emb(par[7:9]), ap, report = FALSE)
-  }
-  f_step <- function(par) {
-    dm <- dm_poisson(par[1:3], par[4:6], z_test, Ni_test)
-    omega <- tpm_emb(par[7:9])
-    delta <- stationary(as.matrix(tpm_ihsmm(omega, dm)[[1]]))
-    stay <- lapply(dm, hsmm_stay)
-    hsmm_forward(as.vector(delta), function(t) hsmm_lag(stay, t)[1, ],
-                 function(t) omega, ap, Ni_test, start = first)
-  }
-  F_ihsmm <- RTMB::MakeTape(f_ihsmm, par)
-  F_step <- RTMB::MakeTape(f_step, par)
-  expect_close(F_step(par), F_ihsmm(par), tolerance = 1e-10)
-  expect_close(F_step$jacobian(par), F_ihsmm$jacobian(par), tolerance = 1e-8)
 })
 
 # ---- known bugs of the current functions, run with LAMA_KNOWN_BUGS=true ----

@@ -129,7 +129,7 @@ poorest if there are few clusters or if one of them carries much of the informat
 \eqn{H_k = H / G}, it coincides with CR1. The one-step deletion is a pure Newton step, so it requires \eqn{H - H_k} to be
 positive definite: if leaving out a cluster makes it singular or indefinite, an error is issued.
 
-All sandwiches require the likelihood function to call \code{\link{forward}} once (with \code{trackID} for several tracks)
+All sandwiches require the likelihood function to call \code{\link{forward}} or \code{\link{forward_hsmm}} once (with \code{trackID} for several tracks)
 and are not available for models with random effects or from \code{\link{qreml}}.
 }
 \references{

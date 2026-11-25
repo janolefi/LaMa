@@ -769,6 +769,71 @@ test_that("HSMM model objects: type and number of observations", {
   expect_output(print(hsmm_model()), "30 observations,", fixed = TRUE)
 })
 
+test_that("scores, vcov and TIC for HSMMs", {
+  set.seed(6)
+  ID <- rep(1:10, each = 20)
+  z <- rnorm(200)
+  tod <- rep_len(1:L_test, 200)
+  x <- rnorm(200, rep_len(rep(c(0, 3, 6), each = 4), 200))
+  fit <- function(forward, ...) {
+    nll <- function(par) {
+      dm <- if(identical(forward, forward_phsmm)) dm_per else dm_poisson(par$beta0, c(0.2, 0, 0), z, Ni_test)
+      allprobs <- do.call(cbind, lapply(1:3, function(j) dnorm(x, par$mu[j], 1)))
+      -forward(dm, omega_test, allprobs, trackID = ID, ...)
+    }
+    par <- list(beta0 = beta0_test, mu = c(0, 3, 6))
+    if(identical(forward, forward_phsmm)) par$beta0 <- NULL
+    obj <- RTMB::MakeADFun(nll, par, silent = TRUE)
+    opt <- nlminb(obj$par, obj$fn, obj$gr)
+    lama(obj)
+  }
+  first <- max(Ni_test)
+  for(mod in list(fit(forward_hsmm), fit(forward_hsmm, first_obs = 9), fit(forward_ihsmm), fit(forward_phsmm, tod = tod))) {
+    U <- scores(mod)
+    # only for the observations used, adding up to the gradient
+    first <- mod$first_obs
+    used <- rep(1:20 >= first, 10)
+    expect_equal(nrow(U), sum(used))
+    expect_equal(nrow(U), mod$nobs)
+    expect_close(colSums(U), -mod$obj$gr(coef(mod)), tolerance = 1e-8)
+    # clusters are the tracks, also given for all or for the used observations
+    V <- suppressWarnings(vcov(mod, type = "cluster"))
+    expect_equal(suppressWarnings(vcov(mod, type = "cluster", cluster = ID)), V)
+    expect_equal(suppressWarnings(vcov(mod, type = "cluster", cluster = ID[used])), V)
+    S <- rowsum(U, ID[used])
+    H <- mod$obj$he(coef(mod))
+    expect_close(V, 10 / 9 * solve(H) %*% crossprod(S) %*% solve(H), tolerance = 1e-6)
+    expect_error(vcov(mod, type = "cluster", cluster = 1:3), "one value per observation")
+    # HAC with bw = 1 and Bartlett kernel is the simple sandwich, others use the tracks
+    expect_equal(vcov(mod, type = "HAC", kernel = "Bartlett", bw = 1), vcov(mod, type = "sandwich"))
+    expect_true(all(is.finite(vcov(mod, type = "HAC"))))
+    expect_true(is.finite(TIC(mod)))
+  }
+})
+
+test_that("scores of single HSMM observations are exact", {
+  nll <- function(par) -forward_hsmm(dm_poisson(par$beta0, beta1_test, z_test, Ni_test), tpm_emb(par$eta), ap, trackID = two_tracks)
+  par <- list(beta0 = beta0_test, eta = c(0.3, -0.2, 0.1))
+  mod <- lama(RTMB::MakeADFun(nll, par, silent = TRUE))
+  U <- scores(mod, unlist(par))
+  # derivatives of the contributions log p(x_t | x_1, ..., x_t-1), by central differences
+  first <- max(Ni_test)
+  used <- c(first:12, (12 + first):30)
+  starts <- c(1, 13)
+  contrib <- function(p) {
+    dm <- dm_poisson(p[1:3], beta1_test, z_test, Ni_test)
+    omega <- tpm_emb(p[4:6])
+    into <- function(t, i) ref_Gamma_t(t - starts[i], omega, lapply(dm, function(d) d[starts[i]:30, ]))
+    Delta <- t(sapply(1:2, function(i) ref_delta_stat(into(starts[i] + first, i))))
+    ref_contrib(Delta, function(t, i) into(used[t], i), lp[used, state_test], two_tracks[used])
+  }
+  p <- unlist(par)
+  for(j in seq_along(p)) {
+    e <- replace(0 * p, j, 1e-4)
+    expect_close(U[, j], (contrib(p + e) - contrib(p - e)) / 2e-4, tolerance = 1e-4)
+  }
+})
+
 test_that("report_sparse does not build the matrices with AD", {
   inp <- prepare_hsmm(dm_hom, omega_test, ap)
   expect_silent(RTMB::MakeTape(function(x) { report_sparse(inp, stop("built")); x }, 1))

@@ -126,6 +126,7 @@ count_nobs <- function(mod){
 
 # Which observations are used? HSMMs drop the observations before first_obs in each track
 used_obs <- function(mod){
+  if(is.null(mod$allprobs)) return(TRUE)
   nObs <- nrow(mod$allprobs)
   first_obs <- mod[["first_obs"]]
   if(is.null(first_obs) || first_obs == 1) return(rep(TRUE, nObs))
@@ -282,7 +283,7 @@ coef.LaMaModel <- function(object, ...) {
 #' \eqn{H_k = H / G}, it coincides with CR1. The one-step deletion is a pure Newton step, so it requires \eqn{H - H_k} to be
 #' positive definite: if leaving out a cluster makes it singular or indefinite, an error is issued.
 #'
-#' All sandwiches require the likelihood function to call \code{\link{forward}} once (with \code{trackID} for several tracks)
+#' All sandwiches require the likelihood function to call \code{\link{forward}} or \code{\link{forward_hsmm}} once (with \code{trackID} for several tracks)
 #' and are not available for models with random effects or from \code{\link{qreml}}.
 #'
 #' @param object model object of class \code{"LaMaModel"}
@@ -341,13 +342,20 @@ vcov.LaMaModel <- function(object, type = c("hessian", "sandwich", "HAC", "clust
   if(type != "hessian") {
     tp <- weighted_tape(object)
     U <- tape_scores(tp)
+    # HSMMs have no scores for the observations they do not use
+    used <- used_obs(object)
+    trackID <- object$trackID
+    if(!all(used)) {
+      trackID <- trackID[used]
+      if(length(cluster) == length(used)) cluster <- cluster[used]
+    }
     if(type == "cluster" && cr %in% c("CR3", "CR3onestep")) {
-      V <- cr3_vcov(tp, U, cluster_ids(U, object$trackID, cluster), onestep = (cr == "CR3onestep"))
+      V <- cr3_vcov(tp, U, cluster_ids(U, trackID, cluster), onestep = (cr == "CR3onestep"))
     } else {
       M <- switch(type,
                   sandwich = crossprod(U),
-                  HAC = hac_meat(U, object$trackID, kernel, bw),
-                  cluster = cluster_meat(U, object$trackID, cluster, cr, npar = length(p)))
+                  HAC = hac_meat(U, trackID, kernel, bw),
+                  cluster = cluster_meat(U, trackID, cluster, cr, npar = length(p)))
       V <- V %*% M %*% V
     }
     V <- (V + t(V)) / 2

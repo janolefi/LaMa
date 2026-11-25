@@ -183,22 +183,10 @@ prepare_forward <- function(delta, Gamma, allprobs, trackID = NULL,
   }
 
   # check trackID
-  if (!is.null(trackID)) {
-    if (length(trackID) != nObs) {
-      stop("Length of trackID must equal number of rows in allprobs.")
-    }
-    # integer track indices 1, 2, ..., nTracks in order of appearance
-    trackID <- match(trackID, unique(trackID))
-    if (is.unsorted(trackID)) {
-      stop("Tracks must be contiguous, i.e. the observations of each track must be consecutive. Order your data by trackID.")
-    }
-    nTracks <- max(trackID)
-    start <- which(!duplicated(trackID))
-  } else {
-    nTracks <- 1L
-    start <- 1L
-  }
-  end <- c(start[-1] - 1L, nObs)
+  tracks <- prepare_tracks(trackID, nObs)
+  trackID <- tracks$trackID
+  nTracks <- tracks$nTracks
+  start <- tracks$start
 
   ## handle Gamma
   Gamma <- AD(as.array(Gamma))
@@ -216,30 +204,13 @@ prepare_forward <- function(delta, Gamma, allprobs, trackID = NULL,
   }
 
   # gidx[t]: slice of Gamma for the transition into t (unused at the start of a track)
-  type <- "homogeneous"
-  if (!is.null(gidx)) { # tod, for periodic models
-    if (length(gidx) != nObs) {
-      stop("tod must have the same length as the number of rows in allprobs.")
-    }
-    if (anyNA(gidx) || any(gidx < 1 | gidx > dG[3] | gidx != round(gidx))) {
-      stop("tod must contain integers in 1, ..., L, indexing the slices of Gamma (array of dimension c(N,N,L)).")
-    }
-    type <- "periodic"
-  } else if (dG[3] == 1) {
-    gidx <- rep(1L, nObs)
-  } else if (!is.null(trackID) && dG[3] == nTracks) { # track-specific
-    gidx <- trackID
-    type <- "track-specific"
-  } else if (dG[3] == nObs) { # time-varying
-    gidx <- seq_len(nObs)
-    type <- "inhomogeneous"
-  } else if (is.null(trackID) && dG[3] == nObs - 1) { # time-varying, without first slice
-    gidx <- c(1L, seq_len(nObs - 1))
-    type <- "inhomogeneous"
-  } else {
+  slices <- slice_index(dG[3], nObs, tracks, gidx, "slices of Gamma (array of dimension c(N,N,L))")
+  if (is.null(slices)) {
     stop("Gamma must have third dimension 1, nTracks (track-specific), nObs (time-varying),",
          " or nObs - 1 (time-varying, only without trackID).")
   }
+  gidx <- slices$index
+  type <- slices$type
 
   ## handle delta
   if (is.character(delta)) {
@@ -270,17 +241,72 @@ prepare_forward <- function(delta, Gamma, allprobs, trackID = NULL,
     }
   }
 
-  # if allprobs on log-scale, divide each row by its maximum:
-  # exact, as each row scales the likelihood by a constant, and numerically stable
-  shift <- 0
-  if (logspace) {
-    shift <- rowmax(allprobs)
-    allprobs <- exp(allprobs - shift)
-  }
+  scaled <- scale_allprobs(allprobs, logspace)
 
-  list(delta = delta, Gamma = Gamma, allprobs = allprobs, shift = shift,
-       gidx = as.integer(gidx), start = start, end = end,
+  list(delta = delta, Gamma = Gamma, allprobs = scaled$allprobs, shift = scaled$shift,
+       gidx = gidx, start = start, end = tracks$end,
        trackID = trackID, type = type, bw = bw)
+}
+
+# Checks trackID, returns
+# - trackID: integer track indices 1, 2, ..., nTracks in order of appearance (NULL if not given)
+# - nTracks, start, end: number of tracks, first and last index of each track
+prepare_tracks <- function(trackID, nObs){
+  if (is.null(trackID)) {
+    return(list(trackID = NULL, nTracks = 1L, start = 1L, end = nObs))
+  }
+  if (length(trackID) != nObs) {
+    stop("Length of trackID must equal number of rows in allprobs.")
+  }
+  trackID <- match(trackID, unique(trackID))
+  if (is.unsorted(trackID)) {
+    stop("Tracks must be contiguous, i.e. the observations of each track must be consecutive. Order your data by trackID.")
+  }
+  start <- which(!duplicated(trackID))
+  end <- c(start[-1] - 1L, nObs)
+  list(trackID = trackID, nTracks = max(trackID), start = start, end = end)
+}
+
+# Which slice (of nSlices) belongs to each observation? Returns the index and the type of model
+# - tracks: output of prepare_tracks()
+# - tod: integer time of day, for periodic models
+# - what: name of the slices in error messages
+# NULL if the number of slices fits no model
+slice_index <- function(nSlices, nObs, tracks, tod = NULL, what = "slices"){
+  hasID <- !is.null(tracks$trackID)
+  type <- "homogeneous"
+  if (!is.null(tod)) { # periodic
+    if (length(tod) != nObs) {
+      stop("tod must have the same length as the number of rows in allprobs.")
+    }
+    if (anyNA(tod) || any(tod < 1 | tod > nSlices | tod != round(tod))) {
+      stop("tod must contain integers in 1, ..., L, indexing the ", what, ".")
+    }
+    index <- tod
+    type <- "periodic"
+  } else if (nSlices == 1) {
+    index <- rep(1L, nObs)
+  } else if (hasID && nSlices == tracks$nTracks) { # track-specific
+    index <- tracks$trackID
+    type <- "track-specific"
+  } else if (nSlices == nObs) { # time-varying
+    index <- seq_len(nObs)
+    type <- "inhomogeneous"
+  } else if (!hasID && nSlices == nObs - 1) { # time-varying, without first slice
+    index <- c(1L, seq_len(nObs - 1))
+    type <- "inhomogeneous"
+  } else {
+    return(NULL)
+  }
+  list(index = as.integer(index), type = type)
+}
+
+# if allprobs on log-scale, divide each row by its maximum:
+# exact, as each row scales the likelihood by a constant, and numerically stable
+scale_allprobs <- function(allprobs, logspace = FALSE){
+  if (!logspace) return(list(allprobs = allprobs, shift = 0))
+  shift <- rowmax(allprobs)
+  list(allprobs = exp(allprobs - shift), shift = shift)
 }
 
 # delta = "stationary": initial distribution of each track (matrix c(nTracks, nStates)),

@@ -21,7 +21,7 @@ is_generator <- function(Q, N){
 }
 
 # State process as reported by forward() and tpm_ct(): number of states, number of tracks,
-# continuous time (if a generator Q was reported) and type
+# continuous time (if a generator Q was reported), semi-Markov (if dwell times were reported) and type
 state_process <- function(x){
   N <- ncol(x$allprobs)
   if(is.null(N)) return(NULL)
@@ -33,7 +33,8 @@ state_process <- function(x){
     type <- if(length(dQ) == 2 || dQ[3] == 1) "homogeneous" else
       if(dQ[3] == nTracks) "track-specific" else "inhomogeneous"
   }
-  list(N = N, nTracks = nTracks, ct = ct, type = type)
+  hsmm <- !is.null(x[["dm"]]) && !is.null(x[["Ni"]])
+  list(N = N, nTracks = nTracks, ct = ct, hsmm = hsmm, type = type)
 }
 
 # First lines of print() and summary(): state process, observations and parameters
@@ -41,6 +42,7 @@ model_header <- function(x){
   sp <- state_process(x)
   line1 <- "Latent Markov model"
   if(!is.null(sp)){
+    if(sp$hsmm) line1 <- "Latent semi-Markov model"
     line1 <- paste0(line1, " with ", sp$N, if(sp$N == 1) " state" else " states",
                     " (", if(sp$ct) "continuous" else "discrete", " time",
                     if(!is.null(sp$type)) paste0(", ", sp$type), ")")
@@ -49,8 +51,10 @@ model_header <- function(x){
   line2 <- NULL
   if(!is.null(x$nobs)){
     line2 <- paste(x$nobs, "observations")
-    nmiss <- nrow(x$allprobs) - x$nobs
-    if(nmiss > 0) line2 <- paste0(line2, " (", nmiss, " missing)")
+    ndropped <- sum(!used_obs(x))
+    nmiss <- nrow(x$allprobs) - ndropped - x$nobs
+    notes <- c(if(nmiss > 0) paste(nmiss, "missing"), if(ndropped > 0) paste(ndropped, "not used"))
+    if(length(notes) > 0) line2 <- paste0(line2, " (", paste(notes, collapse = ", "), ")")
     if(sp$nTracks > 1) line2 <- paste0(line2, " in ", sp$nTracks, " tracks")
   }
   # number of parameters, for qreml() fixed ones and effective degrees of freedom of the smooths
@@ -197,7 +201,7 @@ summary.LaMaModel <- function(object, ...) {
   ### state process: matrix, stationary distribution and dwell times, only for few states
   if(!is.null(sp) && sp$N > 10){
     s$note <- paste0("State process not shown for more than 10 states")
-  } else if(!is.null(sp) && sp$N > 1){
+  } else if(!is.null(sp) && sp$N > 1 && !sp$hsmm){
     N <- sp$N
     states <- paste0("S", 1:N)
     if(isTRUE(sp$type %in% c("homogeneous", "track-specific"))){
@@ -221,7 +225,7 @@ summary.LaMaModel <- function(object, ...) {
   
   ### quantities reported by the likelihood function
   internal <- c("delta", "Gamma", "allprobs", "trackID", "type", "tod", "streams",
-                "delta_sparse", "Gamma_sparse", "Delta_sparse", "tpm_formula", if(isTRUE(sp$ct)) "Q")
+                "dm", "Ni", "first_obs", "delta_sparse", "Gamma_sparse", "Delta_sparse", "tpm_formula", if(isTRUE(sp$ct)) "Q")
   reported <- object[setdiff(names(object), c(model_fields(object), internal))]
   
   # vectors with one entry per state form one table

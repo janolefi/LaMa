@@ -823,7 +823,7 @@ qreml <- function(pnll, # penalised negative log-likelihood function
             "; refitting with a smaller 'lsp_max' usually resolves it.", call. = FALSE)
   }
 
-  mod$nobs <- count_nobs(mod$allprobs)
+  mod$nobs <- count_nobs(mod)
   mod$mgc <- final$mgc # maximum gradient component of the inner problem
 
   mod$Hessian_conditional <- fit_state$J # already evaluated by the final fit

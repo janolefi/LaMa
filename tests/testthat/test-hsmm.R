@@ -734,6 +734,41 @@ test_that("forward_ihsmm: reported quantities, omega convention and message", {
                               list(eta = 1:3 / 10), silent = TRUE)$report()$Gamma_sparse)
 })
 
+# model object of an HSMM, with only omega as parameter
+hsmm_model <- function(forward = forward_hsmm, dm = dm_hom, allprobs = ap, ...) {
+  nll <- function(par) -forward(dm, tpm_emb(par$eta), allprobs, ...)
+  lama(RTMB::MakeADFun(nll, list(eta = c(0.3, -0.2, 0.1)), silent = TRUE))
+}
+
+test_that("HSMM model objects: type and number of observations", {
+  missing <- ap
+  missing[c(3, 10, 20), ] <- 1 # row 3 is also dropped for time-varying dm
+  cases <- list(
+    list(args = list(), type = "homogeneous", nobs = 30),
+    list(args = list(allprobs = missing), type = "homogeneous", nobs = 27),
+    list(args = list(first_obs = 5), type = "homogeneous", nobs = 26),
+    list(args = list(dm = dm_per, tod = tod_test), type = "periodic", nobs = 30),
+    list(args = list(dm = dm_inhom), type = "inhomogeneous", nobs = 24),
+    list(args = list(dm = dm_inhom, allprobs = missing), type = "inhomogeneous", nobs = 22),
+    list(args = list(dm = dm_inhom, trackID = two_tracks), type = "inhomogeneous", nobs = 18),
+    list(args = list(dm = dm_inhom, trackID = rep(c("b", "a"), c(12, 18)), first_obs = 9), type = "inhomogeneous", nobs = 14),
+    list(args = list(dm = dm_inhom, delta = delta_N, use_all_obs = TRUE), type = "inhomogeneous", nobs = 30),
+    list(args = list(forward = forward_ihsmm, dm = dm_inhom, startInd = 9), type = "inhomogeneous", nobs = 22),
+    list(args = list(forward = forward_phsmm, dm = dm_per, tod = tod_test), type = "periodic", nobs = 30))
+  for(case in cases) {
+    mod <- do.call(hsmm_model, case$args)
+    expect_identical(mod$type, case$type)
+    expect_equal(mod$nobs, case$nobs)
+    expect_equal(BIC(mod), -2 * mod$llk + 3 * log(case$nobs))
+    expect_output(print(summary(mod)), paste("semi-Markov model with 3 states .*", case$type))
+  }
+  # dropped observations are not called missing
+  expect_output(print(hsmm_model(dm = dm_inhom, allprobs = missing)), "22 observations (2 missing, 6 not used)", fixed = TRUE)
+  expect_output(print(hsmm_model(allprobs = missing)), "27 observations (3 missing)", fixed = TRUE)
+  expect_output(print(hsmm_model(dm = dm_inhom)), "24 observations (6 not used)", fixed = TRUE)
+  expect_output(print(hsmm_model()), "30 observations,", fixed = TRUE)
+})
+
 test_that("report_sparse does not build the matrices with AD", {
   inp <- prepare_hsmm(dm_hom, omega_test, ap)
   expect_silent(RTMB::MakeTape(function(x) { report_sparse(inp, stop("built")); x }, 1))

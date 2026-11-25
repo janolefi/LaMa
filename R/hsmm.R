@@ -117,7 +117,7 @@ hsmm_Gamma <- function(stay, omega, Ni){
 # - stay[t, ]: stay probabilities of all M states for the step into t
 # - omega[, , oidx[t]]: conditional transition probabilities for the step into t
 # - delta: initial distribution of the M states (nTracks x M)
-# - start, end: first and last observation used in each track
+# - start, end: first and last observation used in each track (first_obs: counted within the track)
 # - allprobs, shift, trackID, type: as in prepare_forward()
 prepare_hsmm <- function(dm, omega, allprobs, trackID = NULL, delta = NULL, tod = NULL,
                          use_all_obs = FALSE, first_obs = NULL, logspace = FALSE, eps = 1e-10){
@@ -201,7 +201,7 @@ prepare_hsmm <- function(dm, omega, allprobs, trackID = NULL, delta = NULL, tod 
   scaled <- scale_allprobs(allprobs, logspace)
   list(stay = stay, omega = omega, oidx = oidx, delta = delta, dm = dm, Ni = Ni,
        allprobs = scaled$allprobs, shift = scaled$shift,
-       start = start, end = tracks$end, trackID = tracks$trackID, type = type)
+       first_obs = first_obs, start = start, end = tracks$end, trackID = tracks$trackID, type = type)
 }
 
 # REPORT quantities of the forward algorithm (with these names)
@@ -209,8 +209,12 @@ prepare_hsmm <- function(dm, omega, allprobs, trackID = NULL, delta = NULL, tod 
 report_hsmm <- function(inp, dm, omega, allprobs, trackID = NULL, tod = NULL){
   delta <- inp$delta # of all M states
   Ni <- inp$Ni
+  type <- inp$type
+  first_obs <- inp$first_obs
   REPORT(delta)
   REPORT(Ni)
+  REPORT(type)
+  REPORT(first_obs)
   REPORT(dm)
   REPORT(omega)
   REPORT(allprobs)

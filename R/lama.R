@@ -100,7 +100,7 @@ lama <- function(obj) {
   # assign log-likelihood, number of parameters, and number of observations to the model object
   mod$llk <- -obj$fn(p_fix)
   mod$df <- length(obj$par)
-  mod$nobs <- count_nobs(mod$allprobs)
+  mod$nobs <- count_nobs(mod)
   mod$mgc <- max(abs(obj$gr(p_fix))) # maximum gradient component, to check convergence
 
   mod$obs <- obj$env$obs
@@ -117,11 +117,21 @@ report <- function(obj) {
   lama(obj)
 }
 
-# Number of observations: rows of allprobs that are not all 1,
-# as these are missing and contribute nothing to the likelihood
-count_nobs <- function(allprobs){
-  if(is.null(allprobs)) return(NULL)
-  sum(rowSums(allprobs != 1) > 0)
+# Number of observations of a model (or the reported quantities): rows of allprobs that are not all 1,
+# as these are missing and contribute nothing to the likelihood, without the dropped ones of HSMMs
+count_nobs <- function(mod){
+  if(is.null(mod$allprobs)) return(NULL)
+  sum(rowSums(mod$allprobs != 1) > 0 & used_obs(mod))
+}
+
+# Which observations are used? HSMMs drop the observations before first_obs in each track
+used_obs <- function(mod){
+  nObs <- nrow(mod$allprobs)
+  first_obs <- mod[["first_obs"]]
+  if(is.null(first_obs) || first_obs == 1) return(rep(TRUE, nObs))
+  tracks <- prepare_tracks(mod$trackID, nObs)
+  index <- seq_len(nObs) - rep(tracks$start, tracks$end - tracks$start + 1) + 1 # 1, 2, ... in each track
+  index >= first_obs
 }
 
 # RTMB object from MakeADFun(), or the one stored by lama() or qreml()

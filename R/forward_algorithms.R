@@ -692,15 +692,18 @@ forward_p <- function(delta,
 # HSMMs -------------------------------------------------------------------
 
 
-#' \href{https://www.taylorfrancis.com/books/mono/10.1201/b20790/hidden-markov-models-time-series-walter-zucchini-iain-macdonald-roland-langrock}{Forward algorithm} for homogeneous hidden semi-Markov models
+#' \href{https://www.taylorfrancis.com/books/mono/10.1201/b20790/hidden-markov-models-time-series-walter-zucchini-iain-macdonald-roland-langrock}{Forward algorithm} for hidden semi-Markov models
 #' 
-#' Calculates the (approximate) log-likelihood of a sequence of observations under a homogeneous hidden semi-Markov model using a modified \strong{forward algorithm}.
+#' Calculates the (approximate) log-likelihood of a sequence of observations under a hidden semi-Markov model using a modified \strong{forward algorithm}.
+#' Dwell-time distributions and conditional transition probabilities can be fixed, track-specific, time-varying or periodic.
 #' 
 #' @family forward algorithms
 #'
 #' @details
 #' Hidden semi-Markov models (HSMMs) are a flexible extension of HMMs, where the state duration distribution is explicitly modelled by a distribution on the positive integers.
 #' For direct numerical maximum likelihood estimation, HSMMs can be represented as HMMs on an enlarged state space (of size \eqn{M}) and with structured transition probabilities.
+#' 
+#' A stay that begins at time point \code{t} is governed by \code{omega[,,t]} (which state is entered) and row \code{t} of \code{dm} (how long the stay lasts).
 #' 
 #' This function is designed to be used with automatic differentiation based on the \code{R} package \code{RTMB}. It will be very slow without it!
 #'
@@ -709,234 +712,67 @@ forward_p <- function(delta,
 #'
 #' Koslik, J. O. (2025). Hidden semi-Markov models with inhomogeneous state dwell-time distributions. Computational Statistics & Data Analysis, 209, 108171.
 #'
-#' @param dm list of length \code{nStates} containing vectors of dwell-time probability mass functions (PMFs) for each state. The vector lengths correspond to the approximating state aggregate sizes, hence there should be little probability mass not covered by these.
-#' @param omega matrix of dimension \code{c(nStates, nStates)} of conditional transition probabilities, also called embedded transition probability matrix. 
+#' @param dm list of length \code{nStates} containing the dwell-time probability mass functions (PMFs) of the states, where each element is either
+#'   \itemize{
+#'     \item a vector, if the dwell-time distribution is fixed, or
+#'     \item a matrix with \code{nTracks} rows (track-specific), \code{nObs} rows (time-varying), or \code{L} rows (periodic, if \code{tod} is provided), where each row is a PMF.
+#'   }
+#' The vector lengths or numbers of columns correspond to the approximating state aggregate sizes, hence there should be little probability mass not covered by these.
+#' @param omega matrix of dimension \code{c(nStates, nStates)} of conditional transition probabilities, also called embedded transition probability matrix, 
+#' or array with \code{nTracks}, \code{nObs} or \code{L} of such matrices as slices.
 #' 
-#' Contains the transition probabilities given that the current state is left. Hence, the diagonal elements need to be zero and the rows need to sum to one. Can be constructed using \code{\link{tpm_emb}}.
+#' Contains the transition probabilities given that the current state is left. Hence, the diagonal elements need to be zero and the rows need to sum to one. Can be constructed using \code{\link{tpm_emb}} and \code{\link{tpm_emb_g}}.
 #' @param allprobs matrix of state-dependent probabilities/ density values of dimension \code{c(nObs, nStates)} which will automatically be converted to the appropriate dimension.
 #' @param trackID optional vector of length \code{nObs} containing IDs
 #' 
 #' If provided, the total log-likelihood will be the sum of each track's likelihood contribution.
-#' In this case, \code{dm} can be a nested list, where the top layer contains \code{nTracks} \code{dm} lists as described above. \code{omega} can then also be an array of dimension \code{c(nStates, nStates, nTracks)} with one conditional transition probability matrix for each track.
-#' Furthermore, instead of a single vector \code{delta} corresponding to the initial distribution, a \code{delta} matrix of initial distributions, of dimension \code{c(nTracks, nStates)}, can be provided, such that each track starts with its own initial distribution.
-#' @param delta optional vector of initial state probabilities of length \code{nStates}
+#' In this case, \code{dm} and \code{omega} can be track-specific and \code{delta} can be a matrix of initial distributions, of dimension \code{c(nTracks, nStates)}, such that each track starts with its own initial distribution.
+#' @param delta optional vector of initial state probabilities of length \code{nStates}, in which case a new stay begins at the first observation of each track.
 #' 
 #' By default, the stationary distribution is computed (which is typically recommended).
 #' @param eps small value to avoid numerical issues in the approximating transition matrix construction. Usually, this should not be changed.
-#' @param report logical, indicating whether initial distribution, approximating transition probability matrix and \code{allprobs} matrix should be reported from the fitted model. Defaults to \code{TRUE}.
+#' @param report logical, indicating whether initial distribution, \code{dm}, \code{omega} and the \code{allprobs} matrix should be reported from the fitted model. Defaults to \code{TRUE}.
+#' @param tod optional integer vector of length \code{nObs} containing the time of day (or any other cycle), with values in \code{1, ..., L}, for periodic models.
+#' 
+#' With periodic \code{dm}, it needs to advance by one in each row within a track.
+#' @param use_all_obs logical, only relevant for time-varying \code{dm}. 
+#' 
+#' By default, the first \code{max(sapply(dm, ncol)) - 1} observations of each track are not used, as they may belong to stays that began before the first observation, with unknown dwell-time distributions. 
+#' If \code{TRUE}, all observations are used, which needs \code{delta}.
+#' @param logspace logical, indicating whether \code{allprobs} contains log-probabilities. Defaults to \code{FALSE}.
 #'
 #' @return HSMM log-likelihood for given data and parameters
 #' @export
 #' @import RTMB
 #'
 #' @examples
-#' # currently no examples
+#' ## negative log-likelihood of a 2-state HSMM with shifted Poisson dwell times
+#' nll = function(par) {
+#'   getAll(par)
+#'   sizes = c(20, 20) # state aggregate sizes
+#'   dm = lapply(1:2, function(i) dpois(1:sizes[i] - 1, exp(loglambda[i])))
+#'   omega = matrix(c(0, 1, 1, 0), 2) # 2 states: no parameters
+#'   allprobs = matrix(1, length(step), 2)
+#'   ind = which(!is.na(step))
+#'   for(j in 1:2) allprobs[ind, j] = dgamma2(step[ind], exp(logmu[j]), exp(logsigma[j]))
+#'   -forward_hsmm(dm, omega, allprobs)
+#' }
+#' step = trex$step[1:200]
+#' par = list(loglambda = log(c(5, 5)), logmu = log(c(0.3, 2.5)), logsigma = log(c(0.2, 1.5)))
+#' obj = MakeADFun(nll, par, silent = TRUE)
+#' opt = nlminb(obj$par, obj$fn, obj$gr)
 forward_hsmm <- function(dm, omega, allprobs,
-                         trackID = NULL, delta = NULL, eps = 1e-10, report = TRUE){
-  # overloading assignment operators, currently necessary
-  "[<-" <- ADoverload("[<-")
-  "c" <- ADoverload("c")
-  "diag<-" <- ADoverload("diag<-")
-  ################################
+                         trackID = NULL, delta = NULL, eps = 1e-10, report = TRUE,
+                         tod = NULL, use_all_obs = FALSE, logspace = FALSE){
   
-  agsizes = vapply(dm, length, 1L)
-  
-  N = ncol(allprobs) # number of HSMM states
-  M = sum(agsizes) # total number of states of the approximating HMM
-  
-  stateInds <- rep(1:N, times = agsizes)
-  
-  stationary = is.null(delta) # if delta is not provided, stationary distribution needs to be computed
-  
-  if(is.null(trackID)) {
-    ## compute approximating tpm
-    Gamma_sparse = tpm_hsmm(omega, dm, eps = eps)
-    # Gamma = Matrix::Matrix(Gamma_sparse, sparse = FALSE) # dense for reporting
-    
-    ## if stationary, compute initial stationary distribution
-    if(stationary){
-      delta = stationary_sparse(Gamma_sparse)
-      delta_sparse = methods::as(t(delta), "sparseMatrix")
-    } else{ # if delta is provided, "stuff out" with zeros
-      cols_to_fill = c(1, cumsum(agsizes[-N])+1)
-      delta_sparse = Matrix::sparseMatrix(i = rep(1, N), j = cols_to_fill, 
-                                          x = delta, dims = c(1, M))
-    }
-    
-    ## report quantities for state decoding
-    if(report){
-      RTMB::REPORT(delta_sparse)
-      RTMB::REPORT(Gamma_sparse)
-      RTMB::REPORT(allprobs)
-    }
-    
-    ## making AD work fine
-    delta_sparse <- AD(delta_sparse)
-    Gamma_sparse <- AD(Gamma_sparse)
-    allprobs <- AD(allprobs)
-    
-    # forward algorithm
-    # foo = delta_sparse %*% Matrix::Diagonal(x = rep(allprobs[1,], times = agsizes))
-    foo = delta_sparse * allprobs[1, stateInds, drop = FALSE]
-    # foo = delta_sparse %*% diag(rep(allprobs[1,], times = agsizes))
-    # sumfoo = sum(foo)
-    sumfoo = rowSums(foo)
-    phi = foo / sumfoo
-    l = log(sumfoo)
-    
-    for(t in 2:nrow(allprobs)) {
-      # foo = phi %*% Gamma_sparse %*% Matrix::Diagonal(x = rep(allprobs[t,], times = agsizes))
-      # foo = phi %*% Gamma_sparse %*% diag(rep(allprobs[t,], times = agsizes))
-      foo = (phi %*% Gamma_sparse) * allprobs[t, stateInds, drop = FALSE]
-      # sumfoo = sum(foo)
-      sumfoo = rowSums(foo)
-      phi = foo / sumfoo
-      l = l + log(sumfoo)
-    }
-    
-  } else if(!is.null(trackID)) {
-    
-    RTMB::REPORT(trackID) # report trackID for viterbi etc.
-    
-    uID = unique(trackID) # unique track IDs
-    k = length(uID) # number of tracks
-    
-    if(length(dm) == k){ # dm for each track
-      if(is.matrix(omega)){ # different dms but same omegas
-        omega = array(omega, dim = c(dim(omega), k))
-      } else if(length(dim(omega)) == 3){ # different dms and different omegas
-        if(dim(omega)[3] != k) stop("omega needs to be either a matrix of dimension c(N,N) or an array of dimension c(N,N,k), matching the number of tracks.")
-      }
-      
-      Gamma_sparse = lapply(1:k, function(k) tpm_hsmm(omega[,,k], dm[[k]], eps = eps)) # build k Gammas based on omega and dm
-      
-      if(stationary == TRUE){ # delta not provided but computed: each track starts in stationary distribution
-        Delta = t(sapply(1:k, function(k) stationary_sparse(Gamma_sparse[[k]]))) # build k deltas based on Gammas
-        Delta_sparse = methods::as(Delta, "sparseMatrix")
-      } else{
-        
-        # if delta is provided
-        delta = as.matrix(delta) # reshape to matrix for easier handling
-        
-        if(ncol(delta) != N) delta = t(delta) # transpose if necessary
-        
-        if(nrow(delta) == 1) {
-          Delta = matrix(delta, nrow = k, ncol = N, byrow = TRUE)
-        } else {
-          Delta = delta
-        }
-        
-        # "stuff out" delta with zeros
-        cols_to_fill = c(1, cumsum(agsizes[-N])+1)
-        
-        row_indices <- rep(1:k, N)
-        col_indices <- rep(cols_to_fill, each = k)
-        
-        values = as.vector(Delta)
-        
-        Delta_sparse <- Matrix::sparseMatrix(i = row_indices,   # Row indices
-                                             j = col_indices,   # Column indices
-                                             x = values,        # Non-zero values (from dense matrix)
-                                             dims = c(k, M))    # Final sparse matrix dimensions
-      }
-    } else if(length(dm) == length(agsizes)){ # only one dm
-      if(is.matrix(omega)){ # if omega is matrix, just build one Gamma
-        Gamma_sparse = tpm_hsmm(omega, dm, eps = eps)
-        
-        ## if stationary, compute initial stationary distribution
-        if(stationary){
-          delta = stationary_sparse(Gamma_sparse)
-          Delta = matrix(delta, nrow = k, ncol = length(delta), byrow = TRUE) # repeat rows for each track
-          Delta_sparse = Matrix::Matrix(Delta, sparse = TRUE) # make sparse
-        } else{ # if delta is provided, "stuff out" with zeros
-          cols_to_fill = c(1, cumsum(agsizes[-N])+1)
-          
-          if(is.matrix(delta)){
-            values = as.vector(delta)
-          } else{
-            values = rep(delta, each = k)
-          }
-          Delta_sparse = Matrix::sparseMatrix(i = rep(1:k, N), j = rep(cols_to_fill, each=k), 
-                                              x = values, dims = c(k, M))
-        }
-        Gamma_sparse = list(Gamma_sparse)
-        Gamma_sparse = rep(Gamma_sparse, k)
-      } else if(length(dim(omega)) == 3){ # different omegas but same dm
-        if(dim(omega)[3] != k) stop("omega needs to be either a matrix of dimension c(N,N) or an array of dimension c(N,N,k), matching the number of tracks.")
-        
-        Gamma_sparse = lapply(1:k, function(k) tpm_hsmm(omega[,,k], dm, eps = eps)) # build k Gammas with fixed dm but varying omega
-        
-        if(stationary == TRUE){ # delta not provided but computed: each track starts in stationary distribution
-          Delta = t(sapply(1:k, function(k) stationary_sparse(Gamma_sparse[[k]]))) # build k deltas based on Gammas
-          Delta_sparse = methods::as(Delta, "sparseMatrix")
-        } else{
-          # if delta is provided
-          delta = as.matrix(delta) # reshape to matrix for easier handling
-          
-          if(ncol(delta) != N) delta = t(delta) # transpose if necessary
-          
-          if(nrow(delta) == 1) {
-            Delta = matrix(delta, nrow = k, ncol = N, byrow = TRUE)
-          } else {
-            Delta = delta
-          }
-          
-          # "stuff out" delta with zeros
-          cols_to_fill = c(1, cumsum(agsizes[-N])+1)
-          
-          row_indices <- rep(1:k, N)
-          col_indices <- rep(cols_to_fill, each = k)
-          
-          values = as.vector(Delta)
-          
-          Delta_sparse <- Matrix::sparseMatrix(i = row_indices,   # Row indices
-                                               j = col_indices,   # Column indices
-                                               x = values,        # Non-zero values (from dense matrix)
-                                               dims = c(k, M))    # Final sparse matrix dimensions
-        }
-      }
-    }
-    
-    ## report quantities for state decoding
-    if(report){
-      RTMB::REPORT(Delta_sparse)
-      RTMB::REPORT(Gamma_sparse)
-      RTMB::REPORT(allprobs)
-    }
-    
-    ## making AD work fine
-    allprobs <- AD(allprobs)
-    
-    
-    ## forward algorithm
-    l = 0 # initialize log-likelihood
-    for(i in 1:k) {
-      ind = which(trackID == uID[i]) # indices of track i
-      
-      delta_i = AD(Delta_sparse[i, , drop = FALSE])
-      Gamma_i = AD(Gamma_sparse[[i]])
-      
-      # foo = delta_i %*% Matrix::Diagonal(x = rep(allprobs[ind[1],], times = agsizes))
-      foo = delta_i * allprobs[ind[1], stateInds, drop = FALSE]
-      # sumfoo = sum(foo)
-      sumfoo = rowSums(foo)
-      phi = foo / sumfoo
-      l_i = log(sumfoo)
-      
-      for(t in 2:length(ind)) {
-        # foo = phi %*% Gamma_i %*% Matrix::Diagonal(x = rep(allprobs[ind[t],], times = agsizes))
-        foo = (phi %*% Gamma_i) * allprobs[ind[t], stateInds, drop = FALSE]
-        # sumfoo = sum(foo)
-        sumfoo = rowSums(foo)
-        phi = foo / sumfoo
-        l_i = l_i + log(sumfoo)
-      }
-      
-      l = l + l_i
-    }
+  inp <- prepare_hsmm(dm, omega, allprobs, trackID, delta, tod, use_all_obs,
+                      logspace = logspace, eps = eps)
+  if(report) {
+    report_hsmm(inp, dm, omega, if(logspace) exp(allprobs) else allprobs, trackID, tod)
+    if(inp$type %in% c("homogeneous", "track-specific")) report_sparse(inp, sparse_Gammas(inp))
   }
   
-  as.numeric(l)
+  run_forward_hsmm(inp)
 }
 
 

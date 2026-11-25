@@ -128,6 +128,7 @@ prepare_hsmm <- function(dm, omega, allprobs, trackID = NULL, delta = NULL, tod 
 
   ## dwell times
   if(!is.list(dm) || length(dm) != N) stop("dm must be a list with one dwell-time distribution for each state.")
+  if(any(vapply(dm, is.list, TRUE))) stop("dm is a nested list. For track-specific dwell times, use a matrix with nTracks rows for each state.")
   dm <- lapply(dm, function(d) if(is.null(dim(d))) matrix(d, nrow = 1) else d)
   Ni <- vapply(dm, ncol, 1L)
   dm_index <- lapply(dm, function(d) hsmm_index(nrow(d), nObs, tracks, tod, "rows of dm"))
@@ -199,6 +200,46 @@ prepare_hsmm <- function(dm, omega, allprobs, trackID = NULL, delta = NULL, tod 
   list(stay = stay, omega = omega, oidx = oidx, delta = delta, dm = dm, Ni = Ni,
        allprobs = scaled$allprobs, shift = scaled$shift,
        start = start, end = tracks$end, trackID = tracks$trackID, type = type)
+}
+
+# REPORT quantities of the forward algorithm (with these names)
+# dm, omega, allprobs, trackID and tod as passed by the user, who may also report them
+report_hsmm <- function(inp, dm, omega, allprobs, trackID = NULL, tod = NULL){
+  delta <- inp$delta # of all M states
+  Ni <- inp$Ni
+  REPORT(delta)
+  REPORT(Ni)
+  REPORT(dm)
+  REPORT(omega)
+  REPORT(allprobs)
+  if(!is.null(trackID)) REPORT(trackID)
+  if(!is.null(tod)) REPORT(tod)
+}
+
+# REPORT delta_sparse (Delta_sparse with trackID) and Gamma_sparse, as in LaMa <= 3.2.0
+# only if the likelihood is run without AD, e.g. by obj$report() or lama(): not needed for fitting
+# Gamma_sparse: matrix or list of matrices (Gamma_sparse is a promise, not evaluated with AD)
+report_sparse <- function(inp, Gamma_sparse){
+  if(ad_context()) return(invisible())
+  delta <- methods::as(unname(inp$delta), "sparseMatrix")
+  if(is.null(inp$trackID)) {
+    delta_sparse <- delta
+    REPORT(delta_sparse)
+  } else {
+    Delta_sparse <- delta
+    REPORT(Delta_sparse)
+  }
+  Gamma_sparse <- force(Gamma_sparse)
+  REPORT(Gamma_sparse)
+}
+
+# Transition matrix of the first observation of each track, sparse (one matrix without trackID, else a list)
+# only for models that do not vary over time
+sparse_Gammas <- function(inp){
+  Gamma <- lapply(inp$start, function(t) {
+    methods::as(hsmm_Gamma(inp$stay[t, ], inp$omega[, , inp$oidx[t]], inp$Ni), "sparseMatrix")
+  })
+  if(is.null(inp$trackID)) Gamma[[1]] else Gamma
 }
 
 # Which row of dm or slice of omega belongs to each observation? See slice_index()

@@ -616,6 +616,75 @@ test_that("forward_phsmm matches the paper", {
   }
 })
 
+test_that("forward_hsmm: all types of models", {
+  f <- function(...) forward_hsmm(..., report = FALSE)
+  expect_identical(f(dm_inhom, omega_t_test, ap), new_forward(dm_inhom, omega_t_test, ap))
+  expect_identical(f(dm_inhom, omega_t_test, ap, two_tracks, delta_N, use_all_obs = TRUE),
+                   new_forward(dm_inhom, omega_t_test, ap, two_tracks, delta_N, use_all_obs = TRUE))
+  expect_identical(f(dm_per, omega_p_test, ap, tod = tod_test), new_forward(dm_per, omega_p_test, ap, tod = tod_test))
+  expect_identical(f(dm_hom, omega_test, lp, logspace = TRUE), new_forward(dm_hom, omega_test, lp, logspace = TRUE))
+  expect_false(f(dm_hom, omega_test, ap, eps = 1e-3) == f(dm_hom, omega_test, ap))
+  # nested lists for track-specific dm
+  expect_error(f(list(dm_hom, dm_hom, dm_hom), omega_test, ap, rep(1:3, each = 10)), "nested list")
+})
+
+test_that("forward_hsmm: reported quantities", {
+  nll <- function(par) {
+    dm <- dm_poisson(par$beta0, par$beta1, z_test, Ni_test)
+    -forward_hsmm(dm, tpm_emb(par$eta), lp, trackID = two_tracks, logspace = TRUE)
+  }
+  par <- list(beta0 = beta0_test, beta1 = beta1_test, eta = c(0.3, -0.2, 0.1))
+  obj <- RTMB::MakeADFun(nll, par, silent = TRUE)
+  rep <- obj$report()
+  expect_equal(dim(rep$delta), c(2, sum(Ni_test)))
+  expect_close(rep$dm[[2]], dm_inhom[[2]])
+  expect_close(rep$omega, tpm_emb(par$eta))
+  expect_equal(rep$Ni, Ni_test)
+  expect_close(rep$allprobs, ap)
+  expect_equal(rep$trackID, two_tracks)
+  expect_null(RTMB::MakeADFun(function(par) -forward_hsmm(dm_hom, tpm_emb(par$eta), ap, report = FALSE), par["eta"], silent = TRUE)$report()$dm)
+  # model object
+  mod <- lama(obj)
+  expect_output(print(mod), "3 states")
+  expect_output(print(summary(mod)))
+  expect_close(logLik(mod), -nll(par))
+})
+
+test_that("forward_hsmm: delta_sparse and Gamma_sparse are still reported", {
+  par <- list(beta0 = beta0_test, eta = c(0.3, -0.2, 0.1))
+  report <- function(...) {
+    nll <- function(par) {
+      dm <- lapply(dm_poisson(par$beta0, 0 * par$beta0, 0, Ni_test), as.vector)
+      -forward_hsmm(dm, tpm_emb(par$eta), ap, ...)
+    }
+    RTMB::MakeADFun(nll, par, silent = TRUE)$report()
+  }
+  Gamma <- ref_Gamma(tpm_emb(par$eta), lapply(dm_hom, ref_hazard))
+  rep <- report()
+  expect_s4_class(rep$Gamma_sparse, "sparseMatrix")
+  expect_close(as.matrix(rep$Gamma_sparse), Gamma)
+  expect_s4_class(rep$delta_sparse, "sparseMatrix")
+  expect_close(as.matrix(rep$delta_sparse), ref_delta_stat(Gamma), tolerance = 1e-6)
+  # the reported matrices can be used for decoding
+  expect_length(viterbi(as.vector(rep$delta_sparse), as.matrix(rep$Gamma_sparse), rep$allprobs[, state_test]), 30)
+  # dm as passed, not as matrices
+  expect_null(dim(rep$dm[[1]]))
+  # tracks, with their original labels
+  ID <- rep(c("b", "a"), c(12, 18))
+  rep <- report(trackID = ID, delta = rbind(delta_N, rev(delta_N)))
+  expect_identical(rep$trackID, ID)
+  expect_length(rep$Gamma_sparse, 2)
+  expect_close(as.matrix(rep$Gamma_sparse[[2]]), Gamma)
+  expect_close(as.matrix(rep$Delta_sparse), rbind(delta_M, ref_delta_fresh(rev(delta_N), Ni_test)))
+  expect_null(report(report = FALSE)$Gamma_sparse)
+})
+
+test_that("report_sparse does not build the matrices with AD", {
+  inp <- prepare_hsmm(dm_hom, omega_test, ap)
+  expect_silent(RTMB::MakeTape(function(x) { report_sparse(inp, stop("built")); x }, 1))
+  expect_error(report_sparse(inp, stop("built")), "built")
+})
+
 # ---- known bugs of the current functions, run with LAMA_KNOWN_BUGS=true ----
 
 test_that("forward_ihsmm and forward_phsmm: fixed dm and given delta", {
@@ -628,7 +697,6 @@ test_that("forward_ihsmm and forward_phsmm: fixed dm and given delta", {
 })
 
 test_that("forward_hsmm: delta can be estimated", {
-  skip_known_bug("delta as an AD parameter fails")
   Gamma <- ref_Gamma(omega_test, lapply(dm_hom, ref_hazard))
   delta <- c(0.5, 0.3, 0.2)
   F <- RTMB::MakeTape(function(delta) forward_hsmm(dm_hom, omega_test, ap, delta = delta, report = FALSE), delta)
@@ -636,7 +704,6 @@ test_that("forward_hsmm: delta can be estimated", {
 })
 
 test_that("forward_hsmm: several tracks with stationary delta under AD", {
-  skip_known_bug("Matrix() does not accept the AD stationary distribution")
   ID <- rep(1:2, c(12, 18))
   Gamma <- ref_Gamma(omega_test, lapply(dm_hom, ref_hazard))
   ref <- ref_forward(ref_delta_stat(Gamma), function(t, i) Gamma, lp_M, ID)
@@ -644,7 +711,6 @@ test_that("forward_hsmm: several tracks with stationary delta under AD", {
 })
 
 test_that("forward_hsmm: as many tracks as states", {
-  skip_known_bug("dm is read as one list per track if nTracks = nStates")
   ID <- rep(1:3, c(8, 10, 12))
   Gamma <- ref_Gamma(omega_test, lapply(dm_hom, ref_hazard))
   expect_close(forward_hsmm(dm_hom, omega_test, ap, trackID = ID, report = FALSE),
@@ -696,7 +762,6 @@ test_that("forward_phsmm: a single track", {
 })
 
 test_that("forward_hsmm: tracks of length one", {
-  skip_known_bug("loops 2:n run backwards for nObs = 1")
   Gamma <- ref_Gamma(omega_test, lapply(dm_hom, ref_hazard))
   ID <- rep(1:2, c(1, 29))
   ref <- ref_forward(ref_delta_stat(Gamma), function(t, i) Gamma, lp_M, ID)

@@ -321,15 +321,15 @@ test_that("MCreport: qreml() models, conditional and joint", {
   expect_error(MCreport(obj_rep, joint = TRUE), "qreml")
 })
 
-test_that("vcov CR3: one-step jackknife from leave-one-cluster-out Hessians", {
+test_that("vcov CR3onestep: one-step jackknife from leave-one-cluster-out Hessians", {
   mod <- lama(obj_cl)
   tp <- weighted_tape(mod)
   U <- scores(mod)
   S <- rowsum(U, dat_cl$ID, reorder = FALSE)
   D <- t(vapply(unique(dat_cl$ID), function(k) solve(obj_cl$he(opt_cl$par) - weighted_hessian(tp, dat_cl$ID == k), S[k, ]),
                 numeric(6)))
-  expect_equal(vcov(mod, type = "cluster", cr = "CR3"), 7 / 8 * crossprod(D), ignore_attr = TRUE, tolerance = 1e-6)
-  expect_equal(rownames(vcov(mod, type = "cluster", cr = "CR3")), names(coef(mod)))
+  expect_equal(vcov(mod, type = "cluster", cr = "CR3onestep"), 7 / 8 * crossprod(D), ignore_attr = TRUE, tolerance = 1e-6)
+  expect_equal(rownames(vcov(mod, type = "cluster", cr = "CR3onestep")), names(coef(mod)))
 })
 
 # linear regression as a 1-state model: Gaussian log-likelihood with known sd is quadratic,
@@ -343,24 +343,79 @@ nll_lm <- function(par) {
 obj_lm <- RTMB::MakeADFun(nll_lm, list(b0 = 0, b1 = 0), silent = TRUE)
 opt_lm <- nlminb(obj_lm$par, obj_lm$fn, obj_lm$gr)
 
-test_that("vcov CR3: exact jackknife of MacKinnon, Nielsen and Webb for linear regression", {
+test_that("vcov CR3onestep: equals the jackknife of MacKinnon, Nielsen and Webb for linear regression", {
   mod <- lama(obj_lm)
   b <- coef(lm(y ~ x, dat_lm))
   D <- t(vapply(unique(dat_lm$ID), function(k) coef(lm(y ~ x, dat_lm, subset = ID != k)) - b, numeric(2)))
-  expect_equal(vcov(mod, type = "cluster", cr = "CR3"), 3 / 4 * crossprod(D), ignore_attr = TRUE, tolerance = 1e-6)
+  expect_equal(vcov(mod, type = "cluster", cr = "CR3onestep"), 3 / 4 * crossprod(D), ignore_attr = TRUE, tolerance = 1e-6)
 })
 
-test_that("vcov CR3: equals CR1 with equal leverage", {
+test_that("vcov CR3: equals CR3onestep and lm() refits for linear regression", {
+  mod <- lama(obj_lm)
+  b <- coef(lm(y ~ x, dat_lm))
+  D <- t(vapply(unique(dat_lm$ID), function(k) coef(lm(y ~ x, dat_lm, subset = ID != k)) - b, numeric(2)))
+  expect_message(V <- vcov(mod, type = "cluster", cr = "CR3"), "without each of the 4 clusters")
+  expect_equal(V, 3 / 4 * crossprod(D), ignore_attr = TRUE, tolerance = 1e-4)
+  expect_equal(V, vcov(mod, type = "cluster", cr = "CR3onestep"), tolerance = 1e-4)
+})
+
+test_that("vcov CR3: equals refits on the data without each track for an HMM", {
+  mod <- lama(obj_cl)
+  D <- t(vapply(unique(dat_cl$ID), function(k) {
+    keep <- dat_cl$ID != k
+    dat_k <- list(step = dat_cl$step[keep], ID = dat_cl$ID[keep])
+    nll_k <- nll_cl
+    environment(nll_k) <- list2env(list(dat_cl = dat_k), parent = environment(nll_cl))
+    obj_k <- RTMB::MakeADFun(nll_k, par_rep, silent = TRUE)
+    nlminb(opt_cl$par, obj_k$fn, obj_k$gr)$par - opt_cl$par
+  }, numeric(6)))
+  V <- suppressMessages(vcov(mod, type = "cluster", cr = "CR3"))
+  expect_equal(V, 7 / 8 * crossprod(D), ignore_attr = TRUE, tolerance = 1e-3)
+  expect_equal(rownames(V), names(coef(mod)))
+  # without rescaling by the full Hessian (the fallback), the same changes are found
+  tp <- weighted_tape(mod)
+  w <- dat_cl$ID != "track1"
+  R <- chol(weighted_hessian(tp))
+  expect_equal(delete_refit(tp, w, NULL, "track1")$d, delete_refit(tp, w, R, "track1")$d, tolerance = 1e-3)
+  # not the one-step version
+  V1 <- vcov(mod, type = "cluster", cr = "CR3onestep")
+  expect_gt(max(abs(V / V1 - 1)), 1e-3)
+  # also in TIC()
+  tic <- suppressMessages(TIC(mod, type = "cluster", cr = "CR3"))
+  expect_equal(attr(tic, "edf"), sum(obj_cl$he(opt_cl$par) * V), tolerance = 1e-6)
+})
+
+test_that("vcov CR3: error for parameters informed by a single cluster", {
+  # the intercept of a track that is left out has gradient zero and would stay at its estimate
+  nll <- function(par) {
+    getAll(par, dat_lm)
+    -forward(1, matrix(1, 1, 1), matrix(dnorm(y, b0[match(ID, unique(ID))] + b1 * x, 1), ncol = 1), trackID = ID)
+  }
+  obj <- RTMB::MakeADFun(nll, list(b0 = rep(0, 4), b1 = 0), silent = TRUE)
+  nlminb(obj$par, obj$fn, obj$gr)
+  expect_error(suppressMessages(suppressWarnings(vcov(lama(obj), type = "cluster", cr = "CR3"))),
+               "refit without cluster 1 is singular or not positive definite")
+})
+
+test_that("vcov CR3: warning if a refit does not converge", {
+  # mock tape: the gradient has the wrong sign, so nlminb() stops with false convergence
+  tp <- list(p = 1, nObs = 4, names = "a", theta = 1,
+             F = function(x) x[1]^2, G = function(x) c(-2 * x[1], rep(0, 4)))
+  U <- matrix(1, 4, 1)
+  expect_warning(suppressMessages(cr3_vcov(tp, U, c(1, 1, 2, 2))), "cluster\\(s\\) 1, 2 did not converge")
+})
+
+test_that("vcov CR3onestep: equals CR1 with equal leverage", {
   # mean only, equal cluster sizes: H_k = H / G, so (G - 1) / G * (G / (G - 1))^2 = G / (G - 1)
   y <- dat_lm$y; ID <- rep(1:4, each = 15)
   nll <- function(par) -forward(1, matrix(1, 1, 1), matrix(dnorm(y, par$b0, 1), ncol = 1), trackID = ID)
   obj <- RTMB::MakeADFun(nll, list(b0 = 0), silent = TRUE)
   nlminb(obj$par, obj$fn, obj$gr)
   mod <- lama(obj)
-  expect_equal(vcov(mod, type = "cluster", cr = "CR3"), vcov(mod, type = "cluster", cr = "CR1"), tolerance = 1e-8)
+  expect_equal(vcov(mod, type = "cluster", cr = "CR3onestep"), vcov(mod, type = "cluster", cr = "CR1"), tolerance = 1e-8)
 })
 
-test_that("vcov CR3: error for parameters informed by a single cluster", {
+test_that("vcov CR3onestep: error for parameters informed by a single cluster", {
   # intercept per track: leaving out a track leaves its intercept unidentified
   nll <- function(par) {
     getAll(par, dat_lm)
@@ -368,15 +423,15 @@ test_that("vcov CR3: error for parameters informed by a single cluster", {
   }
   obj <- RTMB::MakeADFun(nll, list(b0 = rep(0, 4), b1 = 0), silent = TRUE)
   nlminb(obj$par, obj$fn, obj$gr)
-  expect_error(suppressWarnings(vcov(lama(obj), type = "cluster", cr = "CR3")), "Hessian without cluster 1 is singular or not positive definite")
+  expect_error(suppressWarnings(vcov(lama(obj), type = "cluster", cr = "CR3onestep")), "Hessian without cluster 1 is singular or not positive definite")
 })
 
-test_that("vcov CR3: error if the Hessian without a cluster is indefinite", {
+test_that("vcov CR3onestep: error if the Hessian without a cluster is indefinite", {
   # mock tape: H - H_k = diag(c(1, -1)) is indefinite but well conditioned
   tp <- list(p = 2, nObs = 4, names = c("a", "b"), theta = c(0, 0),
              G = function(x) c(x[1] * sum(x[3:6]), -x[2] * sum(x[3:6]), rep(0, 4)))
   U <- matrix(1, 4, 2)
-  expect_error(cr3_vcov(tp, U, c(1, 1, 2, 2)), "not positive definite")
+  expect_error(cr3_vcov(tp, U, c(1, 1, 2, 2), onestep = TRUE), "not positive definite")
 })
 
 test_that("TIC: penalty tr(J H^{-1}) with the HAC, outer product and cluster meats", {
@@ -392,11 +447,11 @@ test_that("TIC: penalty tr(J H^{-1}) with the HAC, outer product and cluster mea
   edf_s <- sum(diag(crossprod(U) %*% solve(H)))
   expect_equal(attr(TIC(mod, type = "sandwich"), "edf"), edf_s, tolerance = 1e-6)
   expect_equal(TIC(mod, bw = 0), TIC(mod, type = "sandwich"))
-  # several tracks: cluster meat, and CR3 via tr(H V) although it is not a sandwich
+  # several tracks: cluster meat, and CR3onestep via tr(H V) although it is not a sandwich
   mod_cl <- lama(obj_cl)
   H_cl <- obj_cl$he(opt_cl$par)
-  expect_equal(attr(TIC(mod_cl, type = "cluster", cr = "CR3"), "edf"),
-               sum(H_cl * vcov(mod_cl, type = "cluster", cr = "CR3")), tolerance = 1e-6)
+  expect_equal(attr(TIC(mod_cl, type = "cluster", cr = "CR3onestep"), "edf"),
+               sum(H_cl * vcov(mod_cl, type = "cluster", cr = "CR3onestep")), tolerance = 1e-6)
 })
 
 test_that("TIC: several models as in AIC(), errors", {

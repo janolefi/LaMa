@@ -14,7 +14,7 @@ TIC(object, ...)
   kernel = c("QS", "Bartlett"),
   bw = NULL,
   cluster = NULL,
-  cr = c("CR1", "CR0", "CR3")
+  cr = c("CR1", "CR0", "CR3", "CR3onestep")
 )
 }
 \arguments{
@@ -46,7 +46,8 @@ of the maximised log-likelihood, so models whose estimates are more variable tha
 penalised more.
 
 It is computed from the robust covariance \eqn{V = H^{-1} J H^{-1}} as \eqn{\mathrm{edf} = \mathrm{tr}(H V)}, so
-every robust \code{type} of \code{\link{vcov.LaMaModel}} can be used, including the jackknife \code{cr = "CR3"}.
+every robust \code{type} of \code{\link{vcov.LaMaModel}} can be used, including the jackknives \code{cr = "CR3"}
+and \code{cr = "CR3onestep"}.
 The default is the HAC sandwich, as the penalty needs the correct variance of the estimator, which for serially
 dependent scores is not given by the outer product of the scores (\code{type = "sandwich"}). For several
 independent tracks, \code{type = "cluster"} is an alternative.

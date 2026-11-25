@@ -255,14 +255,22 @@ coef.LaMaModel <- function(object, ...) {
 #' be split between clusters.
 #'
 #' \code{cr = "CR3"} gives the jackknife estimator (MacKinnon, Nielsen and Webb, 2023)
-#' \deqn{V = \frac{G - 1}{G} \sum_{k=1}^G d_k d_k^\top, \qquad d_k = (H - H_k)^{-1} s_k,}
-#' where \eqn{d_k} approximates the change in the estimate when cluster \eqn{k} is left out by one Newton step from the estimate,
-#' and \eqn{H - H_k} is the Hessian without cluster \eqn{k}, from the weighted likelihood with weight zero on its observations.
-#' For linear least squares, the step is exact. Compared to CR1, it inflates the contributions of clusters with high leverage
-#' (e.g. long tracks), whose score sums are shrunk the most by fitting; with equal leverage \eqn{H_k = H / G}, both coincide.
-#' It costs one Hessian per cluster. The one-step deletion is a pure Newton step, so it requires \eqn{H - H_k} to be
-#' positive definite: if leaving out a cluster makes it singular or indefinite, as for parameters not or only weakly
-#' identified without that cluster, an error is issued.
+#' \deqn{V = \frac{G - 1}{G} \sum_{k=1}^G d_k d_k^\top, \qquad d_k = \hat\theta - \hat\theta^{(k)},}
+#' where \eqn{\hat\theta^{(k)}} is the estimate without cluster \eqn{k}. It is found by minimising the weighted negative
+#' log-likelihood with weight zero on the observations of cluster \eqn{k}, started at \eqn{\hat\theta}, so the model is refitted
+#' once per cluster, and a message says so. Compared to CR1, it inflates the contributions of clusters with high leverage
+#' (e.g. long tracks), whose score sums are shrunk the most by fitting. Refits that do not converge give a warning.
+#' If the Hessian at the estimate of a refit is not positive definite, as for parameters not or only weakly identified without
+#' that cluster, an error is issued. That a refit has moved to another mode, for example with a different order of the states,
+#' is not checked; standard errors much larger than those of the one-step version can be a sign of this.
+#'
+#' \code{cr = "CR3onestep"} approximates the change \eqn{d_k} by one Newton step from the estimate,
+#' \deqn{d_k = (H - H_k)^{-1} s_k,}
+#' where \eqn{H - H_k} is the Hessian without cluster \eqn{k}, from the weighted likelihood with weight zero on its observations.
+#' It costs one Hessian per cluster and no refits. For linear least squares, the step is exact; otherwise, the approximation is
+#' poorest if there are few clusters or if one of them carries much of the information. With equal leverage
+#' \eqn{H_k = H / G}, it coincides with CR1. The one-step deletion is a pure Newton step, so it requires \eqn{H - H_k} to be
+#' positive definite: if leaving out a cluster makes it singular or indefinite, an error is issued.
 #'
 #' All sandwiches require the likelihood function to call \code{\link{forward}} once (with \code{trackID} for several tracks)
 #' and are not available for models with random effects or from \code{\link{qreml}}.
@@ -278,7 +286,8 @@ coef.LaMaModel <- function(object, ...) {
 #' @param cluster cluster identifier for \code{type = "cluster"}, one value per observation (of any type, in the order of the
 #' observations in \code{\link{forward}}). Defaults to the tracks, i.e. the \code{trackID} reported by \code{\link{forward}}.
 #' @param cr small-sample adjustment for \code{type = "cluster"}: \code{"CR1"} (default) multiplies the meat by \eqn{G / (G - 1)},
-#' \code{"CR0"} does not adjust, \code{"CR3"} is the (one-step) jackknife, see Details.
+#' \code{"CR0"} does not adjust, \code{"CR3"} is the jackknife, which refits the model without each cluster, and
+#' \code{"CR3onestep"} its approximation by one Newton step per cluster, see Details.
 #' @param ... additional arguments (not used)
 #'
 #' @returns covariance matrix with rows and columns named like \code{coef(object)}
@@ -297,7 +306,7 @@ coef.LaMaModel <- function(object, ...) {
 #' @importFrom stats vcov optimHess
 #' @export
 vcov.LaMaModel <- function(object, type = c("hessian", "sandwich", "HAC", "cluster"), kernel = c("QS", "Bartlett"),
-                           bw = NULL, cluster = NULL, cr = c("CR1", "CR0", "CR3"), ...) {
+                           bw = NULL, cluster = NULL, cr = c("CR1", "CR0", "CR3", "CR3onestep"), ...) {
   type <- match.arg(type)
   kernel <- match.arg(kernel)
   cr <- match.arg(cr)
@@ -322,8 +331,8 @@ vcov.LaMaModel <- function(object, type = c("hessian", "sandwich", "HAC", "clust
   if(type != "hessian") {
     tp <- weighted_tape(object)
     U <- tape_scores(tp)
-    if(type == "cluster" && cr == "CR3") {
-      V <- cr3_vcov(tp, U, cluster_ids(U, object$trackID, cluster))
+    if(type == "cluster" && cr %in% c("CR3", "CR3onestep")) {
+      V <- cr3_vcov(tp, U, cluster_ids(U, object$trackID, cluster), onestep = (cr == "CR3onestep"))
     } else {
       M <- switch(type,
                   sandwich = crossprod(U),
@@ -353,7 +362,8 @@ vcov.LaMaModel <- function(object, type = c("hessian", "sandwich", "HAC", "clust
 #' penalised more.
 #'
 #' It is computed from the robust covariance \eqn{V = H^{-1} J H^{-1}} as \eqn{\mathrm{edf} = \mathrm{tr}(H V)}, so
-#' every robust \code{type} of \code{\link{vcov.LaMaModel}} can be used, including the jackknife \code{cr = "CR3"}.
+#' every robust \code{type} of \code{\link{vcov.LaMaModel}} can be used, including the jackknives \code{cr = "CR3"}
+#' and \code{cr = "CR3onestep"}.
 #' The default is the HAC sandwich, as the penalty needs the correct variance of the estimator, which for serially
 #' dependent scores is not given by the outer product of the scores (\code{type = "sandwich"}). For several
 #' independent tracks, \code{type = "cluster"} is an alternative.
@@ -383,7 +393,7 @@ TIC <- function(object, ...) UseMethod("TIC")
 #' @rdname TIC
 #' @export
 TIC.LaMaModel <- function(object, ..., type = c("HAC", "sandwich", "cluster"), kernel = c("QS", "Bartlett"),
-                          bw = NULL, cluster = NULL, cr = c("CR1", "CR0", "CR3")) {
+                          bw = NULL, cluster = NULL, cr = c("CR1", "CR0", "CR3", "CR3onestep")) {
   type <- match.arg(type)
   kernel <- match.arg(kernel)
   cr <- match.arg(cr)
@@ -503,10 +513,9 @@ cluster_meat <- function(U, trackID = NULL, cluster = NULL, cr = "CR1", npar = n
   adj * crossprod(S)
 }
 
-# One-step CR3 (jackknife): (G - 1) / G * sum_k d_k d_k', with d_k = (H - H_k)^{-1} s_k one Newton step
-# from the estimate on the likelihood without cluster k, i.e. the approximate change in the estimate
-# when leaving it out (exact for least squares). H - H_k is the Hessian with weight zero on cluster k.
-cr3_vcov <- function(tp, U, cluster){
+# CR3 (jackknife): (G - 1) / G * sum_k d_k d_k', with d_k the change in the estimate (up to its sign)
+# when leaving out cluster k, exactly by refitting (default) or approximated by one Newton step.
+cr3_vcov <- function(tp, U, cluster, onestep = FALSE){
   grp <- match(cluster, unique(cluster)) # 1, ..., G in order of appearance
   S <- rowsum(U, grp, reorder = FALSE)
   G <- nrow(S)
@@ -514,17 +523,70 @@ cr3_vcov <- function(tp, U, cluster){
     warning("Only ", G, " clusters for ", tp$p, " parameters: the cluster-robust covariance has rank at most ",
             G, " and is singular.", call. = FALSE)
   }
+  if(!onestep) {
+    message("CR3: refitting the model without each of the ", G, " clusters.")
+    R <- chol_or_null(weighted_hessian(tp)) # scales the refits, one Hessian for all clusters
+  }
   D <- matrix(0, G, tp$p)
+  converged <- rep(TRUE, G)
   for(k in seq_len(G)) {
-    H_k <- weighted_hessian(tp, grp != k) # H - H_k
-    # the one-step deletion is a pure Newton step, only meaningful for a positive definite Hessian
-    R <- if(rcond(H_k) < 1e-12) NULL else tryCatch(chol(H_k), error = function(e) NULL)
-    if(is.null(R)) {
-      stop("The Hessian without cluster ", format(unique(cluster)[k]), " is singular or not positive definite: ",
-           "some parameters are not or only weakly identified without this cluster (e.g. track-specific parameters), ",
-           "so the one-step CR3 is not available.")
+    label <- format(unique(cluster)[k])
+    if(onestep) {
+      D[k, ] <- delete_onestep(tp, grp != k, S[k, ], label)
+    } else {
+      del <- delete_refit(tp, grp != k, R, label)
+      D[k, ] <- del$d
+      converged[k] <- del$converged
     }
-    D[k, ] <- backsolve(R, forwardsolve(t(R), S[k, ]))
+  }
+  if(any(!converged)) {
+    warning("CR3: the refits without cluster(s) ", paste(unique(cluster)[!converged], collapse = ", "),
+            " did not converge.", call. = FALSE)
   }
   (G - 1) / G * crossprod(D)
+}
+
+# One-step deletion: (H - H_k)^{-1} s_k, one Newton step from the estimate on the likelihood without
+# cluster k (exact for least squares). H - H_k is the Hessian with weights w, zero on cluster k.
+delete_onestep <- function(tp, w, s_k, label){
+  R <- chol_or_null(weighted_hessian(tp, w))
+  # a pure Newton step is only meaningful for a positive definite Hessian
+  if(is.null(R)) {
+    stop("The Hessian without cluster ", label, " is singular or not positive definite: ",
+         "some parameters are not or only weakly identified without this cluster (e.g. track-specific parameters), ",
+         "so CR3onestep is not available.")
+  }
+  backsolve(R, forwardsolve(t(R), s_k))
+}
+
+# Exact deletion: refit with weights w, zero on cluster k, started at the estimate. The weights are
+# fixed on the tape, so neither the data nor the likelihood function are touched. nlminb() uses the
+# gradient only, so the refit does not depend on the Hessian without cluster k being positive definite.
+# The refit is in the parameters phi = R (theta - theta_hat), with R the Cholesky factor of the full Hessian
+# H = R'R: the curvature in phi is then close to the identity, from which the quasi-Newton updates
+# start, so a few iterations suffice. Without R (H not positive definite) theta is not rescaled.
+# Returns the change in the estimate and whether nlminb() converged.
+delete_refit <- function(tp, w, R, label){
+  w <- as.numeric(w)
+  th <- unname(tp$theta)
+  if(is.null(R)) R <- diag(tp$p)
+  theta <- function(phi) th + backsolve(R, phi)
+  fn <- function(phi) tp$F(c(theta(phi), w))
+  gr <- function(phi) backsolve(R, tp$G(c(theta(phi), w))[seq_len(tp$p)], transpose = TRUE)
+  opt <- stats::nlminb(rep(0, tp$p), fn, gr, control = list(eval.max = 1000, iter.max = 1000))
+  th_k <- theta(opt$par)
+  # A parameter only informed by cluster k has gradient zero and would stay at its estimate, as if
+  # leaving out the cluster made no difference: check the Hessian at the new estimate
+  if(opt$convergence == 0 && is.null(chol_or_null(weighted_hessian(tp, w, th_k)))) {
+    stop("The Hessian of the refit without cluster ", label, " is singular or not positive definite: ",
+         "some parameters are not or only weakly identified without this cluster (e.g. track-specific parameters), ",
+         "so CR3 is not available.")
+  }
+  list(d = th_k - th, converged = (opt$convergence == 0))
+}
+
+# Cholesky factor, or NULL for a (numerically) singular or not positive definite matrix
+chol_or_null <- function(H){
+  if(anyNA(H) || rcond(H) < 1e-12) return(NULL)
+  tryCatch(chol(H), error = function(e) NULL)
 }

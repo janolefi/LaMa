@@ -18,7 +18,7 @@ vcov(
   kernel = c("QS", "Bartlett"),
   bw = NULL,
   cluster = NULL,
-  cr = c("CR1", "CR0", "CR3"),
+  cr = c("CR1", "CR0", "CR3", "CR3onestep"),
   ...
 )
 ```
@@ -59,7 +59,9 @@ vcov(
 
   small-sample adjustment for `type = "cluster"`: `"CR1"` (default)
   multiplies the meat by \\G / (G - 1)\\, `"CR0"` does not adjust,
-  `"CR3"` is the (one-step) jackknife, see Details.
+  `"CR3"` is the jackknife, which refits the model without each cluster,
+  and `"CR3onestep"` its approximation by one Newton step per cluster,
+  see Details.
 
 - ...:
 
@@ -170,18 +172,30 @@ not be split between clusters.
 
 `cr = "CR3"` gives the jackknife estimator (MacKinnon, Nielsen and Webb,
 2023) \$\$V = \frac{G - 1}{G} \sum\_{k=1}^G d_k d_k^\top, \qquad d_k =
-(H - H_k)^{-1} s_k,\$\$ where \\d_k\\ approximates the change in the
-estimate when cluster \\k\\ is left out by one Newton step from the
-estimate, and \\H - H_k\\ is the Hessian without cluster \\k\\, from the
-weighted likelihood with weight zero on its observations. For linear
-least squares, the step is exact. Compared to CR1, it inflates the
+\hat\theta - \hat\theta^{(k)},\$\$ where \\\hat\theta^{(k)}\\ is the
+estimate without cluster \\k\\. It is found by minimising the weighted
+negative log-likelihood with weight zero on the observations of cluster
+\\k\\, started at \\\hat\theta\\, so the model is refitted once per
+cluster, and a message says so. Compared to CR1, it inflates the
 contributions of clusters with high leverage (e.g. long tracks), whose
-score sums are shrunk the most by fitting; with equal leverage \\H_k = H
-/ G\\, both coincide. It costs one Hessian per cluster. The one-step
-deletion is a pure Newton step, so it requires \\H - H_k\\ to be
-positive definite: if leaving out a cluster makes it singular or
-indefinite, as for parameters not or only weakly identified without that
-cluster, an error is issued.
+score sums are shrunk the most by fitting. Refits that do not converge
+give a warning. If the Hessian at the estimate of a refit is not
+positive definite, as for parameters not or only weakly identified
+without that cluster, an error is issued. That a refit has moved to
+another mode, for example with a different order of the states, is not
+checked; standard errors much larger than those of the one-step version
+can be a sign of this.
+
+`cr = "CR3onestep"` approximates the change \\d_k\\ by one Newton step
+from the estimate, \$\$d_k = (H - H_k)^{-1} s_k,\$\$ where \\H - H_k\\
+is the Hessian without cluster \\k\\, from the weighted likelihood with
+weight zero on its observations. It costs one Hessian per cluster and no
+refits. For linear least squares, the step is exact; otherwise, the
+approximation is poorest if there are few clusters or if one of them
+carries much of the information. With equal leverage \\H_k = H / G\\, it
+coincides with CR1. The one-step deletion is a pure Newton step, so it
+requires \\H - H_k\\ to be positive definite: if leaving out a cluster
+makes it singular or indefinite, an error is issued.
 
 All sandwiches require the likelihood function to call
 [`forward`](https://janolefi.github.io/LaMa/reference/forward.md) once

@@ -17,7 +17,7 @@ TIC(
   kernel = c("QS", "Bartlett"),
   bw = NULL,
   cluster = NULL,
-  cr = c("CR1", "CR0", "CR3")
+  cr = c("CR1", "CR0", "CR3", "CR3onestep")
 )
 ```
 
@@ -67,11 +67,12 @@ penalised more.
 It is computed from the robust covariance \\V = H^{-1} J H^{-1}\\ as
 \\\mathrm{edf} = \mathrm{tr}(H V)\\, so every robust `type` of
 [`vcov.LaMaModel`](https://janolefi.github.io/LaMa/reference/vcov.LaMaModel.md)
-can be used, including the jackknife `cr = "CR3"`. The default is the
-HAC sandwich, as the penalty needs the correct variance of the
-estimator, which for serially dependent scores is not given by the outer
-product of the scores (`type = "sandwich"`). For several independent
-tracks, `type = "cluster"` is an alternative.
+can be used, including the jackknives `cr = "CR3"` and
+`cr = "CR3onestep"`. The default is the HAC sandwich, as the penalty
+needs the correct variance of the estimator, which for serially
+dependent scores is not given by the outer product of the scores
+(`type = "sandwich"`). For several independent tracks,
+`type = "cluster"` is an alternative.
 
 Under correct specification, `edf` is close to \\p\\, and TIC close to
 AIC. Values well above \\p\\ indicate misspecification, e.g. serial

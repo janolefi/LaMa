@@ -73,7 +73,7 @@ cluster-robust over tracks (<code>type = "cluster"</code>).</p>
 <span>  kernel <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"QS"</span>, <span class="st">"Bartlett"</span><span class="op">)</span>,</span>
 <span>  bw <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cluster <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  cr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CR1"</span>, <span class="st">"CR0"</span>, <span class="st">"CR3"</span><span class="op">)</span>,</span>
+<span>  cr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CR1"</span>, <span class="st">"CR0"</span>, <span class="st">"CR3"</span>, <span class="st">"CR3onestep"</span><span class="op">)</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -109,7 +109,8 @@ observations in <code><a href="forward.html">forward</a></code>). Defaults to th
 
 <dt id="arg-cr">cr<a class="anchor" aria-label="anchor" href="#arg-cr"></a></dt>
 <dd><p>small-sample adjustment for <code>type = "cluster"</code>: <code>"CR1"</code> (default) multiplies the meat by \(G / (G - 1)\),
-<code>"CR0"</code> does not adjust, <code>"CR3"</code> is the (one-step) jackknife, see Details.</p></dd>
+<code>"CR0"</code> does not adjust, <code>"CR3"</code> is the jackknife, which refits the model without each cluster, and
+<code>"CR3onestep"</code> its approximation by one Newton step per cluster, see Details.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -175,14 +176,21 @@ the number of parameters. For parameters informed by a single cluster only, such
 it is not meaningful. Clusters may combine several tracks (e.g. several tracks of one individual), but a track must not
 be split between clusters.</p>
 <p><code>cr = "CR3"</code> gives the jackknife estimator (MacKinnon, Nielsen and Webb, 2023)
-$$V = \frac{G - 1}{G} \sum_{k=1}^G d_k d_k^\top, \qquad d_k = (H - H_k)^{-1} s_k,$$
-where \(d_k\) approximates the change in the estimate when cluster \(k\) is left out by one Newton step from the estimate,
-and \(H - H_k\) is the Hessian without cluster \(k\), from the weighted likelihood with weight zero on its observations.
-For linear least squares, the step is exact. Compared to CR1, it inflates the contributions of clusters with high leverage
-(e.g. long tracks), whose score sums are shrunk the most by fitting; with equal leverage \(H_k = H / G\), both coincide.
-It costs one Hessian per cluster. The one-step deletion is a pure Newton step, so it requires \(H - H_k\) to be
-positive definite: if leaving out a cluster makes it singular or indefinite, as for parameters not or only weakly
-identified without that cluster, an error is issued.</p>
+$$V = \frac{G - 1}{G} \sum_{k=1}^G d_k d_k^\top, \qquad d_k = \hat\theta - \hat\theta^{(k)},$$
+where \(\hat\theta^{(k)}\) is the estimate without cluster \(k\). It is found by minimising the weighted negative
+log-likelihood with weight zero on the observations of cluster \(k\), started at \(\hat\theta\), so the model is refitted
+once per cluster, and a message says so. Compared to CR1, it inflates the contributions of clusters with high leverage
+(e.g. long tracks), whose score sums are shrunk the most by fitting. Refits that do not converge give a warning.
+If the Hessian at the estimate of a refit is not positive definite, as for parameters not or only weakly identified without
+that cluster, an error is issued. That a refit has moved to another mode, for example with a different order of the states,
+is not checked; standard errors much larger than those of the one-step version can be a sign of this.</p>
+<p><code>cr = "CR3onestep"</code> approximates the change \(d_k\) by one Newton step from the estimate,
+$$d_k = (H - H_k)^{-1} s_k,$$
+where \(H - H_k\) is the Hessian without cluster \(k\), from the weighted likelihood with weight zero on its observations.
+It costs one Hessian per cluster and no refits. For linear least squares, the step is exact; otherwise, the approximation is
+poorest if there are few clusters or if one of them carries much of the information. With equal leverage
+\(H_k = H / G\), it coincides with CR1. The one-step deletion is a pure Newton step, so it requires \(H - H_k\) to be
+positive definite: if leaving out a cluster makes it singular or indefinite, an error is issued.</p>
 <p>All sandwiches require the likelihood function to call <code><a href="forward.html">forward</a></code> once (with <code>trackID</code> for several tracks)
 and are not available for models with random effects or from <code><a href="qreml.html">qreml</a></code>.</p>
     </div>

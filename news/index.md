@@ -12,8 +12,10 @@
   Andrews (1991), or a given `bw`; all lags are computed exactly with
   the fast Fourier transform
 - `type = "cluster"` has small-sample adjustments `cr = "CR1"`
-  (default), `"CR0"` and `"CR3"`, a one-step jackknife that inflates the
-  contributions of clusters with high leverage
+  (default), `"CR0"`, `"CR3"`, the jackknife, which refits the model
+  without each cluster and inflates the contributions of clusters with
+  high leverage, and `"CR3onestep"`, its approximation by one Newton
+  step per cluster
 - [`TIC()`](https://janolefi.github.io/LaMa/reference/TIC.md) gives the
   Takeuchi information criterion, whose penalty, the effective number of
   parameters `tr(J H^{-1})`, uses the HAC covariance by default; several

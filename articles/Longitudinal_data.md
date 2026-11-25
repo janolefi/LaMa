@@ -122,7 +122,7 @@ system.time(
   opt_pool <- nlminb(obj_pool$par, obj_pool$fn, obj_pool$gr)
 )
 #>    user  system elapsed 
-#>   0.085   0.000   0.086
+#>   0.087   0.000   0.087
 mod_pool = lama(obj_pool)
 ```
 
@@ -349,7 +349,7 @@ system.time(
   opt_re <- nlminb(obj_re$par, obj_re$fn, obj_re$gr)
 )
 #>    user  system elapsed 
-#>   1.121   0.053   1.174
+#>   1.259   0.055   1.316
 mod_re = lama(obj_re)
 ```
 

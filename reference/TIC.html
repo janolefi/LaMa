@@ -67,7 +67,7 @@ misspecified, for one or several fitted models.</p>
 <span>  kernel <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"QS"</span>, <span class="st">"Bartlett"</span><span class="op">)</span>,</span>
 <span>  bw <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  cluster <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  cr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CR1"</span>, <span class="st">"CR0"</span>, <span class="st">"CR3"</span><span class="op">)</span></span>
+<span>  cr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CR1"</span>, <span class="st">"CR0"</span>, <span class="st">"CR3"</span>, <span class="st">"CR3onestep"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -108,7 +108,8 @@ specified. TIC estimates it instead: the effective number of parameters <code>ed
 of the maximised log-likelihood, so models whose estimates are more variable than the model itself suggests are
 penalised more.</p>
 <p>It is computed from the robust covariance \(V = H^{-1} J H^{-1}\) as \(\mathrm{edf} = \mathrm{tr}(H V)\), so
-every robust <code>type</code> of <code><a href="vcov.LaMaModel.html">vcov.LaMaModel</a></code> can be used, including the jackknife <code>cr = "CR3"</code>.
+every robust <code>type</code> of <code><a href="vcov.LaMaModel.html">vcov.LaMaModel</a></code> can be used, including the jackknives <code>cr = "CR3"</code>
+and <code>cr = "CR3onestep"</code>.
 The default is the HAC sandwich, as the penalty needs the correct variance of the estimator, which for serially
 dependent scores is not given by the outer product of the scores (<code>type = "sandwich"</code>). For several
 independent tracks, <code>type = "cluster"</code> is an alternative.</p>

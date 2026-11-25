@@ -222,7 +222,7 @@ maximum.</p>
 <span>  <span class="va">opt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm</a></span><span class="op">(</span><span class="va">nll</span>, <span class="va">par</span>, x <span class="op">=</span> <span class="va">x</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.076   0.005   0.082</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.082   0.002   0.084</span></span></code></pre></div>
 <p>This is fast because <code><a href="../reference/forward.html">forward()</a></code> runs in <code>C++</code>.
 With the forward algorithm written in <code>R</code>, the same fit takes
 roughly three times as long.</p>
@@ -234,7 +234,7 @@ function of a parameter list:</p>
 <span>  <span class="va">opt_ad</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></span><span class="op">(</span><span class="va">obj</span><span class="op">$</span><span class="va">par</span>, <span class="va">obj</span><span class="op">$</span><span class="va">fn</span>, <span class="va">obj</span><span class="op">$</span><span class="va">gr</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.082   0.000   0.082</span></span></code></pre></div>
+<span><span class="co">#&gt;   0.085   0.000   0.084</span></span></code></pre></div>
 <p>For such a small and simple model, it hardly matters whether we use
 AD. For larger models, however, it matters a lot: without AD, the
 gradient is approximated by finite differences, which costs one

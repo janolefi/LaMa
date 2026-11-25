@@ -54,7 +54,7 @@
 <li>
 <code>type = "HAC"</code> uses the Quadratic Spectral kernel by default (or <code>kernel = "Bartlett"</code>, Newey-West) with the data-driven bandwidth of Andrews (1991), or a given <code>bw</code>; all lags are computed exactly with the fast Fourier transform</li>
 <li>
-<code>type = "cluster"</code> has small-sample adjustments <code>cr = "CR1"</code> (default), <code>"CR0"</code> and <code>"CR3"</code>, a one-step jackknife that inflates the contributions of clusters with high leverage</li>
+<code>type = "cluster"</code> has small-sample adjustments <code>cr = "CR1"</code> (default), <code>"CR0"</code>, <code>"CR3"</code>, the jackknife, which refits the model without each cluster and inflates the contributions of clusters with high leverage, and <code>"CR3onestep"</code>, its approximation by one Newton step per cluster</li>
 <li>
 <code><a href="../reference/TIC.html">TIC()</a></code> gives the Takeuchi information criterion, whose penalty, the effective number of parameters <code>tr(J H^{-1})</code>, uses the HAC covariance by default; several models are compared as with <code><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC()</a></code>
 </li>

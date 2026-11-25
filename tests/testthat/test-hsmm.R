@@ -233,6 +233,212 @@ test_that("hsmm_step: hazards of stays entered before t = 1 do not matter for a 
   expect_close(loglik(0.1), loglik(0.9), tolerance = 1e-12)
 })
 
+# ---- prepare_hsmm ----
+
+# compare the transition matrices of prepare_hsmm() with Gamma_into(t) (step from t - 1 into t)
+# and the initial distributions of all tracks with the rows of delta
+expect_prepared <- function(inp, Gamma_into, delta) {
+  Ni <- inp$Ni
+  for(i in seq_along(inp$start)) {
+    for(t in (inp$start[i]:inp$end[i])[-1]) {
+      expect_close(hsmm_Gamma(inp$stay[t, ], inp$omega[, , inp$oidx[t]], Ni), Gamma_into(t, i))
+    }
+  }
+  expect_equal(dim(inp$delta), c(length(inp$start), sum(Ni)))
+  expect_close(inp$delta, delta, tolerance = 1e-6)
+}
+
+two_tracks <- rep(1:2, c(12, 18))
+delta_N <- c(0.5, 0.3, 0.2)
+delta_M <- ref_delta_fresh(delta_N, Ni_test)
+
+test_that("prepare_hsmm: homogeneous", {
+  Gamma <- ref_Gamma(omega_test, lapply(dm_hom, ref_hazard))
+  inp <- prepare_hsmm(dm_hom, omega_test, ap)
+  expect_prepared(inp, function(t, i) Gamma, t(ref_delta_stat(Gamma)))
+  expect_identical(inp$type, "homogeneous")
+  expect_equal(c(inp$start, inp$end), c(1, 30))
+  # tracks and given delta
+  inp <- prepare_hsmm(dm_hom, omega_test, ap, two_tracks)
+  expect_prepared(inp, function(t, i) Gamma, rbind(ref_delta_stat(Gamma), ref_delta_stat(Gamma)))
+  expect_equal(inp$start, c(1, 13)); expect_equal(inp$end, c(12, 30))
+  expect_close(prepare_hsmm(dm_hom, omega_test, ap, two_tracks, delta_N)$delta, rbind(delta_M, delta_M))
+  Delta <- rbind(delta_N, rev(delta_N))
+  expect_close(prepare_hsmm(dm_hom, omega_test, ap, two_tracks, Delta)$delta,
+               rbind(delta_M, ref_delta_fresh(rev(delta_N), Ni_test)))
+  # column vector, single observation
+  expect_close(prepare_hsmm(dm_hom, omega_test, ap, delta = matrix(delta_N))$delta, delta_M)
+  expect_close(prepare_hsmm(dm_hom, omega_test, ap[1, , drop = FALSE])$delta, ref_delta_stat(Gamma), tolerance = 1e-6)
+})
+
+test_that("prepare_hsmm: track-specific dm and omega", {
+  dm2 <- dm_poisson(beta0_test, beta1_test, c(-0.5, 0.8), Ni_test)
+  omega2 <- omega_t_test[, , 1:2]
+  Gamma <- lapply(1:2, function(i) ref_Gamma(omega2[, , i], lapply(dm2, function(d) ref_hazard(d[i, ]))))
+  inp <- prepare_hsmm(dm2, omega2, ap, two_tracks)
+  expect_prepared(inp, function(t, i) Gamma[[i]], t(sapply(Gamma, ref_delta_stat)))
+  expect_identical(inp$type, "track-specific")
+})
+
+test_that("prepare_hsmm: time-varying dm, omega[, , t] for the step into t", {
+  first <- max(Ni_test)
+  for(omega in list(omega_test, omega_t_test)) {
+    om <- function(t) if(is.matrix(omega)) omega else omega[, , t]
+    Gamma_into <- function(t, i) ref_Gamma_t(t - 1, om(t), dm_inhom)
+    inp <- prepare_hsmm(dm_inhom, omega, ap)
+    expect_equal(inp$start, first)
+    expect_prepared(inp, Gamma_into, t(ref_delta_stat(Gamma_into(first + 1))))
+    inp <- prepare_hsmm(dm_inhom, omega, ap, startInd = 10)
+    expect_equal(inp$start, 10)
+    expect_prepared(inp, Gamma_into, t(ref_delta_stat(Gamma_into(11))))
+    # given delta
+    expect_prepared(prepare_hsmm(dm_inhom, omega, ap, delta = delta_N), Gamma_into, t(delta_M))
+    # tracks do not use rows of earlier tracks
+    starts <- c(1, 13)
+    Gamma_into <- function(t, i) {
+      dm_i <- lapply(dm_inhom, function(d) d[starts[i]:nrow(d), ])
+      ref_Gamma_t(t - starts[i], om(t), dm_i)
+    }
+    inp <- prepare_hsmm(dm_inhom, omega, ap, two_tracks)
+    expect_equal(inp$start, starts + first - 1)
+    expect_prepared(inp, Gamma_into, t(sapply(1:2, function(i) ref_delta_stat(Gamma_into(starts[i] + first, i)))))
+  }
+  expect_identical(inp$type, "inhomogeneous")
+})
+
+test_that("prepare_hsmm: tracks do not depend on each other", {
+  # changing dm of track 1 does not change track 2
+  dm2 <- lapply(dm_inhom, function(d) { d[1:12, ] <- 0.1; d })
+  a <- prepare_hsmm(dm_inhom, omega_test, ap, two_tracks)
+  b <- prepare_hsmm(dm2, omega_test, ap, two_tracks)
+  rows <- b$start[2]:30
+  expect_identical(a$stay[rows, ], b$stay[rows, ])
+  expect_identical(a$delta[2, ], b$delta[2, ])
+})
+
+test_that("prepare_hsmm: fixed dm with time-varying omega", {
+  hazard <- lapply(dm_hom, ref_hazard)
+  Gamma_into <- function(t, i) ref_Gamma(omega_t_test[, , t], hazard)
+  inp <- prepare_hsmm(dm_hom, omega_t_test, ap)
+  expect_equal(inp$start, 1)
+  expect_prepared(inp, Gamma_into, t(ref_delta_stat(Gamma_into(2))))
+  # without the slice into t = 1
+  inp2 <- prepare_hsmm(dm_hom, omega_t_test[, , -1], ap)
+  expect_prepared(inp2, Gamma_into, inp$delta)
+})
+
+test_that("prepare_hsmm: fixed dwell times in one state, varying ones in the others", {
+  dm_mix <- dm_inhom
+  dm_mix[[2]] <- dm_hom[[2]]
+  dm_full <- dm_mix
+  dm_full[[2]] <- matrix(dm_hom[[2]], 30, Ni_test[2], byrow = TRUE)
+  a <- prepare_hsmm(dm_mix, omega_test, ap)
+  b <- prepare_hsmm(dm_full, omega_test, ap)
+  expect_equal(a[c("stay", "delta", "start")], b[c("stay", "delta", "start")])
+})
+
+test_that("prepare_hsmm: periodic", {
+  tod <- c(3:6, rep(1:6, 4), 1:2) # does not start at 1
+  for(case in c("dm", "omega", "both")) {
+    dm <- if(case == "omega") dm_hom else dm_per
+    omega <- if(case == "dm") omega_test else omega_p_test
+    dm_ref <- if(case == "omega") lapply(dm_hom, function(d) matrix(d, 6, length(d), byrow = TRUE)) else dm_per
+    om <- function(s) if(is.matrix(omega)) omega else omega[, , s]
+    into <- function(s) ref_Gamma_t(s - 1, om(s), dm_ref, L_test) # step into time of day s
+    inp <- prepare_hsmm(dm, omega, ap, tod = tod)
+    # stationary at time of day 3: cycle 4, 5, 6, 1, 2, 3
+    Gamma_cycle <- Reduce(`%*%`, lapply(c(4:6, 1:3), into))
+    expect_prepared(inp, function(t, i) into(tod[t]), t(ref_delta_stat(Gamma_cycle)))
+    expect_identical(inp$type, "periodic")
+    # track-specific start, not all times of day observed
+    tod2 <- c(5, 6, 1:4)
+    inp <- prepare_hsmm(dm, omega, ap[1:6, ], c(1, 1, 2, 2, 2, 2), tod = tod2)
+    Delta <- rbind(ref_delta_stat(Reduce(`%*%`, lapply(c(6, 1:5), into))),
+                   ref_delta_stat(Reduce(`%*%`, lapply(c(2:6, 1), into))))
+    expect_prepared(inp, function(t, i) into(tod2[t]), Delta)
+  }
+})
+
+test_that("prepare_hsmm: use_all_obs", {
+  inp <- prepare_hsmm(dm_inhom, omega_test, ap, two_tracks, delta_N, use_all_obs = TRUE)
+  expect_equal(inp$start, c(1, 13))
+  expect_error(prepare_hsmm(dm_inhom, omega_test, ap, use_all_obs = TRUE), "needs delta")
+  expect_error(prepare_hsmm(dm_inhom, omega_test, ap, delta = "stationary", use_all_obs = TRUE), "needs delta")
+  # no effect for fixed and periodic dm
+  expect_identical(prepare_hsmm(dm_hom, omega_test, ap, use_all_obs = TRUE), prepare_hsmm(dm_hom, omega_test, ap))
+  expect_identical(prepare_hsmm(dm_per, omega_test, ap, tod = tod_test, use_all_obs = TRUE),
+                   prepare_hsmm(dm_per, omega_test, ap, tod = tod_test))
+})
+
+test_that("prepare_hsmm: use_all_obs is exact, stays before the first observation have no effect", {
+  # same model with 10 rows of nonsense dm before the first observation
+  before <- function(d, value) rbind(matrix(value, 10, ncol(d)), d)
+  Gamma_into <- function(t, value) ref_Gamma_t(t - 1 + 10, omega_test, lapply(dm_inhom, before, value))
+  inp <- prepare_hsmm(dm_inhom, omega_test, ap, delta = delta_N, use_all_obs = TRUE)
+  l <- hsmm_forward(inp$delta[1, ], function(t) inp$stay[t, ], function(t) omega_test, ap, Ni_test)
+  for(value in c(0.01, 0.1)) {
+    expect_close(l, ref_forward(delta_M, function(t, i) Gamma_into(t, value), lp_M))
+  }
+})
+
+test_that("prepare_hsmm: checks", {
+  prep <- function(dm = dm_hom, omega = omega_test, allprobs = ap, ...) prepare_hsmm(dm, omega, allprobs, ...)
+  expect_error(prep(allprobs = ap[, 1]), "matrix")
+  expect_error(prep(dm = dm_hom[1:2]), "each state")
+  expect_error(prep(dm = dm_hom[[1]]), "each state")
+  expect_error(prep(omega = omega_test + diag(3)), "diagonal")
+  expect_error(prep(omega = matrix(c(0, 1, 1, 0), 2)), "square")
+  expect_error(prep(omega = omega_t_test[, , 1:5]), "slices of omega")
+  expect_error(prep(dm = lapply(dm_inhom, function(d) d[1:5, ])), "rows of dm")
+  expect_error(prep(dm = lapply(dm_inhom, function(d) d[-1, ])), "rows of dm") # nObs - 1 only for omega
+  expect_error(prep(trackID = rep(1:2, 15)), "contiguous")
+  expect_error(prep(trackID = 1:3), "trackID")
+  expect_error(prep(delta = c(0.5, 0.5)), "delta")
+  expect_error(prep(delta = "stat"), "delta")
+  expect_error(prep(trackID = two_tracks, delta = rbind(delta_N, delta_N, delta_N)), "delta")
+  # time-varying dm
+  expect_error(prep(dm = dm_inhom, startInd = 6), "startInd")
+  expect_error(prep(dm = dm_inhom, trackID = rep(1:2, c(7, 23))), "Too few")
+  expect_silent(prep(dm = dm_inhom, trackID = rep(1:2, c(8, 22))))
+  expect_silent(prep(dm = dm_inhom, trackID = rep(1:2, c(7, 23)), delta = delta_N))
+  expect_error(prep(dm = dm_inhom, trackID = rep(1:2, c(6, 24)), delta = delta_N), "Too few")
+  # periodic
+  expect_error(prep(dm = dm_per, tod = 1:3), "same length")
+  expect_error(prep(dm = dm_per, tod = rep(1:10, 3)), "rows of dm")
+  expect_error(prep(dm = dm_per, omega = omega_t_test[, , 1:8], tod = tod_test), "cycle length")
+  expect_error(prep(dm = dm_per, tod = tod_test[c(1:10, 12:30, 1)]), "advance by one")
+  expect_error(prep(dm = dm_per, tod = rev(tod_test)), "advance by one")
+  # a new track may start at any time of day, and the rule only holds for dm
+  expect_silent(prep(dm = dm_per, tod = c(1:6, 1:6, rep(4, 1), 5, 6, 1:6, 1:6, 1:3), trackID = rep(1:2, c(12, 18))))
+  expect_silent(prep(omega = omega_p_test, tod = rep(c(2, 5), 15)))
+})
+
+test_that("prepare_hsmm works with AD, also if only some inputs are AD", {
+  par <- c(beta0_test, beta1_test, 0.3, -0.2, 0.1, log(c(0.6, 0.4)))
+  # sum of everything that depends on parameters
+  total <- function(inp) sum(inp$stay[inp$start[1]:30, ]) + sum(inp$delta * cos(1:length(inp$delta))) + sum(inp$omega * 2)
+  f <- function(par, ad_dm, ad_omega, ad_delta) {
+    "c" <- ADoverload("c")
+    dm <- if(ad_dm) dm_poisson(par[1:3], par[4:6], z_test, Ni_test) else dm_inhom
+    if(ad_dm) dm[[2]] <- dm_hom[[2]] # constant in one state
+    omega <- if(ad_omega) tpm_emb(par[7:9]) else omega_test
+    delta <- if(ad_delta) c(exp(par[10:11]), 1) / (1 + sum(exp(par[10:11])))
+    total(prepare_hsmm(dm, omega, ap, delta = delta))
+  }
+  combis <- expand.grid(ad_dm = c(TRUE, FALSE), ad_omega = c(TRUE, FALSE), ad_delta = c(TRUE, FALSE))
+  h <- 1e-5
+  for(k in seq_len(nrow(combis) - 1)) { # last one: nothing is AD
+    f_k <- function(par) f(par, combis$ad_dm[k], combis$ad_omega[k], combis$ad_delta[k])
+    F <- RTMB::MakeTape(f_k, 0.9 * par)
+    expect_close(F(par), f_k(par), tolerance = 1e-10)
+    num <- sapply(seq_along(par), function(j) {
+      e <- replace(0 * par, j, h)
+      (f_k(par + e) - f_k(par - e)) / (2 * h)
+    })
+    expect_close(F$jacobian(par), num, tolerance = 1e-5)
+  }
+})
+
 # ---- current forward functions ----
 
 # log-likelihood on the extended state space, Gamma_t(t): Gamma^(t), used for the step t -> t + 1

@@ -53,13 +53,6 @@ ref_delta_fresh <- function(delta, Ni) {
 # forward algorithm with the internal functions, arguments of prepare_hsmm()
 new_forward <- function(...) run_forward_hsmm(prepare_hsmm(...))
 
-# ---- known bugs ----
-
-# skip unless LAMA_KNOWN_BUGS=true, remove the call once the bug is fixed
-skip_known_bug <- function(bug) {
-  skip_if(Sys.getenv("LAMA_KNOWN_BUGS") != "true", paste("known bug:", bug))
-}
-
 # ---- small test data: 3 states, 30 observations ----
 
 Ni_test <- c(7, 5, 4)

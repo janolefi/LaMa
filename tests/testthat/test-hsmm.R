@@ -751,6 +751,25 @@ test_that("forward_ihsmm: fixed dm and given delta", {
               ref_hsmm(delta_M, Gamma_t))
 })
 
+test_that("forward_phsmm: fixed dm", {
+  hazard <- lapply(dm_hom, ref_hazard)
+  Gamma <- ref_Gamma(omega_test, hazard)
+  for(delta in list(NULL, delta_N)) {
+    start <- if(is.null(delta)) ref_delta_stat(Gamma) else delta_M
+    expect_hsmm(function(ap) forward_phsmm(dm_hom, omega_test, ap, tod_test, delta = delta, report = FALSE),
+                ref_hsmm(start, function(t) Gamma))
+  }
+  # periodic omega, also if tod does not advance by one
+  Gamma_s <- function(s) ref_Gamma(omega_p_test[, , s], hazard)
+  for(tod in list(tod_test, rep(c(2, 5), 15), rep(c(4, 4, 1), 10))) {
+    start <- ref_delta_stat(Reduce(`%*%`, lapply((tod[1] + 0:5 - 1) %% 6 + 1, Gamma_s)))
+    for(delta in list(NULL, delta_N)) {
+      expect_hsmm(function(ap) forward_phsmm(dm_hom, omega_p_test, ap, tod, delta = delta, report = FALSE),
+                  ref_hsmm(if(is.null(delta)) start else delta_M, function(t) Gamma_s(tod[t])))
+    }
+  }
+})
+
 test_that("forward_hsmm: delta can be estimated", {
   Gamma <- ref_Gamma(omega_test, lapply(dm_hom, ref_hazard))
   delta <- c(0.5, 0.3, 0.2)
@@ -804,24 +823,7 @@ test_that("tpm_ihsmm and tpm_phsmm: aggregates of size 1 and 2", {
   }
 })
 
-test_that("forward_hsmm: tracks of length one", {
-  Gamma <- ref_Gamma(omega_test, lapply(dm_hom, ref_hazard))
-  ID <- rep(1:2, c(1, 29))
-  ref <- ref_forward(ref_delta_stat(Gamma), function(t, i) Gamma, lp_M, ID)
-  expect_close(forward_hsmm(dm_hom, omega_test, ap, trackID = ID, report = FALSE), ref)
-  expect_close(forward_hsmm(dm_hom, omega_test, ap[1, , drop = FALSE], report = FALSE),
-               ref_hsmm(ref_delta_stat(Gamma), function(t) Gamma, 1))
-})
-
-test_that("forward_phsmm: fixed dm and given delta", {
-  skip_known_bug("fixed dm with delta fails, 'k' not found")
-  Gamma <- ref_Gamma(omega_test, lapply(dm_hom, ref_hazard))
-  expect_close(forward_phsmm(dm_hom, omega_test, ap, tod_test, delta = delta_N, report = FALSE),
-               ref_hsmm(delta_M, function(t) Gamma))
-})
-
 test_that("forward_phsmm: tod does not cover the full cycle", {
-  skip_known_bug("cycle length is taken as the number of unique tod values")
   Gamma_t <- function(t) ref_Gamma_t(t, omega_test, dm_per, L_test)
   # short series, times of day 5 and 6 are never observed
   tod <- 1:4
@@ -830,10 +832,43 @@ test_that("forward_phsmm: tod does not cover the full cycle", {
                ref_hsmm(delta, function(t) Gamma_t(tod[t]), 1:4))
 })
 
-test_that("forward_phsmm: a single track", {
-  skip_known_bug("delta matrix drops to a vector")
-  Gamma_t <- function(t) ref_Gamma_t(t, omega_test, dm_per, L_test)
-  delta <- ref_delta_stat(Reduce(`%*%`, lapply(1:L_test, Gamma_t)))
-  expect_close(forward_phsmm(dm_per, omega_test, ap, tod_test, trackID = rep(1, 30), report = FALSE),
-               ref_hsmm(delta, function(t) Gamma_t(tod_test[t])))
+test_that("forward_phsmm: one and several tracks", {
+  Gamma_s <- function(s) ref_Gamma_t(s, omega_p_test[, , s], dm_per, L_test)
+  delta <- ref_delta_stat(Reduce(`%*%`, lapply(1:L_test, Gamma_s)))
+  expect_hsmm(function(ap) forward_phsmm(dm_per, omega_p_test, ap, tod_test, trackID = rep(1, 30), report = FALSE),
+              ref_hsmm(delta, function(t) Gamma_s(tod_test[t])))
+  # second track starts at time of day 3
+  ID <- rep(1:2, c(12, 18))
+  tod <- c(rep(1:6, 2), 3:6, rep(1:6, 2), 1:2)
+  delta2 <- ref_delta_stat(Reduce(`%*%`, lapply(c(3:6, 1:2), Gamma_s)))
+  expect_hsmm(function(ap) forward_phsmm(dm_per, omega_p_test, ap, tod, trackID = ID, report = FALSE),
+              ref_hsmm(delta, function(t) Gamma_s(tod[t]), 1:12) + ref_hsmm(delta2, function(t) Gamma_s(tod[t]), 13:30))
+})
+
+test_that("forward_phsmm: reported quantities, omega convention and tod", {
+  par <- list(beta0 = beta0_test, beta1 = beta1_test, eta = cbind(c(0.3, -0.2, 0.1), c(0.1, 0.2, 0.3)))
+  zp <- sin(2 * pi * 1:L_test / L_test)
+  omega <- tpm_emb_g(cbind(1, zp), par$eta, report = FALSE)
+  nll <- function(par) {
+    dm <- dm_poisson(par$beta0, par$beta1, zp, Ni_test)
+    -forward_phsmm(dm, tpm_emb_g(cbind(1, zp), par$eta, report = FALSE), ap, tod_test)
+  }
+  rep <- RTMB::MakeADFun(nll, par, silent = TRUE)$report()
+  expect_equal(rep$Gamma_sparse, tpm_phsmm(omega, dm_per))
+  delta <- ref_delta_stat(Reduce(`%*%`, lapply(1:L_test, function(s) ref_Gamma_t(s, omega[, , s], dm_per, L_test))))
+  expect_close(as.matrix(rep$delta_sparse), delta, tolerance = 1e-6)
+  expect_close(rep$omega, omega) # as passed
+  expect_equal(forward_phsmm(dm_per, omega, ap, tod_test, report = FALSE),
+               forward_hsmm(dm_per, omega[, , c(6, 1:5)], ap, tod = tod_test, report = FALSE))
+  # periodic dm needs regular tod
+  expect_error(forward_phsmm(dm_per, omega, ap, rep(c(2, 5), 15), report = FALSE), "advance by one")
+})
+
+test_that("forward_hsmm: tracks of length one", {
+  Gamma <- ref_Gamma(omega_test, lapply(dm_hom, ref_hazard))
+  ID <- rep(1:2, c(1, 29))
+  ref <- ref_forward(ref_delta_stat(Gamma), function(t, i) Gamma, lp_M, ID)
+  expect_close(forward_hsmm(dm_hom, omega_test, ap, trackID = ID, report = FALSE), ref)
+  expect_close(forward_hsmm(dm_hom, omega_test, ap[1, , drop = FALSE], report = FALSE),
+               ref_hsmm(ref_delta_stat(Gamma), function(t) Gamma, 1))
 })

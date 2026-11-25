@@ -22,6 +22,15 @@ test_that("forward_ihsmm is deprecated and gives the same result as forward_hsmm
   expect_equal(l, forward_hsmm(dm, omega, ap))
 })
 
+test_that("forward_phsmm is deprecated and gives the same result as forward_hsmm", {
+  omega <- tpm_emb()
+  dm <- lapply(c(3, 5), function(lambda) sapply(0:9, dpois, lambda = lambda * 1:4))
+  ap <- matrix(runif(40), 20, 2)
+  tod <- rep(1:4, 5)
+  expect_message(l <- forward_phsmm(dm, omega, ap, tod), "deprecated")
+  expect_equal(l, forward_hsmm(dm, omega, ap, tod = tod))
+})
+
 test_that("other old functions are deprecated and give the same results", {
   Z <- cbind(1, seq(-1, 1, length = 10))
   beta <- matrix(c(-2, -2, 1, -1), 2)

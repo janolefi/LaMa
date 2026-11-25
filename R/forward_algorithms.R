@@ -874,6 +874,8 @@ forward_ihsmm <- function(dm, omega, allprobs,
 #' 
 #' This function is designed to be used with automatic differentiation based on the \code{R} package \code{RTMB}. It will be very slow without it!
 #'
+#' \strong{Deprecated:} please use \code{\link{forward_hsmm}} with \code{tod} instead. There, a stay that begins at time of day \code{s} is governed by \code{omega[,,s]}, here by \code{omega[,,s-1]} (\code{omega[,,s]} is for the step out of time of day \code{s}).
+#'
 #' @references Koslik, J. O. (2025). Hidden semi-Markov models with inhomogeneous state dwell-time distributions. Computational Statistics & Data Analysis, 209, 108171.
 #'
 #' @param dm list of length \code{nStates} containing matrices (or vectors) of dwell-time probability mass functions (PMFs) for each state.
@@ -904,311 +906,26 @@ forward_ihsmm <- function(dm, omega, allprobs,
 forward_phsmm <- function(dm, omega, allprobs, tod,
                           trackID = NULL, delta = NULL, eps = 1e-10, report = TRUE){
   
-  # overloading assignment operators, currently necessary
-  "[<-" <- ADoverload("[<-")
-  "c" <- ADoverload("c")
-  "diag<-" <- ADoverload("diag<-")
-  ################################
+  deprecated(
+    "forward_phsmm() is deprecated, please use forward_hsmm(..., tod = tod) instead, where a stay that begins at time of day s is governed by omega[,,s] (here: omega[,,s-1])."
+  )
   
-  N = ncol(allprobs) # number of HSMM states
-  
-  # obtain aggregate sizes based on dm
-  if(is.matrix(dm[[1]])){
-    agsizes = sapply(dm, ncol)
-  } else if(is.vector(dm[[1]])){
-    agsizes = sapply(dm, length)
+  # here, omega[,,s] is for the step out of time of day s, in forward_hsmm() for the step into s
+  periodic_omega <- length(dim(omega)) == 3
+  omega_into <- omega
+  if(periodic_omega) {
+    L <- dim(omega)[3]
+    omega_into <- omega[, , c(L, seq_len(L - 1)), drop = FALSE]
   }
   
-  stateInds <- rep(1:N, times = agsizes)
+  inp <- prepare_hsmm(dm, omega_into, allprobs, trackID, delta, tod, eps = eps)
+  # slice of the previous time of day, also if tod does not advance by one (possible with fixed dm)
+  if(periodic_omega) inp$oidx <- c(1, tod[-length(tod)] %% L + 1)
   
-  M = sum(agsizes) # total number of states of the approximating HMM
-  n = nrow(allprobs) # number of observations
-  L = length(unique(tod)) # cycle length -> number of unique tpms
-  # this is important, because the forward algo can only start at maxag because the first 1:(maxag-1) data points are needed for the first tpm
-  
-  stationary = is.null(delta) # if delta is not provided, stationary distribution needs to be computed
-  
-  if(is.null(trackID)) {
-    
-    ## first case: dm varies -> truely inhomogeneous HSMM
-    if(is.matrix(dm[[1]])){
-      if(nrow(dm[[1]]) != L) stop("dm needs to be a list of length N, either containing vectors or matrices of dwell-time PMFs.")
-      
-      ## compute approximating tpm
-      Gamma_sparse = tpm_phsmm(omega, dm, eps = eps)
-      
-      ## if stationary, compute initial stationary distribution
-      if(stationary){
-        delta = stationary_p_sparse(Gamma_sparse, t = tod[1])
-        delta_sparse = methods::as(t(delta), "sparseMatrix")
-      } else{ # if delta is provided, "stuff out" with zeros
-        cols_to_fill = c(1, cumsum(agsizes[-N])+1)
-        delta_sparse = Matrix::sparseMatrix(i = rep(1, N), j = cols_to_fill, 
-                                            x = delta, dims = c(1, M))
-      }
-      
-      ## report quantities for state decoding
-      if(report) {
-        RTMB::REPORT(delta_sparse)
-        RTMB::REPORT(Gamma_sparse)
-        RTMB::REPORT(allprobs)
-      }
-      
-      ## making AD work fine
-      delta_sparse <- AD(delta_sparse)
-      # Gamma_sparse <- AD(Gamma_sparse)
-      allprobs <- AD(allprobs)
-      
-      # forward algorithm
-      # foo = delta_sparse %*% Matrix::Diagonal(x = rep(allprobs[1,], times = agsizes))
-      # foo = delta_sparse %*% diag(rep(allprobs[1,], times = agsizes))
-      foo = delta_sparse * allprobs[1, stateInds, drop = FALSE]
-      # sumfoo = sum(foo)
-      sumfoo = rowSums(foo)
-      phi = foo / sumfoo
-      l = log(sumfoo)
-      
-      for(t in 2:nrow(allprobs)) {
-        # foo = phi %*% Gamma_sparse %*% Matrix::Diagonal(x = rep(allprobs[t,], times = agsizes))
-        # foo = phi %*% Gamma_sparse[[tod[t-1]]] %*% diag(rep(allprobs[t,], times = agsizes))
-        foo = (phi %*% AD(Gamma_sparse[[tod[t-1]]])) * allprobs[t, stateInds, drop = FALSE]
-        # sumfoo = sum(foo)
-        sumfoo = rowSums(foo)
-        phi = foo / sumfoo
-        l = l + log(sumfoo)
-      }
-      
-    } else if(is.vector(dm[[1]])){
-      if(is.matrix(omega)){ # if omega is matrix, just build one Gamma
-        Gamma_sparse = tpm_hsmm(omega, dm, eps = eps)
-        
-        ## if stationary, compute initial stationary distribution
-        if(stationary){
-          delta = stationary_sparse(Gamma_sparse)
-          delta = matrix(delta, nrow = 1, ncol = length(delta), byrow = TRUE)
-          delta_sparse = Matrix::Matrix(delta, sparse = TRUE) # make sparse
-        } else{ # if delta is provided, "stuff out" with zeros
-          cols_to_fill = c(1, cumsum(agsizes[-N]) + 1)
-          delta_sparse = Matrix::sparseMatrix(i = rep(1:k, N), j = rep(cols_to_fill, each=k), 
-                                              x = delta, dims = c(k, M))
-        }
-        Gamma_sparse = list(Gamma_sparse)
-        Gamma_sparse = rep(Gamma_sparse, L)
-        
-      } else if(length(dim(omega)) == 3){ # different omegas but same dm
-        if(dim(omega)[3] != L) stop("omega needs to be either a matrix of dimension c(N,N) or an array of dimension c(N,N,L), matching the cycle length.")
-        
-        Gamma_sparse = lapply(1:L, function(k) tpm_hsmm(omega[,,k], dm, eps = eps)) # build k Gammas with fixed dm but varying omega
-        
-        if(stationary == TRUE){ # delta not provided but computed: each track starts in stationary distribution
-          delta = stationary_p_sparse(Gamma_sparse, t = tod[1])
-          delta_sparse = methods::as(t(delta), "sparseMatrix")
-        } else{
-          cols_to_fill = c(1, cumsum(agsizes[-N])+1)
-          delta_sparse = Matrix::sparseMatrix(i = rep(1, N), j = cols_to_fill, 
-                                              x = delta, dims = c(1, M))
-        }
-      }
-      
-      ## making AD work fine
-      delta_sparse <- AD(delta_sparse)
-      # Gamma_sparse <- AD(Gamma_sparse)
-      allprobs <- AD(allprobs)
-      
-      ## forward algorithm
-      # foo = delta_sparse %*% diag(rep(allprobs[1,], times = agsizes))
-      foo = delta_sparse * allprobs[1, stateInds, drop = FALSE]
-      # sumfoo = sum(foo)
-      sumfoo = rowSums(foo)
-      phi = foo / sumfoo
-      l = log(sumfoo)
-      
-      for(t in 2:nrow(allprobs)) {
-        # foo = phi %*% Gamma_sparse[[tod[t-1]]] %*% diag(rep(allprobs[t,], times = agsizes))
-        foo = (phi %*% AD(Gamma_sparse[[tod[t-1]]])) * allprobs[t, stateInds, drop = FALSE]
-        # sumfoo = sum(foo)
-        sumfoo = rowSums(foo)
-        phi = foo / sumfoo
-        l = l + log(sumfoo)
-      }
-    }
-    
-  } else if(!is.null(trackID)) {
-    
-    RTMB::REPORT(trackID) # report trackID for viterbi etc.
-    
-    uID = unique(trackID) # unique track IDs
-    k = length(uID) # number of tracks
-    
-    ## first case: dm varies -> truely inhomogeneous HSMM
-    if(is.matrix(dm[[1]])){ # dm varies
-      if(nrow(dm[[1]]) != L) stop("dm needs to be a list of length N, either containing vectors or matrices of dwell-time PMFs.")
-      if(length(dim(omega)) == 3){ # different dms and different omegas
-        if(dim(omega)[3] != L) stop("omega needs to be either a matrix of dimension c(N,N) or an array of dimension c(N,N,L), matching the cycle length.")
-      }
-      
-      Gamma_sparse = tpm_phsmm(omega, dm, eps = eps) # still only L unique tpms
-      
-      if(stationary == TRUE){ # delta not provided but computed: each track starts in stationary distribution
-        trackInd = calc_trackInd(trackID)
-        Delta = stationary_p_sparse(Gamma_sparse) # calculate all periodically stationaries -> not very expensive because of recursion
-        Delta = Delta[tod[trackInd], ] # corresponding initial periodically stationary for each track
-        Delta_sparse = methods::as(Delta, "sparseMatrix") 
-      } else{
-        
-        # if delta is provided
-        delta = as.matrix(delta) # reshape to matrix for easier handling
-        
-        if(ncol(delta) != N) delta = t(delta) # transpose if necessary
-        
-        if(nrow(delta) == 1) {
-          Delta = matrix(delta, nrow = k, ncol = N, byrow = TRUE)
-        } else {
-          Delta = delta
-        }
-        
-        # "stuff out" delta with zeros
-        cols_to_fill = c(1, cumsum(agsizes[-N])+1)
-        
-        row_indices <- rep(1:k, N)
-        col_indices <- rep(cols_to_fill, each = k)
-        
-        values = as.vector(Delta)
-        
-        Delta_sparse <- Matrix::sparseMatrix(i = row_indices,   # Row indices
-                                             j = col_indices,   # Column indices
-                                             x = values,        # Non-zero values (from dense matrix)
-                                             dims = c(k, M))    # Final sparse matrix dimensions
-      }
-      
-      ## making AD work fine
-      allprobs <- AD(allprobs)
-      Delta_sparse <- AD(Delta_sparse)
-      # Gamma_sparse <- AD(Gamma_sparse)
-      
-      ## forward algorithm
-      l = 0 # initialize log-likelihood
-      for(i in 1:k) {
-        ind = which(trackID == uID[i]) # indices of track i
-        
-        delta_i = AD(Delta_sparse[i, , drop = FALSE])
-        thistod = tod[ind]
-        
-        # foo = delta_sparse %*% Matrix::Diagonal(x = rep(allprobs[1,], times = agsizes))
-        # foo = delta_i %*% diag(rep(allprobs[ind[1],], times = agsizes))
-        foo = delta_i * allprobs[ind[1], stateInds, drop = FALSE]
-        # sumfoo = sum(foo)
-        sumfoo = rowSums(foo)
-        phi = foo / sumfoo
-        l_i = log(sumfoo)
-        
-        for(t in 2:length(ind)) {
-          # foo = phi %*% Gamma_sparse[[thistod[t-1]]] %*% diag(rep(allprobs[ind[t],], times = agsizes))
-          foo = (phi %*% AD(Gamma_sparse[[thistod[t-1]]])) * allprobs[ind[t], stateInds, drop = FALSE]
-          # sumfoo = sum(foo)
-          sumfoo = rowSums(foo)
-          phi = foo / sumfoo
-          l_i = l_i + log(sumfoo)
-        }
-        
-        l = l + l_i
-      }
-      
-      ## second case: dm does not vary, only omega varies -> easier
-    } else if(is.vector(dm[[1]])){ # only one dm
-      if(is.matrix(omega)){ # if omega is matrix, just build one Gamma
-        Gamma_sparse = tpm_hsmm(omega, dm, eps = eps)
-        
-        ## if stationary, compute initial stationary distribution
-        if(stationary){
-          delta = stationary_sparse(Gamma_sparse)
-          Delta = matrix(delta, nrow = k, ncol = length(delta), byrow = TRUE) # repeat rows for each track
-          Delta_sparse = Matrix::Matrix(Delta, sparse = TRUE) # make sparse
-        } else{ # if delta is provided, "stuff out" with zeros
-          cols_to_fill = c(1, cumsum(agsizes[-N]) + 1)
-          
-          if(is.matrix(delta)){
-            values = as.vector(delta)
-          } else{
-            values = rep(delta, each = k)
-          }
-          Delta_sparse = Matrix::sparseMatrix(i = rep(1:k, N), j = rep(cols_to_fill, each=k), 
-                                              x = values, dims = c(k, M))
-        }
-        Gamma_sparse = list(Gamma_sparse)
-        Gamma_sparse = rep(Gamma_sparse, L)
-        
-      } else if(length(dim(omega)) == 3){ # different omegas but same dm
-        if(dim(omega)[3] != L) stop("omega needs to be either a matrix of dimension c(N,N) or an array of dimension c(N,N,L), matching the cycle length.")
-        
-        Gamma_sparse = lapply(1:L, function(k) tpm_hsmm(omega[,,k], dm, eps = eps)) # build k Gammas with fixed dm but varying omega
-        
-        if(stationary == TRUE){ # delta not provided but computed: each track starts in stationary distribution
-          trackInd = calc_trackInd(trackID)
-          Delta = stationary_p_sparse(Gamma_sparse) # calculate all periodically stationaries -> not very expensive because of recursion
-          Delta = Delta[tod[trackInd], ] # corresponding initial periodically stationary for each track
-          Delta_sparse = methods::as(Delta, "sparseMatrix") 
-        } else{
-          # if delta is provided
-          delta = as.matrix(delta) # reshape to matrix for easier handling
-          
-          if(ncol(delta) != N) delta = t(delta) # transpose if necessary
-          
-          if(nrow(delta) == 1) {
-            Delta = matrix(delta, nrow = k, ncol = N, byrow = TRUE)
-          } else {
-            Delta = delta
-          }
-          
-          # "stuff out" delta with zeros
-          cols_to_fill = c(1, cumsum(agsizes[-N])+1)
-          
-          row_indices <- rep(1:k, N)
-          col_indices <- rep(cols_to_fill, each = k)
-          
-          values = as.vector(Delta)
-          
-          Delta_sparse <- Matrix::sparseMatrix(i = row_indices,   # Row indices
-                                               j = col_indices,   # Column indices
-                                               x = values,        # Non-zero values (from dense matrix)
-                                               dims = c(k, M))    # Final sparse matrix dimensions
-        }
-      }
-      
-      ## making AD work fine
-      allprobs <- AD(allprobs)
-      Delta_sparse <- AD(Delta_sparse)
-      # Gamma_sparse <- AD(Gamma_sparse)
-      
-      ## forward algorithm
-      l = 0 # initialize log-likelihood
-      for(i in 1:k) {
-        ind = which(trackID == uID[i]) # indices of track i
-        
-        delta_i = AD(Delta_sparse[i, , drop = FALSE])
-        thistod = tod[ind]
-        
-        # foo = delta_sparse %*% Matrix::Diagonal(x = rep(allprobs[1,], times = agsizes))
-        # foo = delta_i %*% diag(rep(allprobs[ind[1],], times = agsizes))
-        foo = delta_i * allprobs[ind[1], stateInds, drop = FALSE]
-        # sumfoo = sum(foo)
-        sumfoo = rowSums(foo)
-        phi = foo / sumfoo
-        l_i = log(sumfoo)
-        
-        for(t in 2:length(ind)) {
-          # foo = phi %*% Gamma_sparse[[thistod[t-1]]] %*% diag(rep(allprobs[ind[t],], times = agsizes))
-          foo = (phi %*% AD(Gamma_sparse[[thistod[t-1]]])) * allprobs[ind[t], stateInds, drop = FALSE]
-          # sumfoo = sum(foo)
-          sumfoo = rowSums(foo)
-          phi = foo / sumfoo
-          l_i = l_i + log(sumfoo)
-        }
-        
-        l = l + l_i
-      }
-    }
+  if(report) {
+    report_hsmm(inp, dm, omega, allprobs, trackID, tod)
+    if(is.matrix(dm[[1]]) && is.null(trackID)) report_sparse(inp, tpm_phsmm(omega, dm, eps = eps))
   }
   
-  as.numeric(l)
+  run_forward_hsmm(inp)
 }

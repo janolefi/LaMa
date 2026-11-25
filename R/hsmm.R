@@ -111,7 +111,8 @@ hsmm_Gamma <- function(stay, omega, Ni){
 # - omega: matrix or array with 1, nTracks, nObs, nObs - 1 or L slices, as Gamma in forward()
 #   (L: cycle length, if tod is given; a stay entered at t has omega[, , t] and row t of dm)
 # - delta: NULL or "stationary", or initial distribution of the N states, with nTracks rows if needed
-# - use_all_obs, startInd: only for dm varying over time, where max(Ni) - 1 observations are dropped by default
+# - first_obs: first observation used in each track, by default 1, or max(Ni) for dm varying over time
+# - use_all_obs: start at 1 also for dm varying over time (needs delta)
 # Returns a list with
 # - stay[t, ]: stay probabilities of all M states for the step into t
 # - omega[, , oidx[t]]: conditional transition probabilities for the step into t
@@ -119,7 +120,7 @@ hsmm_Gamma <- function(stay, omega, Ni){
 # - start, end: first and last observation used in each track
 # - allprobs, shift, trackID, type: as in prepare_forward()
 prepare_hsmm <- function(dm, omega, allprobs, trackID = NULL, delta = NULL, tod = NULL,
-                         use_all_obs = FALSE, startInd = NULL, logspace = FALSE, eps = 1e-10){
+                         use_all_obs = FALSE, first_obs = NULL, logspace = FALSE, eps = 1e-10){
 
   if(!is.matrix(allprobs)) stop("allprobs needs to be a matrix of dimension c(n, N).")
   nObs <- nrow(allprobs)
@@ -155,22 +156,23 @@ prepare_hsmm <- function(dm, omega, allprobs, trackID = NULL, delta = NULL, tod 
 
   ## first observation used in each track
   stationary <- is.null(delta) || is.character(delta)
-  start <- tracks$start
-  if("inhomogeneous" %in% dm_type) {
-    if(use_all_obs && stationary) {
-      stop("use_all_obs = TRUE needs delta: the stationary start would require dwell-time distributions ",
-           "from before the first observation.")
-    }
-    if(!use_all_obs) {
-      if(is.null(startInd)) startInd <- max(Ni)
-      if(startInd < max(Ni)) stop("startInd must be at least the maximum aggregate size")
-      start <- start + startInd - 1
-      # the stationary distribution needs the step into the next observation
-      if(any(start + stationary > tracks$end)) {
-        stop("Too few observations in at least one track: with dm varying over time, ",
-             "each track starts at the maximum aggregate size (or startInd).")
-      }
-    }
+  varying <- "inhomogeneous" %in% dm_type
+  if(use_all_obs && !is.null(first_obs)) stop("Please use either use_all_obs or first_obs.")
+  if(use_all_obs && varying && stationary) {
+    stop("use_all_obs = TRUE needs delta: the stationary start would require dwell-time distributions ",
+         "from before the first observation.")
+  }
+  # dm varying over time: earlier stays have unknown dwell-time distributions
+  earliest <- if(varying && !use_all_obs) max(Ni) else 1
+  if(is.null(first_obs)) first_obs <- earliest
+  if(length(first_obs) != 1 || is.na(first_obs) || first_obs != round(first_obs) || first_obs < earliest) {
+    stop("first_obs must be a single integer, at least ", earliest,
+         if(earliest > 1) " (largest aggregate size) for dm varying over time", ".")
+  }
+  start <- tracks$start + first_obs - 1
+  # for dm varying over time, the stationary distribution needs the step into the next observation
+  if(any(start + (varying && stationary) > tracks$end)) {
+    stop("Too few observations in at least one track, which start at observation ", first_obs, ".")
   }
 
   ## initial distribution

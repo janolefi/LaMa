@@ -14,6 +14,7 @@ forward_hsmm(
   report = TRUE,
   tod = NULL,
   use_all_obs = FALSE,
+  first_obs = NULL,
   logspace = FALSE
 )
 }
@@ -37,7 +38,7 @@ Contains the transition probabilities given that the current state is left. Henc
 If provided, the total log-likelihood will be the sum of each track's likelihood contribution.
 In this case, \code{dm} and \code{omega} can be track-specific and \code{delta} can be a matrix of initial distributions, of dimension \code{c(nTracks, nStates)}, such that each track starts with its own initial distribution.}
 
-\item{delta}{optional vector of initial state probabilities of length \code{nStates}, in which case a new stay begins at the first observation of each track.
+\item{delta}{optional vector of initial state probabilities of length \code{nStates}, in which case a new stay begins at the first observation used in each track.
 
 By default, the stationary distribution is computed (which is typically recommended).}
 
@@ -53,6 +54,11 @@ With periodic \code{dm}, it needs to advance by one in each row within a track.}
 
 By default, the first \code{max(sapply(dm, ncol)) - 1} observations of each track are not used, as they may belong to stays that began before the first observation, with unknown dwell-time distributions. 
 If \code{TRUE}, all observations are used, which needs \code{delta}.}
+
+\item{first_obs}{optional integer, the first observation that is used in each track. 
+
+By default \code{1}, or \code{max(sapply(dm, ncol))} for time-varying \code{dm}, in which case it cannot be smaller. 
+Useful to fit models with different aggregate sizes or types of \code{dm} to the same observations, such that their likelihoods can be compared.}
 
 \item{logspace}{logical, indicating whether \code{allprobs} contains log-probabilities. Defaults to \code{FALSE}.}
 }

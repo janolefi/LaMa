@@ -96,6 +96,82 @@ test_that("hsmm_step equals phi %*% Gamma, inhomogeneous and periodic", {
   }
 })
 
+test_that("hsmm_stay accepts vectors and matrices", {
+  d <- dm_hom[[1]]
+  stay <- 1 - ref_hazard(d)
+  expect_close(hsmm_stay(d), stay)
+  expect_equal(dim(hsmm_stay(d)), c(1, length(d)))
+  expect_close(hsmm_stay(rbind(d, d))[2, ], stay)
+})
+
+test_that("hsmm_Gamma matches the paper", {
+  for(Ni in list(c(7, 5, 4), c(1, 5, 2), c(1, 1, 1), c(2, 2), c(1, 6))) {
+    N <- length(Ni)
+    omega <- if(N == 3) omega_test else matrix(c(0, 1, 1, 0), 2)
+    dm <- dm_poisson(beta0_test[1:N], 0 * beta1_test[1:N], 0, Ni)
+    stay <- unlist(lapply(dm, hsmm_stay))
+    Gamma <- hsmm_Gamma(stay, omega, Ni)
+    expect_equal(dim(Gamma), rep(sum(Ni), 2))
+    expect_close(Gamma, ref_Gamma(omega, lapply(dm, function(d) ref_hazard(as.vector(d)))))
+    expect_close(rowSums(Gamma), rep(1, sum(Ni)), tolerance = 1e-12)
+    # both give the same step
+    phi <- runif(sum(Ni))
+    expect_close(hsmm_step(phi, stay, omega, Ni), phi %*% Gamma, tolerance = 1e-12)
+  }
+})
+
+test_that("check_omega stops for non-zero diagonals", {
+  expect_silent(check_omega(omega_test))
+  expect_silent(check_omega(omega_t_test))
+  expect_silent(check_omega(matrix(c(0, 1, 1, 0), 2)))
+  wrong <- omega_test; wrong[2, 2] <- 0.1
+  expect_error(check_omega(wrong), "diagonal")
+  wrong[2, 2] <- NA
+  expect_error(check_omega(wrong), "diagonal")
+  wrong <- omega_t_test; wrong[3, 3, 17] <- 0.1 # only one time point
+  expect_error(check_omega(wrong), "diagonal")
+  # while taping: constant omega is checked, AD omega is not
+  wrong <- omega_test; wrong[2, 2] <- 0.1
+  expect_error(RTMB::MakeTape(function(x) { check_omega(wrong); x }, 1), "diagonal")
+  expect_silent(RTMB::MakeTape(function(x) { check_omega(tpm_emb(x)); sum(x) }, c(0.3, -0.2, 0.1)))
+})
+
+test_that("hsmm_step and hsmm_Gamma return plain numbers without AD", {
+  stay <- unlist(lapply(dm_hom, hsmm_stay))
+  expect_identical(class(hsmm_step(rep(1, 16), stay, omega_test, Ni_test)), "numeric")
+  expect_true(is.numeric(hsmm_Gamma(stay, omega_test, Ni_test)))
+})
+
+# every combination of AD and constant inputs, derivatives against central differences
+test_that("hsmm_step and hsmm_Gamma with AD and constant inputs", {
+  phi <- 1:16 / 136
+  stay_const <- unlist(lapply(dm_hom, hsmm_stay)) # not inside f: unlist() drops the AD class
+  f <- function(par, ad_phi, ad_stay, ad_omega) {
+    phi_par <- if(ad_phi) phi * exp(par[1]) else phi
+    stay <- if(ad_stay) stay_const * exp(-exp(par[2])) else stay_const
+    omega <- if(ad_omega) tpm_emb(par[3:5]) else omega_test
+    weight <- cos(1:16)
+    c(sum(weight * hsmm_step(phi_par, stay, omega, Ni_test)),
+      sum(as.vector(phi_par) * as.vector(hsmm_Gamma(stay, omega, Ni_test) %*% weight)))
+  }
+  par <- c(0.1, -1, 0.3, -0.2, 0.1)
+  h <- 1e-5
+  combis <- expand.grid(ad_phi = c(TRUE, FALSE), ad_stay = c(TRUE, FALSE), ad_omega = c(TRUE, FALSE))
+  for(k in seq_len(nrow(combis))) {
+    f_k <- function(par) with(combis[k, ], f(par, ad_phi, ad_stay, ad_omega))
+    if(!any(combis[k, ])) next # nothing to differentiate
+    # taped at other values than evaluated: no constants are baked in
+    F <- RTMB::MakeTape(function(par) { "c" <- ADoverload("c"); f_k(par) }, 0 * par)
+    expect_close(F(par), f_k(par), tolerance = 1e-12)
+    expect_close(F(par)[1], F(par)[2], tolerance = 1e-12)
+    num <- sapply(seq_along(par), function(j) {
+      e <- replace(0 * par, j, h)
+      (f_k(par + e) - f_k(par - e)) / (2 * h)
+    })
+    expect_close(F$jacobian(par), num, tolerance = 1e-6)
+  }
+})
+
 test_that("forward algorithm with hsmm_step: value and gradient with AD", {
   delta <- ref_delta_fresh(c(0.5, 0.3, 0.2), Ni_test)
   par <- c(beta0_test, beta1_test, 0.3, -0.2, 0.1)

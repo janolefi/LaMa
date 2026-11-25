@@ -50,17 +50,7 @@ ref_delta_fresh <- function(delta, Ni) {
   replace(numeric(sum(Ni)), I_low, delta)
 }
 
-# ---- direct forward step (to be moved to R/, then delete it here) ----
-
-# probability to stay for one more time point, 1 - c_i(r), same form as d
-# d: matrix, one row per entry time, one column per dwell time
-hsmm_stay <- function(d, eps = 1e-10) {
-  upper <- matrix(0, ncol(d), ncol(d))
-  upper[upper.tri(upper)] <- 1
-  F_before <- d %*% upper # F_i(r - 1)
-  hazard <- max2(d, eps) / (1 - F_before + eps / 2)
-  max2(1 - hazard, 0)
-}
+# ---- forward algorithm with the internal functions ----
 
 # stay probabilities of all M states at time t: state r of aggregate i was entered at t - r + 1
 # stay: list of matrices from hsmm_stay()
@@ -73,33 +63,6 @@ hsmm_stay_t <- function(t, stay, L = NULL) {
     stay_i[cbind(entry, r)]
   })
   do.call(c, stay_t)
-}
-
-# one step phi %*% Gamma without building Gamma
-hsmm_step <- function(phi, stay_t, omega, Ni) {
-  "[<-" <- ADoverload("[<-")
-  "c" <- ADoverload("c")
-  N <- length(Ni)
-  I_high <- cumsum(Ni)
-  I_low <- I_high - Ni + 1
-
-  kept <- phi * stay_t         # mass that stays in its aggregate
-  gone <- phi * (1 - stay_t)   # mass whose stay ends
-
-  # mass that leaves each aggregate and where it arrives
-  left <- AD(numeric(N))
-  for(i in 1:N) left[i] <- sum(gone[I_low[i]:I_high[i]])
-  arrive <- as.vector(left %*% omega)
-
-  phi_new <- AD(numeric(sum(Ni)))
-  for(i in 1:N) {
-    low <- I_low[i]
-    high <- I_high[i]
-    phi_new[low] <- arrive[i]                                      # new stays enter the lowest state
-    if(high > low) phi_new[(low + 1):high] <- kept[low:(high - 1)] # others move up by one
-    phi_new[high] <- phi_new[high] + kept[high]                    # highest state waits
-  }
-  phi_new
 }
 
 # forward algorithm built on hsmm_step()

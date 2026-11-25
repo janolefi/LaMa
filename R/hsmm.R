@@ -62,26 +62,25 @@ check_omega <- function(omega){
 # omega: conditional transition probabilities (zero diagonal)
 hsmm_step <- function(phi, stay, omega, Ni){
   "[<-" <- ADoverload("[<-")
+  "c" <- ADoverload("c")
   N <- length(Ni)
   I_high <- cumsum(Ni)
   I_low <- I_high - Ni + 1
 
-  kept <- phi * stay        # mass that stays in its aggregate
-  gone <- phi * (1 - stay)  # mass whose stay ends
+  kept <- phi * stay  # mass that stays in its aggregate
+  gone <- phi - kept  # mass whose stay ends
 
   # mass that leaves each aggregate, and where it arrives
   left <- numeric(N)
   for(i in 1:N) left[i] <- sum(gone[I_low[i]:I_high[i]])
   arrive <- as.vector(left %*% omega)
 
-  phi_new <- numeric(sum(Ni))
-  for(i in 1:N) {
-    low <- I_low[i]
-    high <- I_high[i]
-    phi_new[low] <- arrive[i]                                      # new stays enter the lowest state
-    if(high > low) phi_new[(low + 1):high] <- kept[low:(high - 1)] # the others move up by one
-    phi_new[high] <- phi_new[high] + kept[high]                    # the highest state waits
-  }
+  # lowest states get the new stays, all others the kept mass of the state below
+  from <- N + seq_along(phi) - 1
+  from[I_low] <- 1:N
+  phi_new <- c(arrive, kept)[from]
+  # the highest states also keep their own mass
+  phi_new[I_high] <- phi_new[I_high] + kept[I_high]
   phi_new
 }
 

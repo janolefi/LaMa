@@ -52,19 +52,6 @@ ref_delta_fresh <- function(delta, Ni) {
 
 # ---- forward algorithm with the internal functions ----
 
-# stay probabilities of all M states at time t: state r of aggregate i was entered at t - r + 1
-# stay: list of matrices from hsmm_stay()
-hsmm_stay_t <- function(t, stay, L = NULL) {
-  "c" <- ADoverload("c")
-  stay_t <- lapply(stay, function(stay_i) {
-    r <- seq_len(ncol(stay_i))
-    entry <- t - r + 1
-    if(!is.null(L)) entry <- (entry - 1) %% L + 1
-    stay_i[cbind(entry, r)]
-  })
-  do.call(c, stay_t)
-}
-
 # forward algorithm built on hsmm_step()
 # stay_into(t), omega_into(t): for the step from t - 1 into t, delta: length M
 hsmm_forward <- function(delta, stay_into, omega_into, allprobs, Ni, start = 1) {

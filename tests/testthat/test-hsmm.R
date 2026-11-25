@@ -43,6 +43,22 @@ test_that("tpm_phsmm matches eqs. (5)-(7) and (9)-(10)", {
   }
 })
 
+test_that("tpm_hsmm, tpm_ihsmm and tpm_phsmm: arguments and checks", {
+  # sparse by default
+  expect_s4_class(tpm_hsmm(omega_test, dm_hom), "sparseMatrix")
+  expect_true(is.matrix(tpm_hsmm(omega_test, dm_hom, sparse = FALSE)))
+  expect_s4_class(tpm_ihsmm(omega_test, dm_inhom)[[1]], "sparseMatrix")
+  expect_s4_class(tpm_phsmm(omega_test, dm_per)[[1]], "sparseMatrix")
+  # given distribution functions Fm are used: zero means that hazards equal the dwell-time probabilities
+  Fm <- lapply(dm_hom, function(d) 0 * d)
+  expect_close(tpm_hsmm(omega_test, dm_hom, Fm = Fm, sparse = FALSE), ref_Gamma(omega_test, dm_hom))
+  # omega needs a zero diagonal
+  wrong <- omega_test; wrong[2, 2] <- 0.1
+  expect_error(tpm_hsmm(wrong, dm_hom), "diagonal")
+  expect_error(tpm_ihsmm(wrong, dm_inhom), "diagonal")
+  expect_error(tpm_phsmm(wrong, dm_per), "diagonal")
+})
+
 # the chain that tpm_ihsmm builds has the dwell times and conditional transition
 # probabilities it is supposed to have (propositions 2.1 and 2.2)
 test_that("tpm_ihsmm gives the right dwell times and conditional transition probabilities", {
@@ -85,13 +101,13 @@ test_that("hsmm_step equals phi %*% Gamma, inhomogeneous and periodic", {
   stay <- lapply(dm_inhom, hsmm_stay)
   for(t in max(Ni_test):30) {
     phi <- runif(sum(Ni_test))
-    expect_close(hsmm_step(phi, hsmm_stay_t(t, stay), omega_t_test[, , t], Ni_test),
+    expect_close(hsmm_step(phi, hsmm_lag(stay, t + 1)[1, ], omega_t_test[, , t], Ni_test),
                  phi %*% ref_Gamma_t(t, omega_t_test[, , t], dm_inhom))
   }
   stay <- lapply(dm_per, hsmm_stay)
   for(t in 1:L_test) {
     phi <- runif(sum(Ni_test))
-    expect_close(hsmm_step(phi, hsmm_stay_t(t, stay, L_test), omega_test, Ni_test),
+    expect_close(hsmm_step(phi, hsmm_lag(stay, t + 1, L_test)[1, ], omega_test, Ni_test),
                  phi %*% ref_Gamma_t(t, omega_test, dm_per, L_test))
   }
 })
@@ -183,7 +199,7 @@ test_that("forward algorithm with hsmm_step: value and gradient with AD", {
     # a stay entered before t = 1 is impossible here, row 1 is never used for it
     stay_into <- function(t) {
       padded <- lapply(stay, function(s) s[c(rep(1, max(Ni_test)), 1:30), ])
-      hsmm_stay_t(t - 1 + max(Ni_test), padded)
+      hsmm_lag(padded, t + max(Ni_test))[1, ]
     }
     hsmm_forward(delta, stay_into, function(t) omega, ap, Ni_test)
   }
@@ -211,7 +227,7 @@ test_that("hsmm_step: hazards of stays entered before t = 1 do not matter for a 
   pad <- max(Ni_test)
   loglik <- function(before) {
     padded <- lapply(stay, function(s) rbind(matrix(before, pad, ncol(s)), s))
-    hsmm_forward(delta, function(t) hsmm_stay_t(t - 1 + pad, padded),
+    hsmm_forward(delta, function(t) hsmm_lag(padded, t + pad)[1, ],
                  function(t) omega_test, ap, Ni_test)
   }
   expect_close(loglik(0.1), loglik(0.9), tolerance = 1e-12)
@@ -308,7 +324,7 @@ test_that("gradients of the forward functions match the direct step", {
     omega <- tpm_emb(par[7:9])
     delta <- stationary(as.matrix(tpm_ihsmm(omega, dm)[[1]]))
     stay <- lapply(dm, hsmm_stay)
-    hsmm_forward(as.vector(delta), function(t) hsmm_stay_t(t - 1, stay),
+    hsmm_forward(as.vector(delta), function(t) hsmm_lag(stay, t)[1, ],
                  function(t) omega, ap, Ni_test, start = first)
   }
   F_ihsmm <- RTMB::MakeTape(f_ihsmm, par)
@@ -368,7 +384,6 @@ test_that("forward_ihsmm: several tracks", {
 })
 
 test_that("tpm_ihsmm and tpm_phsmm: aggregates of size 1 and 2", {
-  skip_known_bug("matrix columns drop to vectors")
   for(Ni in list(c(5, 2, 4), c(5, 1, 4))) {
     dm <- dm_poisson(beta0_test, beta1_test, z_test, Ni)
     Gamma <- tpm_ihsmm(omega_test, dm)

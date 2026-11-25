@@ -10,16 +10,34 @@
 
 # Probabilities 1 - c_i(r) to stay for one more time point, c_i(r): hazard rates, eqs. (3) and (7)
 # d: dwell-time distribution(s) of one state: vector, or matrix with one row for each time of entry
+# F_before: F_i(r - 1), probability that the stay is over before its r-th time point (computed if not given)
 # returns a matrix with the same rows and columns
-hsmm_stay <- function(d, eps = 1e-10){
+hsmm_stay <- function(d, eps = 1e-10, F_before = NULL){
   if(is.null(dim(d))) d <- matrix(d, nrow = 1)
   Ni <- ncol(d)
-  # F_before[, r] = F_i(r - 1), probability that the stay is over before its r-th time point
-  before <- matrix(0, Ni, Ni)
-  before[upper.tri(before)] <- 1
-  F_before <- d %*% before
+  if(is.null(F_before)) {
+    before <- matrix(0, Ni, Ni)
+    before[upper.tri(before)] <- 1
+    F_before <- d %*% before
+  }
   hazard <- max2(d, eps) / (1 - F_before + eps / 2)
   max2(1 - hazard, 0)
+}
+
+# Stay probabilities of all M states for the steps into the time points `into` (one row each)
+# the r-th state of an aggregate at time into - 1 belongs to a stay entered at into - r
+# stay: list of matrices from hsmm_stay(), one row for each time of entry
+# L: cycle length, for periodic models
+hsmm_lag <- function(stay, into, L = NULL){
+  columns <- list()
+  for(stay_i in stay) {
+    for(r in seq_len(ncol(stay_i))) {
+      entry <- into - r
+      if(!is.null(L)) entry <- (entry - 1) %% L + 1
+      columns <- c(columns, list(stay_i[entry, r]))
+    }
+  }
+  do.call(cbind, columns)
 }
 
 # Checks that omega (matrix or array) has zero diagonals: states are only left, not re-entered

@@ -59,6 +59,8 @@ Hidden semi-Markov models (HSMMs) are a flexible extension of HMMs, where the st
 For direct numerical maximum likelihood estimation, HSMMs can be represented as HMMs on an enlarged state space (of size \eqn{M}) and with structured transition probabilities.
 
 This function is designed to be used with automatic differentiation based on the \code{R} package \code{RTMB}. It will be very slow without it!
+
+\strong{Deprecated:} please use \code{\link{forward_hsmm}} for all types of HSMMs instead. There, a stay that begins at \code{t} is governed by \code{omega[,,t]}, here by \code{omega[,,t-1]} (\code{omega[,,t]} is for the step from \code{t} into \code{t + 1}).
 }
 \examples{
 # currently no examples
@@ -67,11 +69,11 @@ This function is designed to be used with automatic differentiation based on the
 Koslik, J. O. (2025). Hidden semi-Markov models with inhomogeneous state dwell-time distributions. Computational Statistics & Data Analysis, 209, 108171.
 }
 \seealso{
-Other forward algorithms: 
-\code{\link{forward}()},
-\code{\link{forward_g}()},
-\code{\link{forward_hsmm}()},
-\code{\link{forward_p}()},
-\code{\link{forward_phsmm}()}
+Other forward algorithms:
+\code{\link[=forward]{forward()}},
+\code{\link[=forward_g]{forward_g()}},
+\code{\link[=forward_hsmm]{forward_hsmm()}},
+\code{\link[=forward_p]{forward_p()}},
+\code{\link[=forward_phsmm]{forward_phsmm()}}
 }
 \concept{forward algorithms}

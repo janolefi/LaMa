@@ -679,6 +679,28 @@ test_that("forward_hsmm: delta_sparse and Gamma_sparse are still reported", {
   expect_null(report(report = FALSE)$Gamma_sparse)
 })
 
+test_that("forward_ihsmm: reported quantities, omega convention and message", {
+  par <- list(beta0 = beta0_test, beta1 = beta1_test, eta = cbind(c(0.3, -0.2, 0.1), c(0.1, 0.2, 0.3)))
+  nll <- function(par) {
+    dm <- dm_poisson(par$beta0, par$beta1, z_test, Ni_test)
+    omega <- tpm_emb_g(cbind(1, z_test), par$eta, report = FALSE)
+    -forward_ihsmm(dm, omega, ap, startInd = 9)
+  }
+  rep <- RTMB::MakeADFun(nll, par, silent = TRUE)$report()
+  omega <- tpm_emb_g(cbind(1, z_test), par$eta, report = FALSE)
+  # as before: matrices from max(Ni) on, delta at startInd
+  expect_equal(rep$Gamma_sparse, tpm_ihsmm(omega, dm_inhom))
+  expect_close(as.matrix(rep$delta_sparse), ref_delta_stat(ref_Gamma_t(9, omega[, , 9], dm_inhom)), tolerance = 1e-6)
+  expect_close(rep$omega, omega) # as passed
+  expect_close(rep$dm[[3]], dm_inhom[[3]])
+  # forward_hsmm() with the slices moved by one
+  expect_equal(forward_ihsmm(dm_inhom, omega, ap, report = FALSE),
+               forward_hsmm(dm_inhom, omega[, , c(1, 1:29)], ap, report = FALSE))
+  expect_error(forward_ihsmm(dm_inhom, omega[, , 1:29], ap, report = FALSE), "number of observations")
+  expect_null(RTMB::MakeADFun(function(par) -forward_ihsmm(dm_inhom, tpm_emb(par$eta), ap, report = FALSE),
+                              list(eta = 1:3 / 10), silent = TRUE)$report()$Gamma_sparse)
+})
+
 test_that("report_sparse does not build the matrices with AD", {
   inp <- prepare_hsmm(dm_hom, omega_test, ap)
   expect_silent(RTMB::MakeTape(function(x) { report_sparse(inp, stop("built")); x }, 1))
@@ -687,13 +709,20 @@ test_that("report_sparse does not build the matrices with AD", {
 
 # ---- known bugs of the current functions, run with LAMA_KNOWN_BUGS=true ----
 
-test_that("forward_ihsmm and forward_phsmm: fixed dm and given delta", {
-  skip_known_bug("fixed dm with delta fails, 'k' not found")
-  delta <- c(0.5, 0.3, 0.2)
+test_that("forward_ihsmm: fixed dm and given delta", {
   Gamma <- ref_Gamma(omega_test, lapply(dm_hom, ref_hazard))
-  ref <- ref_hsmm(ref_delta_fresh(delta, Ni_test), function(t) Gamma)
-  expect_close(forward_ihsmm(dm_hom, omega_test, ap, delta = delta, report = FALSE), ref)
-  expect_close(forward_phsmm(dm_hom, omega_test, ap, tod_test, delta = delta, report = FALSE), ref)
+  ref <- ref_hsmm(delta_M, function(t) Gamma)
+  expect_hsmm(function(ap) forward_ihsmm(dm_hom, omega_test, ap, delta = delta_N, report = FALSE), ref)
+  Gamma_t <- function(t) ref_Gamma(omega_t_test[, , t], lapply(dm_hom, ref_hazard))
+  expect_hsmm(function(ap) forward_ihsmm(dm_hom, omega_t_test, ap, delta = delta_N, report = FALSE),
+              ref_hsmm(delta_M, Gamma_t))
+})
+
+test_that("forward_phsmm: fixed dm and given delta", {
+  skip_known_bug("fixed dm with delta fails, 'k' not found")
+  Gamma <- ref_Gamma(omega_test, lapply(dm_hom, ref_hazard))
+  expect_close(forward_phsmm(dm_hom, omega_test, ap, tod_test, delta = delta_N, report = FALSE),
+               ref_hsmm(delta_M, function(t) Gamma))
 })
 
 test_that("forward_hsmm: delta can be estimated", {
@@ -718,18 +747,24 @@ test_that("forward_hsmm: as many tracks as states", {
 })
 
 test_that("forward_ihsmm: several tracks", {
-  skip_known_bug("AD() does not know lists")
   ID <- rep(1:2, c(12, 18))
   first <- max(Ni_test)
-  ref <- 0
-  for(i in 1:2) {
-    ind <- which(ID == i)
-    rows <- ind[first:length(ind)]
-    dm_i <- lapply(dm_inhom, function(d) d[ind, ])
-    Gamma_t <- function(t) ref_Gamma_t(t - ind[1] + 1, omega_test, dm_i)
-    ref <- ref + ref_hsmm(ref_delta_stat(Gamma_t(rows[1])), Gamma_t, rows)
+  # time-varying dm
+  for(omega in list(omega_test, omega_t_test)) {
+    ref <- 0
+    for(i in 1:2) {
+      ind <- which(ID == i)
+      rows <- ind[first:length(ind)]
+      dm_i <- lapply(dm_inhom, function(d) d[ind, ])
+      Gamma_t <- function(t) ref_Gamma_t(t - ind[1] + 1, if(is.matrix(omega)) omega else omega[, , t], dm_i)
+      ref <- ref + ref_hsmm(ref_delta_stat(Gamma_t(rows[1])), Gamma_t, rows)
+    }
+    expect_hsmm(function(ap) forward_ihsmm(dm_inhom, omega, ap, trackID = ID, report = FALSE), ref)
   }
-  expect_hsmm(function(ap) forward_ihsmm(dm_inhom, omega_test, ap, trackID = ID, report = FALSE), ref)
+  # fixed dm
+  Gamma_t <- function(t) ref_Gamma(omega_t_test[, , t], lapply(dm_hom, ref_hazard))
+  ref <- ref_hsmm(ref_delta_stat(Gamma_t(1)), Gamma_t, 1:12) + ref_hsmm(ref_delta_stat(Gamma_t(13)), Gamma_t, 13:30)
+  expect_hsmm(function(ap) forward_ihsmm(dm_hom, omega_t_test, ap, trackID = ID, report = FALSE), ref)
 })
 
 test_that("tpm_ihsmm and tpm_phsmm: aggregates of size 1 and 2", {

@@ -468,9 +468,13 @@ qreml <- function(pnll, # penalised negative log-likelihood function
 
   ## controlling optim
   ctl <- list(maxit = 1000)
-  ctl[names(control)] <- control
   if(method == "BFGS") ctl$reltol <- 1e-10
   if(method == "L-BFGS-B") ctl$maxit <- 5000
+  ctl[names(control)] <- control # user values overwrite the defaults above
+  if(method == "BFGS" && ctl$reltol > 1e-10) {
+    warning("'control$reltol' is above the default of 1e-10: the inner optimisation may stop too early, ",
+            "making the Laplace approximation and the estimated penalty strengths inaccurate")
+  }
 
   ## one complete evaluation at a given log penalty strength:
   ## inner fit, Hessian, factorisation and criterion

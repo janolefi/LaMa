@@ -1177,6 +1177,35 @@ test_that("summary() of HSMMs: omega, stationary distribution and mean dwell tim
   expect_output(print(s), "semi-Markov")
 })
 
+test_that("statedens() with HSMMs: streams, plot, residuals and no simulation", {
+  set.seed(5)
+  dat <- list(step = rgamma(30, 2, 1), count = rpois(30, 2))
+  dat$step[4] <- NA
+  nll <- function(par) {
+    allprobs <- statedens(dat$step, dgamma2, exp(par$log_mu), 1) * statedens(dat$count, dpois, c(1, 2, 4))
+    -forward_hsmm(dm_inhom, tpm_switch(par$eta), allprobs)
+  }
+  par <- list(log_mu = log(c(1, 2, 4)), eta = c(0.3, -0.2, 0.1))
+  obj <- RTMB::MakeADFun(nll, par, silent = TRUE)
+  mod <- lama(obj)
+  expect_named(mod$streams, c("step", "count"))
+  expect_null(LaMa:::.lama_env$streams) # cleared for the next evaluation
+  # plot: weights only from the observations used, adding up to one
+  pdf(NULL)
+  cv <- plot(mod, type = "statedens")
+  dev.off()
+  used <- used_obs(mod)
+  expect_equal(sum(cv$step$weights), 1)
+  expect_equal(cv$step$weights, colMeans(stateprobs(mod)[used & !is.na(dat$step), ]), ignore_attr = TRUE)
+  expect_equal(length(cv$count$data), sum(used))
+  # residuals from the model object alone
+  r <- suppressMessages(pseudo_res(mod, randomise = FALSE))
+  expect_equal(r$step, pseudo_res(dat$step, "gamma2", list(mean = exp(par$log_mu), sd = 1), mod = mod))
+  # no simulation
+  expect_error(simulate(mod), "not available for HSMMs")
+  expect_error(simulate(mod, random = TRUE), "not available for HSMMs")
+})
+
 test_that("report_sparse does not build the matrices with AD", {
   inp <- prepare_hsmm(dm_hom, omega_test, ap)
   expect_silent(RTMB::MakeTape(function(x) { report_sparse(inp, stop("built")); x }, 1))

@@ -129,8 +129,7 @@ forward <- function(delta,
 
   # streams from statedens(), cleared for the next evaluation of the likelihood
   force(allprobs) # statedens() may be called in the argument, so evaluate it before reading the streams
-  streams <- .lama_env$streams
-  .lama_env$streams <- NULL
+  streams <- take_streams()
 
   # obj$simulate() with data from OBS(): simulate the states and the data instead of evaluating the likelihood
   if(any(vapply(streams, function(s) inherits(s$x, "simref"), logical(1)))) {
@@ -332,6 +331,18 @@ report_forward <- function(delta, Gamma, allprobs, trackID, type){
   REPORT(allprobs)
   if(!is.null(trackID)) REPORT(trackID)
   REPORT(type)
+}
+
+# Data streams recorded by statedens() while allprobs was built, cleared for the next evaluation
+# of the likelihood; for plot(mod, type = "statedens") and simulation
+# hsmm: from an HSMM forward function, which cannot simulate inside obj$simulate()
+take_streams <- function(hsmm = FALSE){
+  streams <- .lama_env$streams
+  .lama_env$streams <- NULL
+  if(hsmm && any(vapply(streams, function(s) inherits(s$x, "simref"), logical(1)))) {
+    stop("Simulation is not available for HSMMs.")
+  }
+  streams
 }
 
 # Record mode of pseudo_res(mod) (.lama_env$record not NULL): stores allprobs of this forward call
@@ -774,10 +785,13 @@ forward_hsmm <- function(dm, omega, allprobs,
                          trackID = NULL, delta = NULL, eps = 1e-10, report = TRUE,
                          tod = NULL, use_all_obs = FALSE, first_obs = NULL, logspace = FALSE){
   
+  force(allprobs) # statedens() may be called in the argument, so evaluate it before reading the streams
+  streams <- take_streams(hsmm = TRUE)
   if(record_allprobs(allprobs, logspace)) return(0) # pseudo_res(mod)
   inp <- prepare_hsmm(dm, omega, allprobs, trackID, delta, tod, use_all_obs, first_obs,
                       logspace = logspace, eps = eps)
   if(report) {
+    if(!is.null(streams)) REPORT(streams)
     report_hsmm(inp, dm, omega, if(logspace) exp(allprobs) else allprobs, trackID, tod)
     if(inp$type %in% c("homogeneous", "track-specific")) report_sparse(inp, sparse_Gammas(inp))
   }
@@ -855,9 +869,12 @@ forward_ihsmm <- function(dm, omega, allprobs,
   if(!is.null(startInd) && startInd < max(Ni)) stop("startInd must be at least the maximum aggregate size")
   if(!varying) startInd <- NULL
   
+  force(allprobs)
+  streams <- take_streams(hsmm = TRUE)
   if(record_allprobs(allprobs)) return(0) # pseudo_res(mod)
   inp <- prepare_hsmm(dm, omega_into, allprobs, trackID, delta, first_obs = startInd, eps = eps)
   if(report) {
+    if(!is.null(streams)) REPORT(streams)
     report_hsmm(inp, dm, omega, allprobs, trackID)
     omega_out <- TRUE # omega[, , t] for the step out of t, needed for decoding
     REPORT(omega_out)
@@ -927,12 +944,15 @@ forward_phsmm <- function(dm, omega, allprobs, tod,
     omega_into <- omega[, , c(L, seq_len(L - 1)), drop = FALSE]
   }
   
+  force(allprobs)
+  streams <- take_streams(hsmm = TRUE)
   if(record_allprobs(allprobs)) return(0) # pseudo_res(mod)
   inp <- prepare_hsmm(dm, omega_into, allprobs, trackID, delta, tod, eps = eps)
   # slice of the previous time of day, also if tod does not advance by one (possible with fixed dm)
   if(periodic_omega) inp$oidx <- c(1, tod[-length(tod)] %% L + 1)
   
   if(report) {
+    if(!is.null(streams)) REPORT(streams)
     report_hsmm(inp, dm, omega, allprobs, trackID, tod)
     omega_out <- TRUE # omega[, , s] for the step out of time of day s, needed for decoding
     REPORT(omega_out)

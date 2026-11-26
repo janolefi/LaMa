@@ -165,6 +165,7 @@ simulate.LaMaModel <- function(object, nsim = 1, seed = NULL, rdens = NULL, rand
       list(states = sim$states, streams = sim[intersect(names(obj$env$obs), names(sim))])
     }
   } else {
+    if(isTRUE(state_process(object)$hsmm)) stop("Simulation is not available for HSMMs.")
     st <- get_streams(object)
     inp <- prepare_decoding(mod = object)
     sim_once <- function() {

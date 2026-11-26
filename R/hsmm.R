@@ -182,9 +182,7 @@ prepare_hsmm <- function(dm, omega, allprobs, trackID = NULL, delta = NULL, tod 
     stop("delta must be numeric or \"stationary\".")
   } else if(any(periodic)) {
     # transition matrices of the whole cycle, as in forward() with tod
-    cycle <- function(nSlices) if(nSlices == 1) rep(1, L) else 1:L
-    stay_cycle <- hsmm_stay_into(dm, dm_type, lapply(dm, function(d) cycle(nrow(d))), L, 1, eps)
-    Gamma <- hsmm_Gammas(stay_cycle, omega[, , cycle(dim(omega)[3]), drop = FALSE], Ni)
+    Gamma <- hsmm_cycle_Gammas(dm, omega, Ni, L, eps)
     delta <- stationary_delta(Gamma, tod[start], periodic = TRUE)
   } else {
     # stationary for the first transition of each track, out of observation start
@@ -287,6 +285,15 @@ hsmm_stay_into <- function(dm, type, index, L, first, eps){
     }
   })
   do.call(cbind, stay)
+}
+
+# Transition matrices (M x M x L) into each time of day 1, ..., L of a periodic model
+# dm: list of matrices with 1 or L rows, omega: array with 1 or L slices
+hsmm_cycle_Gammas <- function(dm, omega, Ni, L, eps){
+  cycle <- function(nSlices) if(nSlices == 1) rep(1, L) else 1:L
+  dm_type <- ifelse(vapply(dm, nrow, 1L) == 1, "homogeneous", "periodic")
+  stay_cycle <- hsmm_stay_into(dm, dm_type, lapply(dm, function(d) cycle(nrow(d))), L, 1, eps)
+  hsmm_Gammas(stay_cycle, omega[, , cycle(dim(omega)[3]), drop = FALSE], Ni)
 }
 
 # Array of transition matrices, for the rows of stay and the slices of omega
@@ -429,4 +436,57 @@ hsmm_decoding_input <- function(mod){
   }
   inp$hsmm <- TRUE
   inp
+}
+
+
+# Summary -------------------------------------------------------------------
+
+# Mean dwell time in each state of the approximating chain, from its stay probabilities (vector of length M):
+# the sum of Pr(D > r) over r = 0, 1, ..., where the highest state of an aggregate repeats (geometric tail)
+hsmm_mean_dwell <- function(stay, Ni){
+  state <- rep(seq_along(Ni), Ni)
+  sapply(seq_along(Ni), function(i) {
+    stay_i <- stay[state == i]
+    longer <- cumprod(c(1, stay_i[-Ni[i]])) # Pr(D > r) for r = 0, ..., Ni - 1
+    tail <- longer[Ni[i]] * stay_i[Ni[i]] / (1 - stay_i[Ni[i]]) # all r >= Ni
+    sum(longer) + tail
+  })
+}
+
+# State process of an HSMM model object for summary(), like summary.LaMaModel() does for HMMs:
+# - homogeneous or track-specific: omega, stationary distribution and mean dwell times, averaged over tracks
+# - periodic: stationary distribution averaged over the cycle
+# - inhomogeneous: nothing
+hsmm_summary <- function(mod, states){
+  N <- length(states)
+  state <- rep(1:N, mod$Ni) # aggregate of each of the M states
+  aggregate <- function(p) setNames(as.vector(rowsum(as.vector(p), state)), states)
+
+  if(mod$type %in% c("homogeneous", "track-specific")) {
+    inp <- hsmm_decoding_input(mod)
+    first <- inp$start # one transition matrix per track, from its first observation
+    omega <- stationary <- dwell <- list()
+    for(k in seq_along(first)) {
+      stay <- inp$stay[first[k], ]
+      omega[[k]] <- inp$omega[, , inp$oidx[first[k]]]
+      stationary[[k]] <- aggregate(stationary(hsmm_Gamma(stay, omega[[k]], inp$Ni)))
+      dwell[[k]] <- setNames(hsmm_mean_dwell(stay, inp$Ni), states)
+    }
+    omega <- Reduce(`+`, omega) / length(omega)
+    dimnames(omega) <- list(states, states)
+    return(list(omega = omega, stationary = Reduce(`+`, stationary) / length(first),
+                dwell = Reduce(`+`, dwell) / length(first), nTracks = length(first)))
+  }
+
+  if(mod$type == "periodic") {
+    dm <- lapply(mod$dm, function(d) if(is.null(dim(d))) matrix(d, nrow = 1) else d)
+    omega <- as.array(mod$omega)
+    if(length(dim(omega)) == 2) omega <- array(omega, c(dim(omega), 1))
+    L <- max(vapply(dm, nrow, 1L), dim(omega)[3])
+    # forward_phsmm(): omega[, , s] for the step out of time of day s
+    if(isTRUE(mod$omega_out) && dim(omega)[3] == L) omega <- omega[, , c(L, seq_len(L - 1)), drop = FALSE]
+    Gamma <- hsmm_cycle_Gammas(dm, omega, mod$Ni, L, mod$eps)
+    return(list(occupancy = aggregate(colMeans(stationary_p(Gamma)))))
+  }
+  list()
 }

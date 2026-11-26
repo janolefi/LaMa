@@ -1045,6 +1045,75 @@ test_that("pseudo_res() for HSMMs, also from the model object alone", {
   }
 })
 
+test_that("hsmm_mean_dwell: mean of the dwell times of the approximating chain", {
+  # all mass within the aggregate: mean of dm
+  expect_equal(hsmm_mean_dwell(hsmm_stay(c(0.2, 0.5, 0.3)), 3), 2.1, tolerance = 1e-8)
+  # size 1: geometric
+  expect_equal(hsmm_mean_dwell(0.75, 1), 4)
+  # geometric tail beyond the aggregate: sum of Pr(D > r), with the last stay probability repeated
+  stay <- lapply(dm_hom, function(d) 1 - ref_hazard(d))
+  ref <- sapply(stay, function(s) sum(cumprod(c(1, s, rep(s[length(s)], 3000)))[1:3000]))
+  expect_equal(hsmm_mean_dwell(unlist(stay), Ni_test), ref, tolerance = 1e-8)
+})
+
+test_that("summary() of HSMMs: omega, stationary distribution and mean dwell times", {
+  omega <- tpm_emb(c(0.3, -0.2, 0.1))
+  states <- c("S1", "S2", "S3")
+  aggregate <- function(p) setNames(as.vector(rowsum(as.vector(p), state_test)), states)
+
+  # homogeneous: the stationary start is the stationary distribution
+  mod <- hsmm_model()
+  s <- summary(mod)
+  expect_equal(s$omega, omega, ignore_attr = TRUE)
+  expect_equal(s$stationary, aggregate(mod$delta), tolerance = 1e-8)
+  expect_equal(s$dwell, setNames(hsmm_mean_dwell(prepare_hsmm(dm_hom, omega, ap)$stay[1, ], Ni_test), states))
+  expect_output(print(s), "Conditional transition probabilities")
+  expect_output(print(s), "Mean dwell times")
+  expect_false(any(c("omega", "eps", "omega_out") %in% c(names(s$other), s$hidden)))
+  expect_false(grepl("eps|omega_out", paste(capture.output(print(mod)), collapse = " ")))
+
+  # aggregates of size 1: an HMM, with the same summary
+  p <- c(0.2, 0.5, 0.9) # hazards
+  hmm <- lama(RTMB::MakeADFun(function(par) {
+    Gamma <- tpm_emb(par$eta) * p + diag(1 - p)
+    -forward(stationary(Gamma), Gamma, ap)
+  }, list(eta = c(0.3, -0.2, 0.1)), silent = TRUE))
+  s1 <- summary(hsmm_model(dm = as.list(p)))
+  s2 <- summary(hmm)
+  expect_equal(s1$stationary, s2$stationary, tolerance = 1e-8)
+  expect_equal(s1$dwell, s2$dwell, tolerance = 1e-8)
+
+  # track-specific dm: averages over the tracks
+  dm2 <- lapply(dm_poisson(c(1, 0.5, 0.2), 0 * beta1_test, 0, Ni_test), as.vector)
+  s <- summary(hsmm_model(dm = Map(rbind, dm_hom, dm2), trackID = two_tracks))
+  s_tracks <- list(summary(hsmm_model(dm = dm_hom)), summary(hsmm_model(dm = dm2)))
+  expect_equal(s$stationary, (s_tracks[[1]]$stationary + s_tracks[[2]]$stationary) / 2)
+  expect_equal(s$dwell, (s_tracks[[1]]$dwell + s_tracks[[2]]$dwell) / 2)
+  expect_output(print(s), "average over 2 tracks")
+  # track-specific omega
+  omega2 <- array(c(omega, omega_test), c(3, 3, 2))
+  nll <- function(par) -forward_hsmm(dm_hom, omega2 + 0 * par$x, ap, trackID = two_tracks)
+  expect_equal(summary(lama(RTMB::MakeADFun(nll, list(x = 0), silent = TRUE)))$omega, (omega + omega_test) / 2, ignore_attr = TRUE)
+
+  # periodic: stationary distribution averaged over the cycle, the same for forward_phsmm()
+  # step out of time of day s, into s + 1 (forward_hsmm(): omega[, , s + 1])
+  out_of <- lapply(1:L_test, function(s) ref_Gamma_t(s, omega_p_test[, , s %% L_test + 1], dm_per, L_test))
+  # stationary distribution at s: of the product of the cycle, starting at s
+  occupancy <- aggregate(colMeans(t(sapply(1:L_test, function(s) {
+    ref_delta_stat(Reduce(`%*%`, out_of[c(s:L_test, seq_len(s - 1))]))
+  }))))
+  nll <- function(forward, omega) function(par) -forward(dm_per, omega + 0 * par$x, ap, tod = tod_test)
+  fit <- function(...) suppressMessages(lama(RTMB::MakeADFun(nll(...), list(x = 0), silent = TRUE)))
+  expect_equal(summary(fit(forward_hsmm, omega_p_test))$occupancy, occupancy, tolerance = 1e-6)
+  expect_equal(summary(fit(forward_phsmm, omega_p_test[, , c(2:L_test, 1)]))$occupancy, occupancy, tolerance = 1e-6)
+
+  # time-varying dm: no state process shown
+  s <- summary(hsmm_model(dm = dm_inhom))
+  expect_null(s$omega)
+  expect_null(s$stationary)
+  expect_output(print(s), "semi-Markov")
+})
+
 test_that("report_sparse does not build the matrices with AD", {
   inp <- prepare_hsmm(dm_hom, omega_test, ap)
   expect_silent(RTMB::MakeTape(function(x) { report_sparse(inp, stop("built")); x }, 1))

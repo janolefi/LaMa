@@ -40,6 +40,13 @@ vector of decoded states of length \code{nObs}
 \description{
 The Viterbi algorithm decodes the most probable state sequence of an HMM.
 }
+\details{
+For hidden semi-Markov models fitted with \code{\link{forward_hsmm}}, pass the model object as \code{mod}.
+The most probable path is then found on the approximating Markov chain, without building its transition matrices,
+and its states 1, ..., N are returned. Observations before \code{first_obs} are not used and get \code{NA}.
+With a stationary initial distribution, the time already spent in the first stay is part of the path,
+so the result can, in rare cases, differ from the most probable sequence of the N states.
+}
 \examples{
 delta = c(0.5, 0.5)
 Gamma = matrix(c(0.9, 0.1, 0.2, 0.8), nrow = 2, byrow = TRUE)

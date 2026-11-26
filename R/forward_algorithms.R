@@ -852,6 +852,8 @@ forward_ihsmm <- function(dm, omega, allprobs,
   inp <- prepare_hsmm(dm, omega_into, allprobs, trackID, delta, first_obs = startInd, eps = eps)
   if(report) {
     report_hsmm(inp, dm, omega, allprobs, trackID)
+    omega_out <- TRUE # omega[, , t] for the step out of t, needed for decoding
+    REPORT(omega_out)
     if(varying && is.null(trackID)) report_sparse(inp, tpm_ihsmm(omega, dm, eps = eps))
   }
   
@@ -924,6 +926,8 @@ forward_phsmm <- function(dm, omega, allprobs, tod,
   
   if(report) {
     report_hsmm(inp, dm, omega, allprobs, trackID, tod)
+    omega_out <- TRUE # omega[, , s] for the step out of time of day s, needed for decoding
+    REPORT(omega_out)
     if(is.matrix(dm[[1]]) && is.null(trackID)) report_sparse(inp, tpm_phsmm(omega, dm, eps = eps))
   }
   

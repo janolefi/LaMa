@@ -6,6 +6,8 @@ prepare_decoding <- function(delta, Gamma, allprobs, trackID = NULL, tod = NULL,
   # model object as first argument, e.g. viterbi(mod)
   if(is.null(mod) && is.list(delta)) mod <- delta
   if(!is.null(mod)){
+    # HSMMs from forward_hsmm() report dm and omega instead of Gamma
+    if(!is.null(mod$dm) && !is.null(mod$Ni)) return(hsmm_decoding_input(mod))
     for(x in c("delta", "Gamma", "allprobs")) {
       if(is.null(mod[[x]])) stop("Model object contains no ", x, ".")
     }
@@ -21,11 +23,13 @@ prepare_decoding <- function(delta, Gamma, allprobs, trackID = NULL, tod = NULL,
 
 # Viterbi algorithm in C++ on the output of prepare_decoding()
 run_viterbi <- function(inp){
+  if(isTRUE(inp$hsmm)) return(viterbi_hsmm(inp))
   as.integer(viterbi_cpp(inp$allprobs, inp$delta, inp$Gamma, inp$gidx - 1L, inp$start - 1L))
 }
 
 # local state probabilities in C++ on the output of prepare_decoding()
 run_stateprobs <- function(inp, forecast = FALSE){
+  if(isTRUE(inp$hsmm)) return(stateprobs_hsmm(inp, forecast))
   probs <- stateprobs_cpp(inp$allprobs, inp$delta, inp$Gamma, inp$gidx - 1L, inp$start - 1L, forecast)
   probs <- probs / rowSums(probs) # normalise rows
   colnames(probs) <- paste0("S", seq_len(ncol(probs)))
@@ -72,6 +76,13 @@ run_stateprobs <- function(inp, forecast = FALSE){
 #'
 #' @param tod 
 #' optional integer vector of length \code{nObs} with values in 1, ..., L, indexing the slices of \code{Gamma} for periodic models
+#'
+#' @details
+#' For hidden semi-Markov models fitted with \code{\link{forward_hsmm}}, pass the model object as \code{mod}.
+#' The most probable path is then found on the approximating Markov chain, without building its transition matrices,
+#' and its states 1, ..., N are returned. Observations before \code{first_obs} are not used and get \code{NA}.
+#' With a stationary initial distribution, the time already spent in the first stay is part of the path,
+#' so the result can, in rare cases, differ from the most probable sequence of the N states.
 #'
 #' @return vector of decoded states of length \code{nObs}
 #' @export
@@ -232,6 +243,12 @@ viterbi_p = function(delta, Gamma, allprobs, tod, trackID = NULL,
 #' 
 #' @param tod 
 #' optional integer vector of length \code{nObs} with values in 1, ..., L, indexing the slices of \code{Gamma} for periodic models
+#'
+#' @details
+#' For hidden semi-Markov models fitted with \code{\link{forward_hsmm}}, pass the model object as \code{mod}.
+#' The probabilities of the N states are then computed on the approximating Markov chain, without building its
+#' transition matrices, and summed over the states of each aggregate. Observations before \code{first_obs} are not used
+#' and get \code{NA}.
 #'
 #' @return matrix of conditional state probabilities of dimension \code{c(nObs, nStates)}
 #' @export

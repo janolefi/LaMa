@@ -52,6 +52,12 @@ Computes
 \deqn{\Pr(\text{State}_t = j \mid X_1, ..., X_T)}
 for a given HMM.
 }
+\details{
+For hidden semi-Markov models fitted with \code{\link{forward_hsmm}}, pass the model object as \code{mod}.
+The probabilities of the N states are then computed on the approximating Markov chain, without building its
+transition matrices, and summed over the states of each aggregate. Observations before \code{first_obs} are not used
+and get \code{NA}.
+}
 \examples{
 Gamma = tpm(c(-1,-2))
 delta = stationary(Gamma)

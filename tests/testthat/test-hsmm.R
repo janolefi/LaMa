@@ -961,6 +961,46 @@ test_that("C++ versions: aggregates of size 1, single observations and long trac
   expect_identical(viterbi_hsmm(inp), state_test[best])
 })
 
+test_that("viterbi() and stateprobs() for HSMM model objects", {
+  zp <- sin(2 * pi * 1:L_test / L_test)
+  # model with omega varying over time (covariate omega_z), other arguments for the forward function
+  fit <- function(forward, omega_z, allprobs = ap, ...) {
+    nll <- function(par) -forward(omega = tpm_emb_g(cbind(1, omega_z), par$eta, report = FALSE), allprobs = allprobs, ...)
+    par <- list(eta = cbind(c(0.3, -0.2, 0.1), c(0.1, 0.2, 0.3)))
+    suppressMessages(lama(RTMB::MakeADFun(nll, par, silent = TRUE)))
+  }
+  models <- list(
+    tracks = fit(forward_hsmm, z_test, dm = dm_inhom, trackID = two_tracks),
+    first_obs = fit(forward_hsmm, z_test, dm = dm_hom, first_obs = 4),
+    all_obs = fit(forward_hsmm, z_test, dm = dm_inhom, delta = delta_N, use_all_obs = TRUE),
+    periodic_eps = fit(forward_hsmm, zp, dm = dm_per, tod = tod_test, eps = 1e-3),
+    logspace = fit(forward_hsmm, z_test, allprobs = lp, dm = dm_inhom, logspace = TRUE),
+    ihsmm = fit(forward_ihsmm, z_test, dm = dm_inhom, startInd = 9),
+    phsmm = fit(forward_phsmm, zp, dm = dm_per, tod = tod_test),
+    phsmm_irregular = fit(forward_phsmm, zp, dm = dm_hom, tod = rep(c(2, 5), 15), trackID = two_tracks))
+  for(name in names(models)) {
+    mod <- models[[name]]
+    # the decoding input gives the log-likelihood of the model: dm, omega, delta and first_obs are right
+    inp <- hsmm_decoding_input(mod)
+    expect_equal(forward_hsmm_fast(inp), mod$llk, tolerance = 1e-10, info = name)
+
+    used <- used_obs(mod)
+    states <- viterbi(mod)
+    expect_identical(states, viterbi_hsmm(inp), info = name)
+    expect_identical(viterbi(mod = mod), states, info = name)
+    expect_identical(is.na(states), !used, info = name)
+    expect_true(all(states[used] %in% 1:3), info = name)
+    for(forecast in c(FALSE, TRUE)) {
+      probs <- stateprobs(mod, forecast = forecast)
+      expect_equal(probs, stateprobs_hsmm(inp, forecast), info = name)
+      expect_equal(dim(probs), c(30, 3), info = name)
+      expect_equal(colnames(probs), c("S1", "S2", "S3"), info = name)
+      expect_equal(rowSums(probs[used, ]), rep(1, sum(used)), info = name)
+      expect_true(all(is.na(probs[!used, ])), info = name)
+    }
+  }
+})
+
 test_that("report_sparse does not build the matrices with AD", {
   inp <- prepare_hsmm(dm_hom, omega_test, ap)
   expect_silent(RTMB::MakeTape(function(x) { report_sparse(inp, stop("built")); x }, 1))

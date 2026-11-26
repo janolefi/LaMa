@@ -201,7 +201,7 @@ prepare_hsmm <- function(dm, omega, allprobs, trackID = NULL, delta = NULL, tod 
   scaled <- scale_allprobs(allprobs, logspace)
   list(stay = stay, omega = omega, oidx = oidx, delta = delta, dm = dm, Ni = Ni,
        allprobs = scaled$allprobs, shift = scaled$shift,
-       first_obs = first_obs, start = start, end = tracks$end, trackID = tracks$trackID, type = type)
+       first_obs = first_obs, start = start, end = tracks$end, trackID = tracks$trackID, type = type, eps = eps)
 }
 
 # REPORT quantities of the forward algorithm (with these names)
@@ -211,10 +211,12 @@ report_hsmm <- function(inp, dm, omega, allprobs, trackID = NULL, tod = NULL){
   Ni <- inp$Ni
   type <- inp$type
   first_obs <- inp$first_obs
+  eps <- inp$eps
   REPORT(delta)
   REPORT(Ni)
   REPORT(type)
   REPORT(first_obs)
+  REPORT(eps)
   REPORT(dm)
   REPORT(omega)
   REPORT(allprobs)
@@ -409,4 +411,22 @@ stateprobs_hsmm <- function(inp, forecast = FALSE){
 # most probable state sequence, NA for observations before first_obs
 viterbi_hsmm <- function(inp){
   do.call(viterbi_hsmm_cpp, hsmm_cpp_args(inp))
+}
+
+# Input of the C++ decoding functions for a model object of forward_hsmm(), see prepare_decoding()
+# stay and omega are built again from the reported dm and omega, delta is the reported one (M states)
+hsmm_decoding_input <- function(mod){
+  N <- ncol(mod$allprobs)
+  first_obs <- mod$first_obs
+  # any given delta: it is replaced below, so the stationary one is not needed
+  inp <- prepare_hsmm(mod$dm, mod$omega, mod$allprobs, mod$trackID, delta = rep(1 / N, N), tod = mod$tod,
+                      use_all_obs = (first_obs == 1), first_obs = if(first_obs > 1) first_obs, eps = mod$eps)
+  inp$delta <- mod$delta
+  # forward_ihsmm() and forward_phsmm() report omega[, , t] for the step out of t:
+  # the step into t uses the slice of the observation before
+  if(isTRUE(mod$omega_out)) {
+    inp$oidx <- c(1, inp$oidx[-length(inp$oidx)])
+  }
+  inp$hsmm <- TRUE
+  inp
 }

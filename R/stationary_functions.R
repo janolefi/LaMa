@@ -247,109 +247,50 @@ stationary_cont <- function(Q){
 
 #' Sparse version of \code{\link{stationary}}
 #'
-#' @description
-#' This function computes the stationary distribution of a Markov chain with a given \strong{sparse} transition probability matrix.
-#' Compatible with automatic differentiation by \code{RTMB}
-#
+#' \strong{Deprecated:} please use \code{\link{stationary}} instead, which gives the same result.
+#'
 #' @param Gamma sparse transition probability matrix of dimension \code{c(nStates, nStates)}
 #'
 #' @return stationary distribution of the Markov chain with the given transition probability matrix
 #' @export
-#' @import RTMB
 #'
 #' @examples
-#' ## HSMM example (here the approximating tpm is sparse)
-#' # building the t.p.m. of the embedded Markov chain
-#' omega = matrix(c(0,1,1,0), nrow = 2, byrow = TRUE)
-#' # defining state aggregate sizes
-#' sizes = c(20, 30)
-#' # defining state dwell-time distributions
-#' lambda = c(5, 11)
-#' dm = list(dpois(1:sizes[1]-1, lambda[1]), dpois(1:sizes[2]-1, lambda[2]))
-#' # calculating extended-state-space t.p.m.
-#' Gamma = tpm_hsmm(omega, dm)
+#' Gamma = tpm_hsmm(tpm_switch(), list(dpois(0:19, 5), dpois(0:29, 11)))
 #' delta = stationary_sparse(Gamma)
-stationary_sparse = function(Gamma) 
-{
-  "[<-" <- ADoverload("[<-")
-  "c" <- ADoverload("c")
-  "diag<-" <- ADoverload("diag<-")
-  N = dim(Gamma)[1]
-  
-  if(methods::is(Gamma, "sparseMatrix")) {
-    Gamma = as.matrix(Gamma)
-  }
-  delta = Matrix::solve(t(diag(N) - Gamma + 1), rep(1, N))
-  
-  delta
+stationary_sparse = function(Gamma){
+  deprecated("stationary_sparse() is deprecated, please use stationary() instead.")
+  if(methods::is(Gamma, "sparseMatrix")) Gamma <- as.matrix(Gamma)
+  stationary(Gamma)
 }
 
 #' Sparse version of \code{\link{stationary_p}}
 #'
-#' @description
-#' This function computes the periodically stationary distribution of a Markov chain given a list of L \strong{sparse} transition probability matrices.
-#' Compatible with automatic differentiation by \code{RTMB}
-#' 
+#' \strong{Deprecated:} please use \code{\link{stationary_p}} with an array of transition probability matrices instead,
+#' which gives the same result.
+#'
 #' @param Gamma list of length L containing sparse transition probability matrices for one cycle.
 #' @param t integer index of the time point in the cycle, for which to calculate the stationary distribution
 #' If t is not provided, the function calculates all stationary distributions for each time point in the cycle.
 #'
 #' @return either the periodically stationary distribution at time t or all periodically stationary distributions.
 #' @export
-#' @import RTMB
 #'
 #' @examples
-#' ## periodic HSMM example (here the approximating tpm is sparse)
-#' N = 2 # number of states
-#' L = 24 # cycle length
-#' # time-varying mean dwell times
-#' Z = cosinor(1:L, period = L) # trigonometric basis functions design matrix
-#' beta = matrix(c(2, 2, 0.1, -0.1, -0.2, 0.2), nrow = 2)
-#' Lambda = exp(cbind(1, Z) %*% t(beta))
-#' sizes = c(20, 20) # approximating chain with 40 states
-#' # state dwell-time distributions
-#' dm = lapply(1:N, function(i) sapply(1:sizes[i]-1, dpois, lambda = Lambda[,i]))
-#' omega = matrix(c(0,1,1,0), nrow = N, byrow = TRUE) # embedded t.p.m.
-#' 
-#' # calculating extended-state-space t.p.m.s
-#' Gamma = tpm_phsmm(omega, dm)
-#' # Periodically stationary distribution for specific time point
-#' delta = stationary_p_sparse(Gamma, 4)
-#'
-#' # All periodically stationary distributions
+#' Lambda = exp(cbind(2, 0.3 * sin(2 * pi * 1:24 / 24)))
+#' dm = lapply(1:2, function(i) sapply(0:19, dpois, lambda = Lambda[, i]))
+#' Gamma = tpm_phsmm(tpm_switch(), dm)
 #' Delta = stationary_p_sparse(Gamma)
 stationary_p_sparse = function(Gamma, t = NULL){
-  # overloading assignment operators, currently necessary
   "[<-" <- ADoverload("[<-")
-  "c" <- ADoverload("c")
-  "diag<-" <- ADoverload("diag<-")
-  
-  L = length(Gamma) # cycle length
-  N = dim(Gamma[[1]])[1] # tpm dimension
-  
-  if(is.null(t)) {
-    Delta = matrix(NaN, nrow = L, ncol = N)
-    
-    GammaT = Gamma[[1]]
-    for(k in 2:L) GammaT = GammaT %*% Gamma[[k]]
-    
-    Delta[1,] = stationary_sparse(GammaT)
-    
-    for(t in 2:L){
-      Delta[t,] = as.numeric(Delta[t-1,, drop = FALSE] %*% Gamma[[t-1]])
-    }
-    return(Delta)
-  } else{
-    GammaT = Gamma[[t]]
-    if(t < L){
-      for(k in (t+1):L) GammaT = GammaT %*% Gamma[[k]]
-      if(t > 1){
-        for(k in 1:(t-1)) GammaT = GammaT %*% Gamma[[k]]
-      }
-    } else if(t == L){
-      for(k in 1:(L-1)) GammaT = GammaT %*% Gamma[[k]]
-    }
-    delta = stationary_sparse(GammaT)
-    return(delta)
+  deprecated("stationary_p_sparse() is deprecated, please use stationary_p() with an array of transition probability matrices instead.")
+  # array of the L matrices
+  N <- nrow(Gamma[[1]])
+  L <- length(Gamma)
+  Gamma_array <- array(0, dim = c(N, N, L))
+  for(k in 1:L) {
+    G <- Gamma[[k]]
+    if(methods::is(G, "sparseMatrix")) G <- as.matrix(G)
+    Gamma_array[, , k] <- G
   }
+  stationary_p(Gamma_array, t)
 }

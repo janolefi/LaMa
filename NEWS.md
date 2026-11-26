@@ -25,6 +25,10 @@
 * `pseudo_res(mod)`, `scores()`, `vcov(mod, type = )`, `TIC()`, `plot(mod, type = "statedens")` 
   and `statedens()` work for HSMMs, `summary()` shows `omega`, the stationary distribution and the 
   mean dwell times (or, for periodic models, the long-run proportion of time in each state)
+* `simulate(mod)` and `simulate(mod, random = TRUE)` work for HSMMs: they simulate the approximating 
+  chain, whose likelihood is the one maximised. As `dm` is only given up to the aggregate sizes, the 
+  dwell times have a geometric tail beyond them, so a message says that the simulated dwell times are 
+  approximate if more than 1% of a dwell-time distribution lies beyond its aggregate size
 * `tpm_switch(beta, Z = NULL, byrow = FALSE)` builds `omega` from unconstrained parameters, with one 
   matrix per row of a design matrix `Z`, as `tpm()` does for HMMs. It replaces `tpm_emb()` and 
   `tpm_emb_g()`, which are deprecated; `tpm_switch(beta)` gives the same matrix as `tpm_emb(beta)`, 

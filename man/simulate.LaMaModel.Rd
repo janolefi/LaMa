@@ -51,6 +51,12 @@ and call \code{\link{lama}} on the resulting object.
 The states are drawn as in the decoding functions, so that all types of \code{Gamma} that \code{\link{forward}} accepts
 (homogeneous, track-specific, time-varying, periodic) work, as does a continuous-time model with one transition matrix
 per time interval (the simulation is then conditional on the observed time points).
+
+For hidden semi-Markov models from \code{\link{forward_hsmm}}, the approximating Markov chain is simulated, whose likelihood
+is the one that was maximised. Its dwell times follow \code{dm} up to the aggregate sizes and have a geometric tail beyond,
+as \code{dm} does not determine the dwell-time distributions there. If more than 1\% of a dwell-time distribution lies
+beyond its aggregate size, a message says that the simulated dwell times are approximate and suggests larger aggregates. Observations before \code{first_obs} are not used by the
+model, so their states and data are \code{NA}.
 Each data stream is drawn from the random number generator belonging to its density, e.g. \code{rgamma2} for \code{dgamma2}.
 
 Missing observations of the data stay missing (unless \code{fill_na = TRUE}), except for a stream that is missing completely: such a placeholder

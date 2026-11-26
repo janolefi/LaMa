@@ -153,7 +153,7 @@ for(j in 1:3){
 }
 ```
 
-The model object can be used as for HMMs: `viterbi(mod)` and `stateprobs(mod)` decode the states (computed on the approximating chain, but returned for the $N$ states of the HSMM), `plot(mod, type = "statedens")` shows the state-dependent distributions and `plot(mod)` the pseudo-residuals.
+The model object can be used as for HMMs: `viterbi(mod)` and `stateprobs(mod)` decode the states (computed on the approximating chain, but returned for the $N$ states of the HSMM), `plot(mod, type = "statedens")` shows the state-dependent distributions, `plot(mod)` the pseudo-residuals, and `simulate(mod)` simulates states and observations. The latter simulates the approximating chain: as `dm` is only given up to the aggregate sizes, LaMa cannot determine the dwell-time distributions beyond them, where the chain has a geometric tail, and a message says so if more than 1% of a dwell-time distribution lies there.
 
 ```{r, decoding}
 states = viterbi(mod)
@@ -277,8 +277,6 @@ legend("topright", col = color, lwd = 2, pch = 19, legend = paste("state", 1:3),
 - **several tracks**: `trackID`, as for `forward()`, with `dm` (matrices with one row per track) and `omega` (array with one slice per track) optionally differing between tracks,
 - **dwell times depending on arbitrary covariates**: each element of `dm` a matrix with one row per observation, row $t$ for a stay that begins at time $t$. The dwell time of the earliest stays depends on the dwell-time distributions before the first observation, so by default the first $\max(N_i) - 1$ observations of each track only serve to start the forward algorithm (see the argument `first_obs`),
 - **conditional transition probabilities depending on covariates**: `tpm_switch(beta, Z)` returns an array with one matrix per row of the design matrix `Z`, as `tpm()` does for HMMs.
-
-Simulation from fitted HSMMs via `simulate()` is not available yet.
 
 
 ## References

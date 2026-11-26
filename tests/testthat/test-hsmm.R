@@ -1201,9 +1201,109 @@ test_that("statedens() with HSMMs: streams, plot, residuals and no simulation", 
   # residuals from the model object alone
   r <- suppressMessages(pseudo_res(mod, randomise = FALSE))
   expect_equal(r$step, pseudo_res(dat$step, "gamma2", list(mean = exp(par$log_mu), sd = 1), mod = mod))
-  # no simulation
-  expect_error(simulate(mod), "not available for HSMMs")
-  expect_error(simulate(mod, random = TRUE), "not available for HSMMs")
+  # simulation: NA before first_obs, data where the state is known and the data observed
+  expect_message(sim <- simulate(mod, seed = 1), "cannot determine")
+  expect_identical(is.na(sim$state), !used)
+  expect_identical(is.na(sim$step), !used | is.na(dat$step))
+  expect_true(all(sim$count[used] >= 0))
+  expect_identical(suppressMessages(simulate(mod, seed = 1)), sim)
+  expect_message(sim <- simulate(mod, random = TRUE, seed = 1), "cannot determine")
+  expect_identical(is.na(sim$state), !used)
+})
+
+test_that("simulate() for HSMMs: dwell times as in dm, switches as in omega", {
+  set.seed(1)
+  n <- 30000
+  Z <- sim_states_hsmm(prepare_hsmm(dm_hom, omega_test, matrix(1, n, 3)))
+  runs <- rle(Z)
+  complete <- seq_along(runs$values)[-c(1, length(runs$values))] # stays within the series
+  len <- runs$lengths[complete]
+  val <- runs$values[complete]
+  for(i in 1:3) {
+    r <- 1:(Ni_test[i] - 1)
+    freq <- sapply(r, function(k) mean(len[val == i] == k))
+    se <- sqrt(dm_hom[[i]][r] * (1 - dm_hom[[i]][r]) / sum(val == i))
+    expect_true(all(abs(freq - dm_hom[[i]][r]) < 4 * se + 1e-3))
+  }
+  # switches from one stay to the next
+  switches <- table(factor(runs$values[-length(runs$values)], 1:3), factor(runs$values[-1], 1:3))
+  expect_true(all(abs(prop.table(switches, 1) - omega_test) < 0.03))
+})
+
+test_that("simulate() for HSMMs: periodic dwell times by the time of day at the beginning of a stay", {
+  set.seed(2)
+  n <- 60000
+  tod <- rep_len(1:L_test, n)
+  dm <- dm_poisson(beta0_test, c(1.5, -1.5, 1.5), sin(2 * pi * 1:L_test / L_test), Ni_test)
+  Z <- sim_states_hsmm(prepare_hsmm(dm, omega_test, matrix(1, n, 3), tod = tod))
+  runs <- rle(Z)
+  begin <- cumsum(c(1, runs$lengths))[seq_along(runs$lengths)] # first observation of each stay
+  complete <- seq_along(runs$values)[-c(1, length(runs$values))]
+  # frequencies of dwell times 1 to 3 against the rows of dm, shifted by 0 to L - 1
+  error <- sapply(0:(L_test - 1), function(shift) {
+    e <- 0
+    for(i in 1:3) for(s in 1:L_test) {
+      stays <- complete[runs$values[complete] == i & tod[begin[complete]] == s]
+      freq <- sapply(1:3, function(k) mean(runs$lengths[stays] == k))
+      e <- e + sum((freq - dm[[i]][(s - 1 + shift) %% L_test + 1, 1:3])^2)
+    }
+    e
+  })
+  expect_equal(which.min(error), 1) # no shift
+})
+
+test_that("simulate() for HSMMs: periodic omega for stays beginning at each time of day", {
+  set.seed(3)
+  n <- 60000
+  tod <- rep_len(1:L_test, n)
+  omega <- tpm_switch(cbind(c(0.5, -0.5, 0.5), c(2, -2, 2)), sin(2 * pi * 1:L_test / L_test))
+  Z <- sim_states_hsmm(prepare_hsmm(dm_hom, omega, matrix(1, n, 3), tod = tod))
+  runs <- rle(Z)
+  begin <- cumsum(c(1, runs$lengths))[-1][-length(runs$lengths)] # first observation of each new stay
+  from <- runs$values[-length(runs$values)]
+  to <- runs$values[-1]
+  # switch frequencies against omega of the time of day, shifted by 0 to L - 1
+  error <- sapply(0:(L_test - 1), function(shift) {
+    e <- 0
+    for(s in 1:L_test) {
+      at_s <- tod[begin] == s
+      freq <- prop.table(table(factor(from[at_s], 1:3), factor(to[at_s], 1:3)), 1)
+      e <- e + sum((freq - omega[, , (s - 1 + shift) %% L_test + 1])^2)
+    }
+    e
+  })
+  expect_equal(which.min(error), 1) # no shift
+})
+
+test_that("simulate() for HSMMs: initial distribution", {
+  set.seed(4)
+  n <- 6000
+  starts <- matrix(1, n, 3)
+  # given delta: fresh stays in the lowest states
+  Z <- sim_states_hsmm(prepare_hsmm(dm_hom, omega_test, starts, trackID = 1:n, delta = delta_N))
+  expect_true(all(abs(prop.table(table(Z)) - delta_N) < 0.03))
+  # stationary
+  inp <- prepare_hsmm(dm_hom, omega_test, starts, trackID = 1:n)
+  stat <- as.vector(rowsum(inp$delta[1, ], state_test))
+  Z <- sim_states_hsmm(inp)
+  expect_true(all(abs(prop.table(table(Z)) - stat) < 0.03))
+  expect_true(max(abs(stat - delta_N)) > 0.1) # the two can be told apart
+  # one delta per track
+  delta <- rbind(c(0.8, 0.1, 0.1), c(0.1, 0.1, 0.8))[rep(1:2, n / 2), ]
+  Z <- sim_states_hsmm(prepare_hsmm(dm_hom, omega_test, starts, trackID = 1:n, delta = delta))
+  odd <- seq(1, n, by = 2)
+  expect_true(all(abs(prop.table(table(Z[odd])) - delta[1, ]) < 0.03))
+  expect_true(all(abs(prop.table(table(Z[-odd])) - delta[2, ]) < 0.03))
+})
+
+test_that("simulate() for HSMMs: NA before first_obs in each track, message for long tails", {
+  Z <- sim_states_hsmm(prepare_hsmm(dm_inhom, omega_test, ap, trackID = two_tracks))
+  first <- max(Ni_test)
+  used <- c(first:12, (12 + first):30)
+  expect_identical(which(!is.na(Z)), used)
+  expect_silent(dwell_tail_message(list(c(0.5, 0.5), c(0.2, 0.8)), c(2, 2)))
+  expect_message(dwell_tail_message(list(c(0.5, 0.5), c(0.2, 0.7)), c(2, 2)), "10% of the stays in state 2")
+  expect_message(dwell_tail_message(dm_inhom, Ni_test), "Consider larger aggregate sizes")
 })
 
 test_that("report_sparse does not build the matrices with AD", {

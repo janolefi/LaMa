@@ -490,3 +490,20 @@ hsmm_summary <- function(mod, states){
   }
   list()
 }
+
+# Message if more than 1% of a dwell-time distribution lies beyond its aggregate size (for simulate()):
+# dm is only given up to the aggregate sizes, beyond them the approximating chain has a geometric tail
+# dm: as reported (vectors, or matrices with one row per track, observation or time of day)
+dwell_tail_message <- function(dm, Ni){
+  beyond <- vapply(dm, function(d) {
+    if(is.null(dim(d))) d <- matrix(d, nrow = 1)
+    max(1 - rowSums(d)) # largest share of stays longer than Ni
+  }, 1)
+  large <- which(beyond > 0.01)
+  if(length(large) == 0) return(invisible())
+  message("The dwell-time distributions are only given up to the aggregate sizes, so LaMa cannot determine them beyond: ",
+          "there, the dwell times have a geometric tail, as in the likelihood, so the simulated dwell times are approximate. ",
+          "Up to ", paste0(signif(100 * beyond[large], 2), "% of the stays in state ", large, collapse = ", "),
+          " last longer than the aggregate size (Ni = ", paste(Ni[large], collapse = ", "), "). ",
+          "Consider larger aggregate sizes.")
+}

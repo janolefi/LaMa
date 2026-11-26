@@ -11,6 +11,69 @@ expect_close <- function(object, expected, tolerance = tol) {
 
 # ---- approximating transition matrix ----
 
+test_that("tpm_switch: values as tpm_emb() in LaMa <= 3.2.0, rows and diagonal", {
+  # from tpm_emb() of LaMa 3.2.0, column by column
+  expect_equal(as.vector(tpm_switch(c(0.3, -0.2, 0.1))),
+               c(0, 0.549833997312478, 0.47502081252106, 0.425557483188341, 0, 0.52497918747894, 0.574442516811659,
+                 0.450166002687522, 0))
+  expect_equal(as.vector(tpm_switch(c(0.5, -1, 0.2, 0, 0.3, -0.4, 1, -0.1))),
+               c(0, 0.490629109798417, 0.202442075493815, 0.344253345743573, 0.250088776621705, 0, 0.247263309375815,
+                 0.344253345743573, 0.412326685579578, 0.180492362735084, 0, 0.311493308512855, 0.337584537798716, 0.3288785274665,
+                 0.550294615130371, 0))
+  expect_equal(tpm_switch(), matrix(c(0, 1, 1, 0), 2, dimnames = list(c("S1", "S2"), c("S1", "S2"))))
+  # row i: reference first, then parameters i, i + N, ...
+  omega <- tpm_switch(c(0.5, -1, 0.2, 0, 0.3, -0.4, 1, -0.1))
+  expect_equal(omega[2, c(1, 3, 4)], c(1, exp(-1), exp(-0.4)) / sum(c(1, exp(-1), exp(-0.4))), ignore_attr = TRUE)
+  expect_equal(unname(rowSums(omega)), rep(1, 4))
+  expect_equal(unname(diag(omega)), rep(0, 4))
+  expect_error(tpm_switch(1:4), "nStates \\* \\(nStates - 2\\)")
+})
+
+test_that("tpm_switch: byrow", {
+  p <- c(0.5, -1, 0.2, 0, 0.3, -0.4, 1, -0.1)
+  omega <- tpm_switch(p, byrow = TRUE)
+  # row 2: reference first, then parameters 3 and 4
+  expect_equal(omega[2, c(1, 3, 4)], c(1, exp(0.2), exp(0)) / sum(c(1, exp(0.2), exp(0))), ignore_attr = TRUE)
+  # the same as filling by column with the parameters rearranged
+  expect_equal(omega, tpm_switch(as.vector(t(matrix(p, 2, 4)))))
+  expect_equal(tpm_switch(c(0.3, -0.2, 0.1), byrow = TRUE), tpm_switch(c(0.3, -0.2, 0.1))) # one parameter per row
+  # rows of beta with a design matrix
+  z <- c(-1, 0.5, 2)
+  beta <- cbind(p, rev(p))
+  omega <- tpm_switch(beta, z, byrow = TRUE)
+  for(t in 1:3) expect_equal(omega[, , t], tpm_switch(as.vector(beta %*% c(1, z[t])), byrow = TRUE))
+})
+
+test_that("tpm_switch: design matrix", {
+  z <- c(-1, 0.5, 2)
+  beta <- cbind(c(0.3, -0.2, 0.1), c(0.4, -0.5, 0.2))
+  omega <- tpm_switch(beta, cbind(1, z))
+  expect_equal(dim(omega), c(3, 3, 3))
+  for(t in 1:3) expect_equal(omega[, , t], tpm_switch(as.vector(beta %*% c(1, z[t]))))
+  expect_equal(tpm_switch(beta, z), omega) # intercept added
+  expect_equal(tpm_switch(NULL, cbind(1, z)), array(tpm_switch(), c(2, 2, 3)), ignore_attr = TRUE) # 2 states
+  expect_error(tpm_switch(c(0.3, -0.2, 0.1), z), "must be a matrix")
+  expect_error(tpm_switch(beta, cbind(1, z, z)), "do not match")
+  # beta is reported, unless report = FALSE
+  rep <- RTMB::MakeADFun(function(par) sum(tpm_switch(par$beta, z)), list(beta = beta), silent = TRUE)$report()
+  expect_equal(rep$beta, beta)
+  rep <- RTMB::MakeADFun(function(par) sum(tpm_switch(par$beta, z, report = FALSE)), list(beta = beta), silent = TRUE)$report()
+  expect_null(rep$beta)
+})
+
+test_that("tpm_switch: gradients with AD", {
+  z <- c(-1, 0.5, 2)
+  f <- function(p) sum(tpm_switch(p[1:8]) * 1:16) + sum(tpm_switch(matrix(p[9:14], 3), z) * 1:27)
+  p <- c(0.5, -1, 0.2, 0, 0.3, -0.4, 1, -0.1, 0.3, -0.2, 0.1, 0.4, -0.5, 0.2)
+  obj <- RTMB::MakeADFun(function(par) f(par$p), list(p = p), silent = TRUE)
+  expect_equal(obj$fn(p), f(p))
+  numeric_grad <- sapply(seq_along(p), function(j) {
+    e <- replace(0 * p, j, 1e-5)
+    (f(p + e) - f(p - e)) / 2e-5
+  })
+  expect_equal(as.vector(obj$gr(p)), numeric_grad, tolerance = 1e-6)
+})
+
 test_that("tpm_hsmm matches eqs. (1)-(3)", {
   for(Ni in list(c(7, 5, 4), c(1, 5, 2), c(1, 1, 1))) {
     dm <- lapply(dm_poisson(beta0_test, 0 * beta1_test, 0, Ni), as.vector)
@@ -149,7 +212,7 @@ test_that("check_omega stops for non-zero diagonals", {
   # while taping: constant omega is checked, AD omega is not
   wrong <- omega_test; wrong[2, 2] <- 0.1
   expect_error(RTMB::MakeTape(function(x) { check_omega(wrong); x }, 1), "diagonal")
-  expect_silent(RTMB::MakeTape(function(x) { check_omega(tpm_emb(x)); sum(x) }, c(0.3, -0.2, 0.1)))
+  expect_silent(RTMB::MakeTape(function(x) { check_omega(tpm_switch(x)); sum(x) }, c(0.3, -0.2, 0.1)))
 })
 
 test_that("hsmm_step and hsmm_Gamma return plain numbers without AD", {
@@ -165,7 +228,7 @@ test_that("hsmm_step and hsmm_Gamma with AD and constant inputs", {
   f <- function(par, ad_phi, ad_stay, ad_omega) {
     phi_par <- if(ad_phi) phi * exp(par[1]) else phi
     stay <- if(ad_stay) stay_const * exp(-exp(par[2])) else stay_const
-    omega <- if(ad_omega) tpm_emb(par[3:5]) else omega_test
+    omega <- if(ad_omega) tpm_switch(par[3:5]) else omega_test
     weight <- cos(1:16)
     c(sum(weight * hsmm_step(phi_par, stay, omega, Ni_test)),
       sum(as.vector(phi_par) * as.vector(hsmm_Gamma(stay, omega, Ni_test) %*% weight)))
@@ -370,7 +433,7 @@ test_that("prepare_hsmm works with AD, also if only some inputs are AD", {
     "c" <- ADoverload("c")
     dm <- if(ad_dm) dm_poisson(par[1:3], par[4:6], z_test, Ni_test) else dm_inhom
     if(ad_dm) dm[[2]] <- dm_hom[[2]] # constant in one state
-    omega <- if(ad_omega) tpm_emb(par[7:9]) else omega_test
+    omega <- if(ad_omega) tpm_switch(par[7:9]) else omega_test
     delta <- if(ad_delta) c(exp(par[10:11]), 1) / (1 + sum(exp(par[10:11])))
     total(prepare_hsmm(dm, omega, ap, delta = delta))
   }
@@ -503,10 +566,10 @@ test_that("forward_hsmm_ad: periodic dm and omega", {
 test_that("forward_hsmm_ad agrees with forward() on the extended chain, value and gradient", {
   par <- c(beta0_test, beta1_test, 0.3, -0.2, 0.1)
   f_new <- function(par) {
-    new_forward(dm_poisson(par[1:3], par[4:6], z_test, Ni_test), tpm_emb(par[7:9]), ap, trackID = two_tracks)
+    new_forward(dm_poisson(par[1:3], par[4:6], z_test, Ni_test), tpm_switch(par[7:9]), ap, trackID = two_tracks)
   }
   f_dense <- function(par) {
-    inp <- prepare_hsmm(dm_poisson(par[1:3], par[4:6], z_test, Ni_test), tpm_emb(par[7:9]), ap, two_tracks)
+    inp <- prepare_hsmm(dm_poisson(par[1:3], par[4:6], z_test, Ni_test), tpm_switch(par[7:9]), ap, two_tracks)
     used <- unlist(Map(seq, inp$start, inp$end))
     Gamma <- hsmm_Gammas(inp$stay[used, ], inp$omega[, , inp$oidx[used]], Ni_test)
     forward(inp$delta, Gamma, ap[used, state_test], trackID = two_tracks[used], report = FALSE)
@@ -664,18 +727,18 @@ test_that("forward_hsmm: all types of models", {
 test_that("forward_hsmm: reported quantities", {
   nll <- function(par) {
     dm <- dm_poisson(par$beta0, par$beta1, z_test, Ni_test)
-    -forward_hsmm(dm, tpm_emb(par$eta), lp, trackID = two_tracks, logspace = TRUE)
+    -forward_hsmm(dm, tpm_switch(par$eta), lp, trackID = two_tracks, logspace = TRUE)
   }
   par <- list(beta0 = beta0_test, beta1 = beta1_test, eta = c(0.3, -0.2, 0.1))
   obj <- RTMB::MakeADFun(nll, par, silent = TRUE)
   rep <- obj$report()
   expect_equal(dim(rep$delta), c(2, sum(Ni_test)))
   expect_close(rep$dm[[2]], dm_inhom[[2]])
-  expect_close(rep$omega, tpm_emb(par$eta))
+  expect_close(rep$omega, tpm_switch(par$eta))
   expect_equal(rep$Ni, Ni_test)
   expect_close(rep$allprobs, ap)
   expect_equal(rep$trackID, two_tracks)
-  expect_null(RTMB::MakeADFun(function(par) -forward_hsmm(dm_hom, tpm_emb(par$eta), ap, report = FALSE), par["eta"], silent = TRUE)$report()$dm)
+  expect_null(RTMB::MakeADFun(function(par) -forward_hsmm(dm_hom, tpm_switch(par$eta), ap, report = FALSE), par["eta"], silent = TRUE)$report()$dm)
   # model object
   mod <- lama(obj)
   expect_output(print(mod), "3 states")
@@ -688,11 +751,11 @@ test_that("forward_hsmm: delta_sparse and Gamma_sparse are still reported", {
   report <- function(...) {
     nll <- function(par) {
       dm <- lapply(dm_poisson(par$beta0, 0 * par$beta0, 0, Ni_test), as.vector)
-      -forward_hsmm(dm, tpm_emb(par$eta), ap, ...)
+      -forward_hsmm(dm, tpm_switch(par$eta), ap, ...)
     }
     RTMB::MakeADFun(nll, par, silent = TRUE)$report()
   }
-  Gamma <- ref_Gamma(tpm_emb(par$eta), lapply(dm_hom, ref_hazard))
+  Gamma <- ref_Gamma(tpm_switch(par$eta), lapply(dm_hom, ref_hazard))
   rep <- report()
   expect_s4_class(rep$Gamma_sparse, "sparseMatrix")
   expect_close(as.matrix(rep$Gamma_sparse), Gamma)
@@ -716,11 +779,11 @@ test_that("forward_ihsmm: reported quantities, omega convention and message", {
   par <- list(beta0 = beta0_test, beta1 = beta1_test, eta = cbind(c(0.3, -0.2, 0.1), c(0.1, 0.2, 0.3)))
   nll <- function(par) {
     dm <- dm_poisson(par$beta0, par$beta1, z_test, Ni_test)
-    omega <- tpm_emb_g(cbind(1, z_test), par$eta, report = FALSE)
+    omega <- tpm_switch(par$eta, cbind(1, z_test), report = FALSE)
     -forward_ihsmm(dm, omega, ap, startInd = 9)
   }
   rep <- RTMB::MakeADFun(nll, par, silent = TRUE)$report()
-  omega <- tpm_emb_g(cbind(1, z_test), par$eta, report = FALSE)
+  omega <- tpm_switch(par$eta, cbind(1, z_test), report = FALSE)
   # as before: matrices from max(Ni) on, delta at startInd
   expect_equal(rep$Gamma_sparse, tpm_ihsmm(omega, dm_inhom))
   expect_close(as.matrix(rep$delta_sparse), ref_delta_stat(ref_Gamma_t(9, omega[, , 9], dm_inhom)), tolerance = 1e-6)
@@ -730,13 +793,13 @@ test_that("forward_ihsmm: reported quantities, omega convention and message", {
   expect_equal(forward_ihsmm(dm_inhom, omega, ap, report = FALSE),
                forward_hsmm(dm_inhom, omega[, , c(1, 1:29)], ap, report = FALSE))
   expect_error(forward_ihsmm(dm_inhom, omega[, , 1:29], ap, report = FALSE), "number of observations")
-  expect_null(RTMB::MakeADFun(function(par) -forward_ihsmm(dm_inhom, tpm_emb(par$eta), ap, report = FALSE),
+  expect_null(RTMB::MakeADFun(function(par) -forward_ihsmm(dm_inhom, tpm_switch(par$eta), ap, report = FALSE),
                               list(eta = 1:3 / 10), silent = TRUE)$report()$Gamma_sparse)
 })
 
 # model object of an HSMM, with only omega as parameter
 hsmm_model <- function(forward = forward_hsmm, dm = dm_hom, allprobs = ap, ...) {
-  nll <- function(par) -forward(dm, tpm_emb(par$eta), allprobs, ...)
+  nll <- function(par) -forward(dm, tpm_switch(par$eta), allprobs, ...)
   lama(RTMB::MakeADFun(nll, list(eta = c(0.3, -0.2, 0.1)), silent = TRUE))
 }
 
@@ -812,7 +875,7 @@ test_that("scores, vcov and TIC for HSMMs", {
 })
 
 test_that("scores of single HSMM observations are exact", {
-  nll <- function(par) -forward_hsmm(dm_poisson(par$beta0, beta1_test, z_test, Ni_test), tpm_emb(par$eta), ap, trackID = two_tracks)
+  nll <- function(par) -forward_hsmm(dm_poisson(par$beta0, beta1_test, z_test, Ni_test), tpm_switch(par$eta), ap, trackID = two_tracks)
   par <- list(beta0 = beta0_test, eta = c(0.3, -0.2, 0.1))
   mod <- lama(RTMB::MakeADFun(nll, par, silent = TRUE))
   U <- scores(mod, unlist(par))
@@ -822,7 +885,7 @@ test_that("scores of single HSMM observations are exact", {
   starts <- c(1, 13)
   contrib <- function(p) {
     dm <- dm_poisson(p[1:3], beta1_test, z_test, Ni_test)
-    omega <- tpm_emb(p[4:6])
+    omega <- tpm_switch(p[4:6])
     into <- function(t, i) ref_Gamma_t(t - starts[i], omega, lapply(dm, function(d) d[starts[i]:30, ]))
     Delta <- t(sapply(1:2, function(i) ref_delta_stat(into(starts[i] + first, i))))
     ref_contrib(Delta, function(t, i) into(used[t], i), lp[used, state_test], two_tracks[used])
@@ -965,7 +1028,7 @@ test_that("viterbi() and stateprobs() for HSMM model objects", {
   zp <- sin(2 * pi * 1:L_test / L_test)
   # model with omega varying over time (covariate omega_z), other arguments for the forward function
   fit <- function(forward, omega_z, allprobs = ap, ...) {
-    nll <- function(par) -forward(omega = tpm_emb_g(cbind(1, omega_z), par$eta, report = FALSE), allprobs = allprobs, ...)
+    nll <- function(par) -forward(omega = tpm_switch(par$eta, cbind(1, omega_z), report = FALSE), allprobs = allprobs, ...)
     par <- list(eta = cbind(c(0.3, -0.2, 0.1), c(0.1, 0.2, 0.3)))
     suppressMessages(lama(RTMB::MakeADFun(nll, par, silent = TRUE)))
   }
@@ -1020,11 +1083,11 @@ test_that("pseudo_res() for HSMMs, also from the model object alone", {
   }
   par <- list(beta0 = beta0_test, eta = c(0.3, -0.2, 0.1))
   models <- list(
-    hsmm = function(par) -forward_hsmm(dm_poisson(par$beta0, beta1_test, z_test, Ni_test), tpm_emb(par$eta), dens(), trackID = two_tracks),
-    first_obs = function(par) -forward_hsmm(dm_poisson(par$beta0, 0 * beta1_test, 0, Ni_test), tpm_emb(par$eta), dens(), first_obs = 3),
-    logspace = function(par) -forward_hsmm(dm_poisson(par$beta0, beta1_test, z_test, Ni_test), tpm_emb(par$eta), log(dens()), logspace = TRUE),
-    ihsmm = function(par) -forward_ihsmm(dm_poisson(par$beta0, beta1_test, z_test, Ni_test), tpm_emb(par$eta), dens(), startInd = 9),
-    phsmm = function(par) -forward_phsmm(dm_poisson(par$beta0, beta1_test, sin(2 * pi * 1:L_test / L_test), Ni_test), tpm_emb(par$eta), dens(), tod_test))
+    hsmm = function(par) -forward_hsmm(dm_poisson(par$beta0, beta1_test, z_test, Ni_test), tpm_switch(par$eta), dens(), trackID = two_tracks),
+    first_obs = function(par) -forward_hsmm(dm_poisson(par$beta0, 0 * beta1_test, 0, Ni_test), tpm_switch(par$eta), dens(), first_obs = 3),
+    logspace = function(par) -forward_hsmm(dm_poisson(par$beta0, beta1_test, z_test, Ni_test), tpm_switch(par$eta), log(dens()), logspace = TRUE),
+    ihsmm = function(par) -forward_ihsmm(dm_poisson(par$beta0, beta1_test, z_test, Ni_test), tpm_switch(par$eta), dens(), startInd = 9),
+    phsmm = function(par) -forward_phsmm(dm_poisson(par$beta0, beta1_test, sin(2 * pi * 1:L_test / L_test), Ni_test), tpm_switch(par$eta), dens(), tod_test))
   for(name in names(models)) {
     mod <- suppressMessages(lama(RTMB::MakeADFun(models[[name]], par, silent = TRUE)))
     used <- used_obs(mod)
@@ -1057,7 +1120,7 @@ test_that("hsmm_mean_dwell: mean of the dwell times of the approximating chain",
 })
 
 test_that("summary() of HSMMs: omega, stationary distribution and mean dwell times", {
-  omega <- tpm_emb(c(0.3, -0.2, 0.1))
+  omega <- tpm_switch(c(0.3, -0.2, 0.1))
   states <- c("S1", "S2", "S3")
   aggregate <- function(p) setNames(as.vector(rowsum(as.vector(p), state_test)), states)
 
@@ -1075,7 +1138,7 @@ test_that("summary() of HSMMs: omega, stationary distribution and mean dwell tim
   # aggregates of size 1: an HMM, with the same summary
   p <- c(0.2, 0.5, 0.9) # hazards
   hmm <- lama(RTMB::MakeADFun(function(par) {
-    Gamma <- tpm_emb(par$eta) * p + diag(1 - p)
+    Gamma <- tpm_switch(par$eta) * p + diag(1 - p)
     -forward(stationary(Gamma), Gamma, ap)
   }, list(eta = c(0.3, -0.2, 0.1)), silent = TRUE))
   s1 <- summary(hsmm_model(dm = as.list(p)))
@@ -1228,10 +1291,10 @@ test_that("forward_phsmm: one and several tracks", {
 test_that("forward_phsmm: reported quantities, omega convention and tod", {
   par <- list(beta0 = beta0_test, beta1 = beta1_test, eta = cbind(c(0.3, -0.2, 0.1), c(0.1, 0.2, 0.3)))
   zp <- sin(2 * pi * 1:L_test / L_test)
-  omega <- tpm_emb_g(cbind(1, zp), par$eta, report = FALSE)
+  omega <- tpm_switch(par$eta, cbind(1, zp), report = FALSE)
   nll <- function(par) {
     dm <- dm_poisson(par$beta0, par$beta1, zp, Ni_test)
-    -forward_phsmm(dm, tpm_emb_g(cbind(1, zp), par$eta, report = FALSE), ap, tod_test)
+    -forward_phsmm(dm, tpm_switch(par$eta, cbind(1, zp), report = FALSE), ap, tod_test)
   }
   rep <- RTMB::MakeADFun(nll, par, silent = TRUE)$report()
   expect_equal(rep$Gamma_sparse, tpm_phsmm(omega, dm_per))

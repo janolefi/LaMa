@@ -29,7 +29,7 @@ The vector lengths or numbers of columns correspond to the approximating state a
 \item{omega}{matrix of dimension \code{c(nStates, nStates)} of conditional transition probabilities, also called embedded transition probability matrix, 
 or array with \code{nTracks}, \code{nObs} or \code{L} of such matrices as slices.
 
-Contains the transition probabilities given that the current state is left. Hence, the diagonal elements need to be zero and the rows need to sum to one. Can be constructed using \code{\link{tpm_emb}} and \code{\link{tpm_emb_g}}.}
+Contains the transition probabilities given that the current state is left. Hence, the diagonal elements need to be zero and the rows need to sum to one. Can be constructed using \code{\link{tpm_switch}}.}
 
 \item{allprobs}{matrix of state-dependent probabilities/ density values of dimension \code{c(nObs, nStates)} which will automatically be converted to the appropriate dimension.}
 

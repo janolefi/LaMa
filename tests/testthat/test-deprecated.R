@@ -1,5 +1,5 @@
 test_that("old HSMM functions are deprecated and give the same results", {
-  omega <- tpm_emb()
+  omega <- tpm_switch()
   dm <- list(dpois(0:9, 3), dpois(0:9, 5))
   G <- tpm_hsmm(omega, dm, sparse = FALSE)
   ap <- matrix(runif(40), 20, 2)
@@ -15,7 +15,7 @@ test_that("old HSMM functions are deprecated and give the same results", {
 })
 
 test_that("forward_ihsmm is deprecated and gives the same result as forward_hsmm", {
-  omega <- tpm_emb()
+  omega <- tpm_switch()
   dm <- lapply(c(3, 5), function(lambda) sapply(0:9, dpois, lambda = rep(lambda, 20)))
   ap <- matrix(runif(40), 20, 2)
   expect_message(l <- forward_ihsmm(dm, omega, ap), "deprecated")
@@ -23,7 +23,7 @@ test_that("forward_ihsmm is deprecated and gives the same result as forward_hsmm
 })
 
 test_that("forward_phsmm is deprecated and gives the same result as forward_hsmm", {
-  omega <- tpm_emb()
+  omega <- tpm_switch()
   dm <- lapply(c(3, 5), function(lambda) sapply(0:9, dpois, lambda = lambda * 1:4))
   ap <- matrix(runif(40), 20, 2)
   tod <- rep(1:4, 5)
@@ -44,4 +44,13 @@ test_that("other old functions are deprecated and give the same results", {
   expect_equal(G, tpm_ct(Q, c(1, 2), report = FALSE))
 
   expect_message(expect_error(qreml_old("not a function", list(), list(), "b")), "deprecated")
+})
+
+test_that("tpm_emb and tpm_emb_g are deprecated and give the same results as tpm_switch", {
+  expect_message(omega <- tpm_emb(c(0.3, -0.2, 0.1)), "deprecated")
+  expect_equal(omega, tpm_switch(c(0.3, -0.2, 0.1)))
+  beta <- cbind(c(0.3, -0.2, 0.1), c(0.4, -0.5, 0.2))
+  expect_message(omega <- tpm_emb_g(cbind(1, 1:5), beta), "deprecated")
+  expect_equal(omega, tpm_switch(beta, 1:5))
+  expect_equal(tpm_emb_g(rep(1, 5), beta[, 1]), tpm_switch(beta[, 1, drop = FALSE], rep(1, 5))) # vector beta: no covariates
 })

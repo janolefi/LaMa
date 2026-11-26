@@ -7,7 +7,7 @@
 tpm_hsmm(omega, dm, Fm = NULL, sparse = TRUE, eps = 1e-10)
 }
 \arguments{
-\item{omega}{embedded transition probability matrix of dimension \code{c(nStates, nStates)} as computed by \code{\link{tpm_emb}}.}
+\item{omega}{embedded transition probability matrix of dimension \code{c(nStates, nStates)} as computed by \code{\link{tpm_switch}}.}
 
 \item{dm}{state dwell-time distributions arranged in a list of length \code{nStates}. Each list element needs to be a vector of length N_i, where N_i is the state aggregate size.}
 

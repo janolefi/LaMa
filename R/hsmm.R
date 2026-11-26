@@ -47,12 +47,12 @@ hsmm_lag <- function(stay, into, L = NULL, first = 1){
 }
 
 # Checks that omega (matrix or array) has zero diagonals: states are only left, not re-entered
-# possible without AD and, while taping, for constant omega (the usual omega from tpm_emb() is AD then)
+# possible without AD and, while taping, for constant omega (the usual omega from tpm_switch() is AD then)
 check_omega <- function(omega){
   if(inherits(omega, "advector")) return(invisible())
   diagonals <- omega[slice.index(omega, 1) == slice.index(omega, 2)] # of all slices
   if(anyNA(diagonals) || any(diagonals != 0)) {
-    stop("omega must have zeros on the diagonal (conditional transition probabilities, given that the state is left), see tpm_emb().")
+    stop("omega must have zeros on the diagonal (conditional transition probabilities, given that the state is left), see tpm_switch().")
   }
 }
 

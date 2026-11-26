@@ -726,7 +726,7 @@ forward_p <- function(delta,
 #' @param omega matrix of dimension \code{c(nStates, nStates)} of conditional transition probabilities, also called embedded transition probability matrix, 
 #' or array with \code{nTracks}, \code{nObs} or \code{L} of such matrices as slices.
 #' 
-#' Contains the transition probabilities given that the current state is left. Hence, the diagonal elements need to be zero and the rows need to sum to one. Can be constructed using \code{\link{tpm_emb}} and \code{\link{tpm_emb_g}}.
+#' Contains the transition probabilities given that the current state is left. Hence, the diagonal elements need to be zero and the rows need to sum to one. Can be constructed using \code{\link{tpm_switch}}.
 #' @param allprobs matrix of state-dependent probabilities/ density values of dimension \code{c(nObs, nStates)} which will automatically be converted to the appropriate dimension.
 #' @param trackID optional vector of length \code{nObs} containing IDs
 #' 
@@ -811,7 +811,7 @@ forward_hsmm <- function(dm, omega, allprobs,
 #' In the latter case, the first \code{max(sapply(dm, ncol)) - 1} observations will not be used because the first approximating transition probability matrix needs to be computed based on the first \code{max(sapply(dm, ncol))} covariate values (represented by \code{dm}).
 #' @param omega matrix of dimension \code{c(nStates, nStates)} or array of dimension \code{c(nStates, nStates, nObs)} of conditional transition probabilities, also called embedded transition probability matrix.
 #' 
-#' It contains the transition probabilities given the current state is left. Hence, the diagonal elements need to be zero and the rows need to sum to one. Such a matrix can be constructed using \code{\link{tpm_emb}} and an array using \code{\link{tpm_emb_g}}.
+#' It contains the transition probabilities given the current state is left. Hence, the diagonal elements need to be zero and the rows need to sum to one. Such a matrix or array can be constructed using \code{\link{tpm_switch}}.
 #' @param allprobs matrix of state-dependent probabilities/ density values of dimension \code{c(nObs, nStates)}
 #' @param trackID optional vector of length \code{nObs} containing IDs
 #' 
@@ -894,7 +894,7 @@ forward_ihsmm <- function(dm, omega, allprobs,
 #' If the dwell-time PMFs are inhomogeneous, the matrices need to have L rows, where L is the cycle length. The number of columns again correspond to the size of the approximating state aggregates.
 #' @param omega matrix of dimension \code{c(nStates, nStates)} or array of dimension \code{c(nStates, nStates, L)} of conditional transition probabilities, also called embedded transition probability matrix
 #' 
-#' It contains the transition probabilities given the current state is left. Hence, the diagonal elements need to be zero and the rows need to sum to one. Such a matrix can be constructed using \code{\link{tpm_emb}} and an array using \code{\link{tpm_emb_g}}.
+#' It contains the transition probabilities given the current state is left. Hence, the diagonal elements need to be zero and the rows need to sum to one. Such a matrix or array can be constructed using \code{\link{tpm_switch}}.
 #' @param allprobs matrix of state-dependent probabilities/ density values of dimension \code{c(nObs, nStates)}
 #' @param tod (Integer valued) variable for cycle indexing in 1, ..., L, mapping the data index to a generalised time of day (length \code{nObs}).
 #' For half-hourly data L = 48. It could, however, also be day of year for daily data and L = 365.

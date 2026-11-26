@@ -26,7 +26,7 @@ In the latter case, the first \code{max(sapply(dm, ncol)) - 1} observations will
 
 \item{omega}{matrix of dimension \code{c(nStates, nStates)} or array of dimension \code{c(nStates, nStates, nObs)} of conditional transition probabilities, also called embedded transition probability matrix.
 
-It contains the transition probabilities given the current state is left. Hence, the diagonal elements need to be zero and the rows need to sum to one. Such a matrix can be constructed using \code{\link{tpm_emb}} and an array using \code{\link{tpm_emb_g}}.}
+It contains the transition probabilities given the current state is left. Hence, the diagonal elements need to be zero and the rows need to sum to one. Such a matrix or array can be constructed using \code{\link{tpm_switch}}.}
 
 \item{allprobs}{matrix of state-dependent probabilities/ density values of dimension \code{c(nObs, nStates)}}
 

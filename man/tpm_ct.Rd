@@ -75,10 +75,9 @@ Other transition probability matrix functions:
 \code{\link{generator}()},
 \code{\link{generator_g}()},
 \code{\link{tpm}()},
-\code{\link{tpm_emb}()},
-\code{\link{tpm_emb_g}()},
 \code{\link{tpm_g}()},
 \code{\link{tpm_g2}()},
-\code{\link{tpm_p}()}
+\code{\link{tpm_p}()},
+\code{\link{tpm_switch}()}
 }
 \concept{transition probability matrix functions}

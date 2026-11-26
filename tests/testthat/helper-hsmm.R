@@ -83,5 +83,5 @@ tod_test <- rep(1:L_test, length.out = 30)
 dm_per <- dm_poisson(beta0_test, beta1_test, sin(2 * pi * 1:L_test / L_test), Ni_test)
 
 # time-varying omega
-omega_t_test <- array(sapply(z_test, function(z) tpm_emb(c(0.3, -0.2, 0.1) * z)), dim = c(3, 3, 30))
+omega_t_test <- array(sapply(z_test, function(z) tpm_switch(c(0.3, -0.2, 0.1) * z)), dim = c(3, 3, 30))
 omega_p_test <- omega_t_test[, , 1:L_test]

@@ -339,7 +339,11 @@ run_forward_hsmm <- function(inp){
     w <- w[position]
   }
 
-  l <- forward_hsmm_ad(inp, w)
+  if(is.null(w) && !ad_context()) {
+    l <- forward_hsmm_fast(inp) # C++, e.g. for obj$report() or lama()
+  } else {
+    l <- forward_hsmm_ad(inp, w) # R, taped by RTMB
+  }
 
   # add back the row maxima of allprobs, if logspace (else shift is zero)
   if(length(inp$shift) == nObs) {
@@ -378,4 +382,31 @@ forward_hsmm_ad <- function(inp, w = NULL){
     }
   }
   l
+}
+
+
+# C++ versions -------------------------------------------------------------
+
+# The same inputs for all C++ functions on the output of prepare_hsmm(), see src/hsmm.cpp
+hsmm_cpp_args <- function(inp){
+  list(allprobs = inp$allprobs, Delta = inp$delta, stay = inp$stay,
+       omega = inp$omega, oidx = inp$oidx - 1L, Ni = inp$Ni,
+       start = inp$start - 1L, end = inp$end - 1L)
+}
+
+# forward algorithm in C++ (without AD), log-likelihood without the shift of logspace
+forward_hsmm_fast <- function(inp){
+  do.call(forward_hsmm_cpp, hsmm_cpp_args(inp))
+}
+
+# local state probabilities of the N states (nObs x N), NA for observations before first_obs
+stateprobs_hsmm <- function(inp, forecast = FALSE){
+  probs <- do.call(stateprobs_hsmm_cpp, c(hsmm_cpp_args(inp), forecast = forecast))
+  colnames(probs) <- paste0("S", seq_len(ncol(probs)))
+  probs
+}
+
+# most probable state sequence, NA for observations before first_obs
+viterbi_hsmm <- function(inp){
+  do.call(viterbi_hsmm_cpp, hsmm_cpp_args(inp))
 }

@@ -21,6 +21,18 @@ forward_cpp_sp <- function(allprobs, delta, Gamma, agsizes, tod) {
     .Call(`_LaMa_forward_cpp_sp`, allprobs, delta, Gamma, agsizes, tod)
 }
 
+forward_hsmm_cpp <- function(allprobs, Delta, stay, omega, oidx, Ni, start, end) {
+    .Call(`_LaMa_forward_hsmm_cpp`, allprobs, Delta, stay, omega, oidx, Ni, start, end)
+}
+
+stateprobs_hsmm_cpp <- function(allprobs, Delta, stay, omega, oidx, Ni, start, end, forecast) {
+    .Call(`_LaMa_stateprobs_hsmm_cpp`, allprobs, Delta, stay, omega, oidx, Ni, start, end, forecast)
+}
+
+viterbi_hsmm_cpp <- function(allprobs, Delta, stay, omega, oidx, Ni, start, end) {
+    .Call(`_LaMa_viterbi_hsmm_cpp`, allprobs, Delta, stay, omega, oidx, Ni, start, end)
+}
+
 rep_times <- function(x, times) {
     .Call(`_LaMa_rep_times`, x, times)
 }

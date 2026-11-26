@@ -86,6 +86,61 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// forward_hsmm_cpp
+double forward_hsmm_cpp(const arma::mat& allprobs, const arma::mat& Delta, const arma::mat& stay, const arma::cube& omega, const IntegerVector& oidx, const IntegerVector& Ni, const IntegerVector& start, const IntegerVector& end);
+RcppExport SEXP _LaMa_forward_hsmm_cpp(SEXP allprobsSEXP, SEXP DeltaSEXP, SEXP staySEXP, SEXP omegaSEXP, SEXP oidxSEXP, SEXP NiSEXP, SEXP startSEXP, SEXP endSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type allprobs(allprobsSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Delta(DeltaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type stay(staySEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type omega(omegaSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type oidx(oidxSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type Ni(NiSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type start(startSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type end(endSEXP);
+    rcpp_result_gen = Rcpp::wrap(forward_hsmm_cpp(allprobs, Delta, stay, omega, oidx, Ni, start, end));
+    return rcpp_result_gen;
+END_RCPP
+}
+// stateprobs_hsmm_cpp
+arma::mat stateprobs_hsmm_cpp(const arma::mat& allprobs, const arma::mat& Delta, const arma::mat& stay, const arma::cube& omega, const IntegerVector& oidx, const IntegerVector& Ni, const IntegerVector& start, const IntegerVector& end, bool forecast);
+RcppExport SEXP _LaMa_stateprobs_hsmm_cpp(SEXP allprobsSEXP, SEXP DeltaSEXP, SEXP staySEXP, SEXP omegaSEXP, SEXP oidxSEXP, SEXP NiSEXP, SEXP startSEXP, SEXP endSEXP, SEXP forecastSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type allprobs(allprobsSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Delta(DeltaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type stay(staySEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type omega(omegaSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type oidx(oidxSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type Ni(NiSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type start(startSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type end(endSEXP);
+    Rcpp::traits::input_parameter< bool >::type forecast(forecastSEXP);
+    rcpp_result_gen = Rcpp::wrap(stateprobs_hsmm_cpp(allprobs, Delta, stay, omega, oidx, Ni, start, end, forecast));
+    return rcpp_result_gen;
+END_RCPP
+}
+// viterbi_hsmm_cpp
+IntegerVector viterbi_hsmm_cpp(const arma::mat& allprobs, const arma::mat& Delta, const arma::mat& stay, const arma::cube& omega, const IntegerVector& oidx, const IntegerVector& Ni, const IntegerVector& start, const IntegerVector& end);
+RcppExport SEXP _LaMa_viterbi_hsmm_cpp(SEXP allprobsSEXP, SEXP DeltaSEXP, SEXP staySEXP, SEXP omegaSEXP, SEXP oidxSEXP, SEXP NiSEXP, SEXP startSEXP, SEXP endSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type allprobs(allprobsSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type Delta(DeltaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type stay(staySEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type omega(omegaSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type oidx(oidxSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type Ni(NiSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type start(startSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type end(endSEXP);
+    rcpp_result_gen = Rcpp::wrap(viterbi_hsmm_cpp(allprobs, Delta, stay, omega, oidx, Ni, start, end));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rep_times
 arma::rowvec rep_times(const arma::rowvec& x, const IntegerVector& times);
 RcppExport SEXP _LaMa_rep_times(SEXP xSEXP, SEXP timesSEXP) {
@@ -183,6 +238,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_LaMa_forward_cpp", (DL_FUNC) &_LaMa_forward_cpp, 5},
     {"_LaMa_forward_cpp_s", (DL_FUNC) &_LaMa_forward_cpp_s, 4},
     {"_LaMa_forward_cpp_sp", (DL_FUNC) &_LaMa_forward_cpp_sp, 5},
+    {"_LaMa_forward_hsmm_cpp", (DL_FUNC) &_LaMa_forward_hsmm_cpp, 8},
+    {"_LaMa_stateprobs_hsmm_cpp", (DL_FUNC) &_LaMa_stateprobs_hsmm_cpp, 9},
+    {"_LaMa_viterbi_hsmm_cpp", (DL_FUNC) &_LaMa_viterbi_hsmm_cpp, 8},
     {"_LaMa_rep_times", (DL_FUNC) &_LaMa_rep_times, 2},
     {"_LaMa_tpm_g_cpp", (DL_FUNC) &_LaMa_tpm_g_cpp, 4},
     {"_LaMa_tpm_g2_cpp", (DL_FUNC) &_LaMa_tpm_g2_cpp, 4},

@@ -834,6 +834,133 @@ test_that("scores of single HSMM observations are exact", {
   }
 })
 
+# ---- C++ versions ----
+
+# state probabilities and most probable path with full matrices, one track
+# Delta: initial distribution of the M states, Gammas[[t]]: transition matrix into observation t
+# P: state-dependent probabilities of the M states
+ref_decoding <- function(Delta, Gammas, P, forecast = FALSE) {
+  n <- nrow(P)
+  M <- ncol(P)
+  alpha <- beta <- predicted <- xi <- matrix(1, n, M)
+  from <- matrix(NA, n, M)
+  predicted[1, ] <- Delta
+  alpha[1, ] <- xi[1, ] <- Delta * P[1, ]
+  for(t in seq_len(n)[-1]) {
+    predicted[t, ] <- alpha[t - 1, ] %*% Gammas[[t]]
+    alpha[t, ] <- predicted[t, ] * P[t, ]
+    paths <- xi[t - 1, ] * Gammas[[t]] # into each state (columns)
+    from[t, ] <- apply(paths, 2, which.max)
+    xi[t, ] <- apply(paths, 2, max) * P[t, ]
+  }
+  for(t in rev(seq_len(n - 1))) beta[t, ] <- Gammas[[t + 1]] %*% (P[t + 1, ] * beta[t + 1, ])
+  path <- which.max(xi[n, ])
+  for(t in rev(seq_len(n)[-1])) path <- c(from[t, path[1]], path)
+  N_states <- function(p) unname(t(rowsum(t(p / rowSums(p)), state_test)))
+  list(llk = log(sum(alpha[n, ])), path = state_test[path], best = max(xi[n, ]),
+       probs = N_states(alpha * beta), forecast = N_states(predicted))
+}
+
+# models with the test aggregates, for the arguments of prepare_hsmm()
+hsmm_cases <- function() {
+  dm2 <- lapply(dm_poisson(c(1, 0.5, 0.2), 0 * beta1_test, 0, Ni_test), as.vector)
+  dm_track <- Map(rbind, dm_hom, dm2)
+  list(
+    homogeneous = list(dm = dm_hom, omega = omega_test),
+    given_delta = list(dm = dm_hom, omega = omega_test, delta = delta_N),
+    later_start = list(dm = dm_hom, omega = omega_test, trackID = two_tracks, first_obs = 4),
+    track_specific = list(dm = dm_track, omega = omega_test, trackID = two_tracks),
+    inhomogeneous = list(dm = dm_inhom, omega = omega_test),
+    varying_omega = list(dm = dm_inhom, omega = omega_t_test, trackID = two_tracks),
+    all_obs = list(dm = dm_inhom, omega = omega_t_test, delta = delta_N, use_all_obs = TRUE),
+    periodic = list(dm = dm_per, omega = omega_p_test, tod = tod_test),
+    periodic_tracks = list(dm = dm_per, omega = omega_p_test, tod = tod_test, trackID = two_tracks))
+}
+
+test_that("C++ forward algorithm and decoding equal those with full matrices", {
+  for(name in names(hsmm_cases())) {
+    for(seed in 1:5) {
+      set.seed(seed)
+      allprobs <- matrix(rexp(90)^2, 30, 3)
+      inp <- do.call(prepare_hsmm, c(hsmm_cases()[[name]], list(allprobs = allprobs)))
+      states <- rep(NA_integer_, 30)
+      probs <- forecast <- matrix(NA_real_, 30, 3)
+      llk <- 0
+      for(k in seq_along(inp$start)) {
+        ind <- inp$start[k]:inp$end[k]
+        # the hazards are tested against the paper above, hsmm_Gamma() as well
+        Gammas <- lapply(ind, function(t) hsmm_Gamma(inp$stay[t, ], inp$omega[, , inp$oidx[t]], inp$Ni))
+        ref <- ref_decoding(inp$delta[k, ], Gammas, allprobs[ind, state_test])
+        states[ind] <- ref$path
+        probs[ind, ] <- ref$probs
+        forecast[ind, ] <- ref$forecast
+        llk <- llk + ref$llk
+      }
+      expect_equal(forward_hsmm_fast(inp), llk, tolerance = 1e-12, info = name)
+      expect_equal(forward_hsmm_fast(inp), forward_hsmm_ad(inp), tolerance = 1e-12, info = name)
+      expect_identical(viterbi_hsmm(inp), states, info = name)
+      expect_equal(unname(stateprobs_hsmm(inp)), probs, tolerance = 1e-12, info = name)
+      expect_equal(unname(stateprobs_hsmm(inp, forecast = TRUE)), forecast, tolerance = 1e-12, info = name)
+    }
+  }
+})
+
+test_that("C++ decoding by enumeration of all state sequences", {
+  # fresh start: the N-state sequence determines the path through the M states
+  Ni <- c(3, 1, 2)
+  dm <- list(c(0.2, 0.5, 0.2), 0.4, c(0.6, 0.3))
+  n <- 7
+  sequences <- as.matrix(expand.grid(rep(list(1:3), n)))
+  for(seed in 1:5) {
+    set.seed(seed)
+    allprobs <- matrix(rexp(3 * n), n, 3)
+    inp <- prepare_hsmm(dm, omega_test, allprobs, delta = delta_N)
+    stay <- lapply(dm, function(d) 1 - ref_hazard(d))
+    lik <- apply(sequences, 1, function(s) {
+      l <- delta_N[s[1]] * allprobs[1, s[1]]
+      r <- 1 # time spent in this stay
+      for(t in 2:n) {
+        stay_prob <- stay[[s[t - 1]]][min(r, Ni[s[t - 1]])]
+        if(s[t] == s[t - 1]) {
+          l <- l * stay_prob
+          r <- r + 1
+        } else {
+          l <- l * (1 - stay_prob) * omega_test[s[t - 1], s[t]]
+          r <- 1
+        }
+        l <- l * allprobs[t, s[t]]
+      }
+      l
+    })
+    expect_equal(forward_hsmm_fast(inp), log(sum(lik)), tolerance = 1e-8)
+    expect_identical(viterbi_hsmm(inp), as.integer(sequences[which.max(lik), ]))
+    probs <- sapply(1:3, function(j) colSums(lik * (sequences == j)) / sum(lik))
+    expect_equal(unname(stateprobs_hsmm(inp)), unname(probs), tolerance = 1e-8)
+  }
+})
+
+test_that("C++ versions: aggregates of size 1, single observations and long tracks", {
+  # all aggregates of size 1: an HMM
+  dm <- list(0.2, 0.5, 0.9)
+  Gamma <- omega_test * c(0.2, 0.5, 0.9) + diag(1 - c(0.2, 0.5, 0.9))
+  set.seed(1)
+  allprobs <- matrix(rexp(3e5), 1e5, 3) / 1000 # would underflow without scaling
+  trackID <- rep(1:100, each = 1000)
+  inp <- prepare_hsmm(dm, omega_test, allprobs, trackID)
+  delta <- matrix(stationary(Gamma), 100, 3, byrow = TRUE)
+  expect_equal(forward_hsmm_fast(inp), forward(delta, Gamma, allprobs, trackID, report = FALSE), tolerance = 1e-8)
+  expect_identical(viterbi_hsmm(inp), viterbi(delta, Gamma, allprobs, trackID))
+  expect_equal(stateprobs_hsmm(inp), stateprobs(delta, Gamma, allprobs, trackID), tolerance = 1e-7)
+
+  # tracks of length one
+  inp <- prepare_hsmm(dm_hom, omega_test, ap[1:3, ], 1:3)
+  expect_equal(forward_hsmm_fast(inp), forward_hsmm_ad(inp))
+  p <- t(rowsum(t(inp$delta), state_test)) * ap[1:3, ]
+  expect_equal(unname(stateprobs_hsmm(inp)), unname(p / rowSums(p)))
+  best <- apply(inp$delta * ap[1:3, state_test], 1, which.max)
+  expect_identical(viterbi_hsmm(inp), state_test[best])
+})
+
 test_that("report_sparse does not build the matrices with AD", {
   inp <- prepare_hsmm(dm_hom, omega_test, ap)
   expect_silent(RTMB::MakeTape(function(x) { report_sparse(inp, stop("built")); x }, 1))

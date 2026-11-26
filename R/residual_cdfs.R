@@ -95,8 +95,8 @@ swapped_allprobs <- function(obj, par, dens, mode) {
   attr(parlist, "check.passed") <- NULL
   f(parlist)
   rec <- .lama_env$record
-  if(length(rec) == 0) stop("The likelihood function contains no call of forward().")
-  if(length(rec) > 1) stop("Only one call of forward() is supported, use trackID for several tracks.")
+  if(length(rec) == 0) stop("The likelihood function contains no call of forward() or forward_hsmm().")
+  if(length(rec) > 1) stop("Only one call of forward() or forward_hsmm() is supported, use trackID for several tracks.")
   list(P = as.matrix(rec[[1]]), fams = fams)
 }
 

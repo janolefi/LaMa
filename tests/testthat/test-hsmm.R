@@ -1001,6 +1001,50 @@ test_that("viterbi() and stateprobs() for HSMM model objects", {
   }
 })
 
+test_that("pseudo_res() for HSMMs, also from the model object alone", {
+  set.seed(3)
+  step <- rgamma(30, 2, 1)
+  count <- rpois(30, 2)
+  step[c(5, 20)] <- NA
+  count[c(10, 20)] <- NA
+  mu <- c(1, 2, 4)
+  lambda <- c(1, 2, 4)
+  # densities in allprobs, missing values kept at 1
+  dens <- function() {
+    allprobs <- matrix(1, 30, 3)
+    for(j in 1:3) {
+      allprobs[!is.na(step), j] <- dgamma2(step[!is.na(step)], mu[j], 1)
+      allprobs[!is.na(count), j] <- allprobs[!is.na(count), j] * dpois(count[!is.na(count)], lambda[j])
+    }
+    allprobs
+  }
+  par <- list(beta0 = beta0_test, eta = c(0.3, -0.2, 0.1))
+  models <- list(
+    hsmm = function(par) -forward_hsmm(dm_poisson(par$beta0, beta1_test, z_test, Ni_test), tpm_emb(par$eta), dens(), trackID = two_tracks),
+    first_obs = function(par) -forward_hsmm(dm_poisson(par$beta0, 0 * beta1_test, 0, Ni_test), tpm_emb(par$eta), dens(), first_obs = 3),
+    logspace = function(par) -forward_hsmm(dm_poisson(par$beta0, beta1_test, z_test, Ni_test), tpm_emb(par$eta), log(dens()), logspace = TRUE),
+    ihsmm = function(par) -forward_ihsmm(dm_poisson(par$beta0, beta1_test, z_test, Ni_test), tpm_emb(par$eta), dens(), startInd = 9),
+    phsmm = function(par) -forward_phsmm(dm_poisson(par$beta0, beta1_test, sin(2 * pi * 1:L_test / L_test), Ni_test), tpm_emb(par$eta), dens(), tod_test))
+  for(name in names(models)) {
+    mod <- suppressMessages(lama(RTMB::MakeADFun(models[[name]], par, silent = TRUE)))
+    used <- used_obs(mod)
+    fc <- stateprobs(mod, forecast = TRUE)
+    # model object alone: one set of residuals per stream, as with family and parameters given
+    res <- suppressMessages(pseudo_res(mod, randomise = FALSE))
+    expect_named(res, c("step", "count"))
+    expect_equal(res$step, pseudo_res(step, "gamma2", list(mean = mu, sd = 1), mod = mod), info = name)
+    expect_equal(res$count, suppressMessages(pseudo_res(count, "pois", list(lambda = lambda), mod = mod, randomise = FALSE)), info = name)
+    upper <- rowSums(fc * sapply(lambda, function(l) ppois(count, l)))
+    expect_equal(res$count$upper, qnorm(ifelse(used, upper, NA)), info = name)
+    # NA where not used or not observed
+    expect_identical(is.na(res$step), !used | is.na(step), info = name)
+    expect_identical(is.na(res$count$upper), !used | is.na(count), info = name)
+    # randomised: drawn only for the rows with residuals
+    expect_no_warning(r <- suppressMessages(pseudo_res(mod)))
+    expect_identical(is.na(r$count), !used | is.na(count), info = name)
+  }
+})
+
 test_that("report_sparse does not build the matrices with AD", {
   inp <- prepare_hsmm(dm_hom, omega_test, ap)
   expect_silent(RTMB::MakeTape(function(x) { report_sparse(inp, stop("built")); x }, 1))

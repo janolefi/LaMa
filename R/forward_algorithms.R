@@ -138,10 +138,7 @@ forward <- function(delta,
   }
 
   # record mode of pseudo_res(): store allprobs instead of computing the likelihood
-  if(!is.null(.lama_env$record)) {
-    .lama_env$record[[length(.lama_env$record) + 1]] <- if(logspace) exp(allprobs) else allprobs
-    return(0)
-  }
+  if(record_allprobs(allprobs, logspace)) return(0)
 
   # check inputs and bring them into the form used by the algorithm
   inp <- prepare_forward(delta, Gamma, allprobs, trackID, logspace, bw, gidx = tod)
@@ -335,6 +332,14 @@ report_forward <- function(delta, Gamma, allprobs, trackID, type){
   REPORT(allprobs)
   if(!is.null(trackID)) REPORT(trackID)
   REPORT(type)
+}
+
+# Record mode of pseudo_res(mod) (.lama_env$record not NULL): stores allprobs of this forward call
+# returns TRUE if recorded, then the forward function returns without computing the likelihood
+record_allprobs <- function(allprobs, logspace = FALSE){
+  if(is.null(.lama_env$record)) return(FALSE)
+  .lama_env$record[[length(.lama_env$record) + 1]] <- if(logspace) exp(allprobs) else allprobs
+  TRUE
 }
 
 # Weights of the log-likelihood contributions log p(x_t | x_1, ..., x_t-1), only used by scores():
@@ -769,6 +774,7 @@ forward_hsmm <- function(dm, omega, allprobs,
                          trackID = NULL, delta = NULL, eps = 1e-10, report = TRUE,
                          tod = NULL, use_all_obs = FALSE, first_obs = NULL, logspace = FALSE){
   
+  if(record_allprobs(allprobs, logspace)) return(0) # pseudo_res(mod)
   inp <- prepare_hsmm(dm, omega, allprobs, trackID, delta, tod, use_all_obs, first_obs,
                       logspace = logspace, eps = eps)
   if(report) {
@@ -849,6 +855,7 @@ forward_ihsmm <- function(dm, omega, allprobs,
   if(!is.null(startInd) && startInd < max(Ni)) stop("startInd must be at least the maximum aggregate size")
   if(!varying) startInd <- NULL
   
+  if(record_allprobs(allprobs)) return(0) # pseudo_res(mod)
   inp <- prepare_hsmm(dm, omega_into, allprobs, trackID, delta, first_obs = startInd, eps = eps)
   if(report) {
     report_hsmm(inp, dm, omega, allprobs, trackID)
@@ -920,6 +927,7 @@ forward_phsmm <- function(dm, omega, allprobs, tod,
     omega_into <- omega[, , c(L, seq_len(L - 1)), drop = FALSE]
   }
   
+  if(record_allprobs(allprobs)) return(0) # pseudo_res(mod)
   inp <- prepare_hsmm(dm, omega_into, allprobs, trackID, delta, tod, eps = eps)
   # slice of the previous time of day, also if tod does not advance by one (possible with fixed dm)
   if(periodic_omega) inp$oidx <- c(1, tod[-length(tod)] %% L + 1)

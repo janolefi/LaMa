@@ -44,6 +44,7 @@
 # pseudo-residuals from the predictive CDF at the observations (upper) and, for discrete data,
 # at the observations minus one (lower); NA where not observed
 finish_res <- function(upper, lower = NULL, observed = !is.na(upper), normal = TRUE, randomise = TRUE){
+  observed <- observed & !is.na(upper) # no state probabilities, e.g. observations not used by HSMMs
   upper[!observed] <- NA
   if(!is.null(lower)) lower[!observed] <- NA
   q <- if(normal) qnorm else identity
@@ -106,8 +107,11 @@ finish_res <- function(upper, lower = NULL, observed = !is.na(upper), normal = T
 #' \code{pseudo_res(obs, dist, par, mod = mod)} needs to be used instead.
 #' Densities in your own helper functions called by the likelihood function are found as well,
 #' and \code{\link{qreml}} models work like models from \code{\link{lama}}.
-#' The likelihood function needs to call \code{\link{forward}} once (use \code{trackID} for several tracks),
+#' The likelihood function needs to call \code{\link{forward}} or \code{\link{forward_hsmm}} once (use \code{trackID} for several tracks),
 #' and it is evaluated with the data as they are when \code{pseudo_res()} is called.
+#'
+#' For hidden semi-Markov models, observations before \code{first_obs} are not used by \code{\link{forward_hsmm}},
+#' so their pseudo-residuals are \code{NA}, with or without the model object alone.
 #'
 #' @seealso \code{\link{plot.LaMaResiduals}} for plotting pseudo-residuals.
 #' 

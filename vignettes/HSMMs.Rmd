@@ -115,7 +115,7 @@ nll = function(par, x, N, agsizes){
   for(j in 1:N){
     allprobs[ind,j] = dnorm(x[ind], mu[j], sigma[j])
   }
-  -forward_s(delta, Gamma, allprobs, agsizes)
+  -forward(delta, Gamma, allprobs[, rep(1:N, agsizes)]) # allprobs of the aggregates
 }
 ```
 
@@ -174,7 +174,7 @@ nll_muskox = function(par, step, N, agsizes){
   allprobs = matrix(1, length(step), N)
   ind = which(!is.na(step))
   for(j in 1:N) allprobs[ind,j] = dgamma2(step[ind], mu[j], sigma[j])
-  -forward_s(delta, Gamma, allprobs, agsizes)
+  -forward(delta, Gamma, allprobs[, rep(1:N, agsizes)]) # allprobs of the aggregates
 }
 ```
 

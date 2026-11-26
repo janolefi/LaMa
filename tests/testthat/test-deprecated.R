@@ -1,19 +1,3 @@
-test_that("old HSMM functions are deprecated and give the same results", {
-  omega <- tpm_switch()
-  dm <- list(dpois(0:9, 3), dpois(0:9, 5))
-  G <- tpm_hsmm(omega, dm, sparse = FALSE)
-  ap <- matrix(runif(40), 20, 2)
-  d <- stationary(G)
-  expect_message(G2 <- tpm_hsmm2(omega, dm), "deprecated")
-  expect_message(l <- forward_s(d, G, ap, c(10, 10)), "deprecated")
-  expect_equal(l, forward(d, G, ap[, rep(1:2, c(10, 10))]))
-
-  dmp <- lapply(dm, function(p) matrix(p, 4, 10, byrow = TRUE)) # same in all 4 slices of the cycle
-  expect_message(Gp <- tpm_phsmm2(omega, dmp), "deprecated")
-  expect_message(l <- forward_sp(stationary_p(Gp)[1, ], Gp, ap, c(10, 10), rep(1:4, 5)), "deprecated")
-  expect_equal(l, forward(d, G, ap[, rep(1:2, c(10, 10))]))
-})
-
 test_that("forward_ihsmm is deprecated and gives the same result as forward_hsmm", {
   omega <- tpm_switch()
   dm <- lapply(c(3, 5), function(lambda) sapply(0:9, dpois, lambda = rep(lambda, 20)))

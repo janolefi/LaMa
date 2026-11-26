@@ -62,10 +62,11 @@ swapped_allprobs <- function(obj, par, dens, mode) {
   for(d in dens) local({
     dfun <- get(d, envir = fenv, mode = "function")
     pfun <- get(sub("^d", "p", d), envir = fenv, mode = "function")
+    family <- sub("^d", "", d) # here, as d is the loop variable when the density is called
     assign(d, function(x, ...) {
       # set by statedens(), which calls the density with its own variable
       s <- if(is.null(.lama_env$stream)) stream_name(substitute(x)) else .lama_env$stream
-      fams[[s]] <<- union(fams[[s]], sub("^d", "", d))
+      fams[[s]] <<- union(fams[[s]], family)
       args <- list(...)
       lg <- isTRUE(args$log)
       args$log <- NULL

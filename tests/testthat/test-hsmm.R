@@ -11,8 +11,8 @@ expect_close <- function(object, expected, tolerance = tol) {
 
 # ---- approximating transition matrix ----
 
-test_that("tpm_switch: values as tpm_emb() in LaMa <= 3.2.0, rows and diagonal", {
-  # from tpm_emb() of LaMa 3.2.0, column by column
+test_that("tpm_switch: values as tpm_emb() in LaMa <= 3.1.0, rows and diagonal", {
+  # from tpm_emb() of LaMa 3.1.0, column by column
   expect_equal(as.vector(tpm_switch(c(0.3, -0.2, 0.1))),
                c(0, 0.549833997312478, 0.47502081252106, 0.425557483188341, 0, 0.52497918747894, 0.574442516811659,
                  0.450166002687522, 0))

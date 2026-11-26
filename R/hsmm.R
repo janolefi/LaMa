@@ -222,7 +222,7 @@ report_hsmm <- function(inp, dm, omega, allprobs, trackID = NULL, tod = NULL){
   if(!is.null(tod)) REPORT(tod)
 }
 
-# REPORT delta_sparse (Delta_sparse with trackID) and Gamma_sparse, as in LaMa <= 3.2.0
+# REPORT delta_sparse (Delta_sparse with trackID) and Gamma_sparse, as in LaMa <= 3.1.0
 # only if the likelihood is run without AD, e.g. by obj$report() or lama(): not needed for fitting
 # Gamma_sparse: matrix or list of matrices (Gamma_sparse is a promise, not evaluated with AD)
 report_sparse <- function(inp, Gamma_sparse){

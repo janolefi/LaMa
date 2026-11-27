@@ -21,7 +21,7 @@ obj_frame <- function(obj){
 #'
 #' Computes the score contribution of each observation,
 #' \deqn{u_t = \frac{\partial}{\partial \theta} \log p(x_t \mid x_1, \dots, x_{t-1}),}
-#' for a model whose negative log-likelihood function calls \code{\link{forward}}.
+#' for a model whose negative log-likelihood function calls \code{\link{forward}} or \code{\link{forward_hsmm}}.
 #' Their column sums are the gradient of the log-likelihood. They are the building block for
 #' robust (sandwich) standard errors, e.g. cluster-robust ones via \code{rowsum(U, ID)}.
 #'
@@ -37,8 +37,9 @@ obj_frame <- function(obj){
 #' correspond to \code{obj$par}, like \code{obj$gr()} and \code{obj$he()}.
 #'
 #' If the likelihood function calls \code{\link{forward}} several times, e.g. once per track, the rows of the
-#' result follow the order of these calls. Only \code{\link{forward}} (and its deprecated
-#' \code{_g} and \code{_p} versions) is supported, and models with random effects are not.
+#' result follow the order of these calls. \code{\link{forward}} and \code{\link{forward_hsmm}} (and their deprecated
+#' versions) are supported, models with random effects are not. For HSMMs with time-varying dwell times,
+#' there are no rows for the first observations of each track, which are not used.
 #'
 #' @param obj optimised \code{RTMB} object from \code{\link[RTMB]{MakeADFun}}, or a model object from \code{\link{lama}} or \code{\link{qreml}}
 #' @param par optional parameter vector like \code{obj$par}, e.g. \code{opt$par}.

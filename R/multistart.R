@@ -184,7 +184,7 @@ n_optima <- function(nll, tol) {
 # covariance of one observation n * H^-1 at p, standard deviations capped at sd_max;
 # NULL if H is not positive definite or n unknown
 unit_info <- function(obj, p, sd_max) {
-  n <- count_nobs(obj$report(obj$env$last.par.best)$allprobs)
+  n <- count_nobs(obj$report(obj$env$last.par.best))
   if(is.null(n)) return(NULL) # allprobs not reported
   H <- tryCatch(obj$he(p), error = function(e) stats::optimHess(p, obj$fn, obj$gr)) # obj$he() has no random effects
   R <- tryCatch(chol(H), error = function(e) NULL)

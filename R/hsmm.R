@@ -1,0 +1,509 @@
+# Internal functions for HSMMs, approximated by HMMs on an extended state space
+#
+# Notation as in Koslik (2025, CSDA 209, 108171):
+# - N states, state i is represented by an aggregate of Ni[i] states, M = sum(Ni)
+# - I_low[i], I_high[i]: lowest and highest state of aggregate i
+# - dm[[i]]: dwell-time distribution of state i, column r: probability that a stay lasts r time points
+# - being in the r-th state of aggregate i means: r-th time point of this stay
+#   (the highest state also holds all longer stays)
+
+
+# Probabilities 1 - c_i(r) to stay for one more time point, c_i(r): hazard rates, eqs. (3) and (7)
+# d: dwell-time distribution(s) of one state: vector, or matrix with one row for each time of entry
+# F_before: F_i(r - 1), probability that the stay is over before its r-th time point (computed if not given)
+# returns a matrix with the same rows and columns
+hsmm_stay <- function(d, eps = 1e-10, F_before = NULL){
+  if(is.null(dim(d))) d <- matrix(d, nrow = 1)
+  Ni <- ncol(d)
+  if(is.null(F_before)) {
+    before <- matrix(0, Ni, Ni)
+    before[upper.tri(before)] <- 1
+    F_before <- d %*% before
+  }
+  hazard <- max2(d, eps) / (1 - F_before + eps / 2)
+  stay <- max2(1 - hazard, 0)
+  matrix(stay, nrow(d), Ni) # a 1 x 1 AD matrix loses its dimensions above
+}
+
+# Stay probabilities of all M states for the steps into the time points `into` (one row each)
+# the r-th state of an aggregate at time into - 1 belongs to a stay entered at into - r
+# stay: list of matrices from hsmm_stay(), one row for each time of entry
+# L: cycle length, for periodic models
+# first: first row that may be used (e.g. start of the track), used in place of earlier ones
+hsmm_lag <- function(stay, into, L = NULL, first = 1){
+  columns <- list()
+  for(stay_i in stay) {
+    for(r in seq_len(ncol(stay_i))) {
+      entry <- into - r
+      if(is.null(L)) {
+        entry <- pmax(entry, first)
+      } else {
+        entry <- (entry - 1) %% L + 1
+      }
+      columns <- c(columns, list(stay_i[entry, r]))
+    }
+  }
+  do.call(cbind, columns)
+}
+
+# Checks that omega (matrix or array) has zero diagonals: states are only left, not re-entered
+# possible without AD and, while taping, for constant omega (the usual omega from tpm_switch() is AD then)
+check_omega <- function(omega){
+  if(inherits(omega, "advector")) return(invisible())
+  diagonals <- omega[slice.index(omega, 1) == slice.index(omega, 2)] # of all slices
+  if(anyNA(diagonals) || any(diagonals != 0)) {
+    stop("omega must have zeros on the diagonal (conditional transition probabilities, given that the state is left), see tpm_switch().")
+  }
+}
+
+# One step of the forward algorithm, phi %*% Gamma without building Gamma
+# phi: vector of length M, (scaled) forward variables at t - 1
+# stay: vector of length M, probabilities to stay for one more time point
+# omega: conditional transition probabilities (zero diagonal)
+hsmm_step <- function(phi, stay, omega, Ni){
+  "[<-" <- ADoverload("[<-")
+  "c" <- ADoverload("c")
+  N <- length(Ni)
+  I_high <- cumsum(Ni)
+  I_low <- I_high - Ni + 1
+
+  kept <- phi * stay  # mass that stays in its aggregate
+  gone <- phi - kept  # mass whose stay ends
+
+  # mass that leaves each aggregate, and where it arrives
+  left <- numeric(N)
+  for(i in 1:N) left[i] <- sum(gone[I_low[i]:I_high[i]])
+  arrive <- as.vector(left %*% omega)
+
+  # lowest states get the new stays, all others the kept mass of the state below
+  from <- N + seq_along(phi) - 1
+  from[I_low] <- 1:N
+  phi_new <- c(arrive, kept)[from]
+  # the highest states also keep their own mass
+  phi_new[I_high] <- phi_new[I_high] + kept[I_high]
+  phi_new
+}
+
+# Transition matrix of the extended state space (M x M), eqs. (1)-(2) and (5)-(6)
+# only needed for stationary distributions and for users, not for the forward algorithm
+# stay, omega, Ni: as in hsmm_step()
+hsmm_Gamma <- function(stay, omega, Ni){
+  "[<-" <- ADoverload("[<-")
+  M <- sum(Ni)
+  state <- rep(seq_along(Ni), Ni) # aggregate of each of the M states
+  I_high <- cumsum(Ni)
+  I_low <- I_high - Ni + 1
+
+  Gamma <- matrix(0, M, M)
+  # the stay ends: to the lowest state of another aggregate
+  Gamma[, I_low] <- (1 - stay) * omega[state, , drop = FALSE]
+  # the stay continues: one state up, or wait in the highest state
+  up <- pmin(seq_len(M) + 1, I_high[state])
+  Gamma[cbind(seq_len(M), up)] <- stay
+  Gamma
+}
+
+
+# Preparation of the forward algorithm -------------------------------------
+
+# Brings all inputs into the form of the forward algorithm, like prepare_forward() for HMMs
+# - dm: list of N dwell-time distributions, each a vector or a matrix with 1, nTracks, nObs or L rows
+# - omega: matrix or array with 1, nTracks, nObs, nObs - 1 or L slices, as Gamma in forward()
+#   (L: cycle length, if tod is given; a stay entered at t has omega[, , t] and row t of dm)
+# - delta: NULL or "stationary", or initial distribution of the N states, with nTracks rows if needed
+# - first_obs: first observation used in each track, by default 1, or max(Ni) for dm varying over time
+# - use_all_obs: start at 1 also for dm varying over time (needs delta)
+# Returns a list with
+# - stay[t, ]: stay probabilities of all M states for the step into t
+# - omega[, , oidx[t]]: conditional transition probabilities for the step into t
+# - delta: initial distribution of the M states (nTracks x M)
+# - start, end: first and last observation used in each track (first_obs: counted within the track)
+# - allprobs, shift, trackID, type: as in prepare_forward()
+prepare_hsmm <- function(dm, omega, allprobs, trackID = NULL, delta = NULL, tod = NULL,
+                         use_all_obs = FALSE, first_obs = NULL, logspace = FALSE, eps = 1e-10){
+
+  if(!is.matrix(allprobs)) stop("allprobs needs to be a matrix of dimension c(n, N).")
+  nObs <- nrow(allprobs)
+  N <- ncol(allprobs)
+  tracks <- prepare_tracks(trackID, nObs)
+
+  ## dwell times
+  if(!is.list(dm) || length(dm) != N) stop("dm must be a list with one dwell-time distribution for each state.")
+  if(any(vapply(dm, is.list, TRUE))) stop("dm is a nested list. For track-specific dwell times, use a matrix with nTracks rows for each state.")
+  dm <- lapply(dm, function(d) if(is.null(dim(d))) matrix(d, nrow = 1) else d)
+  Ni <- vapply(dm, ncol, 1L)
+  dm_index <- lapply(dm, function(d) hsmm_index(nrow(d), nObs, tracks, tod, "rows of dm"))
+  dm_type <- vapply(dm_index, function(x) x$type, "")
+
+  ## conditional transition probabilities
+  check_omega(omega)
+  omega <- AD(as.array(omega))
+  if(length(dim(omega)) == 2) omega <- AD(array(omega, dim = c(dim(omega), 1)))
+  if(!all(dim(omega)[1:2] == N)) stop("omega must be square with dimensions (N, N).")
+  omega_index <- hsmm_index(dim(omega)[3], nObs, tracks, tod, "slices of omega")
+  oidx <- omega_index$index
+
+  ## periodic models: cycle length
+  types <- c(dm_type, omega_index$type)
+  periodic <- types == "periodic"
+  L <- unique(c(vapply(dm, nrow, 1L), dim(omega)[3])[periodic])
+  if(length(L) > 1) stop("All periodic elements of dm and omega must have the same cycle length.")
+  if("periodic" %in% dm_type) check_tod(tod, L, tracks)
+
+  ## stay probabilities for the step into each time point
+  track_start <- rep(tracks$start, tracks$end - tracks$start + 1)
+  stay <- hsmm_stay_into(dm, dm_type, lapply(dm_index, function(x) x$index), L, track_start, eps)
+
+  ## first observation used in each track
+  stationary <- is.null(delta) || is.character(delta)
+  varying <- "inhomogeneous" %in% dm_type
+  if(use_all_obs && !is.null(first_obs)) stop("Please use either use_all_obs or first_obs.")
+  if(use_all_obs && varying && stationary) {
+    stop("use_all_obs = TRUE needs delta: the stationary start would require dwell-time distributions ",
+         "from before the first observation.")
+  }
+  # dm varying over time: earlier stays have unknown dwell-time distributions
+  earliest <- if(varying && !use_all_obs) max(Ni) else 1
+  if(is.null(first_obs)) first_obs <- earliest
+  if(length(first_obs) != 1 || is.na(first_obs) || first_obs != round(first_obs) || first_obs < earliest) {
+    stop("first_obs must be a single integer, at least ", earliest,
+         if(earliest > 1) " (largest aggregate size) for dm varying over time", ".")
+  }
+  start <- tracks$start + first_obs - 1
+  # for dm varying over time, the stationary distribution needs the step into the next observation
+  if(any(start + (varying && stationary) > tracks$end)) {
+    stop("Too few observations in at least one track, which start at observation ", first_obs, ".")
+  }
+
+  ## initial distribution
+  if(!stationary) {
+    delta <- hsmm_delta(delta, Ni, tracks$nTracks)
+  } else if(is.character(delta) && !identical(delta, "stationary")) {
+    stop("delta must be numeric or \"stationary\".")
+  } else if(any(periodic)) {
+    # transition matrices of the whole cycle, as in forward() with tod
+    Gamma <- hsmm_cycle_Gammas(dm, omega, Ni, L, eps)
+    delta <- stationary_delta(Gamma, tod[start], periodic = TRUE)
+  } else {
+    # stationary for the first transition of each track, out of observation start
+    into <- pmin(start + 1, tracks$end)
+    if(all(types == "homogeneous")) into <- into[1] # all tracks are the same
+    Gamma <- hsmm_Gammas(stay[into, , drop = FALSE], omega[, , oidx[into], drop = FALSE], Ni)
+    delta <- stationary_delta(Gamma, rep_len(seq_along(into), tracks$nTracks))
+  }
+
+  # most general type of dm and omega
+  ranking <- c("periodic", "inhomogeneous", "track-specific", "homogeneous")
+  type <- ranking[min(match(types, ranking))]
+
+  scaled <- scale_allprobs(allprobs, logspace)
+  list(stay = stay, omega = omega, oidx = oidx, delta = delta, dm = dm, Ni = Ni,
+       allprobs = scaled$allprobs, shift = scaled$shift,
+       first_obs = first_obs, start = start, end = tracks$end, trackID = tracks$trackID, type = type, eps = eps)
+}
+
+# REPORT quantities of the forward algorithm (with these names)
+# dm, omega, allprobs, trackID and tod as passed by the user, who may also report them
+report_hsmm <- function(inp, dm, omega, allprobs, trackID = NULL, tod = NULL){
+  delta <- inp$delta # of all M states
+  Ni <- inp$Ni
+  type <- inp$type
+  first_obs <- inp$first_obs
+  eps <- inp$eps
+  REPORT(delta)
+  REPORT(Ni)
+  REPORT(type)
+  REPORT(first_obs)
+  REPORT(eps)
+  REPORT(dm)
+  REPORT(omega)
+  REPORT(allprobs)
+  if(!is.null(trackID)) REPORT(trackID)
+  if(!is.null(tod)) REPORT(tod)
+}
+
+# REPORT delta_sparse (Delta_sparse with trackID) and Gamma_sparse, as in LaMa <= 3.1.0
+# only if the likelihood is run without AD, e.g. by obj$report() or lama(): not needed for fitting
+# Gamma_sparse: matrix or list of matrices (Gamma_sparse is a promise, not evaluated with AD)
+report_sparse <- function(inp, Gamma_sparse){
+  if(ad_context()) return(invisible())
+  delta <- methods::as(unname(inp$delta), "sparseMatrix")
+  if(is.null(inp$trackID)) {
+    delta_sparse <- delta
+    REPORT(delta_sparse)
+  } else {
+    Delta_sparse <- delta
+    REPORT(Delta_sparse)
+  }
+  Gamma_sparse <- force(Gamma_sparse)
+  REPORT(Gamma_sparse)
+}
+
+# Transition matrix of the first observation of each track, sparse (one matrix without trackID, else a list)
+# only for models that do not vary over time
+sparse_Gammas <- function(inp){
+  Gamma <- lapply(inp$start, function(t) {
+    methods::as(hsmm_Gamma(inp$stay[t, ], inp$omega[, , inp$oidx[t]], inp$Ni), "sparseMatrix")
+  })
+  if(is.null(inp$trackID)) Gamma[[1]] else Gamma
+}
+
+# Which row of dm or slice of omega belongs to each observation? See slice_index()
+# a single row or slice is also possible in periodic models
+hsmm_index <- function(nSlices, nObs, tracks, tod, what){
+  if(nSlices == 1) tod <- NULL
+  slices <- slice_index(nSlices, nObs, tracks, tod, what)
+  # no nObs - 1 for dm: row t belongs to stays entered at t
+  if(is.null(slices) || (what == "rows of dm" && slices$type == "inhomogeneous" && nSlices != nObs)) {
+    stop("Wrong number of ", what, ": must be 1, nTracks (track-specific), nObs (time-varying),",
+         " or the cycle length if tod is given.")
+  }
+  slices
+}
+
+# tod must move on by one in each row of a track, as dwell times count rows
+check_tod <- function(tod, L, tracks){
+  expected <- c(0, tod[-length(tod)] %% L + 1)
+  inside <- !seq_along(tod) %in% tracks$start # not the first row of a track
+  if(any(tod[inside] != expected[inside])) {
+    stop("With periodic dm, tod must advance by one in each row within a track. ",
+         "Keep rows with missing observations (set allprobs to 1).")
+  }
+}
+
+# Stay probabilities of all M states, one row for each step (as in hsmm_lag())
+# type, index: type and row index of each element of dm, see slice_index()
+hsmm_stay_into <- function(dm, type, index, L, first, eps){
+  stay <- lapply(seq_along(dm), function(i) {
+    stay_i <- hsmm_stay(dm[[i]], eps)
+    if(type[i] == "inhomogeneous") {
+      hsmm_lag(list(stay_i), index[[i]], first = first)
+    } else if(type[i] == "periodic") {
+      hsmm_lag(list(stay_i), index[[i]], L)
+    } else { # the same for all stays of a track
+      stay_i[index[[i]], , drop = FALSE]
+    }
+  })
+  do.call(cbind, stay)
+}
+
+# Transition matrices (M x M x L) into each time of day 1, ..., L of a periodic model
+# dm: list of matrices with 1 or L rows, omega: array with 1 or L slices
+hsmm_cycle_Gammas <- function(dm, omega, Ni, L, eps){
+  cycle <- function(nSlices) if(nSlices == 1) rep(1, L) else 1:L
+  dm_type <- ifelse(vapply(dm, nrow, 1L) == 1, "homogeneous", "periodic")
+  stay_cycle <- hsmm_stay_into(dm, dm_type, lapply(dm, function(d) cycle(nrow(d))), L, 1, eps)
+  hsmm_Gammas(stay_cycle, omega[, , cycle(dim(omega)[3]), drop = FALSE], Ni)
+}
+
+# Array of transition matrices, for the rows of stay and the slices of omega
+hsmm_Gammas <- function(stay, omega, Ni){
+  "[<-" <- ADoverload("[<-")
+  M <- sum(Ni)
+  Gamma <- array(0, dim = c(M, M, nrow(stay)))
+  for(k in seq_len(nrow(stay))) Gamma[, , k] <- hsmm_Gamma(stay[k, ], omega[, , k], Ni)
+  Gamma
+}
+
+# Initial distribution of the N states as matrix (nTracks x M): stays start at the first observation,
+# so all mass is on the lowest states
+hsmm_delta <- function(delta, Ni, nTracks){
+  "[<-" <- ADoverload("[<-")
+  N <- length(Ni)
+  delta <- as.matrix(delta)
+  if(ncol(delta) != N) delta <- t(delta)
+  if(ncol(delta) != N || !nrow(delta) %in% c(1, nTracks)) {
+    stop("delta must be a vector of length N or a matrix of dimension c(nTracks, N).")
+  }
+  if(nrow(delta) == 1) delta <- delta[rep(1, nTracks), , drop = FALSE]
+  I_low <- cumsum(Ni) - Ni + 1
+  delta_M <- matrix(0, nTracks, sum(Ni))
+  delta_M[, I_low] <- delta
+  delta_M
+}
+
+
+# Forward algorithm --------------------------------------------------------
+
+# Runs the forward algorithm on the output of prepare_hsmm(), as run_forward() for HMMs
+run_forward_hsmm <- function(inp){
+  nObs <- nrow(inp$allprobs)
+  used <- unlist(Map(seq, inp$start, inp$end)) # without dropped observations
+
+  # value check, only possible without AD
+  if(!ad_context() && anyNA(inp$allprobs[used, ])) {
+    stop("allprobs contains NA values. For missing observations, keep the rows of allprobs at 1, ",
+         "e.g. by only filling allprobs[ind, ] with ind = which(!is.na(x)).")
+  }
+  if(!ad_context() && any(inp$allprobs[used, ] < 0)) {
+    stop("allprobs contains negative values. For log-densities, use logspace = TRUE.")
+  }
+
+  # weights of the log-likelihood contributions, only set by scores()
+  # w[t] belongs to observation t
+  w <- get_weights(length(used))
+  if(!is.null(w)) {
+    position <- rep(NA, nObs)
+    position[used] <- seq_along(used)
+    w <- w[position]
+  }
+
+  if(is.null(w) && !ad_context()) {
+    l <- forward_hsmm_fast(inp) # C++, e.g. for obj$report() or lama()
+  } else {
+    l <- forward_hsmm_ad(inp, w) # R, taped by RTMB
+  }
+
+  # add back the row maxima of allprobs, if logspace (else shift is zero)
+  if(length(inp$shift) == nObs) {
+    shift <- inp$shift[used]
+    if(!is.null(w)) shift <- w[used] * shift
+    l <- l + sum(shift)
+  }
+  as.numeric(l)
+}
+
+# forward algorithm in R, taped by RTMB for automatic differentiation
+# w: optional weights of the log-likelihood contributions (see run_forward_hsmm())
+forward_hsmm_ad <- function(inp, w = NULL){
+
+  allprobs <- inp$allprobs
+  Ni <- inp$Ni
+  state <- rep(seq_along(Ni), Ni) # all M states of the chain: which HSMM state?
+
+  # log-likelihood contribution of observation t, weighted if w is given
+  lc <- function(sumfoo, t) if(is.null(w)) log(sumfoo) else w[t] * log(sumfoo)
+
+  l <- 0
+  for(i in seq_along(inp$start)) {
+    ind <- inp$start[i]:inp$end[i] # observations of track i
+
+    foo <- inp$delta[i, ] * allprobs[ind[1], state]
+    sumfoo <- sum(foo)
+    phi <- foo / sumfoo
+    l <- l + lc(sumfoo, ind[1])
+
+    for(t in ind[-1]) {
+      foo <- hsmm_step(phi, inp$stay[t, ], inp$omega[, , inp$oidx[t]], Ni) * allprobs[t, state]
+      sumfoo <- sum(foo)
+      phi <- foo / sumfoo
+      l <- l + lc(sumfoo, t)
+    }
+  }
+  l
+}
+
+
+# C++ versions -------------------------------------------------------------
+
+# The same inputs for all C++ functions on the output of prepare_hsmm(), see src/hsmm.cpp
+hsmm_cpp_args <- function(inp){
+  list(allprobs = inp$allprobs, Delta = inp$delta, stay = inp$stay,
+       omega = inp$omega, oidx = inp$oidx - 1L, Ni = inp$Ni,
+       start = inp$start - 1L, end = inp$end - 1L)
+}
+
+# forward algorithm in C++ (without AD), log-likelihood without the shift of logspace
+forward_hsmm_fast <- function(inp){
+  do.call(forward_hsmm_cpp, hsmm_cpp_args(inp))
+}
+
+# local state probabilities of the N states (nObs x N), NA for observations before first_obs
+stateprobs_hsmm <- function(inp, forecast = FALSE){
+  probs <- do.call(stateprobs_hsmm_cpp, c(hsmm_cpp_args(inp), forecast = forecast))
+  colnames(probs) <- paste0("S", seq_len(ncol(probs)))
+  probs
+}
+
+# most probable state sequence, NA for observations before first_obs
+viterbi_hsmm <- function(inp){
+  do.call(viterbi_hsmm_cpp, hsmm_cpp_args(inp))
+}
+
+# Input of the C++ decoding functions for a model object of forward_hsmm(), see prepare_decoding()
+# stay and omega are built again from the reported dm and omega, delta is the reported one (M states)
+hsmm_decoding_input <- function(mod){
+  N <- ncol(mod$allprobs)
+  first_obs <- mod$first_obs
+  # any given delta: it is replaced below, so the stationary one is not needed
+  inp <- prepare_hsmm(mod$dm, mod$omega, mod$allprobs, mod$trackID, delta = rep(1 / N, N), tod = mod$tod,
+                      use_all_obs = (first_obs == 1), first_obs = if(first_obs > 1) first_obs, eps = mod$eps)
+  inp$delta <- mod$delta
+  # forward_ihsmm() and forward_phsmm() report omega[, , t] for the step out of t:
+  # the step into t uses the slice of the observation before
+  if(isTRUE(mod$omega_out)) {
+    inp$oidx <- c(1, inp$oidx[-length(inp$oidx)])
+  }
+  inp$hsmm <- TRUE
+  inp
+}
+
+
+# Summary -------------------------------------------------------------------
+
+# Mean dwell time in each state of the approximating chain, from its stay probabilities (vector of length M):
+# the sum of Pr(D > r) over r = 0, 1, ..., where the highest state of an aggregate repeats (geometric tail)
+hsmm_mean_dwell <- function(stay, Ni){
+  state <- rep(seq_along(Ni), Ni)
+  sapply(seq_along(Ni), function(i) {
+    stay_i <- stay[state == i]
+    longer <- cumprod(c(1, stay_i[-Ni[i]])) # Pr(D > r) for r = 0, ..., Ni - 1
+    tail <- longer[Ni[i]] * stay_i[Ni[i]] / (1 - stay_i[Ni[i]]) # all r >= Ni
+    sum(longer) + tail
+  })
+}
+
+# State process of an HSMM model object for summary(), like summary.LaMaModel() does for HMMs:
+# - homogeneous or track-specific: omega, stationary distribution and mean dwell times, averaged over tracks
+# - periodic: stationary distribution averaged over the cycle
+# - inhomogeneous: nothing
+hsmm_summary <- function(mod, states){
+  N <- length(states)
+  state <- rep(1:N, mod$Ni) # aggregate of each of the M states
+  aggregate <- function(p) setNames(as.vector(rowsum(as.vector(p), state)), states)
+
+  if(mod$type %in% c("homogeneous", "track-specific")) {
+    inp <- hsmm_decoding_input(mod)
+    first <- inp$start # one transition matrix per track, from its first observation
+    omega <- stationary <- dwell <- list()
+    for(k in seq_along(first)) {
+      stay <- inp$stay[first[k], ]
+      omega[[k]] <- inp$omega[, , inp$oidx[first[k]]]
+      stationary[[k]] <- aggregate(stationary(hsmm_Gamma(stay, omega[[k]], inp$Ni)))
+      dwell[[k]] <- setNames(hsmm_mean_dwell(stay, inp$Ni), states)
+    }
+    omega <- Reduce(`+`, omega) / length(omega)
+    dimnames(omega) <- list(states, states)
+    return(list(omega = omega, stationary = Reduce(`+`, stationary) / length(first),
+                dwell = Reduce(`+`, dwell) / length(first), nTracks = length(first)))
+  }
+
+  if(mod$type == "periodic") {
+    dm <- lapply(mod$dm, function(d) if(is.null(dim(d))) matrix(d, nrow = 1) else d)
+    omega <- as.array(mod$omega)
+    if(length(dim(omega)) == 2) omega <- array(omega, c(dim(omega), 1))
+    L <- max(vapply(dm, nrow, 1L), dim(omega)[3])
+    # forward_phsmm(): omega[, , s] for the step out of time of day s
+    if(isTRUE(mod$omega_out) && dim(omega)[3] == L) omega <- omega[, , c(L, seq_len(L - 1)), drop = FALSE]
+    Gamma <- hsmm_cycle_Gammas(dm, omega, mod$Ni, L, mod$eps)
+    return(list(occupancy = aggregate(colMeans(stationary_p(Gamma)))))
+  }
+  list()
+}
+
+# Message if more than 1% of a dwell-time distribution lies beyond its aggregate size (for simulate()):
+# dm is only given up to the aggregate sizes, beyond them the approximating chain has a geometric tail
+# dm: as reported (vectors, or matrices with one row per track, observation or time of day)
+dwell_tail_message <- function(dm, Ni){
+  beyond <- vapply(dm, function(d) {
+    if(is.null(dim(d))) d <- matrix(d, nrow = 1)
+    max(1 - rowSums(d)) # largest share of stays longer than Ni
+  }, 1)
+  large <- which(beyond > 0.01)
+  if(length(large) == 0) return(invisible())
+  message("The dwell-time distributions are only given up to the aggregate sizes, so LaMa cannot determine them beyond: ",
+          "there, the dwell times have a geometric tail, as in the likelihood, so the simulated dwell times are approximate. ",
+          "Up to ", paste0(signif(100 * beyond[large], 2), "% of the stays in state ", large, collapse = ", "),
+          " last longer than the aggregate size (Ni = ", paste(Ni[large], collapse = ", "), "). ",
+          "Consider larger aggregate sizes.")
+}

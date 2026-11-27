@@ -1,17 +1,18 @@
-test_that("old HSMM functions are deprecated and give the same results", {
-  omega <- tpm_emb()
-  dm <- list(dpois(0:9, 3), dpois(0:9, 5))
-  G <- tpm_hsmm(omega, dm, sparse = FALSE)
+test_that("forward_ihsmm is deprecated and gives the same result as forward_hsmm", {
+  omega <- tpm_switch()
+  dm <- lapply(c(3, 5), function(lambda) sapply(0:9, dpois, lambda = rep(lambda, 20)))
   ap <- matrix(runif(40), 20, 2)
-  d <- stationary(G)
-  expect_message(G2 <- tpm_hsmm2(omega, dm), "deprecated")
-  expect_message(l <- forward_s(d, G, ap, c(10, 10)), "deprecated")
-  expect_equal(l, forward(d, G, ap[, rep(1:2, c(10, 10))]))
+  expect_message(l <- forward_ihsmm(dm, omega, ap), "deprecated")
+  expect_equal(l, forward_hsmm(dm, omega, ap))
+})
 
-  dmp <- lapply(dm, function(p) matrix(p, 4, 10, byrow = TRUE)) # same in all 4 slices of the cycle
-  expect_message(Gp <- tpm_phsmm2(omega, dmp), "deprecated")
-  expect_message(l <- forward_sp(stationary_p(Gp)[1, ], Gp, ap, c(10, 10), rep(1:4, 5)), "deprecated")
-  expect_equal(l, forward(d, G, ap[, rep(1:2, c(10, 10))]))
+test_that("forward_phsmm is deprecated and gives the same result as forward_hsmm", {
+  omega <- tpm_switch()
+  dm <- lapply(c(3, 5), function(lambda) sapply(0:9, dpois, lambda = lambda * 1:4))
+  ap <- matrix(runif(40), 20, 2)
+  tod <- rep(1:4, 5)
+  expect_message(l <- forward_phsmm(dm, omega, ap, tod), "deprecated")
+  expect_equal(l, forward_hsmm(dm, omega, ap, tod = tod))
 })
 
 test_that("other old functions are deprecated and give the same results", {
@@ -27,4 +28,30 @@ test_that("other old functions are deprecated and give the same results", {
   expect_equal(G, tpm_ct(Q, c(1, 2), report = FALSE))
 
   expect_message(expect_error(qreml_old("not a function", list(), list(), "b")), "deprecated")
+})
+
+test_that("tpm_emb and tpm_emb_g are deprecated and give the same results as tpm_switch", {
+  expect_message(omega <- tpm_emb(c(0.3, -0.2, 0.1)), "deprecated")
+  expect_equal(omega, tpm_switch(c(0.3, -0.2, 0.1)))
+  beta <- cbind(c(0.3, -0.2, 0.1), c(0.4, -0.5, 0.2))
+  expect_message(omega <- tpm_emb_g(cbind(1, 1:5), beta), "deprecated")
+  expect_equal(omega, tpm_switch(beta, 1:5))
+  expect_equal(tpm_emb_g(rep(1, 5), beta[, 1]), tpm_switch(beta[, 1, drop = FALSE], rep(1, 5))) # vector beta: no covariates
+})
+
+test_that("stationary_sparse and stationary_p_sparse are deprecated and give the same results", {
+  dm <- list(dpois(0:9, 3), dpois(0:7, 2))
+  Gamma <- tpm_hsmm(tpm_switch(), dm)
+  expect_message(delta <- stationary_sparse(Gamma), "deprecated")
+  expect_equal(delta, stationary(as.matrix(Gamma)))
+  expect_equal(as.vector(delta %*% as.matrix(Gamma)), as.vector(delta))
+  dmp <- lapply(c(3, 2), function(l) sapply(0:9, dpois, lambda = l * (1 + 0.3 * sin(2 * pi * 1:4 / 4))))
+  Gp <- tpm_phsmm(tpm_switch(), dmp)
+  Gp_array <- simplify2array(lapply(Gp, as.matrix))
+  expect_message(Delta <- stationary_p_sparse(Gp), "deprecated")
+  expect_equal(Delta, stationary_p(Gp_array))
+  expect_equal(stationary_p_sparse(Gp, 3), stationary_p(Gp_array, 3))
+  # with AD
+  f <- function(x) sum(stationary_p_sparse(lapply(Gp, function(G) as.matrix(G) * (1 + 0 * x))) * 1:40)
+  expect_equal(RTMB::MakeADFun(function(par) f(par$x), list(x = 1), silent = TRUE)$fn(), f(1))
 })

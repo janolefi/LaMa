@@ -181,6 +181,24 @@ test_that("pseudo_res(mod): several data streams, one residual vector each", {
   dev.off()
 })
 
+test_that("pseudo_res(mod): continuous and discrete streams keep their own family", {
+  set.seed(4)
+  d2 <- list(step = trex$step[1:300], count = rpois(300, 2))
+  mod <- fit_mod(function(par) {
+    getAll(par, d2)
+    Gamma <- tpm(eta)
+    allprobs <- matrix(1, 300, 2)
+    for(j in 1:2) allprobs[, j] <- dgamma2(step, exp(log_mu[j]), 1) * dpois(count, exp(log_lambda[j]))
+    allprobs[is.na(step), ] <- 1
+    -forward(stationary(Gamma), Gamma, allprobs)
+  }, list(log_mu = log(c(0.3, 2.5)), log_lambda = log(c(1, 3)), eta = rep(-2, 2)))
+  p <- mod$par
+  r <- suppressMessages(pseudo_res(mod, randomise = FALSE))
+  # step is continuous: one residual per observation, not lower and upper
+  expect_equal(r$step, pseudo_res(d2$step, "gamma2", list(mean = exp(p$log_mu), sd = 1), mod = mod))
+  expect_equal(r$count, suppressMessages(pseudo_res(d2$count, "pois", list(lambda = exp(p$log_lambda)), mod = mod, randomise = FALSE)))
+})
+
 test_that("pseudo_res(mod): two streams with statedens(), also on the log scale", {
   d2 <- list(step = trex$step[1:300], angle = trex$angle[1:300])
   par <- list(log_mu = log(c(0.3, 2.5)), log_sigma = log(c(0.2, 1.5)), log_kappa = log(c(0.5, 2)), eta = rep(-2, 2))

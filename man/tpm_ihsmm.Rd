@@ -9,7 +9,7 @@ tpm_ihsmm(omega, dm, eps = 1e-10)
 \arguments{
 \item{omega}{embedded transition probability matrix
 
-Either a matrix of dimension \code{c(nStates, nStates)} for homogeneous conditional transition probabilities (as computed by \code{\link{tpm_emb}}), or an array of dimension \code{c(nStates, nStates, nObs)} for inhomogeneous conditional transition probabilities (as computed by \code{\link{tpm_emb_g}}).}
+Either a matrix of dimension \code{c(nStates, nStates)} for homogeneous conditional transition probabilities (as computed by \code{\link{tpm_switch}}), or an array of dimension \code{c(nStates, nStates, nObs)} for inhomogeneous conditional transition probabilities (as computed by \code{\link{tpm_switch}} with a design matrix).}
 
 \item{dm}{state dwell-time distributions arranged in a list of length \code{nStates}
 

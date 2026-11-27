@@ -2,7 +2,7 @@
 % Please edit documentation in R/forward_algorithms.R
 \name{forward_hsmm}
 \alias{forward_hsmm}
-\title{\href{https://www.taylorfrancis.com/books/mono/10.1201/b20790/hidden-markov-models-time-series-walter-zucchini-iain-macdonald-roland-langrock}{Forward algorithm} for homogeneous hidden semi-Markov models}
+\title{\href{https://www.taylorfrancis.com/books/mono/10.1201/b20790/hidden-markov-models-time-series-walter-zucchini-iain-macdonald-roland-langrock}{Forward algorithm} for hidden semi-Markov models}
 \usage{
 forward_hsmm(
   dm,
@@ -11,46 +11,88 @@ forward_hsmm(
   trackID = NULL,
   delta = NULL,
   eps = 1e-10,
-  report = TRUE
+  report = TRUE,
+  tod = NULL,
+  use_all_obs = FALSE,
+  first_obs = NULL,
+  logspace = FALSE
 )
 }
 \arguments{
-\item{dm}{list of length \code{nStates} containing vectors of dwell-time probability mass functions (PMFs) for each state. The vector lengths correspond to the approximating state aggregate sizes, hence there should be little probability mass not covered by these.}
+\item{dm}{list of length \code{nStates} containing the dwell-time probability mass functions (PMFs) of the states, where each element is either
+  \itemize{
+    \item a vector, if the dwell-time distribution is fixed, or
+    \item a matrix with \code{nTracks} rows (track-specific), \code{nObs} rows (time-varying), or \code{L} rows (periodic, if \code{tod} is provided), where each row is a PMF.
+  }
+The vector lengths or numbers of columns correspond to the approximating state aggregate sizes, hence there should be little probability mass not covered by these.}
 
-\item{omega}{matrix of dimension \code{c(nStates, nStates)} of conditional transition probabilities, also called embedded transition probability matrix. 
+\item{omega}{matrix of dimension \code{c(nStates, nStates)} of conditional transition probabilities, also called embedded transition probability matrix, 
+or array with \code{nTracks}, \code{nObs} or \code{L} of such matrices as slices.
 
-Contains the transition probabilities given that the current state is left. Hence, the diagonal elements need to be zero and the rows need to sum to one. Can be constructed using \code{\link{tpm_emb}}.}
+Contains the transition probabilities given that the current state is left. Hence, the diagonal elements need to be zero and the rows need to sum to one. Can be constructed using \code{\link{tpm_switch}}.}
 
 \item{allprobs}{matrix of state-dependent probabilities/ density values of dimension \code{c(nObs, nStates)} which will automatically be converted to the appropriate dimension.}
 
 \item{trackID}{optional vector of length \code{nObs} containing IDs
 
 If provided, the total log-likelihood will be the sum of each track's likelihood contribution.
-In this case, \code{dm} can be a nested list, where the top layer contains \code{nTracks} \code{dm} lists as described above. \code{omega} can then also be an array of dimension \code{c(nStates, nStates, nTracks)} with one conditional transition probability matrix for each track.
-Furthermore, instead of a single vector \code{delta} corresponding to the initial distribution, a \code{delta} matrix of initial distributions, of dimension \code{c(nTracks, nStates)}, can be provided, such that each track starts with its own initial distribution.}
+In this case, \code{dm} and \code{omega} can be track-specific and \code{delta} can be a matrix of initial distributions, of dimension \code{c(nTracks, nStates)}, such that each track starts with its own initial distribution.}
 
-\item{delta}{optional vector of initial state probabilities of length \code{nStates}
+\item{delta}{optional vector of initial state probabilities of length \code{nStates}, in which case a new stay begins at the first observation used in each track.
 
 By default, the stationary distribution is computed (which is typically recommended).}
 
 \item{eps}{small value to avoid numerical issues in the approximating transition matrix construction. Usually, this should not be changed.}
 
-\item{report}{logical, indicating whether initial distribution, approximating transition probability matrix and \code{allprobs} matrix should be reported from the fitted model. Defaults to \code{TRUE}.}
+\item{report}{logical, indicating whether initial distribution, \code{dm}, \code{omega} and the \code{allprobs} matrix should be reported from the fitted model. Defaults to \code{TRUE}.}
+
+\item{tod}{optional integer vector of length \code{nObs} containing the time of day (or any other cycle), with values in \code{1, ..., L}, for periodic models.
+
+With periodic \code{dm}, it needs to advance by one in each row within a track.}
+
+\item{use_all_obs}{logical, only relevant for time-varying \code{dm}. 
+
+By default, the first \code{max(sapply(dm, ncol)) - 1} observations of each track are not used, as they may belong to stays that began before the first observation, with unknown dwell-time distributions. 
+If \code{TRUE}, all observations are used, which needs \code{delta}.}
+
+\item{first_obs}{optional integer, the first observation that is used in each track. 
+
+By default \code{1}, or \code{max(sapply(dm, ncol))} for time-varying \code{dm}, in which case it cannot be smaller. 
+Useful to fit models with different aggregate sizes or types of \code{dm} to the same observations, such that their likelihoods can be compared.}
+
+\item{logspace}{logical, indicating whether \code{allprobs} contains log-probabilities. Defaults to \code{FALSE}.}
 }
 \value{
 HSMM log-likelihood for given data and parameters
 }
 \description{
-Calculates the (approximate) log-likelihood of a sequence of observations under a homogeneous hidden semi-Markov model using a modified \strong{forward algorithm}.
+Calculates the (approximate) log-likelihood of a sequence of observations under a hidden semi-Markov model using a modified \strong{forward algorithm}.
+Dwell-time distributions and conditional transition probabilities can be fixed, track-specific, time-varying or periodic.
 }
 \details{
 Hidden semi-Markov models (HSMMs) are a flexible extension of HMMs, where the state duration distribution is explicitly modelled by a distribution on the positive integers.
 For direct numerical maximum likelihood estimation, HSMMs can be represented as HMMs on an enlarged state space (of size \eqn{M}) and with structured transition probabilities.
 
+A stay that begins at time point \code{t} is governed by \code{omega[,,t]} (which state is entered) and row \code{t} of \code{dm} (how long the stay lasts).
+
 This function is designed to be used with automatic differentiation based on the \code{R} package \code{RTMB}. It will be very slow without it!
 }
 \examples{
-# currently no examples
+## negative log-likelihood of a 2-state HSMM with shifted Poisson dwell times
+nll = function(par) {
+  getAll(par)
+  sizes = c(20, 20) # state aggregate sizes
+  dm = lapply(1:2, function(i) dpois(1:sizes[i] - 1, exp(loglambda[i])))
+  omega = matrix(c(0, 1, 1, 0), 2) # 2 states: no parameters
+  allprobs = matrix(1, length(step), 2)
+  ind = which(!is.na(step))
+  for(j in 1:2) allprobs[ind, j] = dgamma2(step[ind], exp(logmu[j]), exp(logsigma[j]))
+  -forward_hsmm(dm, omega, allprobs)
+}
+step = trex$step[1:200]
+par = list(loglambda = log(c(5, 5)), logmu = log(c(0.3, 2.5)), logsigma = log(c(0.2, 1.5)))
+obj = MakeADFun(nll, par, silent = TRUE)
+opt = nlminb(obj$par, obj$fn, obj$gr)
 }
 \references{
 Langrock, R., & Zucchini, W. (2011). Hidden Markov models with arbitrary state dwell-time distributions. Computational Statistics & Data Analysis, 55(1), 715-724.
@@ -58,11 +100,11 @@ Langrock, R., & Zucchini, W. (2011). Hidden Markov models with arbitrary state d
 Koslik, J. O. (2025). Hidden semi-Markov models with inhomogeneous state dwell-time distributions. Computational Statistics & Data Analysis, 209, 108171.
 }
 \seealso{
-Other forward algorithms: 
-\code{\link{forward}()},
-\code{\link{forward_g}()},
-\code{\link{forward_ihsmm}()},
-\code{\link{forward_p}()},
-\code{\link{forward_phsmm}()}
+Other forward algorithms:
+\code{\link[=forward]{forward()}},
+\code{\link[=forward_g]{forward_g()}},
+\code{\link[=forward_ihsmm]{forward_ihsmm()}},
+\code{\link[=forward_p]{forward_p()}},
+\code{\link[=forward_phsmm]{forward_phsmm()}}
 }
 \concept{forward algorithms}

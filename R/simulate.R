@@ -41,11 +41,42 @@ sim_stream <- function(st, Z, rdens = NULL, fill_na = FALSE) {
   x
 }
 
+# states of an HSMM from the output of prepare_hsmm() or hsmm_decoding_input(): the approximating chain
+# is simulated, and the HSMM state of each observation returned, NA for the observations before first_obs
+# in each step, the chain stays (one state up, or waits in the highest state) or leaves its aggregate
+# for the lowest state of another one, drawn from omega
+sim_states_hsmm <- function(inp) {
+  Ni <- inp$Ni
+  state <- rep(seq_along(Ni), Ni) # HSMM state of each of the M states
+  I_high <- cumsum(Ni)
+  I_low <- I_high - Ni + 1
+  Z <- rep(NA_integer_, nrow(inp$allprobs))
+  for(k in seq_along(inp$start)) {
+    s <- sample.int(sum(Ni), 1, prob = inp$delta[k, ]) # state of the chain
+    Z[inp$start[k]] <- state[s]
+    for(t in seq_len(inp$end[k] - inp$start[k]) + inp$start[k]) {
+      i <- state[s]
+      if(runif(1) < inp$stay[t, s]) {
+        s <- min(s + 1, I_high[i])
+      } else {
+        j <- sample.int(length(Ni), 1, prob = inp$omega[i, , inp$oidx[t]])
+        s <- I_low[j]
+      }
+      Z[t] <- state[s]
+    }
+  }
+  Z
+}
+
 # forward() in obj$simulate(): simulate the states and fill the data of the streams (simref objects)
 # with draws from the streams, given the delta, Gamma and parameters of this call
 sim_forward <- function(streams, delta, Gamma, allprobs, trackID, logspace, tod) {
   inp <- prepare_forward(delta, Gamma, allprobs, trackID, logspace, gidx = tod)
-  states <- sim_states(inp)
+  sim_fill_streams(streams, sim_states(inp))
+}
+
+# fills the data of the streams (simref objects) with draws given the states, in obj$simulate()
+sim_fill_streams <- function(streams, states) {
   for(s in names(streams)) {
     st <- streams[[s]]
     x <- st$x
@@ -71,6 +102,12 @@ sim_forward <- function(streams, delta, Gamma, allprobs, trackID, logspace, tod)
 #' The states are drawn as in the decoding functions, so that all types of \code{Gamma} that \code{\link{forward}} accepts
 #' (homogeneous, track-specific, time-varying, periodic) work, as does a continuous-time model with one transition matrix
 #' per time interval (the simulation is then conditional on the observed time points).
+#'
+#' For hidden semi-Markov models from \code{\link{forward_hsmm}}, the approximating Markov chain is simulated, whose likelihood
+#' is the one that was maximised. Its dwell times follow \code{dm} up to the aggregate sizes and have a geometric tail beyond,
+#' as \code{dm} does not determine the dwell-time distributions there. If more than 1\% of a dwell-time distribution lies
+#' beyond its aggregate size, a message says that the simulated dwell times are approximate and suggests larger aggregates. Observations before \code{first_obs} are not used by the
+#' model, so their states and data are \code{NA}.
 #' Each data stream is drawn from the random number generator belonging to its density, e.g. \code{rgamma2} for \code{dgamma2}.
 #'
 #' Missing observations of the data stay missing (unless \code{fill_na = TRUE}), except for a stream that is missing completely: such a placeholder
@@ -152,6 +189,9 @@ simulate.LaMaModel <- function(object, nsim = 1, seed = NULL, rdens = NULL, rand
     set.seed(seed)
   }
 
+  # HSMMs: the dwell times beyond the aggregate sizes are not known
+  if(isTRUE(state_process(object)$hsmm)) dwell_tail_message(object$dm, object$Ni)
+
   # one simulation: list of the states and the data streams
   if(random) {
     obj <- get_obj(object)
@@ -168,7 +208,7 @@ simulate.LaMaModel <- function(object, nsim = 1, seed = NULL, rdens = NULL, rand
     st <- get_streams(object)
     inp <- prepare_decoding(mod = object)
     sim_once <- function() {
-      Z <- sim_states(inp)
+      Z <- if(isTRUE(inp$hsmm)) sim_states_hsmm(inp) else sim_states(inp)
       list(states = Z, streams = sapply(names(st), function(s) sim_stream(st[[s]], Z, rdens[[s]], fill_na), simplify = FALSE))
     }
   }

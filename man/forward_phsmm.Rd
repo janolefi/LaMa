@@ -24,7 +24,7 @@ If the dwell-time PMFs are inhomogeneous, the matrices need to have L rows, wher
 
 \item{omega}{matrix of dimension \code{c(nStates, nStates)} or array of dimension \code{c(nStates, nStates, L)} of conditional transition probabilities, also called embedded transition probability matrix
 
-It contains the transition probabilities given the current state is left. Hence, the diagonal elements need to be zero and the rows need to sum to one. Such a matrix can be constructed using \code{\link{tpm_emb}} and an array using \code{\link{tpm_emb_g}}.}
+It contains the transition probabilities given the current state is left. Hence, the diagonal elements need to be zero and the rows need to sum to one. Such a matrix or array can be constructed using \code{\link{tpm_switch}}.}
 
 \item{allprobs}{matrix of state-dependent probabilities/ density values of dimension \code{c(nObs, nStates)}}
 
@@ -53,6 +53,8 @@ This function can be used to fit HSMMs where the state-duration distribution and
 In the special case of periodic variation (as compared to arbitrary covariate influence), this version is to be preferred over \code{\link{forward_ihsmm}} because it computes the \strong{correct periodically stationary distribution} and no observations are lost for the approximation.
 
 This function is designed to be used with automatic differentiation based on the \code{R} package \code{RTMB}. It will be very slow without it!
+
+\strong{Deprecated:} please use \code{\link{forward_hsmm}} with \code{tod} instead. There, a stay that begins at time of day \code{s} is governed by \code{omega[,,s]}, here by \code{omega[,,s-1]} (\code{omega[,,s]} is for the step out of time of day \code{s}).
 }
 \details{
 Calculates the (approximate) log-likelihood of a sequence of observations under a periodically inhomogeneous hidden semi-Markov model using a modified \strong{forward algorithm}.
@@ -64,11 +66,11 @@ Calculates the (approximate) log-likelihood of a sequence of observations under 
 Koslik, J. O. (2025). Hidden semi-Markov models with inhomogeneous state dwell-time distributions. Computational Statistics & Data Analysis, 209, 108171.
 }
 \seealso{
-Other forward algorithms: 
-\code{\link{forward}()},
-\code{\link{forward_g}()},
-\code{\link{forward_hsmm}()},
-\code{\link{forward_ihsmm}()},
-\code{\link{forward_p}()}
+Other forward algorithms:
+\code{\link[=forward]{forward()}},
+\code{\link[=forward_g]{forward_g()}},
+\code{\link[=forward_hsmm]{forward_hsmm()}},
+\code{\link[=forward_ihsmm]{forward_ihsmm()}},
+\code{\link[=forward_p]{forward_p()}}
 }
 \concept{forward algorithms}

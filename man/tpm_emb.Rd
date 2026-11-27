@@ -7,45 +7,14 @@
 tpm_emb(param = NULL)
 }
 \arguments{
-\item{param}{unconstrained parameter vector of length \code{nStates * (nStates-2)}
-
-If the function is called without \code{param}, it will return the conditional transition probability matrix for a 2-state HSMM, which is fixed with 0 diagonal entries and off-diagonal entries equal to 1.}
+\item{param}{unconstrained parameter vector of length \code{nStates * (nStates-2)}, or \code{NULL} for 2 states}
 }
 \value{
 embedded/ conditional transition probability matrix of dimension \code{c(nStates, nStates)}
 }
 \description{
-Hidden semi-Markov models are defined in terms of state durations and an \strong{embedded} transition probability matrix that contains the conditional transition probabilities given that the \strong{current state is left}. This matrix necessarily has diagonal entries all equal to zero as self-transitions are impossible.
-
-This function builds such an embedded/ conditional transition probability matrix from an unconstrained parameter vector. 
-For each row of the matrix, the inverse multinomial logistic link is applied.
-
-For a matrix of dimension \code{c(nStates, nStates)}, the number of free off-diagonal elements is \code{nStates * (nStates-2)}, hence also the length of \code{param}.
-This means, for 2 states, the function needs to be called without any arguments, for 3-states with a vector of length 3, for 4 states with a vector of length 8, etc.
-
-Compatible with automatic differentiation by \code{RTMB}
+\strong{Deprecated:} please use \code{\link{tpm_switch}} instead, which gives the same matrix.
 }
 \examples{
-# 2 states: no free off-diagonal elements
-omega = tpm_emb()
-
-# 3 states: 3 free off-diagonal elements
-param = rep(0, 3)
-omega = tpm_emb(param)
-
-# 4 states: 8 free off-diagonal elements
-param = rep(0, 8)
-omega = tpm_emb(param)
+omega = tpm_emb(rep(0, 3))
 }
-\seealso{
-Other transition probability matrix functions: 
-\code{\link{generator}()},
-\code{\link{generator_g}()},
-\code{\link{tpm}()},
-\code{\link{tpm_ct}()},
-\code{\link{tpm_emb_g}()},
-\code{\link{tpm_g}()},
-\code{\link{tpm_g2}()},
-\code{\link{tpm_p}()}
-}
-\concept{transition probability matrix functions}

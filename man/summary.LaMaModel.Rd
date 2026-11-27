@@ -20,7 +20,7 @@
 }
 \value{
 \code{summary()} returns an object of class \code{"summary.LaMaModel"}, a list containing the quantities shown,
-e.g. \code{Gamma}, \code{stationary}, \code{dwell} and \code{bystate}. \code{print()} returns \code{x} invisibly.
+e.g. \code{Gamma} (or \code{omega}), \code{stationary}, \code{dwell} and \code{bystate}. \code{print()} returns \code{x} invisibly.
 }
 \description{
 Summarises a model from \code{\link{lama}} or \code{\link{qreml}}.
@@ -30,6 +30,10 @@ Besides the overview of \code{print()}, this contains
   (or generator matrix \code{Q} in continuous time, if reported, e.g. by \code{\link{tpm_ct}}), its stationary distribution and mean dwell times,
   averaged over tracks if there is one per track,
   \item for a periodic state process: the stationary distribution averaged over the cycle, i.e. the long-run proportion of time spent in each state,
+  \item for hidden semi-Markov models from \code{\link{forward_hsmm}}, in place of the transition probability matrix:
+  the conditional transition probabilities \code{omega}, and the stationary distribution and mean dwell times of the
+  approximating Markov chain (beyond the aggregate size, the dwell times have a geometric tail),
+  or for a periodic model the stationary distribution averaged over the cycle,
   \item the quantities reported by the likelihood function via \code{REPORT()}: numeric vectors of length equal to the number of states
   are shown as one table with a column per state, other small objects separately, and large ones only by name,
   \item log-likelihood, AIC, BIC and the maximum gradient component at the estimate.

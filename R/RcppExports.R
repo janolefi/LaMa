@@ -13,16 +13,16 @@ forward_cpp <- function(allprobs, Delta, Gamma, gidx, trackStart) {
     .Call(`_LaMa_forward_cpp`, allprobs, Delta, Gamma, gidx, trackStart)
 }
 
-forward_cpp_s <- function(allprobs, delta, Gamma, agsizes) {
-    .Call(`_LaMa_forward_cpp_s`, allprobs, delta, Gamma, agsizes)
+forward_hsmm_cpp <- function(allprobs, Delta, stay, omega, oidx, Ni, start, end) {
+    .Call(`_LaMa_forward_hsmm_cpp`, allprobs, Delta, stay, omega, oidx, Ni, start, end)
 }
 
-forward_cpp_sp <- function(allprobs, delta, Gamma, agsizes, tod) {
-    .Call(`_LaMa_forward_cpp_sp`, allprobs, delta, Gamma, agsizes, tod)
+stateprobs_hsmm_cpp <- function(allprobs, Delta, stay, omega, oidx, Ni, start, end, forecast) {
+    .Call(`_LaMa_stateprobs_hsmm_cpp`, allprobs, Delta, stay, omega, oidx, Ni, start, end, forecast)
 }
 
-rep_times <- function(x, times) {
-    .Call(`_LaMa_rep_times`, x, times)
+viterbi_hsmm_cpp <- function(allprobs, Delta, stay, omega, oidx, Ni, start, end) {
+    .Call(`_LaMa_viterbi_hsmm_cpp`, allprobs, Delta, stay, omega, oidx, Ni, start, end)
 }
 
 tpm_g_cpp <- function(Z, beta, N, byrow) {

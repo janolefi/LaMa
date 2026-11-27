@@ -35,7 +35,7 @@ state_weights <- function(mod, weights) {
 # weighted state-dependent densities of stream st on a grid: column j is the mean over the observed rows
 # of p_tj f_j(x; theta_tj), so the columns add up to the fitted marginal density
 stream_curves <- function(st, W, n = 200, xlim = NULL) {
-  obs <- which(!is.na(st$x))
+  obs <- which(!is.na(st$x) & !is.na(rowSums(W))) # HSMMs have no weights for the observations they do not use
   W <- W[obs, , drop = FALSE]
   fam <- sub("^d", "", st$name)
   discrete <- fam %in% .discrete_fams

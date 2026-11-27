@@ -85,8 +85,11 @@ zero inflation via indicators) or a latent variable integrated out inside \code{
 \code{pseudo_res(obs, dist, par, mod = mod)} needs to be used instead.
 Densities in your own helper functions called by the likelihood function are found as well,
 and \code{\link{qreml}} models work like models from \code{\link{lama}}.
-The likelihood function needs to call \code{\link{forward}} once (use \code{trackID} for several tracks),
+The likelihood function needs to call \code{\link{forward}} or \code{\link{forward_hsmm}} once (use \code{trackID} for several tracks),
 and it is evaluated with the data as they are when \code{pseudo_res()} is called.
+
+For hidden semi-Markov models, observations before \code{first_obs} are not used by \code{\link{forward_hsmm}},
+so their pseudo-residuals are \code{NA}, with or without the model object alone.
 }
 \examples{
 ## continuous-valued observations

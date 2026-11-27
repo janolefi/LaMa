@@ -21,7 +21,7 @@ is_generator <- function(Q, N){
 }
 
 # State process as reported by forward() and tpm_ct(): number of states, number of tracks,
-# continuous time (if a generator Q was reported) and type
+# continuous time (if a generator Q was reported), semi-Markov (if dwell times were reported) and type
 state_process <- function(x){
   N <- ncol(x$allprobs)
   if(is.null(N)) return(NULL)
@@ -33,7 +33,8 @@ state_process <- function(x){
     type <- if(length(dQ) == 2 || dQ[3] == 1) "homogeneous" else
       if(dQ[3] == nTracks) "track-specific" else "inhomogeneous"
   }
-  list(N = N, nTracks = nTracks, ct = ct, type = type)
+  hsmm <- !is.null(x[["dm"]]) && !is.null(x[["Ni"]])
+  list(N = N, nTracks = nTracks, ct = ct, hsmm = hsmm, type = type)
 }
 
 # First lines of print() and summary(): state process, observations and parameters
@@ -41,6 +42,7 @@ model_header <- function(x){
   sp <- state_process(x)
   line1 <- "Latent Markov model"
   if(!is.null(sp)){
+    if(sp$hsmm) line1 <- "Latent semi-Markov model"
     line1 <- paste0(line1, " with ", sp$N, if(sp$N == 1) " state" else " states",
                     " (", if(sp$ct) "continuous" else "discrete", " time",
                     if(!is.null(sp$type)) paste0(", ", sp$type), ")")
@@ -49,8 +51,10 @@ model_header <- function(x){
   line2 <- NULL
   if(!is.null(x$nobs)){
     line2 <- paste(x$nobs, "observations")
-    nmiss <- nrow(x$allprobs) - x$nobs
-    if(nmiss > 0) line2 <- paste0(line2, " (", nmiss, " missing)")
+    ndropped <- sum(!used_obs(x))
+    nmiss <- nrow(x$allprobs) - ndropped - x$nobs
+    notes <- c(if(nmiss > 0) paste(nmiss, "missing"), if(ndropped > 0) paste(ndropped, "not used"))
+    if(length(notes) > 0) line2 <- paste0(line2, " (", paste(notes, collapse = ", "), ")")
     if(sp$nTracks > 1) line2 <- paste0(line2, " in ", sp$nTracks, " tracks")
   }
   # number of parameters, for qreml() fixed ones and effective degrees of freedom of the smooths
@@ -90,7 +94,8 @@ print.LaMaModel <- function(x, ...) {
     cat("! Maximum gradient component is", signif(x$mgc, 3), "- the optimiser may not have converged\n")
   }
 
-  reported <- setdiff(names(x), c(model_fields(x), "type", "streams", "tpm_formula")) # type is in the first line
+  # type is in the first line, eps and omega_out are only needed internally (HSMMs)
+  reported <- setdiff(names(x), c(model_fields(x), "type", "streams", "tpm_formula", "eps", "omega_out"))
   if(length(reported) > 0) cat(strwrap(paste("Reported:", paste(reported, collapse = ", ")), exdent = 2), sep = "\n")
 
   invisible(x)
@@ -175,6 +180,10 @@ plot.LaMaModel <- function(x, type = c("residuals", "statedens"), stream = NULL,
 #'   (or generator matrix \code{Q} in continuous time, if reported, e.g. by \code{\link{tpm_ct}}), its stationary distribution and mean dwell times,
 #'   averaged over tracks if there is one per track,
 #'   \item for a periodic state process: the stationary distribution averaged over the cycle, i.e. the long-run proportion of time spent in each state,
+#'   \item for hidden semi-Markov models from \code{\link{forward_hsmm}}, in place of the transition probability matrix:
+#'   the conditional transition probabilities \code{omega}, and the stationary distribution and mean dwell times of the
+#'   approximating Markov chain (beyond the aggregate size, the dwell times have a geometric tail),
+#'   or for a periodic model the stationary distribution averaged over the cycle,
 #'   \item the quantities reported by the likelihood function via \code{REPORT()}: numeric vectors of length equal to the number of states
 #'   are shown as one table with a column per state, other small objects separately, and large ones only by name,
 #'   \item log-likelihood, AIC, BIC and the maximum gradient component at the estimate.
@@ -187,7 +196,7 @@ plot.LaMaModel <- function(x, type = c("residuals", "statedens"), stream = NULL,
 #'
 #' @importFrom stats AIC BIC logLik setNames
 #' @returns \code{summary()} returns an object of class \code{"summary.LaMaModel"}, a list containing the quantities shown,
-#' e.g. \code{Gamma}, \code{stationary}, \code{dwell} and \code{bystate}. \code{print()} returns \code{x} invisibly.
+#' e.g. \code{Gamma} (or \code{omega}), \code{stationary}, \code{dwell} and \code{bystate}. \code{print()} returns \code{x} invisibly.
 #' @export
 summary.LaMaModel <- function(object, ...) {
   sp <- state_process(object)
@@ -197,6 +206,8 @@ summary.LaMaModel <- function(object, ...) {
   ### state process: matrix, stationary distribution and dwell times, only for few states
   if(!is.null(sp) && sp$N > 10){
     s$note <- paste0("State process not shown for more than 10 states")
+  } else if(!is.null(sp) && sp$N > 1 && sp$hsmm){
+    s <- c(s, hsmm_summary(object, paste0("S", 1:sp$N)))
   } else if(!is.null(sp) && sp$N > 1){
     N <- sp$N
     states <- paste0("S", 1:N)
@@ -221,7 +232,7 @@ summary.LaMaModel <- function(object, ...) {
   
   ### quantities reported by the likelihood function
   internal <- c("delta", "Gamma", "allprobs", "trackID", "type", "tod", "streams",
-                "delta_sparse", "Gamma_sparse", "Delta_sparse", "tpm_formula", if(isTRUE(sp$ct)) "Q")
+                "dm", "omega", "Ni", "first_obs", "eps", "omega_out", "delta_sparse", "Gamma_sparse", "Delta_sparse", "tpm_formula", if(isTRUE(sp$ct)) "Q")
   reported <- object[setdiff(names(object), c(model_fields(object), internal))]
   
   # vectors with one entry per state form one table
@@ -257,6 +268,10 @@ print.summary.LaMaModel <- function(x, digits = max(3, getOption("digits") - 3),
   ### state process
   avg <- if(isTRUE(x$nTracks > 1)) paste0(" (average over ", x$nTracks, " tracks)") else ""
   if(!is.null(x$Gamma)) cat("\nTransition probability matrix", avg, ":\n", sep = "")
+  if(!is.null(x$omega)) {
+    cat("\nConditional transition probabilities, given that the state is left", avg, ":\n", sep = "")
+    print(x$omega, digits = digits)
+  }
   if(!is.null(x$Q)) cat("\nGenerator matrix", avg, ":\n", sep = "")
   if(!is.null(x$Gamma) || !is.null(x$Q)) print(if(is.null(x$Q)) x$Gamma else x$Q, digits = digits)
   if(!is.null(x$stationary)){

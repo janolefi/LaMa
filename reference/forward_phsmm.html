@@ -3,11 +3,13 @@
 For direct numerical maximum likelihood estimation, HSMMs can be represented as HMMs on an enlarged state space (of size \(M\)) and with structured transition probabilities.
 This function can be used to fit HSMMs where the state-duration distribution and/ or the conditional transition probabilities vary periodically.
 In the special case of periodic variation (as compared to arbitrary covariate influence), this version is to be preferred over forward_ihsmm because it computes the correct periodically stationary distribution and no observations are lost for the approximation.
-This function is designed to be used with automatic differentiation based on the R package RTMB. It will be very slow without it!"><meta property="og:description" content="Hidden semi-Markov models (HSMMs) are a flexible extension of HMMs, where the state duration distribution is explicitly modelled by a distribution on the positive integers. This function can be used to fit HSMMs where the state-duration distribution and/ or the conditional transition probabilities vary with covariates.
+This function is designed to be used with automatic differentiation based on the R package RTMB. It will be very slow without it!
+Deprecated: please use forward_hsmm with tod instead. There, a stay that begins at time of day s is governed by omega[,,s], here by omega[,,s-1] (omega[,,s] is for the step out of time of day s)."><meta property="og:description" content="Hidden semi-Markov models (HSMMs) are a flexible extension of HMMs, where the state duration distribution is explicitly modelled by a distribution on the positive integers. This function can be used to fit HSMMs where the state-duration distribution and/ or the conditional transition probabilities vary with covariates.
 For direct numerical maximum likelihood estimation, HSMMs can be represented as HMMs on an enlarged state space (of size \(M\)) and with structured transition probabilities.
 This function can be used to fit HSMMs where the state-duration distribution and/ or the conditional transition probabilities vary periodically.
 In the special case of periodic variation (as compared to arbitrary covariate influence), this version is to be preferred over forward_ihsmm because it computes the correct periodically stationary distribution and no observations are lost for the approximation.
-This function is designed to be used with automatic differentiation based on the R package RTMB. It will be very slow without it!"></head><body>
+This function is designed to be used with automatic differentiation based on the R package RTMB. It will be very slow without it!
+Deprecated: please use forward_hsmm with tod instead. There, a stay that begins at time of day s is governed by omega[,,s], here by omega[,,s-1] (omega[,,s] is for the step out of time of day s)."></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -62,6 +64,7 @@ For direct numerical maximum likelihood estimation, HSMMs can be represented as 
 <p>This function can be used to fit HSMMs where the state-duration distribution and/ or the conditional transition probabilities vary periodically.
 In the special case of periodic variation (as compared to arbitrary covariate influence), this version is to be preferred over <code><a href="forward_ihsmm.html">forward_ihsmm</a></code> because it computes the <strong>correct periodically stationary distribution</strong> and no observations are lost for the approximation.</p>
 <p>This function is designed to be used with automatic differentiation based on the <code>R</code> package <code>RTMB</code>. It will be very slow without it!</p>
+<p><strong>Deprecated:</strong> please use <code><a href="forward_hsmm.html">forward_hsmm</a></code> with <code>tod</code> instead. There, a stay that begins at time of day <code>s</code> is governed by <code>omega[,,s]</code>, here by <code>omega[,,s-1]</code> (<code>omega[,,s]</code> is for the step out of time of day <code>s</code>).</p>
     </div>
 
     <div class="section level2">
@@ -90,7 +93,7 @@ In the special case of periodic variation (as compared to arbitrary covariate in
 
 <dt id="arg-omega">omega<a class="anchor" aria-label="anchor" href="#arg-omega"></a></dt>
 <dd><p>matrix of dimension <code>c(nStates, nStates)</code> or array of dimension <code>c(nStates, nStates, L)</code> of conditional transition probabilities, also called embedded transition probability matrix</p>
-<p>It contains the transition probabilities given the current state is left. Hence, the diagonal elements need to be zero and the rows need to sum to one. Such a matrix can be constructed using <code><a href="tpm_emb.html">tpm_emb</a></code> and an array using <code><a href="tpm_emb_g.html">tpm_emb_g</a></code>.</p></dd>
+<p>It contains the transition probabilities given the current state is left. Hence, the diagonal elements need to be zero and the rows need to sum to one. Such a matrix or array can be constructed using <code><a href="tpm_switch.html">tpm_switch</a></code>.</p></dd>
 
 
 <dt id="arg-allprobs">allprobs<a class="anchor" aria-label="anchor" href="#arg-allprobs"></a></dt>

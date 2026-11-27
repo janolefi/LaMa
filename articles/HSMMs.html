@@ -78,51 +78,68 @@ Fischer</h4>
 
     
     
-<div style="background-color:#fff3cd; border-left:5px solid #ffc107; padding:10px 15px; margin:15px 0;">
-<p>This vignette has not yet been updated to work with RTMB</p>
-</div>
 <blockquote>
 <p>Before diving into this vignette, we recommend reading the vignette
 <a href="https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html"><strong>Introduction
 to LaMa</strong></a>.</p>
 </blockquote>
-<p>So-called hidden semi-Markov models (HSMMs) are a flexible
-generalisation of HMMs to a semi-Markovian state process which is
-motivated by the fact that for homogeneous HMMs, the time spent in a
-hidden state, also called the state dwell time or sojourn time is
-necessarily geometrically distributed as a consequence of the Markov
-assumption. HSMMs are designed to mitigate this often unrealistic
-assumption by allowing for arbitrary distributions on the positive
-integers to be estimated for the state dwell time. Inference in such
-models becomes more involved, but <span class="citation">Langrock and
-Zucchini (<a href="#ref-langrock2011hidden">2011</a>)</span> showed that
-HSMMs can be estimated conveniently via approximating them by HMMs with
-an extended state space. Each state of the HSMMs is represented by a
-state aggregate of several states and the transition probabilities
-within each aggregate are designed carefully to represent the chosen
-dwell-time distribution. For more details see <span class="citation">Langrock and Zucchini (<a href="#ref-langrock2011hidden">2011</a>)</span> or <span class="citation">Zucchini et al. (<a href="#ref-zucchini">2016</a>)</span>. Due to this approximate inference
-procedure, such models can again be fitted by numerically maximising the
-(approximate) likelihood which can be evaluated using the forward
-algorithm.</p>
+<p>In a homogeneous HMM, the time spent in a state before it is left,
+the <strong>dwell time</strong>, is necessarily geometrically
+distributed. By the Markov assumption, the chain decides anew at each
+time point whether to leave state <span class="math inline">i</span>, in
+a Bernoulli trial with success probability <span class="math inline">1 -
+\gamma_{ii}</span> that does not depend on how long it has been there.
+The probability that a stay in state <span class="math inline">i</span>
+lasts exactly <span class="math inline">r</span> time points is
+therefore <span class="math display">d_i(r) = \gamma_{ii}^{r-1} (1 -
+\gamma_{ii}), \quad r = 1, 2, \dots,</span> the probability of <span class="math inline">r - 1</span> failures followed by a success. This is
+often unrealistic, e.g. when an animal tends to rest for a few hours
+rather than for one. Hidden semi-Markov models (HSMMs) relax this
+assumption by allowing any distribution on the positive integers for the
+dwell time of each state. Inference becomes more involved, but <span class="citation">Langrock and Zucchini (<a href="#ref-langrock2011hidden">2011</a>)</span> showed that HSMMs can be
+estimated conveniently by approximating them by HMMs with an extended
+state space, so that the (approximate) likelihood can again be evaluated
+by the forward algorithm and maximised numerically.</p>
+<div class="section level2">
+<h2 id="hidden-semi-markov-models">Hidden semi-Markov models<a class="anchor" aria-label="anchor" href="#hidden-semi-markov-models"></a>
+</h2>
+<p>The state process of an <span class="math inline">N</span>-state HSMM
+is specified by two ingredients:</p>
+<ol style="list-style-type: decimal">
+<li>a <strong>dwell-time distribution</strong> <span class="math inline">d_i(r)</span>, <span class="math inline">r = 1, 2,
+\dots</span>, for each state <span class="math inline">i</span>, now any
+distribution on the positive integers, and</li>
+<li>the <strong>conditional transition probabilities</strong> <span class="math inline">\omega_{ij}</span>, the probability of switching to
+state <span class="math inline">j</span>, given that state <span class="math inline">i</span> is left. They form the matrix <span class="math inline">\boldsymbol{\Omega}</span>, whose diagonal is zero,
+as a state cannot be re-entered when it is left.</li>
+</ol>
+<p>In the approximating HMM, each state <span class="math inline">i</span> of the HSMM is represented by an
+<strong>aggregate</strong> of <span class="math inline">N_i</span>
+states: being in its <span class="math inline">r</span>-th state means
+being at the <span class="math inline">r</span>-th time point of the
+current stay. From there, the chain either moves one state up, or leaves
+the aggregate with the probability that the stay ends now, given that it
+has lasted <span class="math inline">r</span> time points. The highest
+state of an aggregate holds all longer stays, so beyond <span class="math inline">N_i</span> the dwell times have a geometric tail.
+The aggregate sizes should therefore cover most of the support of the
+dwell-time distributions; for more details see <span class="citation">Langrock and Zucchini (<a href="#ref-langrock2011hidden">2011</a>)</span> or <span class="citation">Zucchini et al. (<a href="#ref-zucchini">2016</a>)</span>.</p>
+<p>The approximating chain has <span class="math inline">M = N_1 + \dots
++ N_N</span> states, often a hundred or more, but its transition matrix
+is sparse and fully determined by the dwell-time distributions and <span class="math inline">\boldsymbol{\Omega}</span>.
+<code><a href="../reference/forward_hsmm.html">forward_hsmm()</a></code> therefore takes these two ingredients
+directly and never builds the <span class="math inline">M \times
+M</span> matrix, which keeps fitting fast.</p>
+</div>
 <div class="section level2">
 <h2 id="simulation-example">Simulation example<a class="anchor" aria-label="anchor" href="#simulation-example"></a>
 </h2>
-<p>We begin by considering homogeneous HSMMs. In such models, each state
-has an associated state dwell-time distribution. The transition
-probability matrix of a regular HMM is replaced by these distributions
-and the conditional transition probabilities given the state is
-left.</p>
-<div class="section level3">
-<h3 id="setting-parameters">Setting parameters<a class="anchor" aria-label="anchor" href="#setting-parameters"></a>
-</h3>
-<p>Here we choose the simplest case of dwell times that are
-<strong>shifted Poisson</strong> distributed. We have to specify the
-Poisson mean for each state, the conditional transition probability
-matrix called <span class="math inline">\boldsymbol{\Omega}</span> and
-the parameters of the state-dependent process.</p>
+<p>We begin with a homogeneous HSMM, whose dwell times are
+<strong>shifted Poisson</strong> distributed: a stay in state <span class="math inline">i</span> lasts <span class="math inline">1 +
+Y</span> time points with <span class="math inline">Y \sim
+\text{Poisson}(\lambda_i)</span>. Given the state, the observations are
+normally distributed.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># loading the package</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://janolefi.github.io/LaMa/">LaMa</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://janolefi.github.io/LaMa/">LaMa</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; Loading required package: RTMB</span></span></code></pre></div>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lambda</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">7</span>, <span class="fl">4</span>, <span class="fl">4</span><span class="op">)</span></span>
@@ -132,132 +149,160 @@ the parameters of the state-dependent process.</p>
 <span><span class="va">mu</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">40</span>, <span class="fl">100</span><span class="op">)</span></span>
 <span><span class="va">sigma</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">20</span>, <span class="fl">50</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">color</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"orange"</span>, <span class="st">"deepskyblue"</span>, <span class="st">"seagreen2"</span><span class="op">)</span></span>
+<span><span class="va">color</span> <span class="op">=</span> <span class="fu"><a href="../reference/LaMaColors.html">LaMaColors</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/curve.html" class="external-link">curve</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">mu</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="va">sigma</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>, lwd <span class="op">=</span> <span class="fl">2</span>, col <span class="op">=</span> <span class="va">color</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, bty <span class="op">=</span> <span class="st">"n"</span>,</span>
 <span>      xlab <span class="op">=</span> <span class="st">"x"</span>, ylab <span class="op">=</span> <span class="st">"density"</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">150</span><span class="op">)</span>, n <span class="op">=</span> <span class="fl">300</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/curve.html" class="external-link">curve</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">mu</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="va">sigma</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>, lwd <span class="op">=</span> <span class="fl">2</span>, col <span class="op">=</span> <span class="va">color</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, add <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/curve.html" class="external-link">curve</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">mu</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span>, <span class="va">sigma</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span>, lwd <span class="op">=</span> <span class="fl">2</span>, col <span class="op">=</span> <span class="va">color</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span>, add <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/curve.html" class="external-link">curve</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">mu</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="va">sigma</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span>, lwd <span class="op">=</span> <span class="fl">2</span>, col <span class="op">=</span> <span class="va">color</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, add <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/curve.html" class="external-link">curve</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">mu</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span>, <span class="va">sigma</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span>, lwd <span class="op">=</span> <span class="fl">2</span>, col <span class="op">=</span> <span class="va">color</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span>, add <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="HSMMs_files/figure-html/parameters-1.png" class="r-plt" alt="" width="85%" style="display: block; margin: auto;"></p>
-</div>
 <div class="section level3">
 <h3 id="simulating-data">Simulating data<a class="anchor" aria-label="anchor" href="#simulating-data"></a>
 </h3>
-<p>We simulate data by drawing dwell times from the dwell-time
-distribution of the current state and then draw the next state using the
-conditional transition probabilities. The state-dependent process is
-drawn conditional on the current state.</p>
+<p>We simulate a sequence of stays: the length of each stay is drawn
+from the dwell-time distribution of its state, and the next state from
+the conditional transition probabilities. Given the state, each
+observation is drawn from its state-dependent distribution.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">k</span> <span class="op">=</span> <span class="fl">50</span> <span class="co"># number of stays</span></span>
 <span><span class="va">s</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="va">k</span><span class="op">)</span></span>
 <span><span class="va">s</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="fl">1</span><span class="op">)</span> <span class="co"># uniform initial distribution</span></span>
-<span><span class="va">staylength</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Poisson.html" class="external-link">rpois</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">lambda</span><span class="op">[</span><span class="va">s</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span> <span class="co"># drawing dwell time from shifted Poisson</span></span>
+<span><span class="va">staylength</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Poisson.html" class="external-link">rpois</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">lambda</span><span class="op">[</span><span class="va">s</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span> <span class="co"># dwell time from shifted Poisson</span></span>
 <span><span class="va">C</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">s</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="va">staylength</span><span class="op">)</span></span>
 <span><span class="va">x</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">staylength</span>, <span class="va">mu</span><span class="op">[</span><span class="va">s</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, <span class="va">sigma</span><span class="op">[</span><span class="va">s</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
 <span></span>
 <span><span class="kw">for</span><span class="op">(</span><span class="va">t</span> <span class="kw">in</span> <span class="fl">2</span><span class="op">:</span><span class="va">k</span><span class="op">)</span><span class="op">{</span></span>
-<span>  <span class="co"># conditionally drawing state</span></span>
+<span>  <span class="co"># next state, given that the current one is left</span></span>
 <span>  <span class="va">s</span><span class="op">[</span><span class="va">t</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span><span class="op">[</span><span class="op">-</span><span class="va">s</span><span class="op">[</span><span class="va">t</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>, <span class="fl">1</span>, prob <span class="op">=</span> <span class="va">omega</span><span class="op">[</span><span class="va">s</span><span class="op">[</span><span class="va">t</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>, <span class="op">-</span><span class="va">s</span><span class="op">[</span><span class="va">t</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="va">staylength</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Poisson.html" class="external-link">rpois</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">lambda</span><span class="op">[</span><span class="va">s</span><span class="op">[</span><span class="va">t</span><span class="op">]</span><span class="op">]</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span> <span class="co"># drawing dwell time from shifted Poisson</span></span>
-<span>  </span>
+<span>  <span class="va">staylength</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Poisson.html" class="external-link">rpois</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">lambda</span><span class="op">[</span><span class="va">s</span><span class="op">[</span><span class="va">t</span><span class="op">]</span><span class="op">]</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span> <span class="co"># dwell time from shifted Poisson</span></span>
+<span></span>
 <span>  <span class="va">C</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">C</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">s</span><span class="op">[</span><span class="va">t</span><span class="op">]</span>, <span class="va">staylength</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="va">x</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">x</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">staylength</span>, <span class="va">mu</span><span class="op">[</span><span class="va">s</span><span class="op">[</span><span class="va">t</span><span class="op">]</span><span class="op">]</span>, <span class="va">sigma</span><span class="op">[</span><span class="va">s</span><span class="op">[</span><span class="va">t</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">x</span>, pch <span class="op">=</span> <span class="fl">20</span>, col <span class="op">=</span> <span class="va">color</span><span class="op">[</span><span class="va">C</span><span class="op">]</span>, bty <span class="op">=</span> <span class="st">"n"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html" class="external-link">legend</a></span><span class="op">(</span><span class="st">"topright"</span>, col <span class="op">=</span> <span class="va">color</span>, pch <span class="op">=</span> <span class="fl">20</span>, </span>
-<span>       legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"state"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span>, box.lwd <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html" class="external-link">legend</a></span><span class="op">(</span><span class="st">"topright"</span>, col <span class="op">=</span> <span class="va">color</span>, pch <span class="op">=</span> <span class="fl">20</span>,</span>
+<span>       legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"state"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span>, bty <span class="op">=</span> <span class="st">"n"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="HSMMs_files/figure-html/simulation-1.png" class="r-plt" alt="" width="85%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="writing-the-negative-log-likelihood-function">Writing the negative log-likelihood function<a class="anchor" aria-label="anchor" href="#writing-the-negative-log-likelihood-function"></a>
 </h3>
-<p>We now write the negative log-likelihood function for an
-approximating HMM. As a semi-Markov chain is specified in terms of
-state-specific dwell-time distributions and conditional transition
-probabilities given that the current state is left, we have to compute
-both (here called <code>dm</code> and <code>omega</code>). For the
-latter, we can use the function <code><a href="../reference/tpm_emb.html">tpm_emb()</a></code> that constructs a
-transition probability matrix via the inverse multinomial logit link
-(softmax), where the diagonal entries are forced to equal zero.</p>
-<p>The transition probability matrix of the approximating HMM can then
-be computed by the function <code><a href="../reference/tpm_hsmm.html">tpm_hsmm()</a></code> where the exact
-procedure is detailed by <span class="citation">Langrock and Zucchini
-(<a href="#ref-langrock2011hidden">2011</a>)</span>. We need the extra
-argument <code>agsizes</code> to specify the aggregate sizes that should
-be used to approximate the dwell-time distributions. These should be
-chosen such that most of the support of the state-specific dwell-time
-distributions is covered.</p>
+<p>The likelihood looks much like the one of an HMM. In place of
+<code><a href="../reference/tpm.html">tpm()</a></code>, <code><a href="../reference/tpm_switch.html">tpm_switch()</a></code> computes <span class="math inline">\boldsymbol{\Omega}</span> from unconstrained
+parameters, applying the inverse multinomial logistic link to the
+off-diagonal entries of each row. For <span class="math inline">N</span>
+states, it needs <span class="math inline">N(N-2)</span> parameters:
+three for three states, none for two. The dwell-time distributions are
+passed as a list <code>dm</code> with one vector of probabilities <span class="math inline">d_i(1), \dots, d_i(N_i)</span> per state, whose
+length is the aggregate size. As <span class="math inline">Y = r -
+1</span>, these are <code>dpois(0:(Ni[j] - 1), lambda[j])</code>.
+<code><a href="../reference/forward_hsmm.html">forward_hsmm()</a></code> then computes the log-likelihood from
+<code>dm</code>, <code>omega</code> and the state-dependent densities,
+by default with the stationary distribution of the approximating chain
+as initial distribution.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">nll</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">par</span>, <span class="va">x</span>, <span class="va">N</span>, <span class="va">agsizes</span><span class="op">)</span><span class="op">{</span></span>
-<span>  <span class="va">mu</span> <span class="op">=</span> <span class="va">par</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">]</span></span>
-<span>  <span class="va">sigma</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">par</span><span class="op">[</span><span class="va">N</span><span class="op">+</span><span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="va">lambda</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">par</span><span class="op">[</span><span class="fl">2</span><span class="op">*</span><span class="va">N</span><span class="op">+</span><span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="va">omega</span> <span class="op">=</span> <span class="kw">if</span><span class="op">(</span><span class="va">N</span><span class="op">==</span><span class="fl">2</span><span class="op">)</span> <span class="fu"><a href="../reference/tpm_emb.html">tpm_emb</a></span><span class="op">(</span><span class="op">)</span> <span class="kw">else</span> <span class="fu"><a href="../reference/tpm_emb.html">tpm_emb</a></span><span class="op">(</span><span class="va">par</span><span class="op">[</span><span class="fl">3</span><span class="op">*</span><span class="va">N</span><span class="op">+</span><span class="fl">1</span><span class="op">:</span><span class="op">(</span><span class="va">N</span><span class="op">*</span><span class="op">(</span><span class="va">N</span><span class="op">-</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="va">dm</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># list of dwell-time distributions</span></span>
-<span>  <span class="kw">for</span><span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">)</span> <span class="va">dm</span><span class="op">[[</span><span class="va">j</span><span class="op">]</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Poisson.html" class="external-link">dpois</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">agsizes</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">-</span><span class="fl">1</span>, <span class="va">lambda</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span> <span class="co"># shifted Poisson</span></span>
-<span>  <span class="va">Gamma</span> <span class="op">=</span> <span class="fu"><a href="../reference/tpm_hsmm.html">tpm_hsmm</a></span><span class="op">(</span><span class="va">omega</span>, <span class="va">dm</span>, sparse <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span>  <span class="va">delta</span> <span class="op">=</span> <span class="fu"><a href="../reference/stationary.html">stationary</a></span><span class="op">(</span><span class="va">Gamma</span><span class="op">)</span></span>
-<span>  <span class="va">allprobs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>, <span class="va">N</span><span class="op">)</span></span>
-<span>  <span class="va">ind</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="kw">for</span><span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">)</span><span class="op">{</span></span>
-<span>    <span class="va">allprobs</span><span class="op">[</span><span class="va">ind</span>,<span class="va">j</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">x</span><span class="op">[</span><span class="va">ind</span><span class="op">]</span>, <span class="va">mu</span><span class="op">[</span><span class="va">j</span><span class="op">]</span>, <span class="va">sigma</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="op">}</span></span>
-<span>  <span class="op">-</span><span class="fu"><a href="../reference/forward_s.html">forward_s</a></span><span class="op">(</span><span class="va">delta</span>, <span class="va">Gamma</span>, <span class="va">allprobs</span>, <span class="va">agsizes</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">nll</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">par</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">getAll</a></span><span class="op">(</span><span class="va">par</span>, <span class="va">dat</span><span class="op">)</span></span>
+<span>  <span class="va">sigma</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">log_sigma</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">REPORT</a></span><span class="op">(</span><span class="va">sigma</span><span class="op">)</span></span>
+<span>  <span class="va">lambda</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">log_lambda</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">REPORT</a></span><span class="op">(</span><span class="va">lambda</span><span class="op">)</span></span>
+<span>  <span class="va">omega</span> <span class="op">=</span> <span class="fu"><a href="../reference/tpm_switch.html">tpm_switch</a></span><span class="op">(</span><span class="va">eta</span><span class="op">)</span> <span class="co"># conditional transition probabilities</span></span>
+<span>  <span class="va">dm</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># dwell-time distributions, one vector per state</span></span>
+<span>  <span class="kw">for</span><span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span> <span class="va">dm</span><span class="op">[[</span><span class="va">j</span><span class="op">]</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Poisson.html" class="external-link">dpois</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="op">(</span><span class="va">Ni</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span>, <span class="va">lambda</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span> <span class="co"># shifted Poisson</span></span>
+<span>  <span class="va">allprobs</span> <span class="op">=</span> <span class="fu"><a href="../reference/statedens.html">statedens</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">dnorm</span>, <span class="va">mu</span>, <span class="va">sigma</span><span class="op">)</span></span>
+<span>  <span class="op">-</span><span class="fu"><a href="../reference/forward_hsmm.html">forward_hsmm</a></span><span class="op">(</span><span class="va">dm</span>, <span class="va">omega</span>, <span class="va">allprobs</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="fitting-an-hsmm-as-an-approximating-hmm-to-the-data">Fitting an HSMM (as an approximating HMM) to the data<a class="anchor" aria-label="anchor" href="#fitting-an-hsmm-as-an-approximating-hmm-to-the-data"></a>
-</h3>
+<p>We choose the aggregate sizes such that they cover 99.9% of the
+initial dwell-time distributions.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># initial values</span></span>
-<span><span class="va">par</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">40</span>, <span class="fl">100</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">20</span>, <span class="fl">50</span><span class="op">)</span><span class="op">)</span>, <span class="co"># state-dependent</span></span>
-<span>               <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">7</span>,<span class="fl">4</span>,<span class="fl">4</span><span class="op">)</span><span class="op">)</span>, <span class="co"># dwell time means</span></span>
-<span>               <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span> <span class="co"># omega</span></span>
+<code class="sourceCode R"><span><span class="va">par</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">40</span>, <span class="fl">100</span><span class="op">)</span>,</span>
+<span>           log_sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">20</span>, <span class="fl">50</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>           log_lambda <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">7</span>, <span class="fl">4</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span>, <span class="co"># dwell time parameters</span></span>
+<span>           eta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span>              <span class="co"># omega parameters</span></span>
 <span></span>
-<span><span class="va">agsizes</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Poisson.html" class="external-link">qpois</a></span><span class="op">(</span><span class="fl">0.95</span>, <span class="va">lambda</span><span class="op">)</span><span class="op">+</span><span class="fl">1</span></span>
+<span><span class="va">dat</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x</span>, Ni <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Poisson.html" class="external-link">qpois</a></span><span class="op">(</span><span class="fl">0.999</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">7</span>, <span class="fl">4</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">dat</span><span class="op">$</span><span class="va">Ni</span> <span class="co"># aggregate sizes, 41 states in total</span></span>
+<span><span class="co">#&gt; [1] 17 12 12</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
-<span>  <span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm</a></span><span class="op">(</span><span class="va">nll</span>, <span class="va">par</span>, x <span class="op">=</span> <span class="va">x</span>, N <span class="op">=</span> <span class="fl">3</span>, agsizes <span class="op">=</span> <span class="va">agsizes</span>, stepmax <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt; forward_s() is deprecated, please use forward_hsmm(dm, omega, allprobs) instead.</span></span>
+<span><span class="va">obj</span> <span class="op">=</span> <span class="fu">MakeADFun</span><span class="op">(</span><span class="va">nll</span>, <span class="va">par</span>, silent <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="va">opt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></span><span class="op">(</span><span class="va">obj</span><span class="op">$</span><span class="va">par</span>, <span class="va">obj</span><span class="op">$</span><span class="va">fn</span>, <span class="va">obj</span><span class="op">$</span><span class="va">gr</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   0.635   0.028   0.662</span></span></code></pre></div>
-<p>Fitting HSMMs is rather slow (even using C++) as we translate the
-additional model complexity into a higher computational overhead (31
-states here).</p>
+<span><span class="co">#&gt;    0.04    0.00    0.04</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="results">Results<a class="anchor" aria-label="anchor" href="#results"></a>
 </h3>
+<p>As for HMMs, <code><a href="../reference/lama.html">lama()</a></code> returns a model object. For HSMMs,
+<code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> shows the conditional transition probabilities,
+the stationary distribution and the mean dwell times, here close to the
+true values <span class="math inline">1 + \lambda_i</span> = 8, 5 and
+5:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">N</span> <span class="op">=</span> <span class="fl">3</span></span>
-<span><span class="op">(</span><span class="va">mu</span> <span class="op">=</span> <span class="va">mod</span><span class="op">$</span><span class="va">estimate</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1]  10.16569  39.06161 107.66034</span></span>
-<span><span class="op">(</span><span class="va">sigma</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">mod</span><span class="op">$</span><span class="va">estimate</span><span class="op">[</span><span class="va">N</span><span class="op">+</span><span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1]  4.78882 19.35639 48.56115</span></span>
-<span><span class="op">(</span><span class="va">lambda</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">mod</span><span class="op">$</span><span class="va">estimate</span><span class="op">[</span><span class="fl">2</span><span class="op">*</span><span class="va">N</span><span class="op">+</span><span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 6.942983 4.595469 3.354765</span></span>
-<span><span class="op">(</span><span class="va">omega</span> <span class="op">=</span> <span class="fu"><a href="../reference/tpm_emb.html">tpm_emb</a></span><span class="op">(</span><span class="va">mod</span><span class="op">$</span><span class="va">estimate</span><span class="op">[</span><span class="fl">3</span><span class="op">*</span><span class="va">N</span><span class="op">+</span><span class="fl">1</span><span class="op">:</span><span class="op">(</span><span class="va">N</span><span class="op">*</span><span class="op">(</span><span class="va">N</span><span class="op">-</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;           S1        S2        S3</span></span>
-<span><span class="co">#&gt; S1 0.0000000 0.5541031 0.4458969</span></span>
-<span><span class="co">#&gt; S2 0.5040939 0.0000000 0.4959061</span></span>
-<span><span class="co">#&gt; S3 0.6654703 0.3345297 0.0000000</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">mod</span> <span class="op">=</span> <span class="fu"><a href="../reference/lama.html">lama</a></span><span class="op">(</span><span class="va">obj</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Latent semi-Markov model with 3 states (discrete time, homogeneous)</span></span>
+<span><span class="co">#&gt; 302 observations, 12 parameters</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Conditional transition probabilities, given that the state is left:</span></span>
+<span><span class="co">#&gt;        S1     S2     S3</span></span>
+<span><span class="co">#&gt; S1 0.0000 0.5541 0.4459</span></span>
+<span><span class="co">#&gt; S2 0.5041 0.0000 0.4959</span></span>
+<span><span class="co">#&gt; S3 0.6655 0.3345 0.0000</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Stationary distribution:</span></span>
+<span><span class="co">#&gt;     S1     S2     S3 </span></span>
+<span><span class="co">#&gt; 0.4836 0.2873 0.2291 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Mean dwell times:</span></span>
+<span><span class="co">#&gt;    S1    S2    S3 </span></span>
+<span><span class="co">#&gt; 7.943 5.596 4.355 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Reported quantities:</span></span>
+<span><span class="co">#&gt;           S1     S2     S3</span></span>
+<span><span class="co">#&gt; sigma  4.789 19.356 48.562</span></span>
+<span><span class="co">#&gt; lambda 6.943  4.596  3.355</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Log-likelihood: -1300.22   AIC: 2624.44   BIC: 2668.96</span></span>
+<span><span class="co">#&gt; Maximum gradient component: 0.00013</span></span></code></pre></div>
+<p><code><a href="../reference/forward_hsmm.html">forward_hsmm()</a></code> reports the dwell-time distributions
+<code>dm</code>, so we can compare them with the true ones:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html" class="external-link">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="kw">for</span><span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span><span class="op">{</span></span>
+<span>  <span class="va">r</span> <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">dat</span><span class="op">$</span><span class="va">Ni</span><span class="op">[</span><span class="va">j</span><span class="op">]</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">r</span>, <span class="va">mod</span><span class="op">$</span><span class="va">dm</span><span class="op">[[</span><span class="va">j</span><span class="op">]</span><span class="op">]</span>, type <span class="op">=</span> <span class="st">"h"</span>, lwd <span class="op">=</span> <span class="fl">3</span>, col <span class="op">=</span> <span class="va">color</span><span class="op">[</span><span class="va">j</span><span class="op">]</span>, bty <span class="op">=</span> <span class="st">"n"</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.3</span><span class="op">)</span>,</span>
+<span>       xlab <span class="op">=</span> <span class="st">"dwell time"</span>, ylab <span class="op">=</span> <span class="st">"probability"</span>, main <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"state"</span>, <span class="va">j</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/graphics/points.html" class="external-link">points</a></span><span class="op">(</span><span class="va">r</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Poisson.html" class="external-link">dpois</a></span><span class="op">(</span><span class="va">r</span> <span class="op">-</span> <span class="fl">1</span>, <span class="va">lambda</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span>, pch <span class="op">=</span> <span class="fl">20</span><span class="op">)</span> <span class="co"># true distribution</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p><img src="HSMMs_files/figure-html/dwell-1.png" class="r-plt" alt="" width="85%" style="display: block; margin: auto;"></p>
+<p>The model object can be used as for HMMs: <code>viterbi(mod)</code>
+and <code>stateprobs(mod)</code> decode the states (computed on the
+approximating chain, but returned for the <span class="math inline">N</span> states of the HSMM),
+<code>plot(mod, type = "statedens")</code> shows the state-dependent
+distributions, <code>plot(mod)</code> the pseudo-residuals, and
+<code>simulate(mod)</code> simulates states and observations. The latter
+simulates the approximating chain: as <code>dm</code> is only given up
+to the aggregate sizes, LaMa cannot determine the dwell-time
+distributions beyond them, where the chain has a geometric tail, and a
+message says so if more than 1% of a dwell-time distribution lies
+there.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">states</span> <span class="op">=</span> <span class="fu"><a href="../reference/viterbi.html">viterbi</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">states</span> <span class="op">==</span> <span class="va">C</span><span class="op">)</span> <span class="co"># proportion of correctly decoded states</span></span>
+<span><span class="co">#&gt; [1] 0.9602649</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
 <h2 id="real-data-application">Real-data application<a class="anchor" aria-label="anchor" href="#real-data-application"></a>
 </h2>
-<p>We now want to briefly show the analysis of a real data set using
-hidden semi-Markov models. For this purpose we use the movement track of
-an Arctic muskox contained in the <code>R</code> package
-<code>PHSMM</code>. Originally these data were collected by <span class="citation">Beumer et al. (<a href="#ref-beumer2020application">2020</a>)</span> and have already been
+<p>We now analyse the movement track of an Arctic muskox contained in
+the <code>R</code> package <code>PHSMM</code>, with hourly step lengths.
+These data were collected by <span class="citation">Beumer et al. (<a href="#ref-beumer2020application">2020</a>)</span> and have already been
 analysed by <span class="citation">Pohle et al. (<a href="#ref-pohle2022flexible">2022</a>)</span>.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">PHSMM</span><span class="op">)</span></span>
-<span><span class="va">data</span> <span class="op">=</span> <span class="va">muskox</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">1000</span>, <span class="op">]</span> <span class="co"># only using first 1000 observations for speed</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">muskox</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                      date tday        x       y       step</span></span>
 <span><span class="co">#&gt; 88273 2013-10-11 22:00:00   15 513299.2 8264867  17.998874</span></span>
 <span><span class="co">#&gt; 88274 2013-10-11 22:00:00   16 513283.4 8264875   8.214733</span></span>
@@ -265,86 +310,192 @@ analysed by <span class="citation">Pohle et al. (<a href="#ref-pohle2022flexible
 <span><span class="co">#&gt; 88276 2013-10-11 22:00:00   18 513280.4 8264877  53.378332</span></span>
 <span><span class="co">#&gt; 88277 2013-10-11 22:00:00   19 513252.0 8264922 719.242687</span></span>
 <span><span class="co">#&gt; 88278 2013-10-11 22:00:00   20 513386.7 8265629  10.797127</span></span></code></pre></div>
-<p>As these data have already been preprocessed, we can immediately
-write the negative log-likelihood function. When modeling the dwell-time
-distribution of real processes, it is typically advisable to use a more
-flexible distribution than the shifted Poisson distribution, as the
-latter cannot account for overdispersion. Here, we will employ the
-shifted negative binomial distribution that yields the Poisson
-distribution as a special case for the dispersion parameter equal to
-zero. The state-dependent step lengths are modelled by gamma
-distributions, where we reparametrise the gamma distribution in terms of
-its mean and standard deviation as opposed to shape and scale for better
-interpretability using <code><a href="../reference/gamma2.html">dgamma2()</a></code>.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">nll_muskox</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">par</span>, <span class="va">step</span>, <span class="va">N</span>, <span class="va">agsizes</span><span class="op">)</span><span class="op">{</span></span>
-<span>  <span class="co"># parameter transformation from working to natural</span></span>
-<span>  <span class="va">mu</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">par</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">]</span><span class="op">)</span> <span class="co"># step mean</span></span>
-<span>  <span class="va">sigma</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">par</span><span class="op">[</span><span class="va">N</span><span class="op">+</span><span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">]</span><span class="op">)</span> <span class="co"># step standard deviation</span></span>
-<span>  <span class="va">mu_dwell</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">par</span><span class="op">[</span><span class="fl">2</span><span class="op">*</span><span class="va">N</span><span class="op">+</span><span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">]</span><span class="op">)</span> <span class="co"># dwell time mean</span></span>
-<span>  <span class="va">phi</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">par</span><span class="op">[</span><span class="fl">3</span><span class="op">*</span><span class="va">N</span><span class="op">+</span><span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">]</span><span class="op">)</span> <span class="co"># dwell time dispersion</span></span>
-<span>  <span class="va">omega</span> <span class="op">=</span> <span class="kw">if</span><span class="op">(</span><span class="va">N</span><span class="op">==</span><span class="fl">2</span><span class="op">)</span> <span class="fu"><a href="../reference/tpm_emb.html">tpm_emb</a></span><span class="op">(</span><span class="op">)</span> <span class="kw">else</span> <span class="fu"><a href="../reference/tpm_emb.html">tpm_emb</a></span><span class="op">(</span><span class="va">par</span><span class="op">[</span><span class="fl">4</span><span class="op">*</span><span class="va">N</span><span class="op">+</span><span class="fl">1</span><span class="op">:</span><span class="op">(</span><span class="va">N</span><span class="op">*</span><span class="op">(</span><span class="va">N</span><span class="op">-</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="va">dm</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># list of dwell-time distributions</span></span>
-<span>  <span class="kw">for</span><span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">)</span><span class="op">{</span> </span>
-<span>    <span class="va">dm</span><span class="op">[[</span><span class="va">j</span><span class="op">]</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/NegBinomial.html" class="external-link">dnbinom</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">agsizes</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">-</span><span class="fl">1</span>, mu<span class="op">=</span><span class="va">mu_dwell</span><span class="op">[</span><span class="va">j</span><span class="op">]</span>, size<span class="op">=</span><span class="fl">1</span><span class="op">/</span><span class="va">phi</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span> </span>
-<span>  <span class="op">}</span></span>
-<span>  <span class="va">Gamma</span> <span class="op">=</span> <span class="fu"><a href="../reference/tpm_hsmm.html">tpm_hsmm</a></span><span class="op">(</span><span class="va">omega</span>, <span class="va">dm</span>, sparse <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span>  <span class="va">delta</span> <span class="op">=</span> <span class="fu"><a href="../reference/stationary.html">stationary</a></span><span class="op">(</span><span class="va">Gamma</span><span class="op">)</span></span>
-<span>  <span class="va">allprobs</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">step</span><span class="op">)</span>, <span class="va">N</span><span class="op">)</span></span>
-<span>  <span class="va">ind</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">step</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="kw">for</span><span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">)</span> <span class="va">allprobs</span><span class="op">[</span><span class="va">ind</span>,<span class="va">j</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="../reference/gamma2.html">dgamma2</a></span><span class="op">(</span><span class="va">step</span><span class="op">[</span><span class="va">ind</span><span class="op">]</span>, <span class="va">mu</span><span class="op">[</span><span class="va">j</span><span class="op">]</span>, <span class="va">sigma</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span></span>
-<span>  <span class="op">-</span><span class="fu"><a href="../reference/forward_s.html">forward_s</a></span><span class="op">(</span><span class="va">delta</span>, <span class="va">Gamma</span>, <span class="va">allprobs</span>, <span class="va">agsizes</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
-<div class="section level3">
-<h3 id="fitting-an-hsmm-as-an-approximating-hmm-to-the-muskox-data">Fitting an HSMM (as an approximating HMM) to the muskox data<a class="anchor" aria-label="anchor" href="#fitting-an-hsmm-as-an-approximating-hmm-to-the-muskox-data"></a>
-</h3>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># intial values</span></span>
-<span><span class="va">par</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">50</span>, <span class="fl">300</span>, <span class="fl">4</span>, <span class="fl">50</span>, <span class="fl">300</span><span class="op">)</span><span class="op">)</span>, <span class="co"># state-dependent mean and sd</span></span>
-<span>               <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>,<span class="fl">3</span>,<span class="fl">5</span><span class="op">)</span><span class="op">)</span>, <span class="co"># dwell time means</span></span>
-<span>               <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.01</span>, <span class="fl">0.01</span>, <span class="fl">0.01</span><span class="op">)</span><span class="op">)</span>, <span class="co"># dwell time dispersion</span></span>
-<span>               <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span> <span class="co"># omega</span></span>
-<span></span>
-<span><span class="va">agsizes</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">11</span>,<span class="fl">11</span>,<span class="fl">14</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
-<span>  <span class="va">mod_muskox</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlm.html" class="external-link">nlm</a></span><span class="op">(</span><span class="va">nll_muskox</span>, <span class="va">par</span>, step <span class="op">=</span> <span class="va">data</span><span class="op">$</span><span class="va">step</span>, N <span class="op">=</span> <span class="fl">3</span>,</span>
-<span>                    agsizes <span class="op">=</span> <span class="va">agsizes</span>, iterlim <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt;    user  system elapsed </span></span>
-<span><span class="co">#&gt;   2.815   0.007   2.821</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="results-1">Results<a class="anchor" aria-label="anchor" href="#results-1"></a>
-</h3>
-<p>We retransform the parameters for interpretation</p>
+<p>When modelling the dwell times of real processes, a more flexible
+family than the shifted Poisson distribution is often advisable, as the
+latter cannot account for overdispersion. Here, we use the shifted
+negative binomial distribution with mean <span class="math inline">1 +
+\mu_i</span> and size <span class="math inline">\kappa_i</span>, which
+yields the shifted Poisson distribution for <span class="math inline">\kappa_i \to \infty</span>. The step lengths are
+modelled by gamma distributions in terms of their means and standard
+deviations, using <code><a href="../reference/gamma2.html">dgamma2()</a></code>.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">par</span> <span class="op">=</span> <span class="va">mod_muskox</span><span class="op">$</span><span class="va">estimate</span>; <span class="va">N</span> <span class="op">=</span> <span class="fl">3</span></span>
-<span><span class="op">(</span><span class="va">mu</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">par</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">]</span><span class="op">)</span><span class="op">)</span> <span class="co"># step mean</span></span>
-<span><span class="co">#&gt; [1]   4.408162  55.517717 306.514567</span></span>
-<span><span class="op">(</span><span class="va">sigma</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">par</span><span class="op">[</span><span class="va">N</span><span class="op">+</span><span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">]</span><span class="op">)</span><span class="op">)</span> <span class="co"># step standard deviation</span></span>
-<span><span class="co">#&gt; [1]   3.148184  50.339179 331.548177</span></span>
-<span><span class="op">(</span><span class="va">mu_dwell</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">par</span><span class="op">[</span><span class="fl">2</span><span class="op">*</span><span class="va">N</span><span class="op">+</span><span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">]</span><span class="op">)</span><span class="op">)</span> <span class="co"># dwell time mean</span></span>
-<span><span class="co">#&gt; [1] 2.545003 2.660352 5.541728</span></span>
-<span><span class="op">(</span><span class="va">phi</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">par</span><span class="op">[</span><span class="fl">3</span><span class="op">*</span><span class="va">N</span><span class="op">+</span><span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">]</span><span class="op">)</span><span class="op">)</span> <span class="co"># dwell time dispersion</span></span>
-<span><span class="co">#&gt; [1] 5.521832e-05 3.750521e-02 5.323967e-09</span></span>
-<span><span class="op">(</span><span class="va">omega</span> <span class="op">=</span> <span class="fu"><a href="../reference/tpm_emb.html">tpm_emb</a></span><span class="op">(</span><span class="va">par</span><span class="op">[</span><span class="fl">4</span><span class="op">*</span><span class="va">N</span><span class="op">+</span><span class="fl">1</span><span class="op">:</span><span class="op">(</span><span class="va">N</span><span class="op">*</span><span class="op">(</span><span class="va">N</span><span class="op">-</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">]</span><span class="op">)</span><span class="op">)</span> <span class="co"># embedded t.p.m.</span></span>
-<span><span class="co">#&gt;           S1        S2           S3</span></span>
-<span><span class="co">#&gt; S1 0.0000000 0.6865985 3.134015e-01</span></span>
-<span><span class="co">#&gt; S2 0.9999999 0.0000000 5.792850e-08</span></span>
-<span><span class="co">#&gt; S3 0.8210746 0.1789254 0.000000e+00</span></span></code></pre></div>
-<p>In this case the Poisson distribution would have been sufficiently
-flexible as all dispersion parameters were estimated very close to zero.
-We can easily visualise the estimated state-specific dwell-time
-distributions:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw">for</span><span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="va">N</span><span class="op">)</span><span class="op">{</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">agsizes</span><span class="op">[</span><span class="va">j</span><span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/r/stats/NegBinomial.html" class="external-link">dnbinom</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">agsizes</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">-</span><span class="fl">1</span>, mu<span class="op">=</span><span class="va">mu_dwell</span><span class="op">[</span><span class="va">j</span><span class="op">]</span>, size <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="va">phi</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span>,</span>
-<span>       type <span class="op">=</span> <span class="st">"h"</span>, lwd <span class="op">=</span> <span class="fl">2</span>, col <span class="op">=</span> <span class="va">color</span><span class="op">[</span><span class="va">j</span><span class="op">]</span>, xlab <span class="op">=</span> <span class="st">"dwell time (hours)"</span>,</span>
-<span>       ylab <span class="op">=</span> <span class="st">"probabilities"</span>, main <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"state"</span>,<span class="va">j</span><span class="op">)</span>, bty <span class="op">=</span> <span class="st">"n"</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">0.25</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">nll_muskox</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">par</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">getAll</a></span><span class="op">(</span><span class="va">par</span>, <span class="va">dat</span><span class="op">)</span></span>
+<span>  <span class="va">mu</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">log_mu</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">REPORT</a></span><span class="op">(</span><span class="va">mu</span><span class="op">)</span>          <span class="co"># step mean</span></span>
+<span>  <span class="va">sigma</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">log_sigma</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">REPORT</a></span><span class="op">(</span><span class="va">sigma</span><span class="op">)</span> <span class="co"># step standard deviation</span></span>
+<span>  <span class="va">mu_dwell</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">log_mu_dwell</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">REPORT</a></span><span class="op">(</span><span class="va">mu_dwell</span><span class="op">)</span> <span class="co"># dwell time mean (minus one)</span></span>
+<span>  <span class="va">size</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">log_size</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">REPORT</a></span><span class="op">(</span><span class="va">size</span><span class="op">)</span>             <span class="co"># dwell time size</span></span>
+<span>  <span class="va">omega</span> <span class="op">=</span> <span class="fu"><a href="../reference/tpm_switch.html">tpm_switch</a></span><span class="op">(</span><span class="va">eta</span><span class="op">)</span></span>
+<span>  <span class="va">dm</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="kw">for</span><span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span><span class="op">{</span></span>
+<span>    <span class="va">dm</span><span class="op">[[</span><span class="va">j</span><span class="op">]</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/NegBinomial.html" class="external-link">dnbinom</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="op">(</span><span class="va">Ni</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span>, size <span class="op">=</span> <span class="va">size</span><span class="op">[</span><span class="va">j</span><span class="op">]</span>, prob <span class="op">=</span> <span class="va">size</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">/</span> <span class="op">(</span><span class="va">size</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">+</span> <span class="va">mu_dwell</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">}</span></span>
+<span>  <span class="va">allprobs</span> <span class="op">=</span> <span class="fu"><a href="../reference/statedens.html">statedens</a></span><span class="op">(</span><span class="va">step</span>, <span class="va">dgamma2</span>, <span class="va">mu</span>, <span class="va">sigma</span><span class="op">)</span></span>
+<span>  <span class="op">-</span><span class="fu"><a href="../reference/forward_hsmm.html">forward_hsmm</a></span><span class="op">(</span><span class="va">dm</span>, <span class="va">omega</span>, <span class="va">allprobs</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
-<p><img src="HSMMs_files/figure-html/dwell_muskox-1.png" class="r-plt" alt="" width="32%"><img src="HSMMs_files/figure-html/dwell_muskox-2.png" class="r-plt" alt="" width="32%"><img src="HSMMs_files/figure-html/dwell_muskox-3.png" class="r-plt" alt="" width="32%"></p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">par</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>log_mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">50</span>, <span class="fl">300</span><span class="op">)</span><span class="op">)</span>,    <span class="co"># step mean</span></span>
+<span>           log_sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">50</span>, <span class="fl">300</span><span class="op">)</span><span class="op">)</span>, <span class="co"># step standard deviation</span></span>
+<span>           log_mu_dwell <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span>, <span class="co"># dwell time mean (minus one)</span></span>
+<span>           log_size <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">3</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span>,     <span class="co"># dwell time size</span></span>
+<span>           eta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span>                <span class="co"># omega</span></span>
+<span></span>
+<span><span class="va">dat</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>step <span class="op">=</span> <span class="va">muskox</span><span class="op">$</span><span class="va">step</span>, Ni <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">20</span>, <span class="fl">30</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">obj_muskox</span> <span class="op">=</span> <span class="fu">MakeADFun</span><span class="op">(</span><span class="va">nll_muskox</span>, <span class="va">par</span>, silent <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="va">opt_muskox</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></span><span class="op">(</span><span class="va">obj_muskox</span><span class="op">$</span><span class="va">par</span>, <span class="va">obj_muskox</span><span class="op">$</span><span class="va">fn</span>, <span class="va">obj_muskox</span><span class="op">$</span><span class="va">gr</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    user  system elapsed </span></span>
+<span><span class="co">#&gt;   2.444   0.000   2.445</span></span>
+<span></span>
+<span><span class="va">mod_muskox</span> <span class="op">=</span> <span class="fu"><a href="../reference/lama.html">lama</a></span><span class="op">(</span><span class="va">obj_muskox</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">mod_muskox</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Latent semi-Markov model with 3 states (discrete time, homogeneous)</span></span>
+<span><span class="co">#&gt; 6713 observations (112 missing), 15 parameters</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Conditional transition probabilities, given that the state is left:</span></span>
+<span><span class="co">#&gt;        S1     S2     S3</span></span>
+<span><span class="co">#&gt; S1 0.0000 0.8440 0.1560</span></span>
+<span><span class="co">#&gt; S2 0.8938 0.0000 0.1062</span></span>
+<span><span class="co">#&gt; S3 0.4879 0.5121 0.0000</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Stationary distribution:</span></span>
+<span><span class="co">#&gt;     S1     S2     S3 </span></span>
+<span><span class="co">#&gt; 0.3816 0.4665 0.1518 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Mean dwell times:</span></span>
+<span><span class="co">#&gt;    S1    S2    S3 </span></span>
+<span><span class="co">#&gt; 3.583 4.483 5.489 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Reported quantities:</span></span>
+<span><span class="co">#&gt;             S1     S2      S3</span></span>
+<span><span class="co">#&gt; mu       4.694 81.434 395.162</span></span>
+<span><span class="co">#&gt; sigma    3.285 72.019 390.631</span></span>
+<span><span class="co">#&gt; mu_dwell 2.583  3.483   4.489</span></span>
+<span><span class="co">#&gt; size     1.452  9.419   1.978</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Log-likelihood: -33190.67   AIC: 66411.33   BIC: 66513.51</span></span>
+<span><span class="co">#&gt; Maximum gradient component: 0.07</span></span></code></pre></div>
+<p>The sizes of states 1 and 3 are small, so their dwell times are
+clearly overdispersed compared with a shifted Poisson distribution. The
+state-dependent distributions, weighted by the local state
+probabilities, and the pseudo-residuals look as follows:</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">mod_muskox</span>, type <span class="op">=</span> <span class="st">"statedens"</span>, breaks <span class="op">=</span> <span class="fl">300</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">600</span><span class="op">)</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.012</span><span class="op">)</span>,</span>
+<span>     xlab <span class="op">=</span> <span class="st">"step length"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="HSMMs_files/figure-html/muskox_statedens-1.png" class="r-plt" alt="" width="85%" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">mod_muskox</span><span class="op">)</span></span></code></pre></div>
+<p><img src="HSMMs_files/figure-html/muskox_pres-1.png" class="r-plt" alt="" width="85%" style="display: block; margin: auto;"></p>
+<p>The residuals fit the normal distribution well, but their
+autocorrelation rises again at lags around 24 hours, which points to a
+daily rhythm that the model does not capture.</p>
+<div class="section level3">
+<h3 id="dwell-times-depending-on-the-time-of-day">Dwell times depending on the time of day<a class="anchor" aria-label="anchor" href="#dwell-times-depending-on-the-time-of-day"></a>
+</h3>
+<p>Muskoxen follow a daily rhythm, so it is natural to let the
+dwell-time distributions depend on the time of day. In such an
+inhomogeneous HSMM, the distribution of a stay depends on the time at
+which it begins <span class="citation">(<a href="#ref-koslik2025hidden">Koslik 2025</a>)</span>. With
+<code>tod</code>, a vector of the time of day <span class="math inline">1, \dots, 24</span> of each observation, each
+element of <code>dm</code> becomes a matrix with one row per time of
+day, whose row <span class="math inline">s</span> is the dwell-time
+distribution of a stay that begins at time of day <span class="math inline">s</span>. We keep the shifted negative binomial
+distributions, but let their log-means be trigonometric functions of the
+time of day, with the design matrix from <code><a href="../reference/cosinor.html">cosinor()</a></code>.</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">nll_periodic</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">par</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">getAll</a></span><span class="op">(</span><span class="va">par</span>, <span class="va">dat</span><span class="op">)</span></span>
+<span>  <span class="va">mu</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">log_mu</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">REPORT</a></span><span class="op">(</span><span class="va">mu</span><span class="op">)</span></span>
+<span>  <span class="va">sigma</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">log_sigma</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">REPORT</a></span><span class="op">(</span><span class="va">sigma</span><span class="op">)</span></span>
+<span>  <span class="va">Mu_dwell</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">Z</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="va">beta</span><span class="op">)</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">REPORT</a></span><span class="op">(</span><span class="va">Mu_dwell</span><span class="op">)</span> <span class="co"># 24 x 3 dwell time means (minus one)</span></span>
+<span>  <span class="va">size</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">log_size</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">REPORT</a></span><span class="op">(</span><span class="va">size</span><span class="op">)</span></span>
+<span>  <span class="va">omega</span> <span class="op">=</span> <span class="fu"><a href="../reference/tpm_switch.html">tpm_switch</a></span><span class="op">(</span><span class="va">eta</span><span class="op">)</span></span>
+<span>  <span class="va">dm</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="kw">for</span><span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span><span class="op">{</span></span>
+<span>    <span class="va">prob</span> <span class="op">=</span> <span class="va">size</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">/</span> <span class="op">(</span><span class="va">size</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">+</span> <span class="va">Mu_dwell</span><span class="op">[</span>, <span class="va">j</span><span class="op">]</span><span class="op">)</span> <span class="co"># one for each time of day</span></span>
+<span>    <span class="co"># one row per time of day</span></span>
+<span>    <span class="va">dm</span><span class="op">[[</span><span class="va">j</span><span class="op">]</span><span class="op">]</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">24</span>, <span class="kw">function</span><span class="op">(</span><span class="va">s</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/NegBinomial.html" class="external-link">dnbinom</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="op">(</span><span class="va">Ni</span><span class="op">[</span><span class="va">j</span><span class="op">]</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span>, size <span class="op">=</span> <span class="va">size</span><span class="op">[</span><span class="va">j</span><span class="op">]</span>, prob <span class="op">=</span> <span class="va">prob</span><span class="op">[</span><span class="va">s</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">}</span></span>
+<span>  <span class="va">allprobs</span> <span class="op">=</span> <span class="fu"><a href="../reference/statedens.html">statedens</a></span><span class="op">(</span><span class="va">step</span>, <span class="va">dgamma2</span>, <span class="va">mu</span>, <span class="va">sigma</span><span class="op">)</span></span>
+<span>  <span class="op">-</span><span class="fu"><a href="../reference/forward_hsmm.html">forward_hsmm</a></span><span class="op">(</span><span class="va">dm</span>, <span class="va">omega</span>, <span class="va">allprobs</span>, tod <span class="op">=</span> <span class="va">tod</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="va">par</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>log_mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">50</span>, <span class="fl">300</span><span class="op">)</span><span class="op">)</span>, log_sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">50</span>, <span class="fl">300</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>           beta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span>, <span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>, <span class="co"># intercept, sine and cosine</span></span>
+<span>           log_size <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">3</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>           eta <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">dat</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>step <span class="op">=</span> <span class="va">muskox</span><span class="op">$</span><span class="va">step</span>, Ni <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">20</span>, <span class="fl">30</span><span class="op">)</span>,</span>
+<span>           tod <span class="op">=</span> <span class="va">muskox</span><span class="op">$</span><span class="va">tday</span> <span class="op">+</span> <span class="fl">1</span>,                <span class="co"># 1, ..., 24</span></span>
+<span>           Z <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="../reference/cosinor.html">cosinor</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">24</span>, period <span class="op">=</span> <span class="fl">24</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">obj_periodic</span> <span class="op">=</span> <span class="fu">MakeADFun</span><span class="op">(</span><span class="va">nll_periodic</span>, <span class="va">par</span>, silent <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="va">opt_periodic</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb</a></span><span class="op">(</span><span class="va">obj_periodic</span><span class="op">$</span><span class="va">par</span>, <span class="va">obj_periodic</span><span class="op">$</span><span class="va">fn</span>, <span class="va">obj_periodic</span><span class="op">$</span><span class="va">gr</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    user  system elapsed </span></span>
+<span><span class="co">#&gt;   3.718   0.000   3.718</span></span>
+<span></span>
+<span><span class="va">mod_periodic</span> <span class="op">=</span> <span class="fu"><a href="../reference/lama.html">lama</a></span><span class="op">(</span><span class="va">obj_periodic</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="va">mod_muskox</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="va">mod_periodic</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 66411.33 66337.85</span></span></code></pre></div>
+<p>The periodic model is clearly preferred by the AIC. Larger
+aggregates, e.g. <code>Ni = c(30, 30, 40)</code>, change its
+log-likelihood by less than one, so the aggregate sizes are sufficient.
+Its summary shows the long-run proportion of time in each state, and we
+can plot the mean dwell times of stays beginning at each time of
+day:</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">mod_periodic</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Latent semi-Markov model with 3 states (discrete time, periodic)</span></span>
+<span><span class="co">#&gt; 6713 observations (112 missing), 21 parameters</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Long-run proportion of time in each state (stationary distribution averaged over the cycle):</span></span>
+<span><span class="co">#&gt;     S1     S2     S3 </span></span>
+<span><span class="co">#&gt; 0.3773 0.4657 0.1570 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Reported quantities:</span></span>
+<span><span class="co">#&gt;          S1    S2      S3</span></span>
+<span><span class="co">#&gt; mu    4.711 82.61 382.444</span></span>
+<span><span class="co">#&gt; sigma 3.304 73.62 401.014</span></span>
+<span><span class="co">#&gt; size  1.746 23.06   1.657</span></span>
+<span><span class="co">#&gt; Not shown: Mu_dwell [24 x 3]</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Log-likelihood: -33147.92   AIC: 66337.85   BIC: 66480.90</span></span>
+<span><span class="co">#&gt; Maximum gradient component: 0.00641</span></span>
+<span></span>
+<span><span class="va">mean_dwell</span> <span class="op">=</span> <span class="fl">1</span> <span class="op">+</span> <span class="va">mod_periodic</span><span class="op">$</span><span class="va">Mu_dwell</span> <span class="co"># 24 x 3</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">24</span>, <span class="va">mean_dwell</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, type <span class="op">=</span> <span class="st">"o"</span>, pch <span class="op">=</span> <span class="fl">19</span>, lwd <span class="op">=</span> <span class="fl">2</span>, col <span class="op">=</span> <span class="va">color</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, bty <span class="op">=</span> <span class="st">"n"</span>,</span>
+<span>     ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">mean_dwell</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>     xlab <span class="op">=</span> <span class="st">"time of day at the beginning of the stay"</span>, ylab <span class="op">=</span> <span class="st">"mean dwell time (hours)"</span><span class="op">)</span></span>
+<span><span class="kw">for</span><span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">2</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/graphics/lines.html" class="external-link">lines</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">24</span>, <span class="va">mean_dwell</span><span class="op">[</span>, <span class="va">j</span><span class="op">]</span>, type <span class="op">=</span> <span class="st">"o"</span>, pch <span class="op">=</span> <span class="fl">19</span>, lwd <span class="op">=</span> <span class="fl">2</span>, col <span class="op">=</span> <span class="va">color</span><span class="op">[</span><span class="va">j</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html" class="external-link">legend</a></span><span class="op">(</span><span class="st">"topright"</span>, col <span class="op">=</span> <span class="va">color</span>, lwd <span class="op">=</span> <span class="fl">2</span>, pch <span class="op">=</span> <span class="fl">19</span>, legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"state"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span>, bty <span class="op">=</span> <span class="st">"n"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="HSMMs_files/figure-html/muskox_dwell-1.png" class="r-plt" alt="" width="85%" style="display: block; margin: auto;"></p>
 </div>
+</div>
+<div class="section level2">
+<h2 id="further-options">Further options<a class="anchor" aria-label="anchor" href="#further-options"></a>
+</h2>
+<p><code><a href="../reference/forward_hsmm.html">forward_hsmm()</a></code> covers more general models with the same
+arguments:</p>
+<ul>
+<li>
+<strong>several tracks</strong>: <code>trackID</code>, as for
+<code><a href="../reference/forward.html">forward()</a></code>, with <code>dm</code> (matrices with one row per
+track) and <code>omega</code> (array with one slice per track)
+optionally differing between tracks,</li>
+<li>
+<strong>dwell times depending on arbitrary covariates</strong>: each
+element of <code>dm</code> a matrix with one row per observation, row
+<span class="math inline">t</span> for a stay that begins at time <span class="math inline">t</span>. The dwell time of the earliest stays
+depends on the dwell-time distributions before the first observation, so
+by default the first <span class="math inline">\max(N_i) - 1</span>
+observations of each track only serve to start the forward algorithm
+(see the argument <code>first_obs</code>),</li>
+<li>
+<strong>conditional transition probabilities depending on
+covariates</strong>: <code>tpm_switch(beta, Z)</code> returns an array
+with one matrix per row of the design matrix <code>Z</code>, as
+<code><a href="../reference/tpm.html">tpm()</a></code> does for HMMs.</li>
+</ul>
 </div>
 <div class="section level2 unnumbered">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
@@ -355,6 +506,11 @@ Beumer, Larissa T, Jennifer Pohle, Niels M Schmidt, et al. 2020.
 <span>“An Application of Upscaled Optimal Foraging Theory Using Hidden
 Markov Modelling: Year-Round Behavioural Variation in a Large Arctic
 Herbivore.”</span> <em>Movement Ecology</em> 8: 1–16.
+</div>
+<div id="ref-koslik2025hidden" class="csl-entry">
+Koslik, Jan-Ole. 2025. <span>“Hidden Semi-<span>M</span>arkov Models
+with Inhomogeneous State Dwell-Time Distributions.”</span>
+<em>Computational Statistics &amp; Data Analysis</em> 209: 108171.
 </div>
 <div id="ref-langrock2011hidden" class="csl-entry">
 Langrock, Roland, and Walter Zucchini. 2011. <span>“Hidden Markov Models

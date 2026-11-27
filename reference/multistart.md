@@ -179,12 +179,12 @@ opt <- multistart(obj, seed = 1)
 #> 10 starts, 9 converged, 1 distinct optima, best reached 9 times; stopped: Bayesian stopping rule 
 opt$runs
 #>         nll convergence          mgc
-#> 1  536.2127           0 1.657454e-04
+#> 1  536.2127           0 1.657455e-04
 #> 2  536.2127           0 9.364391e-05
-#> 3  536.2127           0 2.764751e-03
-#> 4  656.5630           0 4.594382e-01
+#> 3  536.2127           0 2.764750e-03
+#> 4  656.5630           0 1.919732e-02
 #> 5  536.2127           0 2.028025e-04
-#> 6  536.2127           0 7.778363e-04
+#> 6  536.2127           0 7.778351e-04
 #> 7  536.2127           0 1.693041e-05
 #> 8  536.2127           0 6.041584e-04
 #> 9  536.2127           0 2.866955e-03
@@ -196,11 +196,22 @@ opt <- multistart(obj, scale = "unit_info", seed = 1)
 #> start 1 - nll: 536.2127 
 #> start 2 - nll: 536.2127 
 #> start 3 - nll: 536.2127 
-#> start 4 - nll: 536.2127 
+#> start 4 - nll: 661.2706 
 #> start 5 - nll: 536.2127 
 #> start 6 - nll: 536.2127 
 #> start 7 - nll: 536.2127 
 #> start 8 - nll: 536.2127 
 #> start 9 - nll: 536.2127 
-#> 9 starts, 9 converged, 1 distinct optima, best reached 9 times; stopped: Bayesian stopping rule 
+#> start 10 - nll: 536.2127 
+#> start 11 - nll: 662.1921 
+#> start 12 - nll: 536.2127 
+#> start 13 - nll: 536.2127 
+#> start 14 - nll: 536.2127 
+#> start 15 - nll: 536.2127 
+#> start 16 - nll: 536.2127 
+#> start 17 - nll: 536.2127 
+#> start 18 - nll: 536.2127 
+#> start 19 - nll: 536.2127 
+#> start 20 - nll: 536.2127 
+#> 20 starts, 20 converged, 3 distinct optima, best reached 18 times; stopped: nstarts reached 
 ```

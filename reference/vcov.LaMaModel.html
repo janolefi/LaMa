@@ -191,7 +191,7 @@ It costs one Hessian per cluster and no refits. For linear least squares, the st
 poorest if there are few clusters or if one of them carries much of the information. With equal leverage
 \(H_k = H / G\), it coincides with CR1. The one-step deletion is a pure Newton step, so it requires \(H - H_k\) to be
 positive definite: if leaving out a cluster makes it singular or indefinite, an error is issued.</p>
-<p>All sandwiches require the likelihood function to call <code><a href="forward.html">forward</a></code> once (with <code>trackID</code> for several tracks)
+<p>All sandwiches require the likelihood function to call <code><a href="forward.html">forward</a></code> or <code><a href="forward_hsmm.html">forward_hsmm</a></code> once (with <code>trackID</code> for several tracks)
 and are not available for models with random effects or from <code><a href="qreml.html">qreml</a></code>.</p>
     </div>
     <div class="section level2">

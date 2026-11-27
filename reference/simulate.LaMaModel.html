@@ -128,7 +128,12 @@ for <code>nsim = 1</code>, else a list of <code>nsim</code> such data frames.</p
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The states are drawn as in the decoding functions, so that all types of <code>Gamma</code> that <code><a href="forward.html">forward</a></code> accepts
 (homogeneous, track-specific, time-varying, periodic) work, as does a continuous-time model with one transition matrix
-per time interval (the simulation is then conditional on the observed time points).
+per time interval (the simulation is then conditional on the observed time points).</p>
+<p>For hidden semi-Markov models from <code><a href="forward_hsmm.html">forward_hsmm</a></code>, the approximating Markov chain is simulated, whose likelihood
+is the one that was maximised. Its dwell times follow <code>dm</code> up to the aggregate sizes and have a geometric tail beyond,
+as <code>dm</code> does not determine the dwell-time distributions there. If more than 1% of a dwell-time distribution lies
+beyond its aggregate size, a message says that the simulated dwell times are approximate and suggests larger aggregates. Observations before <code>first_obs</code> are not used by the
+model, so their states and data are <code>NA</code>.
 Each data stream is drawn from the random number generator belonging to its density, e.g. <code>rgamma2</code> for <code>dgamma2</code>.</p>
 <p>Missing observations of the data stay missing (unless <code>fill_na = TRUE</code>), except for a stream that is missing completely: such a placeholder
 (e.g. <code>step = rep(NA, n)</code>) lets you simulate from a likelihood function without data, see the examples.</p>

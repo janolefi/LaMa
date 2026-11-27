@@ -84,6 +84,15 @@ stateprobs(
 matrix of conditional state probabilities of dimension
 `c(nObs, nStates)`
 
+## Details
+
+For hidden semi-Markov models fitted with
+[`forward_hsmm`](https://janolefi.github.io/LaMa/reference/forward_hsmm.md),
+pass the model object as `mod`. The probabilities of the N states are
+then computed on the approximating Markov chain, without building its
+transition matrices, and summed over the states of each aggregate.
+Observations before `first_obs` are not used and get `NA`.
+
 ## See also
 
 Other decoding functions:

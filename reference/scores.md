@@ -3,8 +3,9 @@
 Computes the score contribution of each observation, \$\$u_t =
 \frac{\partial}{\partial \theta} \log p(x_t \mid x_1, \dots,
 x\_{t-1}),\$\$ for a model whose negative log-likelihood function calls
-[`forward`](https://janolefi.github.io/LaMa/reference/forward.md). Their
-column sums are the gradient of the log-likelihood. They are the
+[`forward`](https://janolefi.github.io/LaMa/reference/forward.md) or
+[`forward_hsmm`](https://janolefi.github.io/LaMa/reference/forward_hsmm.md).
+Their column sums are the gradient of the log-likelihood. They are the
 building block for robust (sandwich) standard errors, e.g.
 cluster-robust ones via `rowsum(U, ID)`.
 
@@ -52,10 +53,12 @@ the data as they are when `scores()` is called. Parameters fixed via
 If the likelihood function calls
 [`forward`](https://janolefi.github.io/LaMa/reference/forward.md)
 several times, e.g. once per track, the rows of the result follow the
-order of these calls. Only
-[`forward`](https://janolefi.github.io/LaMa/reference/forward.md) (and
-its deprecated `_g` and `_p` versions) is supported, and models with
-random effects are not.
+order of these calls.
+[`forward`](https://janolefi.github.io/LaMa/reference/forward.md) and
+[`forward_hsmm`](https://janolefi.github.io/LaMa/reference/forward_hsmm.md)
+(and their deprecated versions) are supported, models with random
+effects are not. For HSMMs with time-varying dwell times, there are no
+rows for the first observations of each track, which are not used.
 
 ## Examples
 

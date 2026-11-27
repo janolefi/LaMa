@@ -2,6 +2,99 @@
 
 ## LaMa 3.2.0
 
+### Hidden semi-Markov models
+
+- [`forward_hsmm()`](https://janolefi.github.io/LaMa/reference/forward_hsmm.md)
+  now covers all hidden semi-Markov models: dwell-time distributions
+  `dm` and conditional transition probabilities `omega` that are fixed,
+  track-specific (with `trackID`), varying over time (one row of `dm` or
+  slice of `omega` per observation), or periodic (with `tod`). It never
+  builds the transition matrices of the approximating Markov chain, but
+  moves the probability mass of each aggregate directly; without AD,
+  e.g. in `obj$report()` and
+  [`lama()`](https://janolefi.github.io/LaMa/reference/lama.md), it runs
+  in C++
+- [`forward_hsmm()`](https://janolefi.github.io/LaMa/reference/forward_hsmm.md):
+  a stay that begins at time `t` (or time of day `t`) has the dwell-time
+  distribution in row `t` of `dm` and the conditional transition
+  probabilities `omega[, , t]`
+- [`forward_hsmm()`](https://janolefi.github.io/LaMa/reference/forward_hsmm.md)
+  has the new arguments `first_obs`, the first observation used in each
+  track (by default 1, or `max(Ni)` for `dm` varying over time, as their
+  stays need dwell-time distributions from before the first
+  observation), `use_all_obs` to start at the first observation anyway,
+  given an initial distribution `delta`, and `logspace` for
+  log-densities in `allprobs`
+- [`forward_ihsmm()`](https://janolefi.github.io/LaMa/reference/forward_ihsmm.md)
+  and
+  [`forward_phsmm()`](https://janolefi.github.io/LaMa/reference/forward_phsmm.md)
+  are deprecated, as
+  [`forward_hsmm()`](https://janolefi.github.io/LaMa/reference/forward_hsmm.md)
+  covers their models. They still give the same results, with
+  `omega[, , t]` for the step out of `t`
+- the number of observations of HSMMs with `dm` varying over time
+  ([`nobs()`](https://rdrr.io/r/stats/nobs.html), used by
+  [`BIC()`](https://rdrr.io/r/stats/AIC.html)) no longer counts the
+  observations before `first_obs`, which do not enter the likelihood
+- `viterbi(mod)` and `stateprobs(mod)` work for HSMMs fitted with
+  [`forward_hsmm()`](https://janolefi.github.io/LaMa/reference/forward_hsmm.md),
+  computed on the approximating chain without building its transition
+  matrices and returned for the N states of the HSMM, with `NA` for the
+  observations before `first_obs`
+- `pseudo_res(mod)`,
+  [`scores()`](https://janolefi.github.io/LaMa/reference/scores.md),
+  `vcov(mod, type = )`,
+  [`TIC()`](https://janolefi.github.io/LaMa/reference/TIC.md),
+  `plot(mod, type = "statedens")` and
+  [`statedens()`](https://janolefi.github.io/LaMa/reference/statedens.md)
+  work for HSMMs, [`summary()`](https://rdrr.io/r/base/summary.html)
+  shows `omega`, the stationary distribution and the mean dwell times
+  (or, for periodic models, the long-run proportion of time in each
+  state)
+- `simulate(mod)` and `simulate(mod, random = TRUE)` work for HSMMs:
+  they simulate the approximating chain, whose likelihood is the one
+  maximised. As `dm` is only given up to the aggregate sizes, the dwell
+  times have a geometric tail beyond them, so a message says that the
+  simulated dwell times are approximate if more than 1% of a dwell-time
+  distribution lies beyond its aggregate size
+- `tpm_switch(beta, Z = NULL, byrow = FALSE)` builds `omega` from
+  unconstrained parameters, with one matrix per row of a design matrix
+  `Z`, as [`tpm()`](https://janolefi.github.io/LaMa/reference/tpm.md)
+  does for HMMs. It replaces
+  [`tpm_emb()`](https://janolefi.github.io/LaMa/reference/tpm_emb.md)
+  and
+  [`tpm_emb_g()`](https://janolefi.github.io/LaMa/reference/tpm_emb_g.md),
+  which are deprecated; `tpm_switch(beta)` gives the same matrix as
+  `tpm_emb(beta)`, and with `Z` it is much faster than
+  [`tpm_emb_g()`](https://janolefi.github.io/LaMa/reference/tpm_emb_g.md)
+  (8 to 11 times when taping, about 1000 times without AD)
+- [`stationary_sparse()`](https://janolefi.github.io/LaMa/reference/stationary_sparse.md)
+  and
+  [`stationary_p_sparse()`](https://janolefi.github.io/LaMa/reference/stationary_p_sparse.md)
+  are deprecated, please use
+  [`stationary()`](https://janolefi.github.io/LaMa/reference/stationary.md)
+  and
+  [`stationary_p()`](https://janolefi.github.io/LaMa/reference/stationary_p.md)
+- `forward_s()`, `forward_sp()`, `tpm_hsmm2()` and `tpm_phsmm2()` are
+  removed, after being deprecated
+- HSMM fixes: several tracks with a stationary initial distribution
+  under AD, as many tracks as states, tracks of length one, an estimated
+  `delta`,
+  [`forward_ihsmm()`](https://janolefi.github.io/LaMa/reference/forward_ihsmm.md)
+  with fixed `dm` and given `delta`,
+  [`forward_phsmm()`](https://janolefi.github.io/LaMa/reference/forward_phsmm.md)
+  with fixed `dm` and periodic `omega`, or a `tod` that does not cover
+  the whole cycle, and
+  [`tpm_ihsmm()`](https://janolefi.github.io/LaMa/reference/tpm_ihsmm.md)
+  with aggregates of size one used to fail or return `NA`
+- `omega` with non-zero diagonal entries now gives an error instead of a
+  wrong likelihood, and with periodic `dm`, `tod` must advance by one in
+  each row within a track, as dwell times count rows
+- the HSMM vignette uses `RTMB`, with a periodic model for the muskox
+  data
+
+### Other changes
+
 - `vcov(mod, type = )` gives robust covariances that remain valid if the
   model is misspecified: `"sandwich"` with the outer product of the
   scores, `"HAC"` (heteroskedasticity and autocorrelation consistent)
@@ -21,6 +114,10 @@
   parameters `tr(J H^{-1})`, uses the HAC covariance by default; several
   models are compared as with
   [`AIC()`](https://rdrr.io/r/stats/AIC.html)
+- `pseudo_res(mod)`: each density keeps its own family. Before, all data
+  streams got the family of the last density found in the likelihood
+  function, so that a continuous stream got discrete residuals if a
+  discrete density was also used
 
 ## LaMa 3.1.0
 
@@ -260,18 +357,11 @@ existing code may need small adjustments.
   works but is deprecated
 
 - old functions still work but are deprecated, with a message pointing
-  to the new implementation:
-  [`forward_s()`](https://janolefi.github.io/LaMa/reference/forward_s.md)
-  and
-  [`forward_sp()`](https://janolefi.github.io/LaMa/reference/forward_sp.md)
-  (use
+  to the new implementation: `forward_s()` and `forward_sp()` (use
   [`forward_hsmm()`](https://janolefi.github.io/LaMa/reference/forward_hsmm.md)
   and
   [`forward_phsmm()`](https://janolefi.github.io/LaMa/reference/forward_phsmm.md)),
-  [`tpm_hsmm2()`](https://janolefi.github.io/LaMa/reference/tpm_hsmm2.md)
-  and
-  [`tpm_phsmm2()`](https://janolefi.github.io/LaMa/reference/tpm_phsmm2.md)
-  (use
+  `tpm_hsmm2()` and `tpm_phsmm2()` (use
   [`tpm_hsmm()`](https://janolefi.github.io/LaMa/reference/tpm_hsmm.md)
   and
   [`tpm_phsmm()`](https://janolefi.github.io/LaMa/reference/tpm_phsmm.md)),

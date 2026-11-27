@@ -79,7 +79,7 @@
 
 <dt id="arg-omega">omega<a class="anchor" aria-label="anchor" href="#arg-omega"></a></dt>
 <dd><p>matrix of dimension <code>c(nStates, nStates)</code> or array of dimension <code>c(nStates, nStates, nObs)</code> of conditional transition probabilities, also called embedded transition probability matrix.</p>
-<p>It contains the transition probabilities given the current state is left. Hence, the diagonal elements need to be zero and the rows need to sum to one. Such a matrix can be constructed using <code><a href="tpm_emb.html">tpm_emb</a></code> and an array using <code><a href="tpm_emb_g.html">tpm_emb_g</a></code>.</p></dd>
+<p>It contains the transition probabilities given the current state is left. Hence, the diagonal elements need to be zero and the rows need to sum to one. Such a matrix or array can be constructed using <code><a href="tpm_switch.html">tpm_switch</a></code>.</p></dd>
 
 
 <dt id="arg-allprobs">allprobs<a class="anchor" aria-label="anchor" href="#arg-allprobs"></a></dt>
@@ -120,6 +120,7 @@ Hence, when not provided, <code>startInd</code> is chosen to be <code>max(sapply
     <p>Hidden semi-Markov models (HSMMs) are a flexible extension of HMMs, where the state duration distribution is explicitly modelled by a distribution on the positive integers. This function can be used to fit HSMMs where the state-duration distribution and/ or the conditional transition probabilities vary with covariates.
 For direct numerical maximum likelihood estimation, HSMMs can be represented as HMMs on an enlarged state space (of size \(M\)) and with structured transition probabilities.</p>
 <p>This function is designed to be used with automatic differentiation based on the <code>R</code> package <code>RTMB</code>. It will be very slow without it!</p>
+<p><strong>Deprecated:</strong> please use <code><a href="forward_hsmm.html">forward_hsmm</a></code> for all types of HSMMs instead. There, a stay that begins at <code>t</code> is governed by <code>omega[,,t]</code>, here by <code>omega[,,t-1]</code> (<code>omega[,,t]</code> is for the step from <code>t</code> into <code>t + 1</code>).</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>

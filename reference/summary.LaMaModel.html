@@ -5,6 +5,10 @@ for a homogeneous state process (or one per track) with at most 10 states: the t
   (or generator matrix Q in continuous time, if reported, e.g. by tpm_ct), its stationary distribution and mean dwell times,
   averaged over tracks if there is one per track,
 for a periodic state process: the stationary distribution averaged over the cycle, i.e. the long-run proportion of time spent in each state,
+for hidden semi-Markov models from forward_hsmm, in place of the transition probability matrix:
+  the conditional transition probabilities omega, and the stationary distribution and mean dwell times of the
+  approximating Markov chain (beyond the aggregate size, the dwell times have a geometric tail),
+  or for a periodic model the stationary distribution averaged over the cycle,
 the quantities reported by the likelihood function via REPORT(): numeric vectors of length equal to the number of states
   are shown as one table with a column per state, other small objects separately, and large ones only by name,
 log-likelihood, AIC, BIC and the maximum gradient component at the estimate.
@@ -15,6 +19,10 @@ for a homogeneous state process (or one per track) with at most 10 states: the t
   (or generator matrix Q in continuous time, if reported, e.g. by tpm_ct), its stationary distribution and mean dwell times,
   averaged over tracks if there is one per track,
 for a periodic state process: the stationary distribution averaged over the cycle, i.e. the long-run proportion of time spent in each state,
+for hidden semi-Markov models from forward_hsmm, in place of the transition probability matrix:
+  the conditional transition probabilities omega, and the stationary distribution and mean dwell times of the
+  approximating Markov chain (beyond the aggregate size, the dwell times have a geometric tail),
+  or for a periodic model the stationary distribution averaged over the cycle,
 the quantities reported by the likelihood function via REPORT(): numeric vectors of length equal to the number of states
   are shown as one table with a column per state, other small objects separately, and large ones only by name,
 log-likelihood, AIC, BIC and the maximum gradient component at the estimate.
@@ -74,6 +82,10 @@ Besides the overview of <code><a href="https://rdrr.io/r/base/print.html" class=
   (or generator matrix <code>Q</code> in continuous time, if reported, e.g. by <code><a href="tpm_ct.html">tpm_ct</a></code>), its stationary distribution and mean dwell times,
   averaged over tracks if there is one per track,</p></li>
 <li><p>for a periodic state process: the stationary distribution averaged over the cycle, i.e. the long-run proportion of time spent in each state,</p></li>
+<li><p>for hidden semi-Markov models from <code><a href="forward_hsmm.html">forward_hsmm</a></code>, in place of the transition probability matrix:
+  the conditional transition probabilities <code>omega</code>, and the stationary distribution and mean dwell times of the
+  approximating Markov chain (beyond the aggregate size, the dwell times have a geometric tail),
+  or for a periodic model the stationary distribution averaged over the cycle,</p></li>
 <li><p>the quantities reported by the likelihood function via <code><a href="https://rdrr.io/pkg/RTMB/man/TMB-interface.html" class="external-link">REPORT()</a></code>: numeric vectors of length equal to the number of states
   are shown as one table with a column per state, other small objects separately, and large ones only by name,</p></li>
 <li><p>log-likelihood, AIC, BIC and the maximum gradient component at the estimate.</p></li>
@@ -111,7 +123,7 @@ Besides the overview of <code><a href="https://rdrr.io/r/base/print.html" class=
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p><code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> returns an object of class <code>"summary.LaMaModel"</code>, a list containing the quantities shown,
-e.g. <code>Gamma</code>, <code>stationary</code>, <code>dwell</code> and <code>bystate</code>. <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> returns <code>x</code> invisibly.</p>
+e.g. <code>Gamma</code> (or <code>omega</code>), <code>stationary</code>, <code>dwell</code> and <code>bystate</code>. <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> returns <code>x</code> invisibly.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

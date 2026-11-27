@@ -1,49 +1,64 @@
 # 8 Hidden semi-Markov models
 
-This vignette has not yet been updated to work with RTMB
-
 > Before diving into this vignette, we recommend reading the vignette
 > [**Introduction to
 > LaMa**](https://janolefi.github.io/LaMa/articles/Intro_to_LaMa.html).
 
-So-called hidden semi-Markov models (HSMMs) are a flexible
-generalisation of HMMs to a semi-Markovian state process which is
-motivated by the fact that for homogeneous HMMs, the time spent in a
-hidden state, also called the state dwell time or sojourn time is
-necessarily geometrically distributed as a consequence of the Markov
-assumption. HSMMs are designed to mitigate this often unrealistic
-assumption by allowing for arbitrary distributions on the positive
-integers to be estimated for the state dwell time. Inference in such
-models becomes more involved, but Langrock and Zucchini
+In a homogeneous HMM, the time spent in a state before it is left, the
+**dwell time**, is necessarily geometrically distributed. By the Markov
+assumption, the chain decides anew at each time point whether to leave
+state i, in a Bernoulli trial with success probability 1 - \gamma\_{ii}
+that does not depend on how long it has been there. The probability that
+a stay in state i lasts exactly r time points is therefore d_i(r) =
+\gamma\_{ii}^{r-1} (1 - \gamma\_{ii}), \quad r = 1, 2, \dots, the
+probability of r - 1 failures followed by a success. This is often
+unrealistic, e.g. when an animal tends to rest for a few hours rather
+than for one. Hidden semi-Markov models (HSMMs) relax this assumption by
+allowing any distribution on the positive integers for the dwell time of
+each state. Inference becomes more involved, but Langrock and Zucchini
 ([2011](#ref-langrock2011hidden)) showed that HSMMs can be estimated
-conveniently via approximating them by HMMs with an extended state
-space. Each state of the HSMMs is represented by a state aggregate of
-several states and the transition probabilities within each aggregate
-are designed carefully to represent the chosen dwell-time distribution.
-For more details see Langrock and Zucchini
-([2011](#ref-langrock2011hidden)) or Zucchini et al.
-([2016](#ref-zucchini)). Due to this approximate inference procedure,
-such models can again be fitted by numerically maximising the
-(approximate) likelihood which can be evaluated using the forward
-algorithm.
+conveniently by approximating them by HMMs with an extended state space,
+so that the (approximate) likelihood can again be evaluated by the
+forward algorithm and maximised numerically.
+
+## Hidden semi-Markov models
+
+The state process of an N-state HSMM is specified by two ingredients:
+
+1.  a **dwell-time distribution** d_i(r), r = 1, 2, \dots, for each
+    state i, now any distribution on the positive integers, and
+2.  the **conditional transition probabilities** \omega\_{ij}, the
+    probability of switching to state j, given that state i is left.
+    They form the matrix \boldsymbol{\Omega}, whose diagonal is zero, as
+    a state cannot be re-entered when it is left.
+
+In the approximating HMM, each state i of the HSMM is represented by an
+**aggregate** of N_i states: being in its r-th state means being at the
+r-th time point of the current stay. From there, the chain either moves
+one state up, or leaves the aggregate with the probability that the stay
+ends now, given that it has lasted r time points. The highest state of
+an aggregate holds all longer stays, so beyond N_i the dwell times have
+a geometric tail. The aggregate sizes should therefore cover most of the
+support of the dwell-time distributions; for more details see Langrock
+and Zucchini ([2011](#ref-langrock2011hidden)) or Zucchini et al.
+([2016](#ref-zucchini)).
+
+The approximating chain has M = N_1 + \dots + N_N states, often a
+hundred or more, but its transition matrix is sparse and fully
+determined by the dwell-time distributions and \boldsymbol{\Omega}.
+[`forward_hsmm()`](https://janolefi.github.io/LaMa/reference/forward_hsmm.md)
+therefore takes these two ingredients directly and never builds the M
+\times M matrix, which keeps fitting fast.
 
 ## Simulation example
 
-We begin by considering homogeneous HSMMs. In such models, each state
-has an associated state dwell-time distribution. The transition
-probability matrix of a regular HMM is replaced by these distributions
-and the conditional transition probabilities given the state is left.
-
-### Setting parameters
-
-Here we choose the simplest case of dwell times that are **shifted
-Poisson** distributed. We have to specify the Poisson mean for each
-state, the conditional transition probability matrix called
-\boldsymbol{\Omega} and the parameters of the state-dependent process.
+We begin with a homogeneous HSMM, whose dwell times are **shifted
+Poisson** distributed: a stay in state i lasts 1 + Y time points with Y
+\sim \text{Poisson}(\lambda_i). Given the state, the observations are
+normally distributed.
 
 ``` r
 
-# loading the package
 library(LaMa)
 #> Loading required package: RTMB
 ```
@@ -57,21 +72,21 @@ omega = matrix(c(0, 0.7, 0.3,
 mu = c(10, 40, 100)
 sigma = c(5, 20, 50)
 
-color = c("orange", "deepskyblue", "seagreen2")
+color = LaMaColors(3)
 curve(dnorm(x, mu[1], sigma[1]), lwd = 2, col = color[1], bty = "n",
       xlab = "x", ylab = "density", xlim = c(0, 150), n = 300)
-curve(dnorm(x, mu[2], sigma[2]), lwd = 2, col = color[2], add = T)
-curve(dnorm(x, mu[3], sigma[3]), lwd = 2, col = color[3], add = T)
+curve(dnorm(x, mu[2], sigma[2]), lwd = 2, col = color[2], add = TRUE)
+curve(dnorm(x, mu[3], sigma[3]), lwd = 2, col = color[3], add = TRUE)
 ```
 
 ![](HSMMs_files/figure-html/parameters-1.png)
 
 ### Simulating data
 
-We simulate data by drawing dwell times from the dwell-time distribution
-of the current state and then draw the next state using the conditional
-transition probabilities. The state-dependent process is drawn
-conditional on the current state.
+We simulate a sequence of stays: the length of each stay is drawn from
+the dwell-time distribution of its state, and the next state from the
+conditional transition probabilities. Given the state, each observation
+is drawn from its state-dependent distribution.
 
 ``` r
 
@@ -80,122 +95,162 @@ set.seed(123)
 k = 50 # number of stays
 s = rep(NA, k)
 s[1] = sample(1:3, 1) # uniform initial distribution
-staylength = rpois(1, lambda[s[1]]) + 1 # drawing dwell time from shifted Poisson
+staylength = rpois(1, lambda[s[1]]) + 1 # dwell time from shifted Poisson
 C = rep(s[1], staylength)
 x = rnorm(staylength, mu[s[1]], sigma[s[1]])
 
 for(t in 2:k){
-  # conditionally drawing state
+  # next state, given that the current one is left
   s[t] = sample(c(1:3)[-s[t-1]], 1, prob = omega[s[t-1], -s[t-1]])
-  staylength = rpois(1, lambda[s[t]]) + 1 # drawing dwell time from shifted Poisson
-  
+  staylength = rpois(1, lambda[s[t]]) + 1 # dwell time from shifted Poisson
+
   C = c(C, rep(s[t], staylength))
   x = c(x, rnorm(staylength, mu[s[t]], sigma[s[t]]))
 }
 
 plot(x, pch = 20, col = color[C], bty = "n")
-legend("topright", col = color, pch = 20, 
-       legend = paste("state", 1:3), box.lwd = 0)
+legend("topright", col = color, pch = 20,
+       legend = paste("state", 1:3), bty = "n")
 ```
 
 ![](HSMMs_files/figure-html/simulation-1.png)
 
 ### Writing the negative log-likelihood function
 
-We now write the negative log-likelihood function for an approximating
-HMM. As a semi-Markov chain is specified in terms of state-specific
-dwell-time distributions and conditional transition probabilities given
-that the current state is left, we have to compute both (here called
-`dm` and `omega`). For the latter, we can use the function
-[`tpm_emb()`](https://janolefi.github.io/LaMa/reference/tpm_emb.md) that
-constructs a transition probability matrix via the inverse multinomial
-logit link (softmax), where the diagonal entries are forced to equal
-zero.
-
-The transition probability matrix of the approximating HMM can then be
-computed by the function
-[`tpm_hsmm()`](https://janolefi.github.io/LaMa/reference/tpm_hsmm.md)
-where the exact procedure is detailed by Langrock and Zucchini
-([2011](#ref-langrock2011hidden)). We need the extra argument `agsizes`
-to specify the aggregate sizes that should be used to approximate the
-dwell-time distributions. These should be chosen such that most of the
-support of the state-specific dwell-time distributions is covered.
+The likelihood looks much like the one of an HMM. In place of
+[`tpm()`](https://janolefi.github.io/LaMa/reference/tpm.md),
+[`tpm_switch()`](https://janolefi.github.io/LaMa/reference/tpm_switch.md)
+computes \boldsymbol{\Omega} from unconstrained parameters, applying the
+inverse multinomial logistic link to the off-diagonal entries of each
+row. For N states, it needs N(N-2) parameters: three for three states,
+none for two. The dwell-time distributions are passed as a list `dm`
+with one vector of probabilities d_i(1), \dots, d_i(N_i) per state,
+whose length is the aggregate size. As Y = r - 1, these are
+`dpois(0:(Ni[j] - 1), lambda[j])`.
+[`forward_hsmm()`](https://janolefi.github.io/LaMa/reference/forward_hsmm.md)
+then computes the log-likelihood from `dm`, `omega` and the
+state-dependent densities, by default with the stationary distribution
+of the approximating chain as initial distribution.
 
 ``` r
 
-nll = function(par, x, N, agsizes){
-  mu = par[1:N]
-  sigma = exp(par[N+1:N])
-  lambda = exp(par[2*N+1:N])
-  omega = if(N==2) tpm_emb() else tpm_emb(par[3*N+1:(N*(N-2))])
-  dm = list() # list of dwell-time distributions
-  for(j in 1:N) dm[[j]] = dpois(1:agsizes[j]-1, lambda[j]) # shifted Poisson
-  Gamma = tpm_hsmm(omega, dm, sparse = FALSE)
-  delta = stationary(Gamma)
-  allprobs = matrix(1, length(x), N)
-  ind = which(!is.na(x))
-  for(j in 1:N){
-    allprobs[ind,j] = dnorm(x[ind], mu[j], sigma[j])
-  }
-  -forward_s(delta, Gamma, allprobs, agsizes)
+nll = function(par) {
+  getAll(par, dat)
+  sigma = exp(log_sigma); REPORT(sigma)
+  lambda = exp(log_lambda); REPORT(lambda)
+  omega = tpm_switch(eta) # conditional transition probabilities
+  dm = list() # dwell-time distributions, one vector per state
+  for(j in 1:3) dm[[j]] = dpois(0:(Ni[j] - 1), lambda[j]) # shifted Poisson
+  allprobs = statedens(x, dnorm, mu, sigma)
+  -forward_hsmm(dm, omega, allprobs)
 }
 ```
 
-### Fitting an HSMM (as an approximating HMM) to the data
+We choose the aggregate sizes such that they cover 99.9% of the initial
+dwell-time distributions.
 
 ``` r
 
-# initial values
-par = c(10, 40, 100, log(c(5, 20, 50)), # state-dependent
-               log(c(7,4,4)), # dwell time means
-               rep(0, 3)) # omega
+par = list(mu = c(10, 40, 100),
+           log_sigma = log(c(5, 20, 50)),
+           log_lambda = log(c(7, 4, 4)), # dwell time parameters
+           eta = rep(0, 3))              # omega parameters
 
-agsizes = qpois(0.95, lambda)+1
+dat = list(x = x, Ni = qpois(0.999, c(7, 4, 4)) + 1)
+dat$Ni # aggregate sizes, 41 states in total
+#> [1] 17 12 12
 
-system.time(
-  mod <- nlm(nll, par, x = x, N = 3, agsizes = agsizes, stepmax = 2)
-)
-#> forward_s() is deprecated, please use forward_hsmm(dm, omega, allprobs) instead.
+obj = MakeADFun(nll, par, silent = TRUE)
+system.time(opt <- nlminb(obj$par, obj$fn, obj$gr))
 #>    user  system elapsed 
-#>   0.635   0.028   0.662
+#>    0.04    0.00    0.04
 ```
-
-Fitting HSMMs is rather slow (even using C++) as we translate the
-additional model complexity into a higher computational overhead (31
-states here).
 
 ### Results
 
+As for HMMs,
+[`lama()`](https://janolefi.github.io/LaMa/reference/lama.md) returns a
+model object. For HSMMs,
+[`summary()`](https://rdrr.io/r/base/summary.html) shows the conditional
+transition probabilities, the stationary distribution and the mean dwell
+times, here close to the true values 1 + \lambda_i = 8, 5 and 5:
+
 ``` r
 
-N = 3
-(mu = mod$estimate[1:N])
-#> [1]  10.16569  39.06161 107.66034
-(sigma = exp(mod$estimate[N+1:N]))
-#> [1]  4.78882 19.35639 48.56115
-(lambda = exp(mod$estimate[2*N+1:N]))
-#> [1] 6.942983 4.595469 3.354765
-(omega = tpm_emb(mod$estimate[3*N+1:(N*(N-2))]))
-#>           S1        S2        S3
-#> S1 0.0000000 0.5541031 0.4458969
-#> S2 0.5040939 0.0000000 0.4959061
-#> S3 0.6654703 0.3345297 0.0000000
+mod = lama(obj)
+summary(mod)
+#> Latent semi-Markov model with 3 states (discrete time, homogeneous)
+#> 302 observations, 12 parameters
+#> 
+#> Conditional transition probabilities, given that the state is left:
+#>        S1     S2     S3
+#> S1 0.0000 0.5541 0.4459
+#> S2 0.5041 0.0000 0.4959
+#> S3 0.6655 0.3345 0.0000
+#> 
+#> Stationary distribution:
+#>     S1     S2     S3 
+#> 0.4836 0.2873 0.2291 
+#> 
+#> Mean dwell times:
+#>    S1    S2    S3 
+#> 7.943 5.596 4.355 
+#> 
+#> Reported quantities:
+#>           S1     S2     S3
+#> sigma  4.789 19.356 48.562
+#> lambda 6.943  4.596  3.355
+#> 
+#> Log-likelihood: -1300.22   AIC: 2624.44   BIC: 2668.96
+#> Maximum gradient component: 0.00013
+```
+
+[`forward_hsmm()`](https://janolefi.github.io/LaMa/reference/forward_hsmm.md)
+reports the dwell-time distributions `dm`, so we can compare them with
+the true ones:
+
+``` r
+
+par(mfrow = c(1, 3))
+for(j in 1:3){
+  r = 1:dat$Ni[j]
+  plot(r, mod$dm[[j]], type = "h", lwd = 3, col = color[j], bty = "n", ylim = c(0, 0.3),
+       xlab = "dwell time", ylab = "probability", main = paste("state", j))
+  points(r, dpois(r - 1, lambda[j]), pch = 20) # true distribution
+}
+```
+
+![](HSMMs_files/figure-html/dwell-1.png)
+
+The model object can be used as for HMMs: `viterbi(mod)` and
+`stateprobs(mod)` decode the states (computed on the approximating
+chain, but returned for the N states of the HSMM),
+`plot(mod, type = "statedens")` shows the state-dependent distributions,
+`plot(mod)` the pseudo-residuals, and `simulate(mod)` simulates states
+and observations. The latter simulates the approximating chain: as `dm`
+is only given up to the aggregate sizes, LaMa cannot determine the
+dwell-time distributions beyond them, where the chain has a geometric
+tail, and a message says so if more than 1% of a dwell-time distribution
+lies there.
+
+``` r
+
+states = viterbi(mod)
+mean(states == C) # proportion of correctly decoded states
+#> [1] 0.9602649
 ```
 
 ## Real-data application
 
-We now want to briefly show the analysis of a real data set using hidden
-semi-Markov models. For this purpose we use the movement track of an
-Arctic muskox contained in the `R` package `PHSMM`. Originally these
-data were collected by Beumer et al.
-([2020](#ref-beumer2020application)) and have already been analysed by
-Pohle et al. ([2022](#ref-pohle2022flexible)).
+We now analyse the movement track of an Arctic muskox contained in the
+`R` package `PHSMM`, with hourly step lengths. These data were collected
+by Beumer et al. ([2020](#ref-beumer2020application)) and have already
+been analysed by Pohle et al. ([2022](#ref-pohle2022flexible)).
 
 ``` r
 
 library(PHSMM)
-data = muskox[1:1000, ] # only using first 1000 observations for speed
-head(data)
+head(muskox)
 #>                      date tday        x       y       step
 #> 88273 2013-10-11 22:00:00   15 513299.2 8264867  17.998874
 #> 88274 2013-10-11 22:00:00   16 513283.4 8264875   8.214733
@@ -205,98 +260,209 @@ head(data)
 #> 88278 2013-10-11 22:00:00   20 513386.7 8265629  10.797127
 ```
 
-As these data have already been preprocessed, we can immediately write
-the negative log-likelihood function. When modeling the dwell-time
-distribution of real processes, it is typically advisable to use a more
-flexible distribution than the shifted Poisson distribution, as the
-latter cannot account for overdispersion. Here, we will employ the
-shifted negative binomial distribution that yields the Poisson
-distribution as a special case for the dispersion parameter equal to
-zero. The state-dependent step lengths are modelled by gamma
-distributions, where we reparametrise the gamma distribution in terms of
-its mean and standard deviation as opposed to shape and scale for better
-interpretability using
+When modelling the dwell times of real processes, a more flexible family
+than the shifted Poisson distribution is often advisable, as the latter
+cannot account for overdispersion. Here, we use the shifted negative
+binomial distribution with mean 1 + \mu_i and size \kappa_i, which
+yields the shifted Poisson distribution for \kappa_i \to \infty. The
+step lengths are modelled by gamma distributions in terms of their means
+and standard deviations, using
 [`dgamma2()`](https://janolefi.github.io/LaMa/reference/gamma2.md).
 
 ``` r
 
-nll_muskox = function(par, step, N, agsizes){
-  # parameter transformation from working to natural
-  mu = exp(par[1:N]) # step mean
-  sigma = exp(par[N+1:N]) # step standard deviation
-  mu_dwell = exp(par[2*N+1:N]) # dwell time mean
-  phi = exp(par[3*N+1:N]) # dwell time dispersion
-  omega = if(N==2) tpm_emb() else tpm_emb(par[4*N+1:(N*(N-2))])
-  dm = list() # list of dwell-time distributions
-  for(j in 1:N){ 
-    dm[[j]] = dnbinom(1:agsizes[j]-1, mu=mu_dwell[j], size=1/phi[j]) 
+nll_muskox = function(par) {
+  getAll(par, dat)
+  mu = exp(log_mu); REPORT(mu)          # step mean
+  sigma = exp(log_sigma); REPORT(sigma) # step standard deviation
+  mu_dwell = exp(log_mu_dwell); REPORT(mu_dwell) # dwell time mean (minus one)
+  size = exp(log_size); REPORT(size)             # dwell time size
+  omega = tpm_switch(eta)
+  dm = list()
+  for(j in 1:3){
+    dm[[j]] = dnbinom(0:(Ni[j] - 1), size = size[j], prob = size[j] / (size[j] + mu_dwell[j]))
   }
-  Gamma = tpm_hsmm(omega, dm, sparse = FALSE)
-  delta = stationary(Gamma)
-  allprobs = matrix(1, length(step), N)
-  ind = which(!is.na(step))
-  for(j in 1:N) allprobs[ind,j] = dgamma2(step[ind], mu[j], sigma[j])
-  -forward_s(delta, Gamma, allprobs, agsizes)
+  allprobs = statedens(step, dgamma2, mu, sigma)
+  -forward_hsmm(dm, omega, allprobs)
 }
 ```
 
-### Fitting an HSMM (as an approximating HMM) to the muskox data
-
 ``` r
 
-# intial values
-par = c(log(c(4, 50, 300, 4, 50, 300)), # state-dependent mean and sd
-               log(c(3,3,5)), # dwell time means
-               log(c(0.01, 0.01, 0.01)), # dwell time dispersion
-               rep(0, 3)) # omega
+par = list(log_mu = log(c(4, 50, 300)),    # step mean
+           log_sigma = log(c(4, 50, 300)), # step standard deviation
+           log_mu_dwell = log(c(2, 2, 4)), # dwell time mean (minus one)
+           log_size = log(c(3, 3, 3)),     # dwell time size
+           eta = rep(0, 3))                # omega
 
-agsizes = c(11,11,14)
+dat = list(step = muskox$step, Ni = c(20, 20, 30))
 
-system.time(
-  mod_muskox <- nlm(nll_muskox, par, step = data$step, N = 3,
-                    agsizes = agsizes, iterlim = 500)
-)
+obj_muskox = MakeADFun(nll_muskox, par, silent = TRUE)
+system.time(opt_muskox <- nlminb(obj_muskox$par, obj_muskox$fn, obj_muskox$gr))
 #>    user  system elapsed 
-#>   2.815   0.007   2.821
+#>   2.444   0.000   2.445
+
+mod_muskox = lama(obj_muskox)
+summary(mod_muskox)
+#> Latent semi-Markov model with 3 states (discrete time, homogeneous)
+#> 6713 observations (112 missing), 15 parameters
+#> 
+#> Conditional transition probabilities, given that the state is left:
+#>        S1     S2     S3
+#> S1 0.0000 0.8440 0.1560
+#> S2 0.8938 0.0000 0.1062
+#> S3 0.4879 0.5121 0.0000
+#> 
+#> Stationary distribution:
+#>     S1     S2     S3 
+#> 0.3816 0.4665 0.1518 
+#> 
+#> Mean dwell times:
+#>    S1    S2    S3 
+#> 3.583 4.483 5.489 
+#> 
+#> Reported quantities:
+#>             S1     S2      S3
+#> mu       4.694 81.434 395.162
+#> sigma    3.285 72.019 390.631
+#> mu_dwell 2.583  3.483   4.489
+#> size     1.452  9.419   1.978
+#> 
+#> Log-likelihood: -33190.67   AIC: 66411.33   BIC: 66513.51
+#> Maximum gradient component: 0.07
 ```
 
-### Results
-
-We retransform the parameters for interpretation
+The sizes of states 1 and 3 are small, so their dwell times are clearly
+overdispersed compared with a shifted Poisson distribution. The
+state-dependent distributions, weighted by the local state
+probabilities, and the pseudo-residuals look as follows:
 
 ``` r
 
-par = mod_muskox$estimate; N = 3
-(mu = exp(par[1:N])) # step mean
-#> [1]   4.408162  55.517717 306.514567
-(sigma = exp(par[N+1:N])) # step standard deviation
-#> [1]   3.148184  50.339179 331.548177
-(mu_dwell = exp(par[2*N+1:N])) # dwell time mean
-#> [1] 2.545003 2.660352 5.541728
-(phi = exp(par[3*N+1:N])) # dwell time dispersion
-#> [1] 5.521832e-05 3.750521e-02 5.323967e-09
-(omega = tpm_emb(par[4*N+1:(N*(N-2))])) # embedded t.p.m.
-#>           S1        S2           S3
-#> S1 0.0000000 0.6865985 3.134015e-01
-#> S2 0.9999999 0.0000000 5.792850e-08
-#> S3 0.8210746 0.1789254 0.000000e+00
+plot(mod_muskox, type = "statedens", breaks = 300, xlim = c(0, 600), ylim = c(0, 0.012),
+     xlab = "step length")
 ```
 
-In this case the Poisson distribution would have been sufficiently
-flexible as all dispersion parameters were estimated very close to zero.
-We can easily visualise the estimated state-specific dwell-time
-distributions:
+![](HSMMs_files/figure-html/muskox_statedens-1.png)
 
 ``` r
 
-for(j in 1:N){
-  plot(1:agsizes[j], dnbinom(1:agsizes[j]-1, mu=mu_dwell[j], size = 1/phi[j]),
-       type = "h", lwd = 2, col = color[j], xlab = "dwell time (hours)",
-       ylab = "probabilities", main = paste("state",j), bty = "n", ylim = c(0,0.25))
+plot(mod_muskox)
+```
+
+![](HSMMs_files/figure-html/muskox_pres-1.png)
+
+The residuals fit the normal distribution well, but their
+autocorrelation rises again at lags around 24 hours, which points to a
+daily rhythm that the model does not capture.
+
+### Dwell times depending on the time of day
+
+Muskoxen follow a daily rhythm, so it is natural to let the dwell-time
+distributions depend on the time of day. In such an inhomogeneous HSMM,
+the distribution of a stay depends on the time at which it begins
+([Koslik 2025](#ref-koslik2025hidden)). With `tod`, a vector of the time
+of day 1, \dots, 24 of each observation, each element of `dm` becomes a
+matrix with one row per time of day, whose row s is the dwell-time
+distribution of a stay that begins at time of day s. We keep the shifted
+negative binomial distributions, but let their log-means be
+trigonometric functions of the time of day, with the design matrix from
+[`cosinor()`](https://janolefi.github.io/LaMa/reference/cosinor.md).
+
+``` r
+
+nll_periodic = function(par) {
+  getAll(par, dat)
+  mu = exp(log_mu); REPORT(mu)
+  sigma = exp(log_sigma); REPORT(sigma)
+  Mu_dwell = exp(Z %*% t(beta)); REPORT(Mu_dwell) # 24 x 3 dwell time means (minus one)
+  size = exp(log_size); REPORT(size)
+  omega = tpm_switch(eta)
+  dm = list()
+  for(j in 1:3){
+    prob = size[j] / (size[j] + Mu_dwell[, j]) # one for each time of day
+    # one row per time of day
+    dm[[j]] = t(sapply(1:24, function(s) dnbinom(0:(Ni[j] - 1), size = size[j], prob = prob[s])))
+  }
+  allprobs = statedens(step, dgamma2, mu, sigma)
+  -forward_hsmm(dm, omega, allprobs, tod = tod)
 }
+
+par = list(log_mu = log(c(4, 50, 300)), log_sigma = log(c(4, 50, 300)),
+           beta = cbind(log(c(2, 2, 4)), 0, 0), # intercept, sine and cosine
+           log_size = log(c(3, 3, 3)),
+           eta = rep(0, 3))
+
+dat = list(step = muskox$step, Ni = c(20, 20, 30),
+           tod = muskox$tday + 1,                # 1, ..., 24
+           Z = cbind(1, cosinor(1:24, period = 24)))
+
+obj_periodic = MakeADFun(nll_periodic, par, silent = TRUE)
+system.time(opt_periodic <- nlminb(obj_periodic$par, obj_periodic$fn, obj_periodic$gr))
+#>    user  system elapsed 
+#>   3.718   0.000   3.718
+
+mod_periodic = lama(obj_periodic)
+c(AIC(mod_muskox), AIC(mod_periodic))
+#> [1] 66411.33 66337.85
 ```
 
-![](HSMMs_files/figure-html/dwell_muskox-1.png)![](HSMMs_files/figure-html/dwell_muskox-2.png)![](HSMMs_files/figure-html/dwell_muskox-3.png)
+The periodic model is clearly preferred by the AIC. Larger aggregates,
+e.g. `Ni = c(30, 30, 40)`, change its log-likelihood by less than one,
+so the aggregate sizes are sufficient. Its summary shows the long-run
+proportion of time in each state, and we can plot the mean dwell times
+of stays beginning at each time of day:
+
+``` r
+
+summary(mod_periodic)
+#> Latent semi-Markov model with 3 states (discrete time, periodic)
+#> 6713 observations (112 missing), 21 parameters
+#> 
+#> Long-run proportion of time in each state (stationary distribution averaged over the cycle):
+#>     S1     S2     S3 
+#> 0.3773 0.4657 0.1570 
+#> 
+#> Reported quantities:
+#>          S1    S2      S3
+#> mu    4.711 82.61 382.444
+#> sigma 3.304 73.62 401.014
+#> size  1.746 23.06   1.657
+#> Not shown: Mu_dwell [24 x 3]
+#> 
+#> Log-likelihood: -33147.92   AIC: 66337.85   BIC: 66480.90
+#> Maximum gradient component: 0.00641
+
+mean_dwell = 1 + mod_periodic$Mu_dwell # 24 x 3
+plot(1:24, mean_dwell[, 1], type = "o", pch = 19, lwd = 2, col = color[1], bty = "n",
+     ylim = c(0, max(mean_dwell)),
+     xlab = "time of day at the beginning of the stay", ylab = "mean dwell time (hours)")
+for(j in 2:3) lines(1:24, mean_dwell[, j], type = "o", pch = 19, lwd = 2, col = color[j])
+legend("topright", col = color, lwd = 2, pch = 19, legend = paste("state", 1:3), bty = "n")
+```
+
+![](HSMMs_files/figure-html/muskox_dwell-1.png)
+
+## Further options
+
+[`forward_hsmm()`](https://janolefi.github.io/LaMa/reference/forward_hsmm.md)
+covers more general models with the same arguments:
+
+- **several tracks**: `trackID`, as for
+  [`forward()`](https://janolefi.github.io/LaMa/reference/forward.md),
+  with `dm` (matrices with one row per track) and `omega` (array with
+  one slice per track) optionally differing between tracks,
+- **dwell times depending on arbitrary covariates**: each element of
+  `dm` a matrix with one row per observation, row t for a stay that
+  begins at time t. The dwell time of the earliest stays depends on the
+  dwell-time distributions before the first observation, so by default
+  the first \max(N_i) - 1 observations of each track only serve to start
+  the forward algorithm (see the argument `first_obs`),
+- **conditional transition probabilities depending on covariates**:
+  `tpm_switch(beta, Z)` returns an array with one matrix per row of the
+  design matrix `Z`, as
+  [`tpm()`](https://janolefi.github.io/LaMa/reference/tpm.md) does for
+  HMMs.
 
 ## References
 
@@ -304,6 +470,10 @@ Beumer, Larissa T, Jennifer Pohle, Niels M Schmidt, et al. 2020. “An
 Application of Upscaled Optimal Foraging Theory Using Hidden Markov
 Modelling: Year-Round Behavioural Variation in a Large Arctic
 Herbivore.” *Movement Ecology* 8: 1–16.
+
+Koslik, Jan-Ole. 2025. “Hidden Semi-Markov Models with Inhomogeneous
+State Dwell-Time Distributions.” *Computational Statistics & Data
+Analysis* 209: 108171.
 
 Langrock, Roland, and Walter Zucchini. 2011. “Hidden Markov Models with
 Arbitrary State Dwell-Time Distributions.” *Computational Statistics &

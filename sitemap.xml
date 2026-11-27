@@ -29,8 +29,6 @@
 <url><loc>https://janolefi.github.io/LaMa/reference/forward_ihsmm.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/forward_p.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/forward_phsmm.html</loc></url>
-<url><loc>https://janolefi.github.io/LaMa/reference/forward_s.html</loc></url>
-<url><loc>https://janolefi.github.io/LaMa/reference/forward_sp.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/gamma2.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/gdeterminant.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/generator.html</loc></url>
@@ -86,11 +84,10 @@
 <url><loc>https://janolefi.github.io/LaMa/reference/tpm_g.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/tpm_g2.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/tpm_hsmm.html</loc></url>
-<url><loc>https://janolefi.github.io/LaMa/reference/tpm_hsmm2.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/tpm_ihsmm.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/tpm_p.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/tpm_phsmm.html</loc></url>
-<url><loc>https://janolefi.github.io/LaMa/reference/tpm_phsmm2.html</loc></url>
+<url><loc>https://janolefi.github.io/LaMa/reference/tpm_switch.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/tpm_thinned.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/trex.html</loc></url>
 <url><loc>https://janolefi.github.io/LaMa/reference/trigBasisExp.html</loc></url>

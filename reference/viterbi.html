@@ -101,6 +101,14 @@ and the object returned by <code>obj$report()</code>, <code><a href="lama.html">
     <p>vector of decoded states of length <code>nObs</code></p>
     </div>
     <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>For hidden semi-Markov models fitted with <code><a href="forward_hsmm.html">forward_hsmm</a></code>, pass the model object as <code>mod</code>.
+The most probable path is then found on the approximating Markov chain, without building its transition matrices,
+and its states 1, ..., N are returned. Observations before <code>first_obs</code> are not used and get <code>NA</code>.
+With a stationary initial distribution, the time already spent in the first stay is part of the path,
+so the result can, in rare cases, differ from the most probable sequence of the N states.</p>
+    </div>
+    <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p>Other decoding functions:
 <code><a href="stateprobs.html">stateprobs()</a></code>,

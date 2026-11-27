@@ -101,11 +101,10 @@ Other transition probability matrix functions:
 [`generator_g()`](https://janolefi.github.io/LaMa/reference/generator_g.md),
 [`tpm()`](https://janolefi.github.io/LaMa/reference/tpm.md),
 [`tpm_ct()`](https://janolefi.github.io/LaMa/reference/tpm_ct.md),
-[`tpm_emb()`](https://janolefi.github.io/LaMa/reference/tpm_emb.md),
-[`tpm_emb_g()`](https://janolefi.github.io/LaMa/reference/tpm_emb_g.md),
 [`tpm_g()`](https://janolefi.github.io/LaMa/reference/tpm_g.md),
 [`tpm_g2()`](https://janolefi.github.io/LaMa/reference/tpm_g2.md),
-[`tpm_p()`](https://janolefi.github.io/LaMa/reference/tpm_p.md)
+[`tpm_p()`](https://janolefi.github.io/LaMa/reference/tpm_p.md),
+[`tpm_switch()`](https://janolefi.github.io/LaMa/reference/tpm_switch.md)
 
 ## Examples
 

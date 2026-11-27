@@ -1,8 +1,9 @@
 # Sparse version of [`stationary_p`](https://janolefi.github.io/LaMa/reference/stationary_p.md)
 
-This function computes the periodically stationary distribution of a
-Markov chain given a list of L **sparse** transition probability
-matrices. Compatible with automatic differentiation by `RTMB`
+**Deprecated:** please use
+[`stationary_p`](https://janolefi.github.io/LaMa/reference/stationary_p.md)
+with an array of transition probability matrices instead, which gives
+the same result.
 
 ## Usage
 
@@ -32,23 +33,9 @@ periodically stationary distributions.
 ## Examples
 
 ``` r
-## periodic HSMM example (here the approximating tpm is sparse)
-N = 2 # number of states
-L = 24 # cycle length
-# time-varying mean dwell times
-Z = cosinor(1:L, period = L) # trigonometric basis functions design matrix
-beta = matrix(c(2, 2, 0.1, -0.1, -0.2, 0.2), nrow = 2)
-Lambda = exp(cbind(1, Z) %*% t(beta))
-sizes = c(20, 20) # approximating chain with 40 states
-# state dwell-time distributions
-dm = lapply(1:N, function(i) sapply(1:sizes[i]-1, dpois, lambda = Lambda[,i]))
-omega = matrix(c(0,1,1,0), nrow = N, byrow = TRUE) # embedded t.p.m.
-
-# calculating extended-state-space t.p.m.s
-Gamma = tpm_phsmm(omega, dm)
-# Periodically stationary distribution for specific time point
-delta = stationary_p_sparse(Gamma, 4)
-
-# All periodically stationary distributions
+Lambda = exp(cbind(2, 0.3 * sin(2 * pi * 1:24 / 24)))
+dm = lapply(1:2, function(i) sapply(0:19, dpois, lambda = Lambda[, i]))
+Gamma = tpm_phsmm(tpm_switch(), dm)
 Delta = stationary_p_sparse(Gamma)
+#> stationary_p_sparse() is deprecated, please use stationary_p() with an array of transition probability matrices instead.
 ```

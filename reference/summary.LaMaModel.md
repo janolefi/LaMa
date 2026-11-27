@@ -17,6 +17,14 @@ contains
   over the cycle, i.e. the long-run proportion of time spent in each
   state,
 
+- for hidden semi-Markov models from
+  [`forward_hsmm`](https://janolefi.github.io/LaMa/reference/forward_hsmm.md),
+  in place of the transition probability matrix: the conditional
+  transition probabilities `omega`, and the stationary distribution and
+  mean dwell times of the approximating Markov chain (beyond the
+  aggregate size, the dwell times have a geometric tail), or for a
+  periodic model the stationary distribution averaged over the cycle,
+
 - the quantities reported by the likelihood function via
   [`REPORT()`](https://rdrr.io/pkg/RTMB/man/TMB-interface.html): numeric
   vectors of length equal to the number of states are shown as one table
@@ -58,5 +66,5 @@ print(x, digits = max(3, getOption("digits") - 3), ...)
 
 [`summary()`](https://rdrr.io/r/base/summary.html) returns an object of
 class `"summary.LaMaModel"`, a list containing the quantities shown,
-e.g. `Gamma`, `stationary`, `dwell` and `bystate`.
+e.g. `Gamma` (or `omega`), `stationary`, `dwell` and `bystate`.
 [`print()`](https://rdrr.io/r/base/print.html) returns `x` invisibly.

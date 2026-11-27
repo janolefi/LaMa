@@ -1,21 +1,8 @@
 # Build all embedded transition probability matrices of an inhomogeneous HSMM
 
-Hidden semi-Markov models are defined in terms of state durations and an
-**embedded** transition probability matrix that contains the conditional
-transition probabilities given that the **current state is left**. This
-matrix necessarily has diagonal entries all equal to zero as
-self-transitions are impossible. We can allow this matrix to vary with
-covariates, which is the purpose of this function.
-
-It builds all embedded/ conditional transition probability matrices
-based on a design and parameter matrix. For each row of the matrix, the
-inverse multinomial logistic link is applied.
-
-For a matrix of dimension `c(nStates, nStates)`, the number of free
-off-diagonal elements is `nStates * (nStates-2)` which determines the
-number of rows of the parameter matrix.
-
-Compatible with automatic differentiation by `RTMB`
+**Deprecated:** please use
+[`tpm_switch`](https://janolefi.github.io/LaMa/reference/tpm_switch.md)
+with argument `Z` instead, i.e. `tpm_switch(beta, Z)`.
 
 ## Usage
 
@@ -30,17 +17,10 @@ tpm_emb_g(Z, beta, report = TRUE)
   covariate design matrix with or without intercept column, i.e. of
   dimension `c(nObs, p)` or `c(nObs, p+1)`
 
-  If `Z` has only `p` columns, an intercept column of ones will be added
-  automatically.
-
 - beta:
 
-  matrix of coefficients for the off-diagonal elements of the embedded
-  transition probability matrix
-
-  Needs to be of dimension `c(nStates * (nStates-2), p+1)`, where the
-  first column contains the intercepts. `p` can be 0, in which case the
-  model is homogeneous.
+  matrix of coefficients of dimension `c(nStates * (nStates-2), p+1)`,
+  with the intercepts in the first column
 
 - report:
 
@@ -52,27 +32,10 @@ tpm_emb_g(Z, beta, report = TRUE)
 array of embedded/ conditional transition probability matrices of
 dimension `c(nStates, nStates, nObs)`
 
-## See also
-
-Other transition probability matrix functions:
-[`generator()`](https://janolefi.github.io/LaMa/reference/generator.md),
-[`generator_g()`](https://janolefi.github.io/LaMa/reference/generator_g.md),
-[`tpm()`](https://janolefi.github.io/LaMa/reference/tpm.md),
-[`tpm_ct()`](https://janolefi.github.io/LaMa/reference/tpm_ct.md),
-[`tpm_emb()`](https://janolefi.github.io/LaMa/reference/tpm_emb.md),
-[`tpm_g()`](https://janolefi.github.io/LaMa/reference/tpm_g.md),
-[`tpm_g2()`](https://janolefi.github.io/LaMa/reference/tpm_g2.md),
-[`tpm_p()`](https://janolefi.github.io/LaMa/reference/tpm_p.md)
-
 ## Examples
 
 ``` r
-## parameter matrix for 3-state HSMM
 beta = matrix(c(rep(0, 3), -0.2, 0.2, 0.1), nrow = 3)
-# no intercept
-Z = rnorm(100)
-omega = tpm_emb_g(Z, beta)
-# intercept
-Z = cbind(1, Z)
-omega = tpm_emb_g(Z, beta)
+omega = tpm_emb_g(cbind(1, rnorm(100)), beta)
+#> tpm_emb_g() is deprecated, please use tpm_switch(beta, Z) instead.
 ```

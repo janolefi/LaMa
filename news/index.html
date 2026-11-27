@@ -49,6 +49,42 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="3.2.0" id="lama-320">LaMa 3.2.0<a class="anchor" aria-label="anchor" href="#lama-320"></a></h2>
+<div class="section level3">
+<h3 id="hidden-semi-markov-models-3-2-0">Hidden semi-Markov models<a class="anchor" aria-label="anchor" href="#hidden-semi-markov-models-3-2-0"></a></h3>
+<ul><li>
+<code><a href="../reference/forward_hsmm.html">forward_hsmm()</a></code> now covers all hidden semi-Markov models: dwell-time distributions <code>dm</code> and conditional transition probabilities <code>omega</code> that are fixed, track-specific (with <code>trackID</code>), varying over time (one row of <code>dm</code> or slice of <code>omega</code> per observation), or periodic (with <code>tod</code>). It never builds the transition matrices of the approximating Markov chain, but moves the probability mass of each aggregate directly; without AD, e.g. in <code>obj$report()</code> and <code><a href="../reference/lama.html">lama()</a></code>, it runs in C++</li>
+<li>
+<code><a href="../reference/forward_hsmm.html">forward_hsmm()</a></code>: a stay that begins at time <code>t</code> (or time of day <code>t</code>) has the dwell-time distribution in row <code>t</code> of <code>dm</code> and the conditional transition probabilities <code>omega[, , t]</code>
+</li>
+<li>
+<code><a href="../reference/forward_hsmm.html">forward_hsmm()</a></code> has the new arguments <code>first_obs</code>, the first observation used in each track (by default 1, or <code>max(Ni)</code> for <code>dm</code> varying over time, as their stays need dwell-time distributions from before the first observation), <code>use_all_obs</code> to start at the first observation anyway, given an initial distribution <code>delta</code>, and <code>logspace</code> for log-densities in <code>allprobs</code>
+</li>
+<li>
+<code><a href="../reference/forward_ihsmm.html">forward_ihsmm()</a></code> and <code><a href="../reference/forward_phsmm.html">forward_phsmm()</a></code> are deprecated, as <code><a href="../reference/forward_hsmm.html">forward_hsmm()</a></code> covers their models. They still give the same results, with <code>omega[, , t]</code> for the step out of <code>t</code>
+</li>
+<li>the number of observations of HSMMs with <code>dm</code> varying over time (<code><a href="https://rdrr.io/r/stats/nobs.html" class="external-link">nobs()</a></code>, used by <code><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">BIC()</a></code>) no longer counts the observations before <code>first_obs</code>, which do not enter the likelihood</li>
+<li>
+<code>viterbi(mod)</code> and <code>stateprobs(mod)</code> work for HSMMs fitted with <code><a href="../reference/forward_hsmm.html">forward_hsmm()</a></code>, computed on the approximating chain without building its transition matrices and returned for the N states of the HSMM, with <code>NA</code> for the observations before <code>first_obs</code>
+</li>
+<li>
+<code>pseudo_res(mod)</code>, <code><a href="../reference/scores.html">scores()</a></code>, <code>vcov(mod, type = )</code>, <code><a href="../reference/TIC.html">TIC()</a></code>, <code>plot(mod, type = "statedens")</code> and <code><a href="../reference/statedens.html">statedens()</a></code> work for HSMMs, <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> shows <code>omega</code>, the stationary distribution and the mean dwell times (or, for periodic models, the long-run proportion of time in each state)</li>
+<li>
+<code>simulate(mod)</code> and <code>simulate(mod, random = TRUE)</code> work for HSMMs: they simulate the approximating chain, whose likelihood is the one maximised. As <code>dm</code> is only given up to the aggregate sizes, the dwell times have a geometric tail beyond them, so a message says that the simulated dwell times are approximate if more than 1% of a dwell-time distribution lies beyond its aggregate size</li>
+<li>
+<code>tpm_switch(beta, Z = NULL, byrow = FALSE)</code> builds <code>omega</code> from unconstrained parameters, with one matrix per row of a design matrix <code>Z</code>, as <code><a href="../reference/tpm.html">tpm()</a></code> does for HMMs. It replaces <code><a href="../reference/tpm_emb.html">tpm_emb()</a></code> and <code><a href="../reference/tpm_emb_g.html">tpm_emb_g()</a></code>, which are deprecated; <code>tpm_switch(beta)</code> gives the same matrix as <code>tpm_emb(beta)</code>, and with <code>Z</code> it is much faster than <code><a href="../reference/tpm_emb_g.html">tpm_emb_g()</a></code> (8 to 11 times when taping, about 1000 times without AD)</li>
+<li>
+<code><a href="../reference/stationary_sparse.html">stationary_sparse()</a></code> and <code><a href="../reference/stationary_p_sparse.html">stationary_p_sparse()</a></code> are deprecated, please use <code><a href="../reference/stationary.html">stationary()</a></code> and <code><a href="../reference/stationary_p.html">stationary_p()</a></code>
+</li>
+<li>
+<code>forward_s()</code>, <code>forward_sp()</code>, <code>tpm_hsmm2()</code> and <code>tpm_phsmm2()</code> are removed, after being deprecated</li>
+<li>HSMM fixes: several tracks with a stationary initial distribution under AD, as many tracks as states, tracks of length one, an estimated <code>delta</code>, <code><a href="../reference/forward_ihsmm.html">forward_ihsmm()</a></code> with fixed <code>dm</code> and given <code>delta</code>, <code><a href="../reference/forward_phsmm.html">forward_phsmm()</a></code> with fixed <code>dm</code> and periodic <code>omega</code>, or a <code>tod</code> that does not cover the whole cycle, and <code><a href="../reference/tpm_ihsmm.html">tpm_ihsmm()</a></code> with aggregates of size one used to fail or return <code>NA</code>
+</li>
+<li>
+<code>omega</code> with non-zero diagonal entries now gives an error instead of a wrong likelihood, and with periodic <code>dm</code>, <code>tod</code> must advance by one in each row within a track, as dwell times count rows</li>
+<li>the HSMM vignette uses <code>RTMB</code>, with a periodic model for the muskox data</li>
+</ul></div>
+<div class="section level3">
+<h3 id="other-changes-3-2-0">Other changes<a class="anchor" aria-label="anchor" href="#other-changes-3-2-0"></a></h3>
 <ul><li>
 <code>vcov(mod, type = )</code> gives robust covariances that remain valid if the model is misspecified: <code>"sandwich"</code> with the outer product of the scores, <code>"HAC"</code> (heteroskedasticity and autocorrelation consistent) for serially dependent scores within tracks, and <code>"cluster"</code> for independent tracks or groups of tracks</li>
 <li>
@@ -58,7 +94,10 @@
 <li>
 <code><a href="../reference/TIC.html">TIC()</a></code> gives the Takeuchi information criterion, whose penalty, the effective number of parameters <code>tr(J H^{-1})</code>, uses the HAC covariance by default; several models are compared as with <code><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC()</a></code>
 </li>
+<li>
+<code>pseudo_res(mod)</code>: each density keeps its own family. Before, all data streams got the family of the last density found in the likelihood function, so that a continuous stream got discrete residuals if a discrete density was also used</li>
 </ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="3.1.0" id="lama-310">LaMa 3.1.0<a class="anchor" aria-label="anchor" href="#lama-310"></a></h2><p class="text-muted">CRAN release: 2026-11-09</p>
 <ul><li>
@@ -124,7 +163,7 @@
 <h3 id="changes-3-0-0">Changes<a class="anchor" aria-label="anchor" href="#changes-3-0-0"></a></h3>
 <ul><li><p><code><a href="../reference/modmat.html">make_matrices()</a></code> is renamed to <code><a href="../reference/modmat.html">modmat()</a></code>; <code><a href="../reference/modmat.html">make_matrices()</a></code> still works</p></li>
 <li><p><code><a href="../reference/lama.html">report()</a></code> is renamed to <code><a href="../reference/lama.html">lama()</a></code>, as it does much more than calling <code>obj$report()</code>; <code><a href="../reference/lama.html">report()</a></code> still works but is deprecated</p></li>
-<li><p>old functions still work but are deprecated, with a message pointing to the new implementation: <code><a href="../reference/forward_s.html">forward_s()</a></code> and <code><a href="../reference/forward_sp.html">forward_sp()</a></code> (use <code><a href="../reference/forward_hsmm.html">forward_hsmm()</a></code> and <code><a href="../reference/forward_phsmm.html">forward_phsmm()</a></code>), <code><a href="../reference/tpm_hsmm2.html">tpm_hsmm2()</a></code> and <code><a href="../reference/tpm_phsmm2.html">tpm_phsmm2()</a></code> (use <code><a href="../reference/tpm_hsmm.html">tpm_hsmm()</a></code> and <code><a href="../reference/tpm_phsmm.html">tpm_phsmm()</a></code>), <code><a href="../reference/tpm_g2.html">tpm_g2()</a></code> (use <code><a href="../reference/tpm.html">tpm()</a></code>), <code><a href="../reference/qreml_old.html">qreml_old()</a></code> (use <code><a href="../reference/qreml.html">qreml()</a></code>), <code><a href="../reference/stationary_ct.html">stationary_cont()</a></code> and <code><a href="../reference/tpm_ct.html">tpm_cont()</a></code> (use <code><a href="../reference/stationary_ct.html">stationary_ct()</a></code> and <code><a href="../reference/tpm_ct.html">tpm_ct()</a></code>)</p></li>
+<li><p>old functions still work but are deprecated, with a message pointing to the new implementation: <code>forward_s()</code> and <code>forward_sp()</code> (use <code><a href="../reference/forward_hsmm.html">forward_hsmm()</a></code> and <code><a href="../reference/forward_phsmm.html">forward_phsmm()</a></code>), <code>tpm_hsmm2()</code> and <code>tpm_phsmm2()</code> (use <code><a href="../reference/tpm_hsmm.html">tpm_hsmm()</a></code> and <code><a href="../reference/tpm_phsmm.html">tpm_phsmm()</a></code>), <code><a href="../reference/tpm_g2.html">tpm_g2()</a></code> (use <code><a href="../reference/tpm.html">tpm()</a></code>), <code><a href="../reference/qreml_old.html">qreml_old()</a></code> (use <code><a href="../reference/qreml.html">qreml()</a></code>), <code><a href="../reference/stationary_ct.html">stationary_cont()</a></code> and <code><a href="../reference/tpm_ct.html">tpm_cont()</a></code> (use <code><a href="../reference/stationary_ct.html">stationary_ct()</a></code> and <code><a href="../reference/tpm_ct.html">tpm_ct()</a></code>)</p></li>
 <li><p>deprecation messages are shown once per session, not at every call</p></li>
 <li><p><code><a href="../reference/lama.html">lama()</a></code>: the log-likelihood is called <code>llk</code> (before <code>ll</code>), as for <code><a href="../reference/qreml.html">qreml()</a></code></p></li>
 <li><p><code><a href="../reference/lama.html">lama()</a></code> and <code><a href="../reference/qreml.html">qreml()</a></code>: <code>nobs</code> does not count missing observations (rows of <code>allprobs</code> that are all 1), which changes BIC for data with missing observations</p></li>

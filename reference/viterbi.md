@@ -70,6 +70,18 @@ viterbi(delta, Gamma, allprobs, trackID = NULL, mod = NULL, tod = NULL)
 
 vector of decoded states of length `nObs`
 
+## Details
+
+For hidden semi-Markov models fitted with
+[`forward_hsmm`](https://janolefi.github.io/LaMa/reference/forward_hsmm.md),
+pass the model object as `mod`. The most probable path is then found on
+the approximating Markov chain, without building its transition
+matrices, and its states 1, ..., N are returned. Observations before
+`first_obs` are not used and get `NA`. With a stationary initial
+distribution, the time already spent in the first stay is part of the
+path, so the result can, in rare cases, differ from the most probable
+sequence of the N states.
+
 ## See also
 
 Other decoding functions:

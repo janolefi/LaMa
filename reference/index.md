@@ -41,7 +41,7 @@
 
   [Forward
   algorithm](https://www.taylorfrancis.com/books/mono/10.1201/b20790/hidden-markov-models-time-series-walter-zucchini-iain-macdonald-roland-langrock)
-  for homogeneous hidden semi-Markov models
+  for hidden semi-Markov models
 
 - [`forward_ihsmm()`](https://janolefi.github.io/LaMa/reference/forward_ihsmm.md)
   :
@@ -65,22 +65,6 @@
   algorithm](https://www.taylorfrancis.com/books/mono/10.1201/b20790/hidden-markov-models-time-series-walter-zucchini-iain-macdonald-roland-langrock)
   for hidden semi-Markov models with periodically inhomogeneous state
   durations and/ or conditional transition probabilities
-
-- [`forward_s()`](https://janolefi.github.io/LaMa/reference/forward_s.md)
-  :
-
-  [Forward
-  algorithm](https://www.taylorfrancis.com/books/mono/10.1201/b20790/hidden-markov-models-time-series-walter-zucchini-iain-macdonald-roland-langrock)
-  for hidden semi-Markov models with homogeneous transition probability
-  matrix
-
-- [`forward_sp()`](https://janolefi.github.io/LaMa/reference/forward_sp.md)
-  :
-
-  [Forward
-  algorithm](https://www.taylorfrancis.com/books/mono/10.1201/b20790/hidden-markov-models-time-series-walter-zucchini-iain-macdonald-roland-langrock)
-  for hidden semi-Markov models with periodically varying transition
-  probability matrices
 
 - [`dgamma2()`](https://janolefi.github.io/LaMa/reference/gamma2.md)
   [`pgamma2()`](https://janolefi.github.io/LaMa/reference/gamma2.md)
@@ -296,9 +280,6 @@
   : Builds the transition probability matrix of an HSMM-approximating
   HMM
 
-- [`tpm_hsmm2()`](https://janolefi.github.io/LaMa/reference/tpm_hsmm2.md)
-  : Build the transition probability matrix of an HSMM-approximating HMM
-
 - [`tpm_ihsmm()`](https://janolefi.github.io/LaMa/reference/tpm_ihsmm.md)
   : Builds all transition probability matrices of an
   inhomogeneous-HSMM-approximating HMM
@@ -311,9 +292,8 @@
   : Builds all transition probability matrices of a
   periodic-HSMM-approximating HMM
 
-- [`tpm_phsmm2()`](https://janolefi.github.io/LaMa/reference/tpm_phsmm2.md)
-  : Build all transition probability matrices of an
-  periodic-HSMM-approximating HMM
+- [`tpm_switch()`](https://janolefi.github.io/LaMa/reference/tpm_switch.md)
+  : Build the conditional transition probability matrix of an HSMM
 
 - [`tpm_thinned()`](https://janolefi.github.io/LaMa/reference/tpm_thinned.md)
   : Compute the transition probability matrix of a thinned periodically

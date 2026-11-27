@@ -198,9 +198,10 @@ requires \\H - H_k\\ to be positive definite: if leaving out a cluster
 makes it singular or indefinite, an error is issued.
 
 All sandwiches require the likelihood function to call
-[`forward`](https://janolefi.github.io/LaMa/reference/forward.md) once
-(with `trackID` for several tracks) and are not available for models
-with random effects or from
+[`forward`](https://janolefi.github.io/LaMa/reference/forward.md) or
+[`forward_hsmm`](https://janolefi.github.io/LaMa/reference/forward_hsmm.md)
+once (with `trackID` for several tracks) and are not available for
+models with random effects or from
 [`qreml`](https://janolefi.github.io/LaMa/reference/qreml.md).
 
 ## References

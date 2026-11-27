@@ -143,9 +143,16 @@ function are found as well, and
 work like models from
 [`lama`](https://janolefi.github.io/LaMa/reference/lama.md). The
 likelihood function needs to call
-[`forward`](https://janolefi.github.io/LaMa/reference/forward.md) once
-(use `trackID` for several tracks), and it is evaluated with the data as
-they are when `pseudo_res()` is called.
+[`forward`](https://janolefi.github.io/LaMa/reference/forward.md) or
+[`forward_hsmm`](https://janolefi.github.io/LaMa/reference/forward_hsmm.md)
+once (use `trackID` for several tracks), and it is evaluated with the
+data as they are when `pseudo_res()` is called.
+
+For hidden semi-Markov models, observations before `first_obs` are not
+used by
+[`forward_hsmm`](https://janolefi.github.io/LaMa/reference/forward_hsmm.md),
+so their pseudo-residuals are `NA`, with or without the model object
+alone.
 
 ## See also
 

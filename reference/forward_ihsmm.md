@@ -48,10 +48,8 @@ forward_ihsmm(
 
   It contains the transition probabilities given the current state is
   left. Hence, the diagonal elements need to be zero and the rows need
-  to sum to one. Such a matrix can be constructed using
-  [`tpm_emb`](https://janolefi.github.io/LaMa/reference/tpm_emb.md) and
-  an array using
-  [`tpm_emb_g`](https://janolefi.github.io/LaMa/reference/tpm_emb_g.md).
+  to sum to one. Such a matrix or array can be constructed using
+  [`tpm_switch`](https://janolefi.github.io/LaMa/reference/tpm_switch.md).
 
 - allprobs:
 
@@ -119,6 +117,12 @@ probabilities.
 
 This function is designed to be used with automatic differentiation
 based on the `R` package `RTMB`. It will be very slow without it!
+
+**Deprecated:** please use
+[`forward_hsmm`](https://janolefi.github.io/LaMa/reference/forward_hsmm.md)
+for all types of HSMMs instead. There, a stay that begins at `t` is
+governed by `omega[,,t]`, here by `omega[,,t-1]` (`omega[,,t]` is for
+the step from `t` into `t + 1`).
 
 ## References
 

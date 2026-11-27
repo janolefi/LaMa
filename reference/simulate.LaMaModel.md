@@ -88,8 +88,19 @@ The states are drawn as in the decoding functions, so that all types of
 accepts (homogeneous, track-specific, time-varying, periodic) work, as
 does a continuous-time model with one transition matrix per time
 interval (the simulation is then conditional on the observed time
-points). Each data stream is drawn from the random number generator
-belonging to its density, e.g. `rgamma2` for `dgamma2`.
+points).
+
+For hidden semi-Markov models from
+[`forward_hsmm`](https://janolefi.github.io/LaMa/reference/forward_hsmm.md),
+the approximating Markov chain is simulated, whose likelihood is the one
+that was maximised. Its dwell times follow `dm` up to the aggregate
+sizes and have a geometric tail beyond, as `dm` does not determine the
+dwell-time distributions there. If more than 1% of a dwell-time
+distribution lies beyond its aggregate size, a message says that the
+simulated dwell times are approximate and suggests larger aggregates.
+Observations before `first_obs` are not used by the model, so their
+states and data are `NA`. Each data stream is drawn from the random
+number generator belonging to its density, e.g. `rgamma2` for `dgamma2`.
 
 Missing observations of the data stay missing (unless `fill_na = TRUE`),
 except for a stream that is missing completely: such a placeholder (e.g.

@@ -119,6 +119,13 @@ and the object returned by <code>obj$report()</code>, <code><a href="lama.html">
     <p>matrix of conditional state probabilities of dimension <code>c(nObs, nStates)</code></p>
     </div>
     <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>For hidden semi-Markov models fitted with <code><a href="forward_hsmm.html">forward_hsmm</a></code>, pass the model object as <code>mod</code>.
+The probabilities of the N states are then computed on the approximating Markov chain, without building its
+transition matrices, and summed over the states of each aggregate. Observations before <code>first_obs</code> are not used
+and get <code>NA</code>.</p>
+    </div>
+    <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p>Other decoding functions:
 <code><a href="stateprobs_g.html">stateprobs_g()</a></code>,
